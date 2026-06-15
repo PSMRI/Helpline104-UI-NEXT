@@ -1,5 +1,5 @@
 /*
- * AMRIT – Accessible Medical Records via Integrated Technology
+ * AMRIT – Accessible Medical Records via Integrated Technologies
  * Integrated EHR (Electronic Health Records) Solution
  *
  * Copyright (C) "Piramal Swasthya Management and Research Institute"
@@ -21,8 +21,8 @@
  */
 
 // Shared AMRIT development environment.
-// NOTE: API path suffixes follow the AMRIT v1.0 naming convention (as in MMU-UI).
-// Confirm the exact Helpline 104/1097 service paths with the backend team.
+// Host confirmed with mentor. The 104/1097 API path suffixes still follow the
+// AMRIT v1.0 naming convention and remain to be confirmed with the backend team.
 
 const devHost = 'https://amritwprdev.piramalswasthya.org/';
 

@@ -1,5 +1,5 @@
 /*
- * AMRIT – Accessible Medical Records via Integrated Technology
+ * AMRIT – Accessible Medical Records via Integrated Technologies
  * Integrated EHR (Electronic Health Records) Solution
  *
  * Copyright (C) "Piramal Swasthya Management and Research Institute"
@@ -20,21 +20,21 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-// QA / test environment.
-// NOTE: host and API path suffixes are placeholders following the AMRIT v1.0
-// naming convention. Confirm the real test hostnames with the team.
+// UAT (User Acceptance Testing) environment.
+// Host confirmed with mentor. The 104/1097 API path suffixes still follow the
+// AMRIT v1.0 naming convention and remain to be confirmed with the backend team.
 
-const testHost = 'https://amritwprtest.piramalswasthya.org/';
+const uatHost = 'https://uatamrit.piramalswasthya.org/';
 
 const sessionStorageEncKey = '';
-const commonAPI = `${testHost}commonapi-v1.0/`;
-const tmAPI = `${testHost}tmapi-v1.0/`;
-const mmuAPI = `${testHost}mmuapi-v1.0/`;
-const adminAPI = `${testHost}adminapi-v1.0/`;
+const commonAPI = `${uatHost}commonapi-v1.0/`;
+const tmAPI = `${uatHost}tmapi-v1.0/`;
+const mmuAPI = `${uatHost}mmuapi-v1.0/`;
+const adminAPI = `${uatHost}adminapi-v1.0/`;
 const telephoneServer = 'https://uatcz.piramalswasthya.org/';
-const fhirAPI = `${testHost}fhirapi-v1.0/`;
-const API1097 = `${testHost}1097api-v1.0/`;
-const API104 = `${testHost}104api-v1.0/`;
+const fhirAPI = `${uatHost}fhirapi-v1.0/`;
+const API1097 = `${uatHost}1097api-v1.0/`;
+const API104 = `${uatHost}104api-v1.0/`;
 const siteKey = '';
 const captchaChallengeURL = '';
 const enableCaptcha = false;
