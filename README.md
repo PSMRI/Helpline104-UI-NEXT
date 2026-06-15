@@ -2,6 +2,24 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.28.
 
+## Environment setup (required before first run)
+
+This repo follows the AMRIT convention: the build-time environment file
+`src/environments/environment.ts` is **git-ignored** and generated locally.
+A fresh checkout has no `environment.ts`, so `ng serve` / `ng build` will fail
+until you create one. Copy the environment that matches your backend:
+
+```bash
+# Local backend services on localhost (default for development)
+cp src/environments/environment.local.ts src/environments/environment.ts
+```
+
+The committed `environment.<env>.ts` files (`local`, `dev`, `test`, `prod`)
+are swapped in per build configuration via `angular.json` `fileReplacements`,
+e.g. `ng build --configuration dev`. The `ci` configuration uses
+`environment.ci.ts`, which CI generates from `environment.ci.ts.template`
+(also git-ignored) — do not create it by hand.
+
 ## Development server
 
 To start a local development server, run:
