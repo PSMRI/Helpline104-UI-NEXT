@@ -21,8 +21,10 @@
  */
 
 // Local development against backend services running on localhost.
-// To use this file locally, copy it to `environment.ts` (which is git-ignored
-// and is the file the Angular build replaces per configuration).
+// This file is the fileReplacements source for the `local` build configuration
+// (see angular.json) — `ng build/serve --configuration local` swaps it in for
+// `environment.ts` automatically. The git-ignored `environment.ts` used by the
+// default `development` configuration is set up separately (see README).
 
 const sessionStorageEncKey = '';
 const commonAPI = 'http://localhost:8083/';

@@ -23,6 +23,9 @@
 // Production environment.
 // NOTE: host and API path suffixes are placeholders following the AMRIT v1.0
 // naming convention. Confirm the real production hostnames with the deploy team.
+// CAPTCHA is disabled here only because no production credentials exist yet.
+// Before go-live, set siteKey + captchaChallengeURL to the real production
+// values and flip enableCaptcha to true (tracked on PR #1).
 
 const prodHost = 'https://amrit.piramalswasthya.org/';
 
