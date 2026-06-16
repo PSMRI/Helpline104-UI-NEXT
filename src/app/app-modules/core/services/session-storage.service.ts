@@ -40,18 +40,34 @@ export class SessionStorageService {
   }
 
   setItem(key: string, value: string): void {
-    this.store?.setItem(key, value);
+    try {
+      this.store?.setItem(key, value);
+    } catch {
+      // Ignore: quota exceeded, private-mode restrictions, or storage disabled.
+    }
   }
 
   getItem(key: string): string | null {
-    return this.store?.getItem(key) ?? null;
+    try {
+      return this.store?.getItem(key) ?? null;
+    } catch {
+      return null;
+    }
   }
 
   removeItem(key: string): void {
-    this.store?.removeItem(key);
+    try {
+      this.store?.removeItem(key);
+    } catch {
+      // Ignore: storage may be unavailable or access denied.
+    }
   }
 
   clear(): void {
-    this.store?.clear();
+    try {
+      this.store?.clear();
+    } catch {
+      // Ignore: storage may be unavailable or access denied.
+    }
   }
 }

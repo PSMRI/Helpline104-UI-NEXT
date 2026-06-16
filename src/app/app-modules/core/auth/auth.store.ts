@@ -77,26 +77,39 @@ export class AuthStore {
     this._privileges.set(params.privileges ?? []);
 
     this.storage.setItem(AUTH_STORAGE_KEYS.token, params.token);
+    // A fresh login must not inherit a previous session's APIMAN key; it is
+    // re-captured at service/role selection.
+    this.setApimanKey(null);
   }
 
-  /** Record the service/role the agent selected; persists the APIMAN key. */
+  /**
+   * Record the service/role the agent selected; persists the APIMAN key, or
+   * clears it when the selected service carries no key.
+   */
   setCurrentRole(role: CurrentRole): void {
     this._currentRole.set(role);
-    if (role.apimanClientKey) {
-      this._apimanKey.set(role.apimanClientKey);
-      this.storage.setItem(AUTH_STORAGE_KEYS.apimanKey, role.apimanClientKey);
-    }
+    this.setApimanKey(role.apimanClientKey ?? null);
   }
 
   /** Clear the session (in-memory signals + this store's persisted keys). */
   clear(): void {
     this._token.set(null);
-    this._apimanKey.set(null);
     this._user.set(null);
     this._currentRole.set(null);
     this._privileges.set([]);
 
     this.storage.removeItem(AUTH_STORAGE_KEYS.token);
-    this.storage.removeItem(AUTH_STORAGE_KEYS.apimanKey);
+    this.setApimanKey(null);
+  }
+
+  /** Set or clear the APIMAN key in both the signal and storage. */
+  private setApimanKey(key: string | null): void {
+    if (key) {
+      this._apimanKey.set(key);
+      this.storage.setItem(AUTH_STORAGE_KEYS.apimanKey, key);
+    } else {
+      this._apimanKey.set(null);
+      this.storage.removeItem(AUTH_STORAGE_KEYS.apimanKey);
+    }
   }
 }

@@ -20,7 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { Injectable, inject } from '@angular/core';
+import { Injectable, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthStore } from '../auth/auth.store';
@@ -53,6 +53,22 @@ export class SessionService {
 
   private timeoutRef: ReturnType<typeof setTimeout> | null = null;
   private handlingExpiry = false;
+
+  constructor() {
+    // Bind the idle timer to the session lifecycle. notifyActivity() alone
+    // could never initialise the timer: the auth token is set (via
+    // AuthStore.setSession) only after the login response has already passed
+    // through the interceptor, so the keepalive ping on that response is a
+    // no-op. Reacting to isAuthenticated() starts the timer the moment a token
+    // exists (login or a reload that rehydrates one) and clears it on logout.
+    effect(() => {
+      if (this.auth.isAuthenticated()) {
+        this.resetTimer();
+      } else {
+        this.clearTimer();
+      }
+    });
+  }
 
   /**
    * Keepalive: restart the inactivity timer after an authenticated request.
