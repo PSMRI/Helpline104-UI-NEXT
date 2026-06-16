@@ -56,4 +56,8 @@ export const environment = {
   siteKey: siteKey,
   captchaChallengeURL: captchaChallengeURL,
   enableCaptcha: enableCaptcha,
+
+  // 104 P0 foundation config
+  useApimanKey: true,
+  sessionTimeoutMinutes: 27,
 };

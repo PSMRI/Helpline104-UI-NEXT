@@ -20,16 +20,26 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-import { routes } from './app.routes';import { provideZard } from '@/shared/core/provider/providezard';
-
+import { routes } from './app.routes';
+import { provideZard } from '@/shared/core/provider/providezard';
+import { authInterceptor } from '@/app-modules/core/http/auth.interceptor';
+import { errorInterceptor } from '@/app-modules/core/http/error.interceptor';
+import { loaderInterceptor } from '@/app-modules/core/http/loader.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideZard(),]
+    provideZard(),
+    // Order matters: loader wraps everything (show/hide), auth adds credentials,
+    // error handles 401/403/5002 on the response.
+    provideHttpClient(
+      withInterceptors([loaderInterceptor, authInterceptor, errorInterceptor]),
+    ),
+  ],
 };
