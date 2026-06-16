@@ -85,7 +85,15 @@ export class LoginService {
             errorMessage: res.errorMessage || 'Unknown error',
           } satisfies LoginError;
         }
-        return res.data as LoginResponse;
+        // A 200 with no payload is still a failed login — surface it as an error
+        // rather than returning undefined and crashing downstream consumers.
+        if (!res.data) {
+          throw {
+            status: res.statusCode ?? 0,
+            errorMessage: res.errorMessage || 'Internal issue, please try again later.',
+          } satisfies LoginError;
+        }
+        return res.data;
       }),
       catchError((err: unknown) => throwError(() => this.toLoginError(err))),
     );

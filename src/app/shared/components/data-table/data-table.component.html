@@ -32,7 +32,10 @@
             [class.dt-sortable]="column.sortable"
             [style.text-align]="column.align || 'left'"
             [attr.aria-sort]="ariaSort(column)"
+            [attr.role]="column.sortable ? 'button' : null"
+            [attr.tabindex]="column.sortable ? 0 : null"
             (click)="toggleSort(column)"
+            (keydown)="onHeaderKeydown($event, column)"
           >
             {{ column.header }}
             @if (column.sortable) {

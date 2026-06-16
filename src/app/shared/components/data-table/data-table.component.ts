@@ -136,22 +136,33 @@ export class DataTableComponent<
     });
   });
 
+  /**
+   * `pageSize` clamped to a positive integer. Guards the pagination math against
+   * a 0, negative, fractional, or NaN input (which would make `totalPages`
+   * Infinity/NaN and break the page slice). Falls back to the documented 10.
+   */
+  protected readonly effectivePageSize = computed(() => {
+    const size = Math.floor(this.pageSize());
+    return Number.isFinite(size) && size > 0 ? size : 10;
+  });
+
   protected readonly totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.sorted().length / this.pageSize())),
+    Math.max(1, Math.ceil(this.sorted().length / this.effectivePageSize())),
   );
 
   /**
-   * Current page clamped to the valid range. Bound to the pager and used by
-   * `paged` so the control and the displayed rows never disagree — e.g. when
-   * the `data` input shrinks below the stored `pageIndex` (a report re-query).
+   * Current page clamped to the valid `[1, totalPages]` range. Bound to the
+   * pager and used by `paged` so the control and the displayed rows never
+   * disagree — e.g. when the `data` input shrinks below the stored `pageIndex`
+   * (a report re-query), or a stray non-positive page is set.
    */
   protected readonly displayIndex = computed(() =>
-    Math.min(this.pageIndex(), this.totalPages()),
+    Math.min(Math.max(1, Math.floor(this.pageIndex())), this.totalPages()),
   );
 
   /** The slice of rows for the current page. */
   protected readonly paged = computed<readonly T[]>(() => {
-    const size = this.pageSize();
+    const size = this.effectivePageSize();
     const start = (this.displayIndex() - 1) * size;
     return this.sorted().slice(start, start + size);
   });
@@ -186,6 +197,17 @@ export class DataTableComponent<
 
   onPageChange(page: number): void {
     this.pageIndex.set(page);
+  }
+
+  /** Keyboard activation for sortable headers (Enter / Space), mirroring click. */
+  onHeaderKeydown(event: KeyboardEvent, column: DataTableColumn<T>): void {
+    if (!column.sortable) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+      event.preventDefault();
+      this.toggleSort(column);
+    }
   }
 
   /** `@for` track function: stable row key when provided, else the index. */
@@ -233,6 +255,10 @@ export class DataTableComponent<
   }
 
   private csvEscape(value: string): string {
-    return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+    // Neutralise CSV formula injection: a cell beginning with =, +, -, or @ can
+    // be evaluated as a formula by Excel/Sheets. Prefix with a tab so the cell
+    // is treated as text (OWASP CSV injection guidance).
+    const safe = /^[=+\-@]/.test(value) ? `\t${value}` : value;
+    return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
   }
 }
