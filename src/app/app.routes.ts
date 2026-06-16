@@ -22,4 +22,19 @@
 
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./app-modules/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    // TODO(P1): protect with an auth guard once one exists.
+    path: 'role-selection',
+    loadComponent: () =>
+      import('./app-modules/role-selection/role-selection.component').then(
+        (m) => m.RoleSelectionComponent,
+      ),
+  },
+];

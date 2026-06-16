@@ -47,23 +47,30 @@ const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please login again.';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(SessionService);
 
+  // The login request is exempt from global session-expiry handling: an
+  // unauthenticated login attempt must never force-logout. 401/403 (bad
+  // credentials) and body statusCode 5002 ("already logged in elsewhere") are
+  // surfaced to the login component instead.
+  const isLoginRequest = req.url.toLowerCase().includes('user/userauthenticate');
+
   return next(req).pipe(
     tap((event) => {
-      if (event instanceof HttpResponse) {
-        const body = event.body as { statusCode?: number; errorMessage?: string } | null;
-        if (body && body.statusCode === 5002) {
-          const msg =
-            typeof body.errorMessage === 'string' && body.errorMessage.trim()
-              ? body.errorMessage
-              : SESSION_EXPIRED_MESSAGE;
-          session.handleSessionExpiry(msg);
-        } else {
-          session.notifyActivity();
-        }
+      if (isLoginRequest || !(event instanceof HttpResponse)) {
+        return;
+      }
+      const body = event.body as { statusCode?: number; errorMessage?: string } | null;
+      if (body && body.statusCode === 5002) {
+        const msg =
+          typeof body.errorMessage === 'string' && body.errorMessage.trim()
+            ? body.errorMessage
+            : SESSION_EXPIRED_MESSAGE;
+        session.handleSessionExpiry(msg);
+      } else {
+        session.notifyActivity();
       }
     }),
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 || error.status === 403) {
+      if (!isLoginRequest && (error.status === 401 || error.status === 403)) {
         session.handleSessionExpiry(SESSION_EXPIRED_MESSAGE);
         return EMPTY;
       }

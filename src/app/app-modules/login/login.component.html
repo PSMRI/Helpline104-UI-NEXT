@@ -1,0 +1,67 @@
+<div class="login-wrapper">
+  <form class="login-card" [formGroup]="form" (ngSubmit)="submit()" autocomplete="off">
+    <header class="login-header">
+      <h1 class="login-title">AMRIT 104</h1>
+      <p class="login-subtitle">Sign in to continue</p>
+    </header>
+
+    <z-form-field>
+      <label z-form-label zRequired>User Name</label>
+      <z-form-control>
+        <input
+          z-input
+          type="text"
+          formControlName="userID"
+          placeholder="Enter user name"
+          autocomplete="username"
+        />
+      </z-form-control>
+      @if (form.controls.userID.touched && form.controls.userID.invalid) {
+        <z-form-message>User name is required.</z-form-message>
+      }
+    </z-form-field>
+
+    <z-form-field>
+      <label z-form-label zRequired>Password</label>
+      <z-form-control>
+        <div class="password-row">
+          <input
+            z-input
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Enter password"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="toggle-pwd"
+            (click)="togglePassword()"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          >
+            {{ showPassword() ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+      </z-form-control>
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <z-form-message>Password is required.</z-form-message>
+      }
+    </z-form-field>
+
+    @if (errorMessage()) {
+      <p class="login-error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    <button
+      z-button
+      type="submit"
+      zType="default"
+      zFull
+      [zLoading]="loading()"
+      [zDisabled]="loading()"
+    >
+      Login
+    </button>
+  </form>
+
+  <footer class="login-footer">PSMRI · AMRIT</footer>
+</div>
