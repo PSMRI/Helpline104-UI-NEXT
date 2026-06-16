@@ -1,0 +1,74 @@
+/*
+ * AMRIT – Accessible Medical Records via Integrated Technologies
+ * Integrated EHR (Electronic Health Records) Solution
+ *
+ * Copyright (C) "Piramal Swasthya Management and Research Institute"
+ *
+ * This file is part of AMRIT.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see https://www.gnu.org/licenses/.
+ */
+
+:host {
+  display: block;
+}
+
+.dt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dt-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dt-search {
+  max-width: 18rem;
+  flex: 1 1 12rem;
+}
+
+.dt-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.dt-sort {
+  display: inline-block;
+  margin-left: 0.25rem;
+  font-size: 0.75em;
+}
+
+.dt-empty {
+  text-align: center;
+  color: hsl(0 0% 45%);
+  padding: 1.5rem 0;
+}
+
+.dt-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dt-count {
+  font-size: 0.8125rem;
+  color: hsl(0 0% 45%);
+}
