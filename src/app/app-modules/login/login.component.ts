@@ -29,6 +29,9 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideEye, lucideEyeOff } from '@ng-icons/lucide';
+
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import {
   ZardFormControlComponent,
@@ -61,6 +64,7 @@ const ROLE_SELECTION_ROUTE = '/role-selection';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
+    NgIcon,
     ZardInputDirective,
     ZardButtonComponent,
     ZardFormFieldComponent,
@@ -68,6 +72,7 @@ const ROLE_SELECTION_ROUTE = '/role-selection';
     ZardFormLabelComponent,
     ZardFormMessageComponent,
   ],
+  viewProviders: [provideIcons({ lucideEye, lucideEyeOff })],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -90,6 +95,7 @@ export class LoginComponent {
   readonly loading = signal(false);
   readonly errorMessage = signal('');
   readonly showPassword = signal(false);
+  readonly year = new Date().getFullYear();
 
   togglePassword(): void {
     this.showPassword.update((v) => !v);
