@@ -1,0 +1,183 @@
+/*
+ * AMRIT – Accessible Medical Records via Integrated Technologies
+ * Integrated EHR (Electronic Health Records) Solution
+ *
+ * Copyright (C) "Piramal Swasthya Management and Research Institute"
+ *
+ * This file is part of AMRIT.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see https://www.gnu.org/licenses/.
+ */
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  /* Subtle medical-blue gradient wash behind the card. */
+  background:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      color-mix(in srgb, var(--primary) 14%, transparent),
+      transparent 60%
+    ),
+    linear-gradient(180deg, var(--secondary) 0%, var(--background) 100%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 24rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  padding: 2.5rem 2rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 0.5rem);
+  background: var(--card);
+  box-shadow:
+    0 1px 2px rgba(2, 119, 189, 0.06),
+    0 12px 28px -8px rgba(13, 27, 42, 0.18);
+}
+
+.login-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.login-logo {
+  height: auto;
+  width: 142px;
+  max-width: 60%;
+  margin-bottom: 0.875rem;
+}
+
+.login-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.login-subtitle {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  margin: 0.125rem 0 0;
+}
+
+/* Leading-icon affix: positions a lucide icon inside the input's left edge. */
+.input-affix {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+}
+
+.input-affix .input-icon {
+  position: absolute;
+  left: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+/* Make room for the leading icon (overrides ZardUI's px-2.5 left padding). */
+.input-affix input.has-leading-icon {
+  padding-left: 2.25rem;
+}
+
+.password-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-pwd {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.toggle-pwd:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.toggle-pwd:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+.forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.375rem;
+}
+
+.forgot-link {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.forgot-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.login-error {
+  color: var(--destructive);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+}
+
+.login-footer {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}

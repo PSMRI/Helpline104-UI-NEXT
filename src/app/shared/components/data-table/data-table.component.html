@@ -1,0 +1,86 @@
+<div class="dt">
+  @if (filterable() || exportable()) {
+    <div class="dt-toolbar">
+      @if (filterable()) {
+        <input
+          z-input
+          type="text"
+          class="dt-search"
+          [placeholder]="searchPlaceholder()"
+          [value]="searchTerm()"
+          (input)="onSearch($any($event.target).value)"
+          aria-label="Search table"
+        />
+      }
+      @if (exportable()) {
+        <button z-button zType="outline" type="button" (click)="exportCsv()">
+          Export CSV
+        </button>
+      }
+    </div>
+  }
+
+  <table z-table>
+    @if (caption()) {
+      <caption z-table-caption>{{ caption() }}</caption>
+    }
+    <thead z-table-header>
+      <tr z-table-row>
+        @for (column of columns(); track column.key) {
+          <th
+            z-table-head
+            [class.dt-sortable]="column.sortable"
+            [style.text-align]="column.align || 'left'"
+            [attr.aria-sort]="ariaSort(column)"
+            [attr.role]="column.sortable ? 'button' : null"
+            [attr.tabindex]="column.sortable ? 0 : null"
+            (click)="column.sortable && toggleSort(column)"
+            (keydown)="onHeaderKeydown($event, column)"
+          >
+            {{ column.header }}
+            @if (column.sortable) {
+              <span class="dt-sort" aria-hidden="true">{{ sortIndicator(column) }}</span>
+            }
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody z-table-body>
+      @for (row of paged(); track trackRow($index, row)) {
+        <tr z-table-row>
+          @for (column of columns(); track column.key) {
+            <td z-table-cell [style.text-align]="column.align || 'left'">
+              @if (column.cellTemplate) {
+                <ng-container
+                  *ngTemplateOutlet="
+                    column.cellTemplate;
+                    context: { $implicit: row, column: column }
+                  "
+                />
+              } @else {
+                {{ cellText(column, row) }}
+              }
+            </td>
+          }
+        </tr>
+      } @empty {
+        <tr z-table-row>
+          <td z-table-cell class="dt-empty" [attr.colspan]="columns().length">
+            {{ emptyMessage() }}
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <div class="dt-footer">
+    <span class="dt-count">{{ sorted().length }} record(s)</span>
+    @if (totalPages() > 1) {
+      <z-pagination
+        [zPageIndex]="displayIndex()"
+        [zTotal]="totalPages()"
+        (zPageIndexChange)="onPageChange($event)"
+      />
+    }
+  </div>
+</div>
