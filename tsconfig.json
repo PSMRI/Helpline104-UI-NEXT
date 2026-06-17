@@ -21,6 +21,9 @@
       ],
       "@env/*": [
         "src/environments/*"
+      ],
+      "@common-ui/*": [
+        "Common-UI/v2/*"
       ]
     }
   },

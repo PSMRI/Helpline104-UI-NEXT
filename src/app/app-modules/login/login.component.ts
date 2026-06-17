@@ -29,14 +29,14 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { ZardButtonComponent } from '@/shared/ui/button';
+import { ZardButtonComponent } from '@common-ui/ui/button';
 import {
   ZardFormControlComponent,
   ZardFormFieldComponent,
   ZardFormLabelComponent,
   ZardFormMessageComponent,
-} from '@/shared/ui/form';
-import { ZardInputDirective } from '@/shared/ui/input';
+} from '@common-ui/ui/form';
+import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../core/auth/auth.store';
 import { LoginResponse, Privilege } from '../core/auth/auth.models';

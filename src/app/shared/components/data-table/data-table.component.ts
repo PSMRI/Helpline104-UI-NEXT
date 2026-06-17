@@ -29,10 +29,10 @@ import {
   signal,
 } from '@angular/core';
 
-import { ZardButtonComponent } from '@/shared/ui/button';
-import { ZardPaginationComponent } from '@/shared/ui/pagination';
-import { ZardTableImports } from '@/shared/ui/table';
-import { ZardInputDirective } from '@/shared/ui/input';
+import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardPaginationComponent } from '@common-ui/ui/pagination';
+import { ZardTableImports } from '@common-ui/ui/table';
+import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { DataTableColumn, DataTableSortDirection } from './data-table.types';
 

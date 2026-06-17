@@ -25,7 +25,7 @@ import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 
 import { filter, fromEvent, Observable, Subject, takeUntil } from 'rxjs';
 
-import { ZardDialogService } from '@/shared/ui/dialog';
+import { ZardDialogService } from '@common-ui/ui/dialog';
 
 import { ConfirmDialogOptions } from './confirm-dialog.types';
 
