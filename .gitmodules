@@ -1,4 +1,4 @@
 [submodule "Common-UI"]
 	path = Common-UI
-	url = git@github.com:PSMRI/Common-UI.git
+	url = https://github.com/PSMRI/Common-UI.git
 	branch = angular-zard-migration
