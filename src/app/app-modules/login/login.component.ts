@@ -27,10 +27,10 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideEye, lucideEyeOff } from '@ng-icons/lucide';
+import { lucideEye, lucideEyeOff, lucideLock, lucideUser } from '@ng-icons/lucide';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import {
@@ -64,6 +64,7 @@ const ROLE_SELECTION_ROUTE = '/role-selection';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     NgIcon,
     ZardInputDirective,
     ZardButtonComponent,
@@ -72,7 +73,9 @@ const ROLE_SELECTION_ROUTE = '/role-selection';
     ZardFormLabelComponent,
     ZardFormMessageComponent,
   ],
-  viewProviders: [provideIcons({ lucideEye, lucideEyeOff })],
+  viewProviders: [
+    provideIcons({ lucideEye, lucideEyeOff, lucideUser, lucideLock }),
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })

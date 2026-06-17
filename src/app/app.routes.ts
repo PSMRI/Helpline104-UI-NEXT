@@ -30,6 +30,13 @@ export const routes: Routes = [
       import('./app-modules/login/login.component').then((m) => m.LoginComponent),
   },
   {
+    // TODO(P1): placeholder — the password-reset flow is not built yet.
+    // Currently re-uses the login screen so the "Forgot Password?" link resolves.
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./app-modules/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
     // TODO(P1): protect with an auth guard once one exists.
     path: 'role-selection',
     loadComponent: () =>
