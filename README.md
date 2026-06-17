@@ -2,6 +2,21 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.28.
 
+## Shared UI submodule (required after cloning)
+
+The shared ZardUI component library lives in the [Common-UI](https://github.com/PSMRI/Common-UI)
+repository, wired in here as a git submodule at `Common-UI/` and imported via the
+`@common-ui/*` path alias (e.g. `@common-ui/ui/button`). A plain `git clone` leaves
+that directory empty, so `ng serve` / `ng build` will fail to resolve `@common-ui/*`
+imports until the submodule is fetched. After cloning, run:
+
+```bash
+git submodule update --init --recursive
+```
+
+To pull the latest Common-UI changes from its tracked branch later, run
+`git submodule update --remote Common-UI` and commit the updated pointer.
+
 ## Environment setup (required before first run)
 
 This repo follows the AMRIT convention: the build-time environment file
