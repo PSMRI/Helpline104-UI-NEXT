@@ -30,7 +30,7 @@ export type AlertType = 'success' | 'error' | 'info' | 'warning';
  * STUB: currently backed by native `window.alert`/`window.confirm` so the
  * foundation (interceptors + session timeout) is functional now.
  *
- * TODO(P1): replace with a ZardUI-based dialog (shared/ui/dialog) mirroring
+ * TODO(P1): replace with a ZardUI-based dialog (@common-ui/ui/dialog) mirroring
  * MMU's `ConfirmationService` + `CommonDialogComponent`, keeping this method
  * surface so call sites don't change.
  */
