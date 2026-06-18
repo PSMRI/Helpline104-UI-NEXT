@@ -20,61 +20,123 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Router } from '@angular/router';
+
+import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { AuthStore } from '../core/auth/auth.store';
+import { Privilege, Role } from '../core/auth/auth.models';
+
+const DASHBOARD_ROUTE = '/dashboard';
+
+/** Legacy display alias: the "HYBRID HAO" role is shown simply as "HAO". */
+const ROLE_DISPLAY_ALIASES: Record<string, string> = {
+  'HYBRID HAO': 'HAO',
+};
 
 /**
- * Placeholder landing screen after login. Confirms the session was established
- * and is the redirect target wired into the login flow.
+ * Screen name → short role/feature code, ported from the legacy
+ * service-role-selection `getSelectedFeature()`. Drives dashboard routing.
+ */
+const SCREEN_FEATURE_CODES: Record<string, string> = {
+  Registration: 'RO',
+  Health_Advice: 'HAO',
+  Counselling: 'CO',
+  Medical_Advice: 'MO',
+  Service_Improvements: 'SIO',
+  Supervising: 'Supervisor',
+  Surveyor: 'Surveyor',
+  Psychiatrist: 'PD',
+};
+
+const SCREEN_REGISTRATION = 'Registration';
+const SCREEN_HEALTH_ADVICE = 'Health_Advice';
+
+/**
+ * Service/role selection screen shown after login (replaces the legacy
+ * MultiRoleScreenComponent + ServiceRoleSelectionComponent pair, minus the
+ * deferred CZentrix/multilingual/version shell concerns).
  *
- * TODO(P1): replace with the real service/role selection (legacy
- * MultiRoleScreenComponent) — list 104 services/roles and call
- * AuthStore.setCurrentRole() on selection.
+ * Lists the 104 service privileges from {@link AuthStore} and, on selection,
+ * records the chosen role via {@link AuthStore.setCurrentRole} (deriving the
+ * legacy feature code from the role's screen mappings) and routes to the
+ * dashboard.
  */
 @Component({
   selector: 'app-role-selection',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="rs-wrapper">
-      <h1 class="rs-title">Role selection</h1>
-      @if (user(); as u) {
-        <p>
-          Signed in as <strong>{{ u.userName }}</strong
-          >.
-        </p>
-      }
-      <p>{{ privileges().length }} service privilege(s) available.</p>
-      <p class="rs-todo">Service/role selection is coming soon.</p>
-    </div>
-  `,
-  styles: [
-    `
-      .rs-wrapper {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 1.5rem;
-        text-align: center;
-      }
-      .rs-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin: 0 0 0.5rem;
-      }
-      .rs-todo {
-        color: hsl(0 0% 45%);
-        font-size: 0.875rem;
-      }
-    `,
-  ],
+  imports: [ZardButtonComponent],
+  templateUrl: './role-selection.component.html',
+  styleUrl: './role-selection.component.css',
 })
 export class RoleSelectionComponent {
   private readonly authStore = inject(AuthStore);
+  private readonly router = inject(Router);
 
   readonly user = this.authStore.user;
   readonly privileges = this.authStore.privileges;
+
+  /**
+   * Whether the agent holds Registration (RO) and Health_Advice (HAO)
+   * privileges across all roles. When both are present the HAO feature is
+   * treated as Registration, matching the legacy `checkROHAOPrivilege()`.
+   */
+  private readonly hasRO = computed(() => this.hasScreen(SCREEN_REGISTRATION));
+  private readonly hasHAO = computed(() => this.hasScreen(SCREEN_HEALTH_ADVICE));
+
+  /** Role label as shown to the user (applies the legacy "HYBRID HAO" alias). */
+  displayName(role: Role): string {
+    const name = role.RoleName ?? '';
+    return ROLE_DISPLAY_ALIASES[name] ?? name;
+  }
+
+  /** Record the selected service/role and navigate to the dashboard. */
+  selectRole(role: Role, service: Privilege): void {
+    const mapping = role.serviceRoleScreenMappings?.[0];
+    const providerServiceMapping = mapping?.providerServiceMapping;
+
+    this.authStore.setCurrentRole({
+      roleName: role.RoleName ?? '',
+      serviceName: service.serviceName ?? null,
+      serviceID: providerServiceMapping?.m_ServiceMaster?.serviceID ?? null,
+      serviceProviderID: providerServiceMapping?.serviceProviderID ?? null,
+      providerServiceMapID: service.providerServiceMapID ?? null,
+      workingLocationID: role.workingLocationID ?? null,
+      apimanClientKey: service.apimanClientKey ?? null,
+      featureCode: this.deriveFeatureCode(role),
+    });
+
+    void this.router.navigate([DASHBOARD_ROUTE]);
+  }
+
+  /**
+   * First known feature code among the role's screen mappings. When the agent
+   * holds both RO and HAO, a Health_Advice screen is treated as Registration.
+   */
+  private deriveFeatureCode(role: Role): string | null {
+    const remapHaoToRo = this.hasRO() && this.hasHAO();
+
+    for (const mapping of role.serviceRoleScreenMappings ?? []) {
+      let screenName = mapping.screen?.screenName;
+      if (remapHaoToRo && screenName === SCREEN_HEALTH_ADVICE) {
+        screenName = SCREEN_REGISTRATION;
+      }
+      if (screenName && screenName in SCREEN_FEATURE_CODES) {
+        return SCREEN_FEATURE_CODES[screenName];
+      }
+    }
+    return null;
+  }
+
+  /** True if any role across all privileges maps the given screen. */
+  private hasScreen(screenName: string): boolean {
+    return this.privileges().some((privilege) =>
+      privilege.roles?.some((role) =>
+        role.serviceRoleScreenMappings?.some(
+          (mapping) => mapping.screen?.screenName === screenName,
+        ),
+      ),
+    );
+  }
 }

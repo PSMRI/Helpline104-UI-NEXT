@@ -1,0 +1,116 @@
+/*
+ * AMRIT – Accessible Medical Records via Integrated Technologies
+ * Integrated EHR (Electronic Health Records) Solution
+ *
+ * Copyright (C) "Piramal Swasthya Management and Research Institute"
+ *
+ * This file is part of AMRIT.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see https://www.gnu.org/licenses/.
+ */
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.rs-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem 1.5rem;
+  background: radial-gradient(
+    120% 80% at 50% -10%,
+    color-mix(in srgb, var(--primary) 14%, transparent),
+    transparent
+  );
+}
+
+.rs-header {
+  text-align: center;
+}
+
+.rs-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.rs-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.rs-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  width: 100%;
+  max-width: 64rem;
+}
+
+.rs-service-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 18rem;
+  max-width: 100%;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 0.75rem);
+  background: var(--card, var(--background));
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.rs-service-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.rs-service-code {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--primary);
+}
+
+.rs-roles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.rs-empty-roles {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.rs-empty {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}

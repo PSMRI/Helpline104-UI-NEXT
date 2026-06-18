@@ -1,0 +1,44 @@
+<div class="rs-wrapper">
+  <header class="rs-header">
+    <h1 class="rs-title">Select your role</h1>
+    @if (user(); as u) {
+      <p class="rs-subtitle">
+        Signed in as <strong>{{ u.userName }}</strong>
+      </p>
+    }
+  </header>
+
+  @if (privileges().length > 0) {
+    <div class="rs-services">
+      @for (service of privileges(); track service.providerServiceMapID ?? $index) {
+        <section class="rs-service-card">
+          <div class="rs-service-badge">
+            <span class="rs-service-code">{{ service.serviceName }}</span>
+          </div>
+
+          <ul class="rs-roles">
+            @for (role of service.roles ?? []; track role.RoleID ?? $index) {
+              <li>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  zFull
+                  (click)="selectRole(role, service)"
+                >
+                  {{ displayName(role) }}
+                </button>
+              </li>
+            } @empty {
+              <li class="rs-empty-roles">No roles available for this service.</li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  } @else {
+    <p class="rs-empty" role="alert">
+      You are not authorised to access any 104 services.
+    </p>
+  }
+</div>

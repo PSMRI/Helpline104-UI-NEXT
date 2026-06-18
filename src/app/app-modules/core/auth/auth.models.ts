@@ -52,13 +52,46 @@ export interface CurrentRole {
   workingLocationID: number | null;
   /** APIMAN gateway key for the selected service (`service.apimanClientKey`). */
   apimanClientKey: string | null;
+  /**
+   * Short role/feature code derived from the role's screen mappings
+   * (Registration→RO, Health_Advice→HAO, Counselling→CO, …). Drives dashboard
+   * routing in the legacy app; `null` when no known screen matches.
+   */
+  featureCode: string | null;
+}
+
+/**
+ * One `serviceRoleScreenMappings` entry on a role. Only the fields role
+ * selection reads are typed; the rest is preserved via the index signature.
+ */
+export interface ServiceRoleScreenMapping {
+  screen?: { screenName?: string };
+  providerServiceMapping?: {
+    stateID?: number;
+    serviceProviderID?: number;
+    m_ServiceMaster?: { serviceID?: number };
+  };
+  [key: string]: unknown;
+}
+
+/** One selectable role within a service privilege. Loosely typed. */
+export interface Role {
+  RoleID?: number;
+  RoleName?: string;
+  workingLocationID?: number;
+  agentID?: number;
+  serviceRoleScreenMappings?: ServiceRoleScreenMapping[];
+  [key: string]: unknown;
 }
 
 /** One entry of the login response `previlegeObj` array. Loosely typed. */
 export interface Privilege {
   serviceID?: number;
   serviceName?: string;
-  roles?: unknown[];
+  providerServiceMapID?: number;
+  /** APIMAN gateway key for this service, captured at role selection. */
+  apimanClientKey?: string;
+  roles?: Role[];
   [key: string]: unknown;
 }
 

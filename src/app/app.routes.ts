@@ -22,6 +22,8 @@
 
 import { Routes } from '@angular/router';
 
+import { authGuard } from './app-modules/core/auth/auth.guard';
+
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
@@ -37,11 +39,19 @@ export const routes: Routes = [
       import('./app-modules/login/login.component').then((m) => m.LoginComponent),
   },
   {
-    // TODO(P1): protect with an auth guard once one exists.
     path: 'role-selection',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./app-modules/role-selection/role-selection.component').then(
         (m) => m.RoleSelectionComponent,
+      ),
+  },
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./app-modules/dashboard/dashboard.component').then(
+        (m) => m.DashboardComponent,
       ),
   },
 ];
