@@ -33,6 +33,7 @@ import { AuthStore } from '../core/auth/auth.store';
  */
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="dash-wrapper">

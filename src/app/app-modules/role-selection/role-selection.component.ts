@@ -65,6 +65,7 @@ const SCREEN_HEALTH_ADVICE = 'Health_Advice';
  */
 @Component({
   selector: 'app-role-selection',
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ZardButtonComponent],
   templateUrl: './role-selection.component.html',
