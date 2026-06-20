@@ -123,6 +123,8 @@ export class CampaignToggleComponent {
 
   private requestSwitch(target: Campaign): void {
     const agentId = this.authStore.user()?.agentID ?? null;
+    // No agentID means the user is in a demo/offline session (no live CTI backend).
+    // Updating the store directly is safe — there is no backend state to sync.
     if (agentId === null) {
       this.store.setCampaign(target);
       return;

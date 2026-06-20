@@ -36,11 +36,11 @@ import { lucideStar, lucideX } from '@ng-icons/lucide';
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
+import { LOGIN_ROUTE } from '../core/core.constants';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TranslationKey } from '../core/i18n/locales';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 
-const LOGIN_ROUTE = '/login';
 const MAX_COMMENT_LENGTH = 2000;
 
 /** A star rating option (value 1-5 with its label key). */
