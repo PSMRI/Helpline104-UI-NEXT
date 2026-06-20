@@ -42,6 +42,8 @@ testem.log
 /typings
 __screenshots__/
 login-screen.png
+role-selection.png
+.playwright-mcp/
 
 # System files
 .DS_Store
