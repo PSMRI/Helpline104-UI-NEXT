@@ -54,4 +54,21 @@ export const routes: Routes = [
         (m) => m.DashboardComponent,
       ),
   },
+  {
+    path: 'supervisor',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./app-modules/supervisor/supervisor.component').then(
+        (m) => m.SupervisorComponent,
+      ),
+  },
+  {
+    // Post-logout landing for the dashboard logout / feedback links. Unguarded:
+    // the session has already been cleared by the time the user lands here.
+    path: 'feedback',
+    loadComponent: () =>
+      import('./app-modules/feedback/feedback.component').then(
+        (m) => m.FeedbackComponent,
+      ),
+  },
 ];

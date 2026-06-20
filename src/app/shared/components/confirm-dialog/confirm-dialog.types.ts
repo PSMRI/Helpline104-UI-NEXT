@@ -47,3 +47,16 @@ export interface ConfirmDialogOptions {
    */
   destructive?: boolean;
 }
+
+/**
+ * Options for {@link ConfirmDialogService.alert} — a single-button
+ * acknowledgement dialog (info/error notices with no cancel choice).
+ */
+export interface AlertDialogOptions {
+  /** Heading shown at the top of the dialog (e.g. "Info" or "Error"). */
+  title: string;
+  /** Body text of the notice. */
+  message: string;
+  /** Label for the acknowledge button. Defaults to `'OK'`. */
+  okText?: string;
+}

@@ -20,57 +20,135 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
-import { ZardButtonComponent } from '@common-ui/ui/button';
+import { Observable } from 'rxjs';
 
+import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+
+import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { CampaignService } from '../campaign.service';
 import { Campaign, DashboardStore } from '../dashboard.store';
 
-/** Inbound/outbound campaign switch backed by {@link DashboardStore}. */
+/** Extracts a server-supplied error message, falling back to a generic one. */
+function readErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof HttpErrorResponse) {
+    const body = error.error as { errorMessage?: string } | null;
+    return body?.errorMessage ?? error.message ?? fallback;
+  }
+  return fallback;
+}
+
+/**
+ * Inbound/outbound campaign selector (radio buttons). Switching prompts for
+ * confirmation, then asks the telephony backend to move the agent; a rejection
+ * (e.g. "not allowed to switch to MANUAL mode") surfaces as an error notice and
+ * the selection stays put.
+ */
 @Component({
   selector: 'app-campaign-toggle',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ZardButtonComponent, TranslatePipe],
+  imports: [TranslatePipe],
   template: `
-    <div
-      class="inline-flex items-center gap-2"
-      role="group"
+    <fieldset
+      class="flex items-center gap-5"
       [attr.aria-label]="'dashboard.campaign.label' | translate: lang()"
     >
-      <button
-        z-button
-        type="button"
-        [zType]="campaign() === 'inbound' ? 'default' : 'outline'"
-        zSize="sm"
-        [attr.aria-pressed]="campaign() === 'inbound'"
-        (click)="select('inbound')"
-      >
+      <label class="flex cursor-pointer items-center gap-2 text-sm">
+        <input
+          type="radio"
+          name="campaign"
+          class="h-4 w-4 accent-primary"
+          [checked]="campaign() === 'inbound'"
+          (click)="select('inbound', $event)"
+        />
         {{ 'dashboard.campaign.inbound' | translate: lang() }}
-      </button>
-      <button
-        z-button
-        type="button"
-        [zType]="campaign() === 'outbound' ? 'default' : 'outline'"
-        zSize="sm"
-        [attr.aria-pressed]="campaign() === 'outbound'"
-        (click)="select('outbound')"
-      >
+      </label>
+      <label class="flex cursor-pointer items-center gap-2 text-sm">
+        <input
+          type="radio"
+          name="campaign"
+          class="h-4 w-4 accent-primary"
+          [checked]="campaign() === 'outbound'"
+          (click)="select('outbound', $event)"
+        />
         {{ 'dashboard.campaign.outbound' | translate: lang() }}
-      </button>
-    </div>
+      </label>
+    </fieldset>
   `,
 })
 export class CampaignToggleComponent {
   private readonly store = inject(DashboardStore);
+  private readonly authStore = inject(AuthStore);
   private readonly i18n = inject(I18nService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly campaignService = inject(CampaignService);
 
   readonly campaign = this.store.campaign;
   readonly lang = this.i18n.language;
 
-  select(campaign: Campaign): void {
-    this.store.setCampaign(campaign);
+  /**
+   * Handle a radio click. `preventDefault` stops the native toggle so the
+   * selection only commits after the backend confirms — the radios are driven
+   * purely by the {@link DashboardStore} campaign signal.
+   */
+  select(target: Campaign, event: Event): void {
+    event.preventDefault();
+    if (target === this.campaign()) {
+      return;
+    }
+
+    const confirmKey =
+      target === 'outbound'
+        ? 'dashboard.campaign.switchToOutboundConfirm'
+        : 'dashboard.campaign.switchToInboundConfirm';
+
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('dashboard.dialog.info'),
+        message: this.i18n.instant(confirmKey),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.requestSwitch(target);
+        }
+      });
+  }
+
+  private requestSwitch(target: Campaign): void {
+    const agentId = this.authStore.user()?.agentID ?? null;
+    if (agentId === null) {
+      this.store.setCampaign(target);
+      return;
+    }
+
+    const request: Observable<unknown> =
+      target === 'outbound'
+        ? this.campaignService.switchToOutbound(agentId)
+        : this.campaignService.switchToInbound(agentId);
+
+    request.subscribe({
+      next: () => this.store.setCampaign(target),
+      error: (error: unknown) => this.showSwitchError(error),
+    });
+  }
+
+  private showSwitchError(error: unknown): void {
+    this.confirmDialog
+      .alert({
+        title: this.i18n.instant('dashboard.dialog.error'),
+        message: readErrorMessage(
+          error,
+          this.i18n.instant('dashboard.campaign.switchError'),
+        ),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+      })
+      .subscribe();
   }
 }

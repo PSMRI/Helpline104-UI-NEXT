@@ -22,38 +22,40 @@
 
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideHeadset } from '@ng-icons/lucide';
+import { ZardTableImports } from '@common-ui/ui/table';
 
-import { AuthStore } from '../../core/auth/auth.store';
-import { I18nService } from '../../core/i18n/i18n.service';
-import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { I18nService } from '../../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
-/** Shows the signed-in agent's telephony ID, e.g. "My ID : Agent - 2145". */
+/**
+ * Body of the Emergency Contacts modal (opened from the header Contacts icon).
+ * Renders the contacts table; there are no contacts configured for the 104
+ * service, so it shows the empty state.
+ */
 @Component({
-  selector: 'app-agent-id',
+  selector: 'app-emergency-contacts-dialog',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, TranslatePipe],
-  viewProviders: [provideIcons({ lucideHeadset })],
+  imports: [ZardTableImports, TranslatePipe],
   template: `
-    @if (user(); as u) {
-      <h4 class="flex items-center gap-2 text-lg font-semibold">
-        <ng-icon
-          name="lucideHeadset"
-          size="20"
-          class="text-primary"
-          aria-hidden="true"
-        />
-        <span>{{ 'dashboard.agentId.label' | translate: lang() }} {{ u.agentID }}</span>
-      </h4>
-    }
+    <table z-table class="w-full text-sm">
+      <thead z-table-header>
+        <tr z-table-row>
+          <th z-table-head>{{ 'dashboard.contacts.name' | translate: lang() }}</th>
+          <th z-table-head>{{ 'dashboard.contacts.number' | translate: lang() }}</th>
+        </tr>
+      </thead>
+      <tbody z-table-body>
+        <tr z-table-row>
+          <td z-table-cell colspan="2" class="py-6 text-center text-muted-foreground">
+            {{ 'dashboard.contacts.empty' | translate: lang() }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
   `,
 })
-export class AgentIdComponent {
-  private readonly authStore = inject(AuthStore);
+export class EmergencyContactsDialogComponent {
   private readonly i18n = inject(I18nService);
-
-  readonly user = this.authStore.user;
   readonly lang = this.i18n.language;
 }

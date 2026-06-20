@@ -25,24 +25,116 @@
  * {@link TranslationKey}, which every other locale must implement in full.
  */
 export const en = {
-  'dashboard.header.appName': 'AMRIT 104 Helpline',
+  // Header
   'dashboard.header.logoAlt': 'Piramal Swasthya',
-  'dashboard.header.service': 'Service',
-  'dashboard.header.role': 'Role',
+  'dashboard.header.titleSuffix': 'Dashboard',
+  'dashboard.header.languageLabel': 'Select Language',
+  'dashboard.header.languageComingSoon': 'We are coming up with this language',
   'dashboard.header.welcome': 'Welcome',
-  'dashboard.header.languageLabel': 'Language',
+  'dashboard.header.contacts': 'Emergency Contacts',
   'dashboard.header.profile': 'Profile',
-  'dashboard.header.logout': 'Log out',
-  'dashboard.header.logoutConfirm': 'Are you sure you want to log out?',
-  'dashboard.agentId.label': 'My ID: Agent',
+  'dashboard.header.help': 'Help',
+  'dashboard.header.version': 'Version',
+  'dashboard.header.licenseInfo': 'License info.',
+  'dashboard.header.logout': 'Logout',
+
+  // Sidebar
+  'dashboard.sidebar.switchRole': 'Switch Role',
+  'dashboard.sidebar.activityArea': 'Activity Area',
+
+  // Agent ID
+  'dashboard.agentId.label': 'My ID : Agent -',
+
+  // Campaign (inbound / outbound)
   'dashboard.campaign.label': 'Call mode',
   'dashboard.campaign.inbound': 'Inbound',
   'dashboard.campaign.outbound': 'Outbound',
-  'dashboard.callStatistics.title': 'Call statistics',
-  'dashboard.callStatistics.callDuration': 'Call duration',
-  'dashboard.callStatistics.breakTime': 'Break time',
-  'dashboard.callStatistics.freeTime': 'Free time',
-  'dashboard.callStatistics.totalCalls': 'Total calls',
+  'dashboard.campaign.switchToInboundConfirm': 'Switch to Inbound?',
+  'dashboard.campaign.switchToOutboundConfirm': 'Switch to Outbound?',
+  'dashboard.campaign.switchError': 'Unable to switch call mode. Please try again.',
+
+  // Call statistics
+  'dashboard.callStatistics.title': 'Call Statistics',
+  'dashboard.callStatistics.callDuration': 'Call Duration',
+  'dashboard.callStatistics.breakTime': 'Break Time',
+  'dashboard.callStatistics.freeTime': 'Free Time',
+  'dashboard.callStatistics.totalCalls': 'Total Calls',
+  'dashboard.callStatistics.hrs': 'Hrs',
+  'dashboard.callStatistics.mins': 'Mins',
+  'dashboard.callStatistics.secs': 'Secs',
+
+  // Alerts & Notifications panel
+  'dashboard.alerts.title': 'Alerts & Notifications',
+  'dashboard.alerts.alerts': 'Alerts',
+  'dashboard.alerts.officeBulletin': 'Office Bulletin',
+  'dashboard.alerts.notifications': 'Notifications',
+  'dashboard.alerts.noAlerts': 'No alert messages found',
+  'dashboard.alerts.noOfficeBulletin': 'No office messages found',
+  'dashboard.alerts.noNotifications': 'No notification messages found',
+
+  // Reports panel
+  'dashboard.reports.title': 'Reports',
+  'dashboard.reports.sno': 'S.No',
+  'dashboard.reports.reportName': 'Report Name',
+  'dashboard.reports.date': 'Date',
+  'dashboard.reports.export': 'Export',
+  'dashboard.reports.more': 'More...',
+
+  // Activity for this week panel
+  'dashboard.activity.title': 'Activity for this week',
+  'dashboard.activity.trainingResources': 'Training Resources',
+  'dashboard.activity.more': 'More...',
+  'dashboard.activity.kmDocsTitle': 'KM Docs',
+  'dashboard.activity.noKmDocs': 'No KM Docs documents found',
+
+  // Rating panel
+  'dashboard.rating.title': 'Rating',
+  'dashboard.rating.panelContent': 'Panel Content',
+
+  // Emergency contacts modal
+  'dashboard.contacts.name': 'Name',
+  'dashboard.contacts.number': 'Number',
+  'dashboard.contacts.empty': 'No emergency contacts found',
+
+  // Footer
+  'dashboard.footer.poweredBy': 'Powered by:',
+  'dashboard.footer.feedback': 'Feedback',
+  'dashboard.footer.version': 'Version',
+
+  // Shared dialog chrome
+  'dashboard.dialog.info': 'Info',
+  'dashboard.dialog.error': 'Error',
+  'dashboard.dialog.ok': 'Ok',
+  'dashboard.dialog.cancel': 'Cancel',
+
+  // Supervisor placeholder page
+  'supervisor.title': 'Supervisor Activity Area',
+  'supervisor.intro':
+    'Activities, reports and configurations for supervisors will be managed here.',
+  'supervisor.backToDashboard': 'Back to Dashboard',
+
+  // Post-logout feedback page
+  'feedback.loggedOut': 'You have logged out of the session',
+  'feedback.subtitle': 'We’d love to hear about your experience (optional)',
+  'feedback.rateAria': 'Rate your experience',
+  'feedback.ratingTerrible': 'Terrible',
+  'feedback.ratingBad': 'Bad',
+  'feedback.ratingOkay': 'Okay',
+  'feedback.ratingGood': 'Good',
+  'feedback.ratingGreat': 'Great',
+  'feedback.category': 'Category',
+  'feedback.selectCategory': 'Select Category',
+  'feedback.catCallCenter': 'Call Center Service',
+  'feedback.catFacilityCleanliness': 'Facility Cleanliness',
+  'feedback.catMedicineAvailability': 'Medicine Availability',
+  'feedback.catPatientCare': 'Patient Care',
+  'feedback.catStaffBehavior': 'Staff Behavior',
+  'feedback.catWaitTime': 'Wait Time',
+  'feedback.commentPlaceholder': 'How we can make it better…',
+  'feedback.anonymousNote':
+    'You are not logged in, this feedback will be submitted anonymously.',
+  'feedback.close': 'Close',
+  'feedback.okay': 'Okay',
 } as const;
 
 /** Every translatable key in the app, derived from the English dictionary. */

@@ -22,38 +22,31 @@
 
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideHeadset } from '@ng-icons/lucide';
-
-import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
-/** Shows the signed-in agent's telephony ID, e.g. "My ID : Agent - 2145". */
+/** Rating panel. Display-only; the rating widget is not yet wired. */
 @Component({
-  selector: 'app-agent-id',
+  selector: 'app-rating-panel',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, TranslatePipe],
-  viewProviders: [provideIcons({ lucideHeadset })],
+  imports: [TranslatePipe],
   template: `
-    @if (user(); as u) {
-      <h4 class="flex items-center gap-2 text-lg font-semibold">
-        <ng-icon
-          name="lucideHeadset"
-          size="20"
-          class="text-primary"
-          aria-hidden="true"
-        />
-        <span>{{ 'dashboard.agentId.label' | translate: lang() }} {{ u.agentID }}</span>
-      </h4>
-    }
+    <section
+      class="flex h-full flex-col rounded-lg border border-border bg-card text-card-foreground shadow-sm"
+    >
+      <header class="border-b border-border px-4 py-3">
+        <h2 class="text-base font-semibold">
+          {{ 'dashboard.rating.title' | translate: lang() }}
+        </h2>
+      </header>
+      <div class="px-4 py-3 text-sm text-muted-foreground">
+        {{ 'dashboard.rating.panelContent' | translate: lang() }}
+      </div>
+    </section>
   `,
 })
-export class AgentIdComponent {
-  private readonly authStore = inject(AuthStore);
+export class RatingPanelComponent {
   private readonly i18n = inject(I18nService);
-
-  readonly user = this.authStore.user;
   readonly lang = this.i18n.language;
 }

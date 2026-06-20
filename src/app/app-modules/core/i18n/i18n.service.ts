@@ -65,11 +65,20 @@ export class I18nService {
 
   /** Switch the active language and persist the choice. */
   setLanguage(language: Language): void {
-    if (!this.isSupported(language) || language === this._language()) {
+    if (!this.isImplemented(language) || language === this._language()) {
       return;
     }
     this._language.set(language);
     this.storage.setItem(LANGUAGE_STORAGE_KEY, language);
+  }
+
+  /**
+   * Whether a language code has a loaded dictionary (i.e. selecting it actually
+   * switches the UI). The header uses this to decide between switching and
+   * showing the "coming soon" notice for the not-yet-translated languages.
+   */
+  isImplemented(code: string): code is Language {
+    return Object.prototype.hasOwnProperty.call(DICTIONARIES, code);
   }
 
   /** Translate a key in the currently active language. */
@@ -90,12 +99,8 @@ export class I18nService {
     );
   }
 
-  private isSupported(language: string): language is Language {
-    return AVAILABLE_LANGUAGES.some((option) => option.code === language);
-  }
-
   private readStoredLanguage(): Language {
     const stored = this.storage.getItem(LANGUAGE_STORAGE_KEY);
-    return stored && this.isSupported(stored) ? stored : DEFAULT_LANGUAGE;
+    return stored && this.isImplemented(stored) ? stored : DEFAULT_LANGUAGE;
   }
 }

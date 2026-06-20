@@ -27,6 +27,7 @@ import {
   DestroyRef,
   computed,
   inject,
+  input,
   signal,
 } from '@angular/core';
 
@@ -38,8 +39,8 @@ import { DashboardStore } from '../dashboard.store';
 /** How often the displayed date is refreshed so it survives a midnight rollover. */
 const DATE_REFRESH_MS = 60_000;
 
-/** A single statistic tile: its label key and pre-formatted value. */
-interface StatisticCard {
+/** A duration statistic tile: its label key and pre-formatted `HH:MM:SS` value. */
+interface DurationCard {
   readonly labelKey: TranslationKey;
   readonly value: string;
 }
@@ -54,7 +55,13 @@ function formatDuration(totalSeconds: number): string {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
-/** Call-statistics panel: today's duration, break, free time and call count. */
+/**
+ * Call-statistics panel: today's call duration, break and free time (each with
+ * Hrs/Mins/Secs sub-labels) plus the total call count.
+ *
+ * In `blank` mode (supervisors, who have no personal call metrics) the tiles
+ * render their labels with no numeric values, matching the legacy dashboard.
+ */
 @Component({
   selector: 'app-call-statistics',
   standalone: true,
@@ -76,16 +83,34 @@ function formatDuration(totalSeconds: number): string {
       </header>
 
       <dl class="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
-        @for (card of cards(); track card.labelKey) {
+        @for (card of durationCards(); track card.labelKey) {
           <div class="flex flex-col items-center gap-1 bg-card px-4 py-6">
-            <dd class="text-3xl font-bold tabular-nums text-primary">
-              {{ card.value }}
-            </dd>
+            @if (!blank()) {
+              <dd class="text-3xl font-bold tabular-nums text-primary">
+                {{ card.value }}
+              </dd>
+            }
+            <div class="flex gap-4 text-xs text-muted-foreground">
+              <span>{{ 'dashboard.callStatistics.hrs' | translate: lang() }}</span>
+              <span>{{ 'dashboard.callStatistics.mins' | translate: lang() }}</span>
+              <span>{{ 'dashboard.callStatistics.secs' | translate: lang() }}</span>
+            </div>
             <dt class="text-center text-sm text-muted-foreground">
               {{ card.labelKey | translate: lang() }}
             </dt>
           </div>
         }
+
+        <div class="flex flex-col items-center justify-center gap-1 bg-card px-4 py-6">
+          @if (!blank()) {
+            <dd class="text-3xl font-bold tabular-nums text-primary">
+              {{ totalCalls() }}
+            </dd>
+          }
+          <dt class="text-center text-sm text-muted-foreground">
+            {{ 'dashboard.callStatistics.totalCalls' | translate: lang() }}
+          </dt>
+        </div>
       </dl>
     </section>
   `,
@@ -97,18 +122,13 @@ export class CallStatisticsComponent {
   private readonly _today = signal(new Date());
 
   readonly lang = this.i18n.language;
+  /** When true, render labels only (no numeric values) — used for supervisors. */
+  readonly blank = input(false);
+
   /** Today's date, refreshed periodically so it stays correct across midnight. */
   readonly today = this._today.asReadonly();
 
-  constructor() {
-    const intervalId = setInterval(
-      () => this._today.set(new Date()),
-      DATE_REFRESH_MS,
-    );
-    inject(DestroyRef).onDestroy(() => clearInterval(intervalId));
-  }
-
-  readonly cards = computed<StatisticCard[]>(() => {
+  readonly durationCards = computed<DurationCard[]>(() => {
     const stats = this.store.callStatistics();
     return [
       {
@@ -123,10 +143,16 @@ export class CallStatisticsComponent {
         labelKey: 'dashboard.callStatistics.freeTime',
         value: formatDuration(stats.freeTimeSeconds),
       },
-      {
-        labelKey: 'dashboard.callStatistics.totalCalls',
-        value: stats.totalCalls.toString(),
-      },
     ];
   });
+
+  readonly totalCalls = computed(() => this.store.callStatistics().totalCalls);
+
+  constructor() {
+    const intervalId = setInterval(
+      () => this._today.set(new Date()),
+      DATE_REFRESH_MS,
+    );
+    inject(DestroyRef).onDestroy(() => clearInterval(intervalId));
+  }
 }

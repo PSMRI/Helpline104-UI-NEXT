@@ -27,7 +27,7 @@ import { filter, fromEvent, Observable, Subject, takeUntil } from 'rxjs';
 
 import { ZardDialogService } from '@common-ui/ui/dialog';
 
-import { ConfirmDialogOptions } from './confirm-dialog.types';
+import { AlertDialogOptions, ConfirmDialogOptions } from './confirm-dialog.types';
 
 /**
  * Confirmation dialog wrapper around the ZardUI dialog.
@@ -99,6 +99,52 @@ export class ConfirmDialogService {
         )
         .subscribe(() => {
           settle(false);
+          dialogRef.close();
+        });
+    }
+
+    return result$.asObservable();
+  }
+
+  /**
+   * Opens a single-button acknowledgement dialog (info/error notice).
+   *
+   * @returns An `Observable<void>` that emits once and completes when the user
+   * acknowledges (OK button, close icon or `Escape`). Mirrors {@link confirm}'s
+   * settle-once guarantee.
+   */
+  alert(options: AlertDialogOptions): Observable<void> {
+    const result$ = new Subject<void>();
+
+    let settled = false;
+    const settle = (): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      result$.next();
+      result$.complete();
+    };
+
+    const dialogRef = this.dialog.create<unknown, unknown>({
+      zTitle: options.title,
+      zDescription: options.message,
+      zOkText: options.okText?.trim() ? options.okText : 'OK',
+      // A notice has nothing to cancel: hide the cancel button entirely.
+      zCancelText: null,
+      zMaskClosable: false,
+      zOnOk: () => settle(),
+      zOnCancel: () => settle(),
+    });
+
+    if (isPlatformBrowser(this.platformId)) {
+      fromEvent<KeyboardEvent>(document, 'keydown')
+        .pipe(
+          filter(event => event.key === 'Escape'),
+          takeUntil(result$),
+        )
+        .subscribe(() => {
+          settle();
           dialogRef.close();
         });
     }

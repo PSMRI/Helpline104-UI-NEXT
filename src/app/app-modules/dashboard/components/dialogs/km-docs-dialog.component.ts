@@ -20,22 +20,28 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-/**
- * Languages with a complete loaded dictionary — these actually switch the UI.
- * The selector offers many more (see {@link AVAILABLE_LANGUAGES}), but only
- * these are implemented; the rest show a "coming soon" notice.
- */
-export type Language = 'en' | 'hi' | 'as';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
-/** The default/fallback language used before a choice is made or on a miss. */
-export const DEFAULT_LANGUAGE: Language = 'en';
+import { I18nService } from '../../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
 /**
- * A selectable language in the header dropdown. `implemented` marks whether a
- * dictionary exists; unimplemented options notify the agent and do not switch.
+ * Body of the KM Docs (Knowledge Management documents) modal, opened from the
+ * Training Resources row of the Activity panel. No documents are published for
+ * the 104 service, so it shows the empty state.
  */
-export interface LanguageOption {
-  readonly code: string;
-  readonly label: string;
-  readonly implemented: boolean;
+@Component({
+  selector: 'app-km-docs-dialog',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
+  template: `
+    <p class="py-6 text-center text-sm text-muted-foreground">
+      {{ 'dashboard.activity.noKmDocs' | translate: lang() }}
+    </p>
+  `,
+})
+export class KmDocsDialogComponent {
+  private readonly i18n = inject(I18nService);
+  readonly lang = this.i18n.language;
 }

@@ -21,39 +21,40 @@
  */
 
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideHeadset } from '@ng-icons/lucide';
+import { ZardButtonComponent } from '@common-ui/ui/button';
 
-import { AuthStore } from '../../core/auth/auth.store';
-import { I18nService } from '../../core/i18n/i18n.service';
-import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslatePipe } from '../core/i18n/translate.pipe';
 
-/** Shows the signed-in agent's telephony ID, e.g. "My ID : Agent - 2145". */
+/**
+ * Supervisor Activity Area landing, reached from the dashboard's Activity Area
+ * rail entry. The supervisor console (activities, reports, configurations) is a
+ * later milestone; this is its routed entry point.
+ */
 @Component({
-  selector: 'app-agent-id',
+  selector: 'app-supervisor',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, TranslatePipe],
-  viewProviders: [provideIcons({ lucideHeadset })],
+  imports: [RouterLink, ZardButtonComponent, TranslatePipe],
   template: `
-    @if (user(); as u) {
-      <h4 class="flex items-center gap-2 text-lg font-semibold">
-        <ng-icon
-          name="lucideHeadset"
-          size="20"
-          class="text-primary"
-          aria-hidden="true"
-        />
-        <span>{{ 'dashboard.agentId.label' | translate: lang() }} {{ u.agentID }}</span>
-      </h4>
-    }
+    <div
+      class="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center text-foreground"
+    >
+      <h1 class="text-2xl font-semibold">
+        {{ 'supervisor.title' | translate: lang() }}
+      </h1>
+      <p class="max-w-md text-sm text-muted-foreground">
+        {{ 'supervisor.intro' | translate: lang() }}
+      </p>
+      <a z-button zType="outline" routerLink="/dashboard">
+        {{ 'supervisor.backToDashboard' | translate: lang() }}
+      </a>
+    </div>
   `,
 })
-export class AgentIdComponent {
-  private readonly authStore = inject(AuthStore);
+export class SupervisorComponent {
   private readonly i18n = inject(I18nService);
-
-  readonly user = this.authStore.user;
   readonly lang = this.i18n.language;
 }
