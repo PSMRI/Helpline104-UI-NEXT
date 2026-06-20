@@ -104,6 +104,11 @@ export class DashboardComponent {
 
   readonly showCampaignToggle = computed(() => {
     const code = this.featureCode();
+    // Supervisors never get the campaign toggle, even when they hold the
+    // Health Advice privilege that otherwise enables it.
+    if (code === SUPERVISOR_FEATURE_CODE) {
+      return false;
+    }
     return (
       (code !== null && CAMPAIGN_FEATURE_CODES.includes(code)) ||
       this.hasHealthAdvicePrivilege()
