@@ -81,12 +81,12 @@ export const as: Record<TranslationKey, string> = {
   'dashboard.reports.reportName': 'প্ৰতিবেদনৰ নাম',
   'dashboard.reports.date': 'তাৰিখ',
   'dashboard.reports.export': 'ৰপ্তানি',
-  'dashboard.reports.more': 'অধিক...',
+  'dashboard.reports.more': 'সকলো চাওক →',
 
   // Activity for this week panel
   'dashboard.activity.title': 'এই সপ্তাহৰ কাৰ্যকলাপ',
   'dashboard.activity.trainingResources': 'প্ৰশিক্ষণ সম্পদ',
-  'dashboard.activity.more': 'অধিক...',
+  'dashboard.activity.more': 'সকলো চাওক →',
   'dashboard.activity.kmDocsTitle': 'কেএম নথি',
   'dashboard.activity.noKmDocs': 'কোনো কেএম নথি পোৱা নগ’ল',
 
@@ -100,7 +100,6 @@ export const as: Record<TranslationKey, string> = {
   'dashboard.contacts.empty': 'কোনো জৰুৰীকালীন যোগাযোগ পোৱা নগ’ল',
 
   // Footer
-  'dashboard.footer.poweredBy': 'দ্বাৰা চালিত:',
   'dashboard.footer.feedback': 'প্ৰতিক্ৰিয়া',
   'dashboard.footer.version': 'সংস্কৰণ',
 

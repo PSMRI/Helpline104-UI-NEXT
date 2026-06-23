@@ -30,6 +30,13 @@ import { ZardDialogService } from '@common-ui/ui/dialog';
 import { AlertDialogOptions, ConfirmDialogOptions } from './confirm-dialog.types';
 
 /**
+ * Default dialog width. ZardUI's base dialog is `w-full` (capped only by
+ * `max-w-[calc(100%-2rem)]`), so without an explicit width a short notice
+ * stretches across the whole viewport. Pin a compact, centered width instead.
+ */
+const DEFAULT_DIALOG_WIDTH = '28rem';
+
+/**
  * Confirmation dialog wrapper around the ZardUI dialog.
  *
  * Replaces the legacy Angular Material `ConfirmationDialogsService.confirm(...)`.
@@ -71,6 +78,7 @@ export class ConfirmDialogService {
     const dialogRef = this.dialog.create<unknown, unknown>({
       zTitle: options.title,
       zDescription: options.message,
+      zWidth: options.width?.trim() ? options.width : DEFAULT_DIALOG_WIDTH,
       // Empty/whitespace labels fall back to defaults (truthiness, not `??`),
       // so a stray '' never renders a blank button.
       zOkText: options.okText?.trim() ? options.okText : 'OK',
@@ -129,6 +137,7 @@ export class ConfirmDialogService {
     const dialogRef = this.dialog.create<unknown, unknown>({
       zTitle: options.title,
       zDescription: options.message,
+      zWidth: options.width?.trim() ? options.width : DEFAULT_DIALOG_WIDTH,
       zOkText: options.okText?.trim() ? options.okText : 'OK',
       // A notice has nothing to cancel: hide the cancel button entirely.
       zCancelText: null,

@@ -46,12 +46,12 @@ const SUPERVISOR_ROUTE = '/supervisor';
   ],
   template: `
     <nav
-      class="flex h-full w-14 flex-col items-center gap-2 bg-primary py-3 text-primary-foreground"
+      class="flex h-full w-14 flex-col items-center gap-2 border-r border-border bg-slate-50 py-3 text-muted-foreground"
     >
       @if (showActivityArea()) {
         <button
           type="button"
-          class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/60"
+          class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           [title]="'dashboard.sidebar.activityArea' | translate: lang()"
           [attr.aria-label]="'dashboard.sidebar.activityArea' | translate: lang()"
           (click)="goToActivityArea()"
@@ -62,7 +62,7 @@ const SUPERVISOR_ROUTE = '/supervisor';
 
       <button
         type="button"
-        class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/60"
+        class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         [title]="'dashboard.sidebar.switchRole' | translate: lang()"
         [attr.aria-label]="'dashboard.sidebar.switchRole' | translate: lang()"
         (click)="goToRoleSelection()"

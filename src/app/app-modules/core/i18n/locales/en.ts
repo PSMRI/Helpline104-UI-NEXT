@@ -78,12 +78,12 @@ export const en = {
   'dashboard.reports.reportName': 'Report Name',
   'dashboard.reports.date': 'Date',
   'dashboard.reports.export': 'Export',
-  'dashboard.reports.more': 'More...',
+  'dashboard.reports.more': 'View All →',
 
   // Activity for this week panel
   'dashboard.activity.title': 'Activity for this week',
   'dashboard.activity.trainingResources': 'Training Resources',
-  'dashboard.activity.more': 'More...',
+  'dashboard.activity.more': 'View All →',
   'dashboard.activity.kmDocsTitle': 'KM Docs',
   'dashboard.activity.noKmDocs': 'No KM Docs documents found',
 
@@ -97,7 +97,6 @@ export const en = {
   'dashboard.contacts.empty': 'No emergency contacts found',
 
   // Footer
-  'dashboard.footer.poweredBy': 'Powered by:',
   'dashboard.footer.feedback': 'Feedback',
   'dashboard.footer.version': 'Version',
 

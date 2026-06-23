@@ -80,12 +80,12 @@ export const hi: Record<TranslationKey, string> = {
   'dashboard.reports.reportName': 'विवरण का नाम',
   'dashboard.reports.date': 'तारीख',
   'dashboard.reports.export': 'निर्यात',
-  'dashboard.reports.more': 'अधिक...',
+  'dashboard.reports.more': 'सभी देखें →',
 
   // Activity for this week panel
   'dashboard.activity.title': 'इस सप्ताह के लिए गतिविधि',
   'dashboard.activity.trainingResources': 'प्रशिक्षण संसाधन',
-  'dashboard.activity.more': 'अधिक...',
+  'dashboard.activity.more': 'सभी देखें →',
   'dashboard.activity.kmDocsTitle': 'केएम दस्तावेज़',
   'dashboard.activity.noKmDocs': 'कोई केएम दस्तावेज़ नहीं मिला',
 
@@ -99,7 +99,6 @@ export const hi: Record<TranslationKey, string> = {
   'dashboard.contacts.empty': 'कोई आपातकालीन संपर्क नहीं मिला',
 
   // Footer
-  'dashboard.footer.poweredBy': 'द्वारा संचालित:',
   'dashboard.footer.feedback': 'प्रतिक्रिया',
   'dashboard.footer.version': 'संस्करण',
 

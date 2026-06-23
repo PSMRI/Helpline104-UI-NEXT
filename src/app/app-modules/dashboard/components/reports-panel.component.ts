@@ -54,12 +54,12 @@ const PLACEHOLDER_REPORTS: readonly ReportRow[] = [
   viewProviders: [provideIcons({ lucideFileDown })],
   template: `
     <section
-      class="flex h-full flex-col rounded-lg border border-border bg-card text-card-foreground shadow-sm"
+      class="flex h-full flex-col rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
     >
       <header
         class="flex items-center justify-between border-b border-border px-4 py-3"
       >
-        <h2 class="text-base font-semibold">
+        <h2 class="text-lg font-semibold">
           {{ 'dashboard.reports.title' | translate: lang() }}
         </h2>
         <button

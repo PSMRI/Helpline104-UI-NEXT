@@ -25,18 +25,19 @@ import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideBookUser,
   lucideCircleHelp,
-  lucideGlobe,
   lucidePower,
   lucideUser,
-  lucideUsers,
 } from '@ng-icons/lucide';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardDialogService } from '@common-ui/ui/dialog';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+import { AppHeaderComponent } from '@/shared/components/layout/app-header.component';
 
+import { APP_VERSION } from '../../core/app-version';
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -44,7 +45,6 @@ import { EmergencyContactsDialogComponent } from './dialogs/emergency-contacts-d
 
 const FEEDBACK_ROUTE = '/feedback';
 const SERVICE_104 = '104';
-const APP_VERSION = '1.01';
 const LICENSE_URL =
   'https://uatamrit.piramalswasthya.org/common-api/license.html';
 
@@ -60,64 +60,19 @@ const TITLE_ROLE_ALIASES: Record<string, string> = { HAO: 'RO' };
   selector: 'app-dashboard-header',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, ZardButtonComponent, TranslatePipe],
+  imports: [NgIcon, ZardButtonComponent, TranslatePipe, AppHeaderComponent],
   viewProviders: [
     provideIcons({
-      lucideGlobe,
+      lucideBookUser,
       lucideUser,
-      lucideUsers,
       lucideCircleHelp,
       lucidePower,
     }),
   ],
   host: { '(document:click)': 'closeMenus()' },
   template: `
-    <header
-      class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 bg-primary px-4 py-2 text-primary-foreground sm:px-6"
-    >
-      <div class="flex items-center gap-2">
-        <img
-          class="h-9 w-auto rounded-sm bg-white p-1"
-          src="images/piramal-swasthya.png"
-          [alt]="'dashboard.header.logoAlt' | translate: lang()"
-          width="120"
-          height="55"
-        />
-      </div>
-
-      <h1 class="text-center text-base font-semibold sm:text-lg">
-        {{ roleTitle() }}
-      </h1>
-
+    <app-shell-header [title]="roleTitle()" [userName]="user()?.userName ?? null">
       <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
-        <label class="flex items-center gap-1.5 text-sm">
-          <ng-icon name="lucideGlobe" size="18" aria-hidden="true" />
-          <span class="sr-only">
-            {{ 'dashboard.header.languageLabel' | translate: lang() }}
-          </span>
-          <select
-            class="rounded-md border border-white/30 bg-primary px-2 py-1 text-sm text-primary-foreground focus:outline-none focus:ring-2 focus:ring-white/60"
-            [value]="lang()"
-            (change)="onLanguageChange($event)"
-          >
-            @for (option of languages; track option.code) {
-              <option
-                class="text-foreground"
-                [value]="option.code"
-                [selected]="option.code === lang()"
-              >
-                {{ option.label }}
-              </option>
-            }
-          </select>
-        </label>
-
-        @if (user(); as u) {
-          <span class="text-sm">
-            {{ 'dashboard.header.welcome' | translate: lang() }} {{ u.userName }}
-          </span>
-        }
-
         <button
           z-button
           type="button"
@@ -128,7 +83,7 @@ const TITLE_ROLE_ALIASES: Record<string, string> = { HAO: 'RO' };
           [attr.aria-label]="'dashboard.header.contacts' | translate: lang()"
           (click)="openContacts()"
         >
-          <ng-icon name="lucideUsers" size="18" aria-hidden="true" />
+          <ng-icon name="lucideBookUser" size="18" aria-hidden="true" />
         </button>
 
         <div class="relative">
@@ -208,7 +163,7 @@ const TITLE_ROLE_ALIASES: Record<string, string> = { HAO: 'RO' };
           <ng-icon name="lucidePower" size="18" aria-hidden="true" />
         </button>
       </div>
-    </header>
+    </app-shell-header>
   `,
 })
 export class DashboardHeaderComponent {
@@ -220,7 +175,6 @@ export class DashboardHeaderComponent {
 
   readonly user = this.authStore.user;
   readonly lang = this.i18n.language;
-  readonly languages = this.i18n.availableLanguages;
   readonly licenseUrl = LICENSE_URL;
 
   private readonly profileOpen_ = signal(false);
@@ -250,22 +204,6 @@ export class DashboardHeaderComponent {
     const feature = this.authStore.currentRole()?.featureCode;
     return [agentId, feature, SERVICE_104].filter(Boolean).join('-');
   });
-
-  onLanguageChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const code = select.value;
-    if (this.i18n.isImplemented(code)) {
-      this.i18n.setLanguage(code);
-      return;
-    }
-    // Not yet translated: notify and revert the selection to the active language.
-    const label =
-      this.languages.find((option) => option.code === code)?.label ?? code;
-    window.alert(
-      `${this.i18n.instant('dashboard.header.languageComingSoon')} ${label}`,
-    );
-    select.value = this.lang();
-  }
 
   toggleProfile(event: Event): void {
     event.stopPropagation();

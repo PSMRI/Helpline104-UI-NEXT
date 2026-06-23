@@ -69,12 +69,12 @@ function formatDuration(totalSeconds: number): string {
   imports: [DatePipe, TranslatePipe],
   template: `
     <section
-      class="rounded-lg border border-border bg-card text-card-foreground shadow-sm"
+      class="rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
     >
       <header
         class="flex items-center justify-between border-b border-border px-4 py-3"
       >
-        <h2 class="text-base font-semibold">
+        <h2 class="text-lg font-semibold">
           {{ 'dashboard.callStatistics.title' | translate: lang() }}
         </h2>
         <span class="text-sm text-muted-foreground">

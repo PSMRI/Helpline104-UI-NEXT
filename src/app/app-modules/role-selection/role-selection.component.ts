@@ -23,12 +23,19 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucidePhone, lucidePower } from '@ng-icons/lucide';
+
 import { ZardButtonComponent } from '@common-ui/ui/button';
+
+import { AppFooterComponent } from '@/shared/components/layout/app-footer.component';
+import { AppHeaderComponent } from '@/shared/components/layout/app-header.component';
 
 import { AuthStore } from '../core/auth/auth.store';
 import { Privilege, Role } from '../core/auth/auth.models';
 
 const DASHBOARD_ROUTE = '/dashboard';
+const FEEDBACK_ROUTE = '/feedback';
 
 /** Legacy display alias: the "HYBRID HAO" role is shown simply as "HAO". */
 const ROLE_DISPLAY_ALIASES: Record<string, string> = {
@@ -67,9 +74,14 @@ const SCREEN_HEALTH_ADVICE = 'Health_Advice';
   selector: 'app-role-selection',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ZardButtonComponent],
+  imports: [
+    NgIcon,
+    ZardButtonComponent,
+    AppHeaderComponent,
+    AppFooterComponent,
+  ],
+  viewProviders: [provideIcons({ lucidePhone, lucidePower })],
   templateUrl: './role-selection.component.html',
-  styleUrl: './role-selection.component.css',
 })
 export class RoleSelectionComponent {
   private readonly authStore = inject(AuthStore);
@@ -109,6 +121,12 @@ export class RoleSelectionComponent {
     });
 
     void this.router.navigate([DASHBOARD_ROUTE]);
+  }
+
+  /** Clear the session and route to the post-logout feedback page. */
+  logout(): void {
+    this.authStore.clear();
+    void this.router.navigate([FEEDBACK_ROUTE], { queryParams: { sl: '104' } });
   }
 
   /**

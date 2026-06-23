@@ -57,6 +57,10 @@ export class LoginService {
     return this.config.getCommonBaseURL() + 'user/userAuthenticate';
   }
 
+  private get concurrentSessionLogoutUrl(): string {
+    return this.config.getCommonBaseURL() + 'user/logOutUserFromConcurrentSession';
+  }
+
   /**
    * Authenticate the user with an already-encrypted password.
    * Resolves to the login payload (`json.data`) or errors with a {@link LoginError}.
@@ -97,6 +101,28 @@ export class LoginService {
       }),
       catchError((err: unknown) => throwError(() => this.toLoginError(err))),
     );
+  }
+
+  /**
+   * Log the user out of any session held on another device so a fresh login can
+   * proceed. Mirrors the legacy `user/logOutUserFromConcurrentSession` call used
+   * by the concurrent-session ("already logged in elsewhere", 5002) flow.
+   */
+  logOutUserFromConcurrentSession(userName: string): Observable<unknown> {
+    return this.http
+      .post<ApiResponse<unknown>>(this.concurrentSessionLogoutUrl, { userName })
+      .pipe(
+        map((res) => {
+          if (res.statusCode && res.statusCode !== 200) {
+            throw {
+              status: res.statusCode,
+              errorMessage: res.errorMessage || 'Unknown error',
+            } satisfies LoginError;
+          }
+          return res.data ?? null;
+        }),
+        catchError((err: unknown) => throwError(() => this.toLoginError(err))),
+      );
   }
 
   /**

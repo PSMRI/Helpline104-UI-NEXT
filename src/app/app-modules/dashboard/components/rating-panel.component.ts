@@ -33,10 +33,10 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
   imports: [TranslatePipe],
   template: `
     <section
-      class="flex h-full flex-col rounded-lg border border-border bg-card text-card-foreground shadow-sm"
+      class="flex h-full flex-col rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
     >
       <header class="border-b border-border px-4 py-3">
-        <h2 class="text-base font-semibold">
+        <h2 class="text-lg font-semibold">
           {{ 'dashboard.rating.title' | translate: lang() }}
         </h2>
       </header>

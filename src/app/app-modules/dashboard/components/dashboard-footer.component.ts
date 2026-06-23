@@ -36,61 +36,46 @@ import { lucideMail } from '@ng-icons/lucide';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 
+import { AppFooterComponent } from '@/shared/components/layout/app-footer.component';
+
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ConfigService } from '../../core/services/config.service';
 
 /** Static brand constants shown in the footer (not translatable). */
-const VENDOR = 'WIPRO';
-const ORGANISATION = 'PSMRI';
-const APP_VERSION = '1.01';
 const CZENTRIX_LABEL = 'CZentrix';
 const CTI_HANDLER_PATH = 'bar/cti_handler.php';
 const FEEDBACK_ROUTE = '/feedback';
 
 /**
- * Dashboard footer: branding, the post-logout feedback link, app version and —
- * for call-handling roles — the CZentrix button that toggles the CTI
- * (telephony soft-phone) bar.
+ * Dashboard footer: the shared copyright / version chrome plus the post-logout
+ * feedback link and — for call-handling roles — the CZentrix button that
+ * toggles the CTI (telephony soft-phone) bar.
  */
 @Component({
   selector: 'app-dashboard-footer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, ZardButtonComponent, TranslatePipe],
+  imports: [NgIcon, ZardButtonComponent, TranslatePipe, AppFooterComponent],
   viewProviders: [provideIcons({ lucideMail })],
   template: `
-    <footer
-      class="flex flex-wrap items-center justify-between gap-2 bg-foreground px-4 py-2 text-xs text-background sm:px-6"
-    >
-      <span>{{ 'dashboard.footer.poweredBy' | translate: lang() }} {{ vendor }}</span>
+    <app-shell-footer>
+      <button
+        type="button"
+        class="flex items-center gap-1 hover:underline focus:outline-none focus:ring-2 focus:ring-white/60"
+        (click)="goToFeedback()"
+      >
+        <ng-icon name="lucideMail" size="14" aria-hidden="true" />
+        {{ 'dashboard.footer.feedback' | translate: lang() }}
+      </button>
 
-      <span class="flex items-center gap-1">
-        <span>{{ copyrightYear }}</span>
-        <span aria-hidden="true">&copy;</span>
-        <span>{{ organisation }}</span>
-      </span>
-
-      <div class="flex items-center gap-4">
-        <button
-          type="button"
-          class="flex items-center gap-1 hover:underline focus:outline-none focus:ring-2 focus:ring-white/60"
-          (click)="goToFeedback()"
-        >
-          <ng-icon name="lucideMail" size="14" aria-hidden="true" />
-          {{ 'dashboard.footer.feedback' | translate: lang() }}
+      @if (showCzentrix()) {
+        <button z-button type="button" zSize="sm" (click)="toggleCti()">
+          {{ czentrixLabel }}
         </button>
-
-        <span>{{ 'dashboard.footer.version' | translate: lang() }} {{ appVersion }}</span>
-
-        @if (showCzentrix()) {
-          <button z-button type="button" zSize="sm" (click)="toggleCti()">
-            {{ czentrixLabel }}
-          </button>
-        }
-      </div>
-    </footer>
+      }
+    </app-shell-footer>
 
     @if (showCzentrix() && ctiOpen() && ctiUrl(); as src) {
       <iframe
@@ -115,11 +100,6 @@ export class DashboardFooterComponent {
   /** Telephony agent id used to address the CTI handler. */
   readonly agentId = input<number | null>(null);
 
-  readonly vendor = VENDOR;
-  readonly organisation = ORGANISATION;
-  /** Current calendar year, shown as the copyright year. */
-  readonly copyrightYear = new Date().getFullYear();
-  readonly appVersion = APP_VERSION;
   readonly czentrixLabel = CZENTRIX_LABEL;
 
   private readonly _ctiOpen = signal(false);
