@@ -25,8 +25,8 @@ import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideBookUser,
   lucideCircleHelp,
+  lucidePhone,
   lucidePower,
   lucideUser,
 } from '@ng-icons/lucide';
@@ -63,7 +63,7 @@ const TITLE_ROLE_ALIASES: Record<string, string> = { HAO: 'RO' };
   imports: [NgIcon, ZardButtonComponent, TranslatePipe, AppHeaderComponent],
   viewProviders: [
     provideIcons({
-      lucideBookUser,
+      lucidePhone,
       lucideUser,
       lucideCircleHelp,
       lucidePower,
@@ -83,7 +83,7 @@ const TITLE_ROLE_ALIASES: Record<string, string> = { HAO: 'RO' };
           [attr.aria-label]="'dashboard.header.contacts' | translate: lang()"
           (click)="openContacts()"
         >
-          <ng-icon name="lucideBookUser" size="18" aria-hidden="true" />
+          <ng-icon name="lucidePhone" size="18" aria-hidden="true" />
         </button>
 
         <div class="relative">
