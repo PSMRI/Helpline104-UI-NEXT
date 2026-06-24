@@ -1,44 +1,67 @@
-<div class="rs-wrapper">
-  <header class="rs-header">
-    <h1 class="rs-title">Select your role</h1>
-    @if (user(); as u) {
-      <p class="rs-subtitle">
-        Signed in as <strong>{{ u.userName }}</strong>
+<div class="flex min-h-screen flex-col bg-background text-foreground">
+  <app-shell-header title="Select your role" [userName]="user()?.userName ?? null">
+    <button
+      z-button
+      type="button"
+      zType="ghost"
+      zSize="sm"
+      class="text-destructive hover:bg-white/15 hover:text-destructive"
+      title="Logout"
+      aria-label="Logout"
+      (click)="logout()"
+    >
+      <ng-icon name="lucidePower" size="18" aria-hidden="true" />
+    </button>
+  </app-shell-header>
+
+  <main class="flex flex-1 items-center justify-center bg-muted/40 px-4 py-10 sm:px-6">
+    @if (privileges().length > 0) {
+      <div class="flex w-full max-w-5xl flex-wrap justify-center gap-6">
+        @for (service of privileges(); track service.providerServiceMapID ?? $index) {
+          <section
+            class="flex w-80 max-w-full flex-col gap-6 rounded-xl border border-border bg-card p-7 shadow-sm transition-shadow hover:shadow-md"
+          >
+            <div class="flex items-center gap-3 border-b border-border pb-4">
+              <ng-icon
+                name="lucidePhone"
+                size="30"
+                class="text-primary"
+                aria-hidden="true"
+              />
+              <span class="text-4xl font-extrabold leading-none text-primary">
+                {{ service.serviceName }}
+              </span>
+            </div>
+
+            <ul class="flex flex-col gap-3">
+              @for (role of service.roles ?? []; track role.RoleID ?? $index) {
+                <li>
+                  <button
+                    z-button
+                    type="button"
+                    zType="outline"
+                    zFull
+                    class="py-2.5 text-base font-medium"
+                    (click)="selectRole(role, service)"
+                  >
+                    {{ displayName(role) }}
+                  </button>
+                </li>
+              } @empty {
+                <li class="text-center text-sm text-muted-foreground">
+                  No roles available for this service.
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+    } @else {
+      <p class="text-center text-lg text-muted-foreground" role="alert">
+        You are not authorised to access any 104 services.
       </p>
     }
-  </header>
+  </main>
 
-  @if (privileges().length > 0) {
-    <div class="rs-services">
-      @for (service of privileges(); track service.providerServiceMapID ?? $index) {
-        <section class="rs-service-card">
-          <div class="rs-service-badge">
-            <span class="rs-service-code">{{ service.serviceName }}</span>
-          </div>
-
-          <ul class="rs-roles">
-            @for (role of service.roles ?? []; track role.RoleID ?? $index) {
-              <li>
-                <button
-                  z-button
-                  type="button"
-                  zType="outline"
-                  zFull
-                  (click)="selectRole(role, service)"
-                >
-                  {{ displayName(role) }}
-                </button>
-              </li>
-            } @empty {
-              <li class="rs-empty-roles">No roles available for this service.</li>
-            }
-          </ul>
-        </section>
-      }
-    </div>
-  } @else {
-    <p class="rs-empty" role="alert">
-      You are not authorised to access any 104 services.
-    </p>
-  }
+  <app-shell-footer />
 </div>

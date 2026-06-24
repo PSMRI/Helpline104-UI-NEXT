@@ -27,7 +27,14 @@ import { filter, fromEvent, Observable, Subject, takeUntil } from 'rxjs';
 
 import { ZardDialogService } from '@common-ui/ui/dialog';
 
-import { ConfirmDialogOptions } from './confirm-dialog.types';
+import { AlertDialogOptions, ConfirmDialogOptions } from './confirm-dialog.types';
+
+/**
+ * Default dialog width. ZardUI's base dialog is `w-full` (capped only by
+ * `max-w-[calc(100%-2rem)]`), so without an explicit width a short notice
+ * stretches across the whole viewport. Pin a compact, centered width instead.
+ */
+const DEFAULT_DIALOG_WIDTH = '28rem';
 
 /**
  * Confirmation dialog wrapper around the ZardUI dialog.
@@ -71,6 +78,7 @@ export class ConfirmDialogService {
     const dialogRef = this.dialog.create<unknown, unknown>({
       zTitle: options.title,
       zDescription: options.message,
+      zWidth: options.width?.trim() ? options.width : DEFAULT_DIALOG_WIDTH,
       // Empty/whitespace labels fall back to defaults (truthiness, not `??`),
       // so a stray '' never renders a blank button.
       zOkText: options.okText?.trim() ? options.okText : 'OK',
@@ -99,6 +107,53 @@ export class ConfirmDialogService {
         )
         .subscribe(() => {
           settle(false);
+          dialogRef.close();
+        });
+    }
+
+    return result$.asObservable();
+  }
+
+  /**
+   * Opens a single-button acknowledgement dialog (info/error notice).
+   *
+   * @returns An `Observable<void>` that emits once and completes when the user
+   * acknowledges (OK button, close icon or `Escape`). Mirrors {@link confirm}'s
+   * settle-once guarantee.
+   */
+  alert(options: AlertDialogOptions): Observable<void> {
+    const result$ = new Subject<void>();
+
+    let settled = false;
+    const settle = (): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      result$.next();
+      result$.complete();
+    };
+
+    const dialogRef = this.dialog.create<unknown, unknown>({
+      zTitle: options.title,
+      zDescription: options.message,
+      zWidth: options.width?.trim() ? options.width : DEFAULT_DIALOG_WIDTH,
+      zOkText: options.okText?.trim() ? options.okText : 'OK',
+      // A notice has nothing to cancel: hide the cancel button entirely.
+      zCancelText: null,
+      zMaskClosable: false,
+      zOnOk: () => settle(),
+      zOnCancel: () => settle(),
+    });
+
+    if (isPlatformBrowser(this.platformId)) {
+      fromEvent<KeyboardEvent>(document, 'keydown')
+        .pipe(
+          filter(event => event.key === 'Escape'),
+          takeUntil(result$),
+        )
+        .subscribe(() => {
+          settle();
           dialogRef.close();
         });
     }

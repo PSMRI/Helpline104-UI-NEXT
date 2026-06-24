@@ -46,4 +46,27 @@ export interface ConfirmDialogOptions {
    * Use for irreversible actions such as delete. Defaults to `false`.
    */
   destructive?: boolean;
+  /**
+   * CSS width of the dialog (e.g. `'28rem'`). Defaults to a compact, centered
+   * width so notices never stretch full-width across the viewport.
+   */
+  width?: string;
+}
+
+/**
+ * Options for {@link ConfirmDialogService.alert} — a single-button
+ * acknowledgement dialog (info/error notices with no cancel choice).
+ */
+export interface AlertDialogOptions {
+  /** Heading shown at the top of the dialog (e.g. "Info" or "Error"). */
+  title: string;
+  /** Body text of the notice. */
+  message: string;
+  /** Label for the acknowledge button. Defaults to `'OK'`. */
+  okText?: string;
+  /**
+   * CSS width of the dialog (e.g. `'28rem'`). Defaults to a compact, centered
+   * width so notices never stretch full-width across the viewport.
+   */
+  width?: string;
 }

@@ -20,67 +20,151 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 
 import { AuthStore } from '../core/auth/auth.store';
+import { AgentIdComponent } from './components/agent-id.component';
+import { AlertsPanelComponent } from './components/alerts-panel.component';
+import { ActivityPanelComponent } from './components/activity-panel.component';
+import { CallStatisticsComponent } from './components/call-statistics.component';
+import { CampaignToggleComponent } from './components/campaign-toggle.component';
+import { DashboardFooterComponent } from './components/dashboard-footer.component';
+import { DashboardHeaderComponent } from './components/dashboard-header.component';
+import { DashboardSidebarComponent } from './components/dashboard-sidebar.component';
+import { ReportsPanelComponent } from './components/reports-panel.component';
+import { RatingPanelComponent } from './components/rating-panel.component';
+import { DashboardStore } from './dashboard.store';
+
+/** Feature code of the supervising role, which has no personal agent line. */
+const SUPERVISOR_FEATURE_CODE = 'Supervisor';
+
+/** Roles that may switch between inbound and outbound campaigns. */
+const CAMPAIGN_FEATURE_CODES: readonly string[] = ['MO', 'CO', 'SIO', 'HAO', 'PD'];
+
+/** Service name and screen that grant the Health Advice (HAO) privilege. */
+const SERVICE_104 = '104';
+const SCREEN_HEALTH_ADVICE = 'Health_Advice';
+
+/** Training-resource badge count by role, mirroring the legacy dashboard. */
+const ACTIVITY_BADGE_BY_FEATURE: Record<string, number> = {
+  MO: 6,
+  CO: 4,
+  Supervisor: 1,
+};
 
 /**
- * Placeholder landing screen after role selection. Confirms the selected role
- * was recorded and is the guarded redirect target of role selection.
+ * Dashboard shell for the 104 agent desktop: navigation header, left rail, the
+ * agent line / campaign selector, call statistics, the alerts, reports,
+ * activity and rating panels, and the footer.
  *
- * TODO(P1+): replace with the real role-specific dashboards (legacy
- * MultiRoleScreenComponent child routes — RO/HAO/CO/MO/… screens).
+ * Visibility mirrors the legacy dashboard — supervisors get no agent line, no
+ * campaign selector and blank call statistics, but gain the Activity Area rail
+ * entry; the campaign selector is shown to call-handling roles (MO/CO/SIO/HAO/PD)
+ * or any agent holding the Health Advice privilege.
  */
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [DashboardStore],
+  imports: [
+    DashboardHeaderComponent,
+    DashboardSidebarComponent,
+    DashboardFooterComponent,
+    AgentIdComponent,
+    CampaignToggleComponent,
+    CallStatisticsComponent,
+    AlertsPanelComponent,
+    ReportsPanelComponent,
+    ActivityPanelComponent,
+    RatingPanelComponent,
+  ],
   template: `
-    <div class="dash-wrapper">
-      <h1 class="dash-title">Dashboard</h1>
-      @if (user(); as u) {
-        <p>
-          Signed in as <strong>{{ u.userName }}</strong>
-        </p>
-      }
-      @if (currentRole(); as role) {
-        <p>
-          Role: <strong>{{ role.roleName }}</strong>
-          @if (role.featureCode) {
-            <span>({{ role.featureCode }})</span>
-          }
-        </p>
-      }
-      <p class="dash-todo">Role-specific dashboards are coming soon.</p>
+    <div class="flex min-h-screen flex-col bg-background text-foreground">
+      <app-dashboard-header />
+
+      <div class="relative flex-1 bg-muted/40">
+        <app-dashboard-sidebar
+          class="absolute inset-y-0 left-0 z-20"
+          [showActivityArea]="isSupervisor()"
+        />
+
+        <main class="py-6 pl-16 pr-4 sm:pl-20 sm:pr-6">
+          <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+            @if (showAgentId() || showCampaignToggle()) {
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                @if (showAgentId()) {
+                  <app-agent-id />
+                }
+                @if (showCampaignToggle()) {
+                  <app-campaign-toggle />
+                }
+              </div>
+            }
+
+            <app-call-statistics [blank]="isSupervisor()" />
+
+            <div class="grid gap-6 lg:grid-cols-2">
+              <app-alerts-panel />
+              <app-reports-panel />
+            </div>
+
+            <div class="grid gap-6 lg:grid-cols-2">
+              <app-activity-panel [count]="activityCount()" />
+              <app-rating-panel />
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <app-dashboard-footer [showCzentrix]="!isSupervisor()" [agentId]="agentId()" />
     </div>
   `,
-  styles: [
-    `
-      .dash-wrapper {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 1.5rem;
-        text-align: center;
-      }
-      .dash-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin: 0 0 0.5rem;
-      }
-      .dash-todo {
-        color: hsl(0 0% 45%);
-        font-size: 0.875rem;
-      }
-    `,
-  ],
 })
 export class DashboardComponent {
   private readonly authStore = inject(AuthStore);
 
-  readonly user = this.authStore.user;
-  readonly currentRole = this.authStore.currentRole;
+  private readonly featureCode = computed(
+    () => this.authStore.currentRole()?.featureCode ?? null,
+  );
+
+  private readonly hasHealthAdvicePrivilege = computed(() =>
+    this.authStore
+      .privileges()
+      .some(
+        (privilege) =>
+          privilege.serviceName === SERVICE_104 &&
+          (privilege.roles ?? []).some((role) =>
+            (role.serviceRoleScreenMappings ?? []).some(
+              (mapping) => mapping.screen?.screenName === SCREEN_HEALTH_ADVICE,
+            ),
+          ),
+      ),
+  );
+
+  readonly isSupervisor = computed(
+    () => this.featureCode() === SUPERVISOR_FEATURE_CODE,
+  );
+
+  readonly showAgentId = computed(() => !this.isSupervisor());
+
+  readonly showCampaignToggle = computed(() => {
+    const code = this.featureCode();
+    // Supervisors never get the campaign toggle, even when they hold the
+    // Health Advice privilege that otherwise enables it.
+    if (code === SUPERVISOR_FEATURE_CODE) {
+      return false;
+    }
+    return (
+      (code !== null && CAMPAIGN_FEATURE_CODES.includes(code)) ||
+      this.hasHealthAdvicePrivilege()
+    );
+  });
+
+  readonly activityCount = computed(() => {
+    const code = this.featureCode();
+    return code ? (ACTIVITY_BADGE_BY_FEATURE[code] ?? 0) : 0;
+  });
+
+  readonly agentId = computed(() => this.authStore.user()?.agentID ?? null);
 }

@@ -47,11 +47,15 @@ const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please login again.';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(SessionService);
 
-  // The login request is exempt from global session-expiry handling: an
-  // unauthenticated login attempt must never force-logout. 401/403 (bad
-  // credentials) and body statusCode 5002 ("already logged in elsewhere") are
-  // surfaced to the login component instead.
-  const isLoginRequest = req.url.toLowerCase().includes('user/userauthenticate');
+  // Login-time requests are exempt from global session-expiry handling: an
+  // unauthenticated attempt must never force-logout. 401/403 (bad credentials)
+  // and body statusCode 5002 ("already logged in elsewhere") are surfaced to the
+  // login component instead. The concurrent-session logout is part of that same
+  // pre-session flow, so it is exempt too.
+  const url = req.url.toLowerCase();
+  const isLoginRequest =
+    url.includes('user/userauthenticate') ||
+    url.includes('user/logoutuserfromconcurrentsession');
 
   return next(req).pipe(
     tap((event) => {
