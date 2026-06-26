@@ -45,6 +45,15 @@ login-screen.png
 role-selection.png
 .playwright-mcp/
 
+# Local test artifacts and docs (auth-flows UAT testing)
+/screenshots/
+/docs/
+/01-login-screen-clean.png
+/01-login-screen.png
+/02-forgot-password-username.png
+/03-forgot-password-unknown-user-result.png
+/04-set-password-screen.png
+
 # System files
 .DS_Store
 Thumbs.db
