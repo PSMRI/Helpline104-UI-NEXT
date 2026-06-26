@@ -149,7 +149,16 @@ export class AccountRecoveryService {
         this.baseUrl + 'user/getsecurityquetions',
       )
       .pipe(
-        map((res) => res.data ?? []),
+        map((res) => {
+          // A bad envelope (non-200) or a missing `data` payload is a hard
+          // failure, not "zero questions" — returning [] here would silently
+          // strand the user on an empty dropdown. Surface it as an error so the
+          // component shows the retry dialog instead.
+          if (res.statusCode !== 200 || !res.data) {
+            throw this.toRecoveryError(res);
+          }
+          return res.data;
+        }),
         catchError((err: unknown) => throwError(() => this.toRecoveryError(err))),
       );
   }

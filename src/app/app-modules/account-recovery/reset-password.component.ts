@@ -49,6 +49,7 @@ import { LOGIN_ROUTE } from '../core/core.constants';
 import { AccountRecoveryService } from './account-recovery.service';
 import { AccountRecoveryStore } from './account-recovery.store';
 import { RecoveryError, SecurityAnswer, SecurityQuestion } from './account-recovery.models';
+import { noWhitespace } from './recovery-validators';
 
 const SET_PASSWORD_ROUTE = '/set-password';
 /** Privacy-preserving fallback so the user always gets feedback (never a blank notice). */
@@ -104,14 +105,14 @@ export class ResetPasswordComponent {
   readonly usernameForm = new FormGroup({
     userName: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(2)],
+      validators: [Validators.required, Validators.minLength(2), noWhitespace],
     }),
   });
 
   readonly answerForm = new FormGroup({
     answer: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [Validators.required, noWhitespace],
     }),
   });
 
@@ -141,6 +142,10 @@ export class ResetPasswordComponent {
     const userName = this.usernameForm.controls.userName.value.trim();
     this.loading.set(true);
     this.neutralMessage.set('');
+    // Drop any state left by an abandoned earlier attempt before starting a new
+    // request, so a stale transactionId can't be carried into set-password if
+    // the user restarts the flow with a different username.
+    this.store.clear();
 
     this.recovery.requestSecurityQuestions(userName).subscribe({
       next: (result) => {

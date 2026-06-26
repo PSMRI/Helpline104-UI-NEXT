@@ -41,7 +41,6 @@ import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideEye, lucideEyeOff, lucideLock } from '@ng-icons/lucide';
-import { switchMap } from 'rxjs';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -66,6 +65,7 @@ import {
   SaveSecurityQuesAns,
   SecurityQuestionOption,
 } from './account-recovery.models';
+import { noWhitespace } from './recovery-validators';
 
 /**
  * Password policy (legacy parity): 8–12 chars, at least one digit, one
@@ -141,11 +141,11 @@ export class SetSecurityQuestionsComponent implements OnInit {
   readonly form = new FormGroup(
     {
       question1: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      answer1: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+      answer1: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespace] }),
       question2: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      answer2: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+      answer2: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespace] }),
       question3: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      answer3: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+      answer3: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespace] }),
       newPassword: new FormControl('', {
         nonNullable: true,
         validators: [
@@ -252,25 +252,48 @@ export class SetSecurityQuestionsComponent implements OnInit {
       return;
     }
 
+    // If a previous attempt already saved the questions (returning a
+    // transactionId) and only the password step failed, reuse that saved id
+    // rather than replaying saveSecurityQuestions — a replay would persist a
+    // duplicate set of answers and strand the first transactionId.
+    const savedTransactionId = this.store.transactionId();
+    if (savedTransactionId) {
+      this.setPassword(userName, savedTransactionId);
+      return;
+    }
+
     const values = this.form.getRawValue();
     const payload: SaveSecurityQuesAns[] = [
       this.toRow(userId, userName, values.question1, values.answer1),
       this.toRow(userId, userName, values.question2, values.answer2),
       this.toRow(userId, userName, values.question3, values.answer3),
     ];
-    const encryptedPassword = encryptPassword(values.newPassword);
 
     this.loading.set(true);
-    // Legacy two-call chain: save the questions, then use the returned
-    // transactionId to set the new password. Only on success of BOTH do we
-    // finish; a failure in either surfaces an error dialog.
+    // Legacy two-call chain: save the questions, persist the returned
+    // transactionId, then set the new password. Persisting before the password
+    // call means a failure there can be retried against the saved id instead of
+    // re-running the save.
+    this.recovery.saveSecurityQuestions(payload).subscribe({
+      next: (transactionId) => {
+        this.store.setTransactionId(transactionId);
+        this.setPassword(userName, transactionId);
+      },
+      error: (error: RecoveryError) => this.showSetupError(error),
+    });
+  }
+
+  /**
+   * Set the new password with a transactionId from {@link saveSecurityQuestions}.
+   * The password is re-encrypted from the current form value on each call, so a
+   * retry after a failure still picks up any edit the user made. Only on success
+   * is the recovery store cleared and the user routed back to login.
+   */
+  private setPassword(userName: string, transactionId: string): void {
+    const encryptedPassword = encryptPassword(this.form.controls.newPassword.value);
+    this.loading.set(true);
     this.recovery
-      .saveSecurityQuestions(payload)
-      .pipe(
-        switchMap((transactionId) =>
-          this.recovery.setForgetPassword(userName, encryptedPassword, transactionId),
-        ),
-      )
+      .setForgetPassword(userName, encryptedPassword, transactionId)
       .subscribe({
         next: () => {
           this.loading.set(false);
@@ -278,15 +301,16 @@ export class SetSecurityQuestionsComponent implements OnInit {
           toast.success('Security questions saved and password set. Please sign in.');
           void this.router.navigate([LOGIN_ROUTE]);
         },
-        error: (error: RecoveryError) => {
-          this.loading.set(false);
-          this.dialog.alert({
-            title: 'Error',
-            message:
-              error?.errorMessage || 'Unable to complete setup. Please try again.',
-          });
-        },
+        error: (error: RecoveryError) => this.showSetupError(error),
       });
+  }
+
+  private showSetupError(error: RecoveryError): void {
+    this.loading.set(false);
+    this.dialog.alert({
+      title: 'Error',
+      message: error?.errorMessage || 'Unable to complete setup. Please try again.',
+    });
   }
 
   private toRow(
