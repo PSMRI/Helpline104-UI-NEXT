@@ -23,9 +23,11 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
+import { ZardToastComponent } from '@common-ui/ui/toast';
+
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, ZardToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

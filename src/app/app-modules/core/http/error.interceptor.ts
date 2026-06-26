@@ -47,19 +47,25 @@ const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please login again.';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(SessionService);
 
-  // Login-time requests are exempt from global session-expiry handling: an
-  // unauthenticated attempt must never force-logout. 401/403 (bad credentials)
-  // and body statusCode 5002 ("already logged in elsewhere") are surfaced to the
-  // login component instead. The concurrent-session logout is part of that same
-  // pre-session flow, so it is exempt too.
+  // Pre-session auth-flow requests are exempt from global session-expiry
+  // handling: an unauthenticated attempt must never force-logout. 401/403 (bad
+  // credentials) and body statusCode 5002 are surfaced to the relevant component
+  // instead. This covers login, the concurrent-session logout, and the whole
+  // account-recovery flow — notably `forgetPassword`, whose neutral
+  // "maybe-registered" response is itself a 5002 and must NOT log the user out.
   const url = req.url.toLowerCase();
-  const isLoginRequest =
+  const isAuthFlowRequest =
     url.includes('user/userauthenticate') ||
-    url.includes('user/logoutuserfromconcurrentsession');
+    url.includes('user/logoutuserfromconcurrentsession') ||
+    url.includes('user/forgetpassword') ||
+    url.includes('user/validatesecurityquestionandanswer') ||
+    url.includes('user/setforgetpassword') ||
+    url.includes('user/getsecurityquetions') ||
+    url.includes('user/saveusersecurityquesans');
 
   return next(req).pipe(
     tap((event) => {
-      if (isLoginRequest || !(event instanceof HttpResponse)) {
+      if (isAuthFlowRequest || !(event instanceof HttpResponse)) {
         return;
       }
       const body = event.body as { statusCode?: number; errorMessage?: string } | null;
@@ -74,7 +80,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
     }),
     catchError((error: HttpErrorResponse) => {
-      if (!isLoginRequest && (error.status === 401 || error.status === 403)) {
+      if (!isAuthFlowRequest && (error.status === 401 || error.status === 403)) {
         session.handleSessionExpiry(SESSION_EXPIRED_MESSAGE);
         return EMPTY;
       }

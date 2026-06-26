@@ -32,11 +32,28 @@ export const routes: Routes = [
       import('./app-modules/login/login.component').then((m) => m.LoginComponent),
   },
   {
-    // TODO(P1): placeholder — the password-reset flow is not built yet.
-    // Currently re-uses the login screen so the "Forgot Password?" link resolves.
     path: 'reset-password',
     loadComponent: () =>
-      import('./app-modules/login/login.component').then((m) => m.LoginComponent),
+      import('./app-modules/account-recovery/reset-password.component').then(
+        (m) => m.ResetPasswordComponent,
+      ),
+  },
+  {
+    // Reached from the reset flow once security answers are validated (carries a
+    // transactionId in memory); guarded inside the component, not by a route guard.
+    path: 'set-password',
+    loadComponent: () =>
+      import('./app-modules/account-recovery/set-password.component').then(
+        (m) => m.SetPasswordComponent,
+      ),
+  },
+  {
+    // First-login security-question setup, reached when login reports Status "New".
+    path: 'set-security-questions',
+    loadComponent: () =>
+      import(
+        './app-modules/account-recovery/set-security-questions.component'
+      ).then((m) => m.SetSecurityQuestionsComponent),
   },
   {
     path: 'role-selection',
