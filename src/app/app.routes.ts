@@ -23,6 +23,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './app-modules/core/auth/auth.guard';
+import { inboundGuard } from './app-modules/call/inbound.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -69,6 +70,16 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./app-modules/dashboard/dashboard.component').then(
         (m) => m.DashboardComponent,
+      ),
+  },
+  {
+    // On-call workspace shell. Authenticated AND only while a call is connected
+    // (inboundGuard); reaching it without an active call bounces to /dashboard.
+    path: 'innerpage',
+    canActivate: [authGuard, inboundGuard],
+    loadComponent: () =>
+      import('./app-modules/call/innerpage/innerpage.component').then(
+        (m) => m.InnerpageComponent,
       ),
   },
   {
