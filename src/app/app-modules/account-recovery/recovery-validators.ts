@@ -20,17 +20,19 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { AbstractControl, ValidationErrors } from '@angular/forms';
 
-import { ZardToastComponent } from '@common-ui/ui/toast';
-
-@Component({
-  selector: 'app-root',
-  imports: [RouterOutlet, ZardToastComponent],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
-})
-export class App {
-  protected readonly title = signal('helpline104-next');
+/**
+ * Rejects whitespace-only values (e.g. `"   "`). Pair with
+ * `Validators.required`: a genuinely empty control passes here so the failure
+ * still reads as `required`, while a value that is non-empty but blank once
+ * trimmed fails with `{ whitespace: true }`. This stops users from satisfying a
+ * required field with spaces alone.
+ */
+export function noWhitespace(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (typeof value !== 'string' || value.length === 0) {
+    return null;
+  }
+  return value.trim().length === 0 ? { whitespace: true } : null;
 }

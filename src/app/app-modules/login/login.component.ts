@@ -45,11 +45,13 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { AuthStore } from '../core/auth/auth.store';
 import { LoginResponse, Privilege } from '../core/auth/auth.models';
+import { AccountRecoveryStore } from '../account-recovery/account-recovery.store';
 import { LoginError, LoginService } from './login.service';
 import { encryptPassword } from './password-crypto';
 
 const SERVICE_104 = '104';
 const ROLE_SELECTION_ROUTE = '/role-selection';
+const SET_SECURITY_QUESTIONS_ROUTE = '/set-security-questions';
 /** Backend status code: the account is already signed in on another device. */
 const CONCURRENT_SESSION_CODE = 5002;
 
@@ -86,6 +88,7 @@ const CONCURRENT_SESSION_CODE = 5002;
 export class LoginComponent {
   private readonly loginService = inject(LoginService);
   private readonly authStore = inject(AuthStore);
+  private readonly recoveryStore = inject(AccountRecoveryStore);
   private readonly router = inject(Router);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
@@ -168,12 +171,19 @@ export class LoginComponent {
       });
       void this.router.navigate([ROLE_SELECTION_ROUTE]);
     } else if (response.isAuthenticated && response.Status === 'New') {
-      // TODO(P1): first-login security-question setup (legacy /setQuestions)
-      // is not yet built. Do NOT establish a session until that screen lands,
-      // so we never leave a half-authenticated session in storage.
-      this.errorMessage.set(
-        'First-time login setup is required, but is not available yet.',
-      );
+      // First-login: the user must set security questions before a session is
+      // established. We deliberately do NOT call authStore.setSession() here, so
+      // no half-authenticated session is persisted; the setup screen reads the
+      // user id/name it needs from the in-memory recovery store instead.
+      const userId = response.userID ?? null;
+      if (userId == null) {
+        this.errorMessage.set(
+          'Unable to start first-time setup. Please contact your administrator.',
+        );
+        return;
+      }
+      this.recoveryStore.startSecurityQuestionSetup(userID, userId);
+      void this.router.navigate([SET_SECURITY_QUESTIONS_ROUTE]);
     } else {
       this.errorMessage.set('Unable to sign in. Please try again.');
     }

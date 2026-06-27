@@ -45,6 +45,10 @@ login-screen.png
 role-selection.png
 .playwright-mcp/
 
+# Local test artifacts and docs (auth-flows UAT testing)
+/screenshots/
+/docs/
+
 # System files
 .DS_Store
 Thumbs.db
