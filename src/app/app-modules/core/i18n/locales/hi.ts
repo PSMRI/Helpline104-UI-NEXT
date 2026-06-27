@@ -110,6 +110,7 @@ export const hi: Record<TranslationKey, string> = {
 
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'कॉल करने वाले का नंबर',
+  'innerpage.timer.ariaLabel': 'कॉल अवधि',
   'innerpage.statusOnCall': 'कॉल पर',
   'innerpage.dispatcherTitle': 'कॉल कार्यक्षेत्र',
   'innerpage.dispatcherHint':

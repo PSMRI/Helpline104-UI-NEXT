@@ -32,6 +32,8 @@ import {
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideClock } from '@ng-icons/lucide';
 
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
 
 const SECONDS_PER_MINUTE = 60;
@@ -55,14 +57,16 @@ function pad(value: number): string {
   selector: 'app-call-duration-timer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon],
+  imports: [NgIcon, TranslatePipe],
   viewProviders: [provideIcons({ lucideClock })],
   template: `
     <span
       class="inline-flex items-center gap-2 font-mono text-lg tabular-nums"
       role="timer"
       aria-live="off"
-      [attr.aria-label]="'Call duration ' + elapsed()"
+      [attr.aria-label]="
+        ('innerpage.timer.ariaLabel' | translate: lang()) + ' ' + elapsed()
+      "
     >
       <ng-icon name="lucideClock" size="18" aria-hidden="true" />
       {{ elapsed() }}
@@ -70,7 +74,10 @@ function pad(value: number): string {
   `,
 })
 export class CallDurationTimerComponent {
+  private readonly i18n = inject(I18nService);
   private readonly callStore = inject(CallStore);
+
+  readonly lang = this.i18n.language;
   // Fall back to "now" if the connect time is somehow missing, so the timer
   // shows 00:00:00 rather than a nonsensical value.
   private readonly startedAt = this.callStore.startedAt() ?? Date.now();

@@ -108,6 +108,7 @@ export const en = {
 
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'Caller number',
+  'innerpage.timer.ariaLabel': 'Call duration',
   'innerpage.statusOnCall': 'On call',
   'innerpage.dispatcherTitle': 'Call workspace',
   'innerpage.dispatcherHint':

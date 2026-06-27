@@ -101,11 +101,18 @@ export class CallStore {
     this._cli.set(seed.cli);
     this._sessionId.set(seed.sessionId);
     this._startedAt.set(startedAt);
+    // A second inbound call must never inherit the previous call's AMRIT
+    // linkage; clear the resolved call/beneficiary ids before this call seeds
+    // its own (e.g. when the workspace is re-entered without an intervening
+    // endCall()).
+    this._callId.set(null);
+    this._beneficiaryId.set(null);
 
     this.storage.setItem(CALL_STORAGE_KEYS.onCall, ON_CALL_YES);
     this.storage.setItem(CALL_STORAGE_KEYS.cli, seed.cli);
     this.storage.setItem(CALL_STORAGE_KEYS.sessionId, seed.sessionId);
     this.storage.setItem(CALL_STORAGE_KEYS.startedAt, String(startedAt));
+    this.storage.removeItem(CALL_STORAGE_KEYS.callId);
   }
 
   /** Record the AMRIT call id once the call is registered with the backend. */

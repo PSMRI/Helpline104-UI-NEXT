@@ -111,6 +111,7 @@ export const as: Record<TranslationKey, string> = {
 
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'কলাৰৰ নম্বৰ',
+  'innerpage.timer.ariaLabel': 'কলৰ ম্যাদ',
   'innerpage.statusOnCall': 'কলত আছে',
   'innerpage.dispatcherTitle': 'কল কৰ্মক্ষেত্ৰ',
   'innerpage.dispatcherHint':
