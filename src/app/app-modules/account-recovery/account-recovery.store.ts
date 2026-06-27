@@ -54,6 +54,15 @@ export class AccountRecoveryStore {
     this._transactionId.set(transactionId);
   }
 
+  /**
+   * Drop only the saved transaction id, keeping the user context. Used when the
+   * security-question answers change after a save so the next submit re-saves
+   * the updated answers instead of reusing a stale transactionId.
+   */
+  clearTransactionId(): void {
+    this._transactionId.set(null);
+  }
+
   /** Seed the first-login security-question setup from the login response. */
   startSecurityQuestionSetup(userName: string, userId: number): void {
     this.clear();

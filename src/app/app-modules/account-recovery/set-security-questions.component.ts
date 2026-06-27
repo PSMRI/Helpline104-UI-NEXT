@@ -197,6 +197,22 @@ export class SetSecurityQuestionsComponent implements OnInit {
         this.question2Value.set(value);
         this.clearIfNowExcluded('question3', value);
       });
+
+    // If the user edits any question or answer after a save, drop the stored
+    // transactionId so the next submit re-saves the updated answers rather than
+    // reusing the stale id (which would strand the edits on the backend).
+    for (const control of [
+      this.form.controls.question1,
+      this.form.controls.answer1,
+      this.form.controls.question2,
+      this.form.controls.answer2,
+      this.form.controls.question3,
+      this.form.controls.answer3,
+    ]) {
+      control.valueChanges
+        .pipe(takeUntilDestroyed())
+        .subscribe(() => this.store.clearTransactionId());
+    }
   }
 
   /** Clear a later question control if it now matches an earlier (excluded) choice. */
