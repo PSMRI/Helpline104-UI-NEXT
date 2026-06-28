@@ -31,6 +31,8 @@
  * large beneficiary tree is preserved via index signatures.
  */
 
+import { TranslationKey } from '../../core/i18n/locales';
+
 /** Standard 104 API envelope (shared shape used across the app's services). */
 export interface ApiResponse<T> {
   data?: T;
@@ -46,19 +48,28 @@ export interface BeneficiaryError {
 
 /** Gender master entry (subset of the legacy `m_genders`). */
 export interface GenderOption {
+  /** API value (`m_genders` id) — sent unchanged in requests. */
   genderID: number;
+  /** Canonical English name sent to the API as `genderName`. */
   genderName: string;
+  /** i18n key for the user-facing label (display only). */
+  labelKey: TranslationKey;
 }
 
 /**
  * Static gender choices for the basic registration form. Mirrors the AMRIT
  * `m_genders` master; full master-data loading (getRegistrationDataV1) is wired
- * in a later step.
+ * in a later step. `genderID`/`genderName` are the API contract; `labelKey` is
+ * the localized label shown to the agent.
  */
 export const GENDER_OPTIONS: readonly GenderOption[] = [
-  { genderID: 1, genderName: 'Male' },
-  { genderID: 2, genderName: 'Female' },
-  { genderID: 3, genderName: 'Transgender' },
+  { genderID: 1, genderName: 'Male', labelKey: 'registration.gender.male' },
+  { genderID: 2, genderName: 'Female', labelKey: 'registration.gender.female' },
+  {
+    genderID: 3,
+    genderName: 'Transgender',
+    labelKey: 'registration.gender.transgender',
+  },
 ];
 
 /**
@@ -74,7 +85,7 @@ export interface BeneficiaryRecord {
   lastName?: string;
   actualAge?: number;
   ageUnits?: string;
-  m_gender?: { genderName?: string };
+  m_gender?: { genderID?: number; genderName?: string };
   benPhoneMaps?: Array<{
     phoneNo?: string;
     benRelationshipType?: { benRelationshipType?: string };

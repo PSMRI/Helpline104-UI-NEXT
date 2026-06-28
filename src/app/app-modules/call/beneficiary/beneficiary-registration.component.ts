@@ -29,9 +29,12 @@ import {
   signal,
 } from '@angular/core';
 import {
+  AbstractControl,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -70,6 +73,35 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
 const PRIMARY_PHONE_TYPE_ID = 1;
 const MIN_AGE = 1;
 const MAX_AGE = 120;
+
+/**
+ * Minimum-length validator that ignores surrounding whitespace, so a value of
+ * spaces (or a too-short trimmed value) fails `minlength`. Empty is left to
+ * `Validators.required`.
+ */
+function trimmedMinLength(min: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value ?? '') as string;
+    if (value.length === 0) {
+      return null;
+    }
+    const trimmedLength = value.trim().length;
+    return trimmedLength < min
+      ? { minlength: { requiredLength: min, actualLength: trimmedLength } }
+      : null;
+  };
+}
+
+/**
+ * Rejects a value that is present but whitespace-only (an empty value is
+ * allowed — use with optional fields). Reports a `whitespace` error.
+ */
+function noWhitespace(control: AbstractControl): ValidationErrors | null {
+  const value = (control.value ?? '') as string;
+  return value.length > 0 && value.trim().length === 0
+    ? { whitespace: true }
+    : null;
+}
 
 /**
  * Inbound caller identification (the legacy `beneficiary-registration-104`,
@@ -218,7 +250,9 @@ const MAX_AGE = 120;
                     {{ 'registration.field.genderPlaceholder' | translate: lang() }}
                   </option>
                   @for (g of genders; track g.genderID) {
-                    <option [ngValue]="g.genderID">{{ g.genderName }}</option>
+                    <option [ngValue]="g.genderID">
+                      {{ g.labelKey | translate: lang() }}
+                    </option>
                   }
                 </select>
               </z-form-control>
@@ -303,8 +337,17 @@ const MAX_AGE = 120;
                 'registration.field.lastName' | translate: lang()
               }}</label>
               <z-form-control>
-                <input z-input formControlName="lastName" />
+                <input
+                  z-input
+                  formControlName="lastName"
+                  [attr.aria-invalid]="ariaInvalid('lastName')"
+                />
               </z-form-control>
+              @if (showError('lastName', 'whitespace')) {
+                <z-form-message>{{
+                  'registration.validation.whitespace' | translate: lang()
+                }}</z-form-message>
+              }
             </z-form-field>
 
             <z-form-field>
@@ -348,7 +391,9 @@ const MAX_AGE = 120;
                     {{ 'registration.field.genderPlaceholder' | translate: lang() }}
                   </option>
                   @for (g of genders; track g.genderID) {
-                    <option [ngValue]="g.genderID">{{ g.genderName }}</option>
+                    <option [ngValue]="g.genderID">
+                      {{ g.labelKey | translate: lang() }}
+                    </option>
                   }
                 </select>
               </z-form-control>
@@ -432,7 +477,7 @@ const MAX_AGE = 120;
               <tr z-table-row>
                 <td z-table-cell class="font-mono">{{ row.beneficiaryID ?? '—' }}</td>
                 <td z-table-cell>{{ fullName(row) }}</td>
-                <td z-table-cell>{{ row.m_gender?.genderName ?? '—' }}</td>
+                <td z-table-cell>{{ genderLabel(row) }}</td>
                 <td z-table-cell>{{ ageLabel(row) }}</td>
                 <td z-table-cell>{{ relationship(row) }}</td>
                 <td z-table-cell>
@@ -506,9 +551,12 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   readonly registerForm = new FormGroup({
     firstName: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(3)],
+      validators: [Validators.required, trimmedMinLength(3)],
     }),
-    lastName: new FormControl('', { nonNullable: true }),
+    lastName: new FormControl('', {
+      nonNullable: true,
+      validators: [noWhitespace],
+    }),
     age: new FormControl<number | null>(null, {
       validators: [Validators.required, Validators.min(MIN_AGE), Validators.max(MAX_AGE)],
     }),
@@ -535,6 +583,24 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   /** Caller relationship for this number, defaulting to "Self". */
   readonly relationship = (row: BeneficiaryRecord): string =>
     row.benPhoneMaps?.[0]?.benRelationshipType?.benRelationshipType ?? 'Self';
+
+  /**
+   * Localized gender label for a result row. Maps the API `genderID` (falling
+   * back to a case-insensitive name match) to a {@link GENDER_OPTIONS} entry and
+   * translates its label; if neither matches, the raw API name is shown.
+   * Reads {@link lang} so it re-renders on a language switch.
+   */
+  readonly genderLabel = (row: BeneficiaryRecord): string => {
+    this.lang();
+    const id = row.m_gender?.genderID;
+    const name = row.m_gender?.genderName;
+    const option = GENDER_OPTIONS.find(
+      (g) =>
+        (id != null && g.genderID === id) ||
+        (!!name && g.genderName.toLowerCase() === name.toLowerCase()),
+    );
+    return option ? this.i18n.instant(option.labelKey) : (name ?? '—');
+  };
 
   /** WAI-ARIA tablist keyboard navigation (arrows + Home/End). */
   onTabsKeydown(event: KeyboardEvent): void {
@@ -596,6 +662,10 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       this.searchForm.getRawValue();
     const hasCriteria = !!(firstName.trim() || lastName.trim() || beneficiaryID.trim());
     if (!hasCriteria) {
+      // Clear any results from a previous search so stale rows aren't shown
+      // alongside the "enter search criteria" message.
+      this.searchResults.set([]);
+      this.searchAttempted.set(false);
       this.searchCriteriaError.set(true);
       return;
     }
@@ -698,7 +768,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
   /** Whether to show a specific validation error for a register-form control. */
   showError(
-    control: 'firstName' | 'age' | 'genderID' | 'phoneNo',
+    control: 'firstName' | 'lastName' | 'age' | 'genderID' | 'phoneNo',
     error: string,
   ): boolean {
     const c = this.registerForm.controls[control];
@@ -707,7 +777,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
   /** `aria-invalid` value for a register-form control (omitted when valid). */
   ariaInvalid(
-    control: 'firstName' | 'age' | 'genderID' | 'phoneNo',
+    control: 'firstName' | 'lastName' | 'age' | 'genderID' | 'phoneNo',
   ): 'true' | null {
     const c = this.registerForm.controls[control];
     return c.touched && c.invalid ? 'true' : null;
