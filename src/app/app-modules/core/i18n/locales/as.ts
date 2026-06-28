@@ -109,6 +109,14 @@ export const as: Record<TranslationKey, string> = {
   'dashboard.dialog.ok': 'ঠিক আছে',
   'dashboard.dialog.cancel': 'বাতিল',
 
+  // On-call workspace (Innerpage) shell
+  'innerpage.callerNumber': 'কলাৰৰ নম্বৰ',
+  'innerpage.timer.ariaLabel': 'কলৰ ম্যাদ',
+  'innerpage.statusOnCall': 'কলত আছে',
+  'innerpage.dispatcherTitle': 'কল কৰ্মক্ষেত্ৰ',
+  'innerpage.dispatcherHint':
+    'কলাৰ চিনাক্ত হোৱাৰ লগে লগে ভূমিকা কৰ্মক্ষেত্ৰ (পঞ্জীয়ন, সেৱা আৰু সমাপ্তি) ইয়াত খোল খাব।',
+
   // Supervisor placeholder page
   'supervisor.title': 'তত্ত্বাৱধায়ক কাৰ্যকলাপ ক্ষেত্ৰ',
   'supervisor.intro':

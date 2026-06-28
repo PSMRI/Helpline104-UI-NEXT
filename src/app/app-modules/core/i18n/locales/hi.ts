@@ -108,6 +108,14 @@ export const hi: Record<TranslationKey, string> = {
   'dashboard.dialog.ok': 'ठीक है',
   'dashboard.dialog.cancel': 'रद्द करें',
 
+  // On-call workspace (Innerpage) shell
+  'innerpage.callerNumber': 'कॉल करने वाले का नंबर',
+  'innerpage.timer.ariaLabel': 'कॉल अवधि',
+  'innerpage.statusOnCall': 'कॉल पर',
+  'innerpage.dispatcherTitle': 'कॉल कार्यक्षेत्र',
+  'innerpage.dispatcherHint':
+    'कॉल करने वाले की पहचान होते ही भूमिका कार्यक्षेत्र (पंजीकरण, सेवा और समापन) यहाँ खुलेगा।',
+
   // Supervisor placeholder page
   'supervisor.title': 'पर्यवेक्षक गतिविधि क्षेत्र',
   'supervisor.intro':

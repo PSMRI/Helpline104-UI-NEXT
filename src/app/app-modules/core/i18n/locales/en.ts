@@ -106,6 +106,14 @@ export const en = {
   'dashboard.dialog.ok': 'Ok',
   'dashboard.dialog.cancel': 'Cancel',
 
+  // On-call workspace (Innerpage) shell
+  'innerpage.callerNumber': 'Caller number',
+  'innerpage.timer.ariaLabel': 'Call duration',
+  'innerpage.statusOnCall': 'On call',
+  'innerpage.dispatcherTitle': 'Call workspace',
+  'innerpage.dispatcherHint':
+    'The role workspace (registration, service and closure) will open here once the caller is identified.',
+
   // Supervisor placeholder page
   'supervisor.title': 'Supervisor Activity Area',
   'supervisor.intro':
