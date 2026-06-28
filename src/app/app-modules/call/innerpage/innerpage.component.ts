@@ -27,6 +27,8 @@ import {
   inject,
 } from '@angular/core';
 
+import { RouterOutlet } from '@angular/router';
+
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCircleDot, lucidePhoneIncoming } from '@ng-icons/lucide';
 
@@ -34,27 +36,21 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
 import { CallDurationTimerComponent } from './call-duration-timer.component';
-import { RoleDispatcherComponent } from './role-dispatcher.component';
 
 /**
  * On-call workspace shell (`/innerpage`), reached only while a call is connected
  * (see {@link inboundGuard}).
  *
  * Renders the caller header (the inbound phone number / CLI), the agent's
- * on-call status, a live call-duration timer, and hosts the role dispatcher that
- * will switch to the RO/HAO workspaces. This is the shell only — the dispatcher
- * is currently a placeholder.
+ * on-call status and a live call-duration timer, and hosts a `<router-outlet>`
+ * for the on-call child screens — the role dispatcher (default) and the
+ * beneficiary registration / caller identification screen.
  */
 @Component({
   selector: 'app-innerpage',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    NgIcon,
-    TranslatePipe,
-    CallDurationTimerComponent,
-    RoleDispatcherComponent,
-  ],
+  imports: [RouterOutlet, NgIcon, TranslatePipe, CallDurationTimerComponent],
   viewProviders: [provideIcons({ lucidePhoneIncoming, lucideCircleDot })],
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
@@ -93,7 +89,7 @@ import { RoleDispatcherComponent } from './role-dispatcher.component';
 
       <main class="flex-1 bg-muted/40 py-6">
         <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <app-role-dispatcher />
+          <router-outlet />
         </div>
       </main>
     </div>

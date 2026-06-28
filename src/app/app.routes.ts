@@ -81,6 +81,24 @@ export const routes: Routes = [
       import('./app-modules/call/innerpage/innerpage.component').then(
         (m) => m.InnerpageComponent,
       ),
+    children: [
+      {
+        // Default on-call view: the role dispatcher (placeholder for now).
+        path: '',
+        loadComponent: () =>
+          import('./app-modules/call/innerpage/role-dispatcher.component').then(
+            (m) => m.RoleDispatcherComponent,
+          ),
+      },
+      {
+        // Caller identification / beneficiary registration (RO workspace step 1).
+        path: 'registration',
+        loadComponent: () =>
+          import(
+            './app-modules/call/beneficiary/beneficiary-registration.component'
+          ).then((m) => m.BeneficiaryRegistrationComponent),
+      },
+    ],
   },
   {
     path: 'supervisor',

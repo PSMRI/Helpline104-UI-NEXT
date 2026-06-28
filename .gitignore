@@ -44,6 +44,8 @@ __screenshots__/
 login-screen.png
 role-selection.png
 .playwright-mcp/
+inbound-shell-screenshots/
+*.png
 
 # Local test artifacts and docs (auth-flows UAT testing)
 /screenshots/

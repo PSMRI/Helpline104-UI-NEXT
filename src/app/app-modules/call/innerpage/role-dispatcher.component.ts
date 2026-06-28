@@ -21,9 +21,12 @@
  */
 
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideLayoutDashboard } from '@ng-icons/lucide';
+import { lucideLayoutDashboard, lucideUserSearch } from '@ng-icons/lucide';
+
+import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -41,8 +44,10 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
   selector: 'app-role-dispatcher',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, TranslatePipe],
-  viewProviders: [provideIcons({ lucideLayoutDashboard })],
+  imports: [RouterLink, NgIcon, TranslatePipe, ZardButtonComponent],
+  viewProviders: [
+    provideIcons({ lucideLayoutDashboard, lucideUserSearch }),
+  ],
   template: `
     <section
       class="flex min-h-[16rem] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center"
@@ -59,6 +64,10 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
       <p class="max-w-md text-sm text-muted-foreground">
         {{ 'innerpage.dispatcherHint' | translate: lang() }}
       </p>
+      <button z-button type="button" zType="default" routerLink="registration">
+        <ng-icon name="lucideUserSearch" size="16" aria-hidden="true" />
+        {{ 'innerpage.identifyCaller' | translate: lang() }}
+      </button>
     </section>
   `,
 })
