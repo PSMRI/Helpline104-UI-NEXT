@@ -113,30 +113,67 @@ export interface BeneficiarySearchRequest {
   beneficiaryID?: string;
 }
 
-/** One phone mapping sent when registering a beneficiary. */
+/** One phone mapping sent when registering a beneficiary (legacy `benPhoneMaps`). */
 export interface BenPhoneMap {
+  /** Links a non-self caller's number to the existing "Self" beneficiary. */
+  parentBenRegID?: number | null;
   phoneNo: string;
-  phoneTypeID: number;
+  /** Set on the primary number (legacy default 1); omitted on alternates. */
+  phoneTypeID?: number;
+  /** Relationship of this number's owner to the parent beneficiary. */
+  benRelationshipID?: number | null;
+  createdBy: string;
+  /** Set on alternate numbers (legacy stamps `deleted: false`). */
+  deleted?: boolean;
+}
+
+/** Demographic block sent on create (legacy `i_bendemographics`). */
+export interface BenDemographics {
+  educationID?: number | null;
+  occupationID?: number | null;
+  healthCareWorkerID?: number | null;
+  communityID?: number | null;
+  districtID?: number | null;
+  stateID?: number | null;
+  pinCode?: string | null;
+  blockID?: number | null;
+  districtBranchID?: number | null;
+  addressLine1?: string | null;
   createdBy: string;
 }
 
+/** One government identity entry sent on create (legacy `beneficiaryIdentities`). */
+export interface BeneficiaryIdentity {
+  govtIdentityNo?: string | null;
+  govtIdentityTypeID?: number | null;
+}
+
 /**
- * Request body for POST beneficiary/create. A focused subset of the legacy
- * `registerObj` — the basic identity the inbound flow needs to identify a
- * caller; the full demographic/identity payload is added with the master-data
- * step.
+ * Request body for POST beneficiary/create, mirroring the legacy `registerObj`
+ * exactly (field names and structure) so the backend contract is unchanged.
+ * `dOB` is the ISO date string; the agent enters age + age-unit and the form
+ * derives the DOB.
  */
 export interface RegisterBeneficiaryRequest {
+  providerServiceMapID?: number | null;
   firstName: string;
   lastName: string;
+  dOB?: string;
+  ageUnits: string;
+  fatherName?: string | null;
+  spouseName?: string | null;
+  beneficiaryIdentities: BeneficiaryIdentity[];
+  emergencyRegistration: boolean;
+  createdBy: string;
+  titleId?: number | string | null;
+  statusID?: number | null;
+  registeredServiceID?: number | null;
+  maritalStatusID?: number | null;
   genderID: number;
   genderName: string;
-  age: number;
-  ageUnits: string;
-  createdBy: string;
-  providerServiceMapID?: number | null;
+  vanID?: number | null;
+  i_bendemographics: BenDemographics;
   benPhoneMaps: BenPhoneMap[];
-  i_bendemographics: { createdBy: string };
 }
 
 /** Newly-created beneficiary returned by beneficiary/create. */
@@ -144,4 +181,96 @@ export interface RegisterBeneficiaryResponse {
   beneficiaryRegID: number;
   beneficiaryID?: string | number;
   [key: string]: unknown;
+}
+
+// --- Master data (POST beneficiary/getRegistrationDataV1) --------------------
+
+/** Gender master row. */
+export interface Gender {
+  genderID: number;
+  genderName: string;
+}
+
+/** Title master row (`m_Title`). */
+export interface Title {
+  titleID: number;
+  titleName: string;
+}
+
+/** Community / caste master row (`m_communities`). */
+export interface Community {
+  communityID: number;
+  communityType: string;
+}
+
+/** Marital-status master row (`m_maritalStatuses`). */
+export interface MaritalStatus {
+  maritalStatusID: number;
+  status: string;
+}
+
+/** Education master row (`i_BeneficiaryEducation`). */
+export interface Education {
+  educationID: number;
+  educationType: string;
+}
+
+/** Government identity type master row (`govtIdentityTypes`). */
+export interface GovtIdentityType {
+  govtIdentityTypeID: number;
+  identityType: string;
+  isGovtID?: boolean;
+}
+
+/** Relationship master row (`benRelationshipTypes`). */
+export interface Relationship {
+  benRelationshipID: number;
+  benRelationshipType: string;
+}
+
+/** Healthcare-worker type (POST beneficiary/get/healthCareWorkerTypes). */
+export interface HealthCareWorkerType {
+  healthCareWorkerID: number;
+  healthCareWorkerType: string;
+}
+
+/**
+ * The registration master-data envelope payload. Only the arrays the form
+ * consumes are typed; the rest is preserved.
+ */
+export interface RegistrationMasterData {
+  m_genders?: Gender[];
+  m_Title?: Title[];
+  m_communities?: Community[];
+  m_maritalStatuses?: MaritalStatus[];
+  i_BeneficiaryEducation?: Education[];
+  govtIdentityTypes?: GovtIdentityType[];
+  benRelationshipTypes?: Relationship[];
+  [key: string]: unknown;
+}
+
+// --- Location cascade --------------------------------------------------------
+
+/** State master row (`m/role/state`). */
+export interface StateOption {
+  stateID: number;
+  stateName: string;
+}
+
+/** District master row (`location/districts/{stateID}`). */
+export interface DistrictOption {
+  districtID: number;
+  districtName: string;
+}
+
+/** Sub-district / block row (`location/taluks/{districtID}`). */
+export interface BlockOption {
+  blockID: number;
+  blockName: string;
+}
+
+/** Village row (`location/village/{subDistrictID}`). */
+export interface VillageOption {
+  districtBranchID: number;
+  villageName: string;
 }

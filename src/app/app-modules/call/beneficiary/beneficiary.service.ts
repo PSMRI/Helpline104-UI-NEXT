@@ -30,15 +30,29 @@ import {
   BeneficiaryError,
   BeneficiaryRecord,
   BeneficiarySearchRequest,
+  BlockOption,
+  DistrictOption,
+  HealthCareWorkerType,
   PhoneSearchRequest,
   RegisterBeneficiaryRequest,
   RegisterBeneficiaryResponse,
+  RegistrationMasterData,
+  StateOption,
+  VillageOption,
 } from './beneficiary.models';
 
 /** Endpoint paths (relative to the common API base), ported from SearchService. */
 const SEARCH_BY_PHONE_PATH = 'beneficiary/searchUserByPhone';
 const SEARCH_BENEFICIARY_PATH = 'beneficiary/searchBeneficiary';
 const CREATE_BENEFICIARY_PATH = 'beneficiary/create';
+const REGISTRATION_DATA_PATH = 'beneficiary/getRegistrationDataV1';
+const DISTRICTS_PATH = 'location/districts/';
+const SUB_DISTRICTS_PATH = 'location/taluks/';
+const VILLAGES_PATH = 'location/village/';
+/** Provider states live on the admin API. */
+const PROVIDER_STATES_PATH = 'm/role/state';
+/** Healthcare-worker types live on the 104 API. */
+const HCW_TYPES_PATH = 'beneficiary/get/healthCareWorkerTypes';
 
 /** Page size used when pulling a caller's full registration history. */
 const HISTORY_PAGE_SIZE = 1000;
@@ -119,6 +133,81 @@ export class BeneficiaryService {
   }
 
   /**
+   * Load the registration master data (genders, titles, communities, marital
+   * statuses, educations, govt identity types, relationships) for the agent's
+   * service. Mirrors the legacy `getUserBeneficaryData` call.
+   */
+  getRegistrationData(
+    providerServiceMapID: number | null,
+  ): Observable<RegistrationMasterData> {
+    return this.http
+      .post<ApiResponse<RegistrationMasterData>>(
+        this.baseUrl + REGISTRATION_DATA_PATH,
+        { providerServiceMapID },
+      )
+      .pipe(
+        map((res) => this.readData(res)),
+        catchError((err: unknown) => throwError(() => this.toError(err))),
+      );
+  }
+
+  /** Healthcare-worker types (104 API), loaded when registering a HCW. */
+  getHealthCareWorkerTypes(): Observable<HealthCareWorkerType[]> {
+    return this.http
+      .post<ApiResponse<HealthCareWorkerType[]>>(
+        this.config.get104BaseURL() + HCW_TYPES_PATH,
+        {},
+      )
+      .pipe(
+        map((res) => this.readData(res) ?? []),
+        catchError((err: unknown) => throwError(() => this.toError(err))),
+      );
+  }
+
+  /** Provider states for the location cascade (admin API). */
+  getProviderStates(serviceProviderID: number | null): Observable<StateOption[]> {
+    return this.http
+      .post<ApiResponse<StateOption[]>>(
+        this.config.getAdminBaseURL() + PROVIDER_STATES_PATH,
+        { serviceProviderID },
+      )
+      .pipe(
+        map((res) => this.readData(res) ?? []),
+        catchError((err: unknown) => throwError(() => this.toError(err))),
+      );
+  }
+
+  /** Districts for a state (common API, GET). */
+  getDistricts(stateID: number): Observable<DistrictOption[]> {
+    return this.http
+      .get<ApiResponse<DistrictOption[]>>(this.baseUrl + DISTRICTS_PATH + stateID)
+      .pipe(
+        map((res) => this.readData(res) ?? []),
+        catchError((err: unknown) => throwError(() => this.toError(err))),
+      );
+  }
+
+  /** Sub-districts / blocks for a district (common API, GET). */
+  getSubDistricts(districtID: number): Observable<BlockOption[]> {
+    return this.http
+      .get<ApiResponse<BlockOption[]>>(this.baseUrl + SUB_DISTRICTS_PATH + districtID)
+      .pipe(
+        map((res) => this.readData(res) ?? []),
+        catchError((err: unknown) => throwError(() => this.toError(err))),
+      );
+  }
+
+  /** Villages for a sub-district (common API, GET). */
+  getVillages(subDistrictID: number): Observable<VillageOption[]> {
+    return this.http
+      .get<ApiResponse<VillageOption[]>>(this.baseUrl + VILLAGES_PATH + subDistrictID)
+      .pipe(
+        map((res) => this.readData(res) ?? []),
+        catchError((err: unknown) => throwError(() => this.toError(err))),
+      );
+  }
+
+  /**
    * Read a list envelope: a non-200 status is a hard error; an empty/absent
    * `data` means "no matches" and resolves to `[]`.
    */
@@ -127,6 +216,17 @@ export class BeneficiaryService {
       throw this.toError(res);
     }
     return res.data ?? [];
+  }
+
+  /**
+   * Read a data envelope: a non-200 status is a hard error; otherwise return
+   * `data` (the legacy `extractData` returned `data` when present).
+   */
+  private readData<T>(res: ApiResponse<T>): T {
+    if (res.statusCode && res.statusCode !== 200) {
+      throw this.toError(res);
+    }
+    return res.data as T;
   }
 
   /**
