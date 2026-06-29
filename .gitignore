@@ -42,7 +42,6 @@ testem.log
 /typings
 __screenshots__/
 .playwright-mcp/
-inbound-shell-screenshots/
 
 # Local test artifacts and docs (auth-flows UAT testing)
 /screenshots/
