@@ -171,6 +171,20 @@ function toDateInput(date: Date): string {
 }
 
 /**
+ * Parse a `YYYY-MM-DD` date-input value as LOCAL midnight. `new Date('YYYY-MM-DD')`
+ * parses as UTC, which shifts the calendar day for IST users; constructing from
+ * components keeps the date the agent actually picked.
+ */
+function fromDateInput(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    return null;
+  }
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+/**
  * Inbound caller identification + registration (the legacy
  * `beneficiary-registration-104`), rebuilt as the first stop of the on-call RO
  * workspace at `/innerpage/registration`.
@@ -362,6 +376,14 @@ function toDateInput(date: Date): string {
       <!-- Register tab -->
       @if (activeTab() === 'register') {
         <form [formGroup]="registerForm" (ngSubmit)="doRegister()" autocomplete="off">
+          @if (cliMissing()) {
+            <div
+              class="mb-5 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+              role="alert"
+            >
+              {{ 'registration.notice.noCli' | translate: lang() }}
+            </div>
+          }
           <!-- Step indicator (hidden in emergency single-page mode) -->
           @if (!isEmergency()) {
             <ol class="mb-5 flex items-center gap-4 text-sm" aria-hidden="true">
@@ -733,12 +755,18 @@ function toDateInput(date: Date): string {
                   type="submit"
                   zType="default"
                   [zLoading]="registerLoading()"
-                  [zDisabled]="registerLoading()"
+                  [zDisabled]="registerLoading() || cliMissing()"
                 >
                   {{ 'registration.action.register' | translate: lang() }}
                 </button>
               } @else {
-                <button z-button type="button" zType="default" (click)="goToAddress()">
+                <button
+                  z-button
+                  type="button"
+                  zType="default"
+                  [zDisabled]="cliMissing()"
+                  (click)="goToAddress()"
+                >
                   {{ 'registration.action.next' | translate: lang() }}
                 </button>
               }
@@ -907,7 +935,7 @@ function toDateInput(date: Date): string {
                 type="submit"
                 zType="default"
                 [zLoading]="registerLoading()"
-                [zDisabled]="registerLoading()"
+                [zDisabled]="registerLoading() || cliMissing()"
               >
                 {{ 'registration.action.register' | translate: lang() }}
               </button>
@@ -1011,6 +1039,8 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   // --- Register-form view state -------------------------------------------
   readonly page = signal<1 | 2>(1);
   readonly isEmergency = signal(false);
+  /** No caller number on this call → registration is hard-blocked. */
+  readonly cliMissing = signal(false);
   readonly isHealthcareWorker = signal(false);
   readonly idMaxLength = signal(ID_VALIDATION_DEFAULT.maxLength);
   /** Existing "Self" beneficiary on this number, for relationship linking. */
@@ -1196,6 +1226,11 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
     const cli = this.callStore.cli();
     if (!cli) {
+      // Hard block: without a CLI the new beneficiary would be registered with
+      // an empty phoneNo, so disable the form entirely (a toast alone is not
+      // enough — doRegister() also guards on this).
+      this.cliMissing.set(true);
+      this.registerForm.disable();
       toast.error(this.i18n.instant('registration.toast.noCli'));
       return;
     }
@@ -1209,6 +1244,11 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       this.authStore.currentRole()?.providerServiceMapID ?? null;
     this.beneficiary.getRegistrationData(providerServiceMapID).subscribe({
       next: (data) => {
+        // A 200 with no payload leaves the form on its built-in fallbacks
+        // (static gender options + free-text fields) rather than crashing.
+        if (!data) {
+          return;
+        }
         if (data.m_genders?.length) {
           this.genders.set(data.m_genders);
         }
@@ -1302,8 +1342,28 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       control.updateValueAndValidity();
     }
     if (emergency) {
+      // Page 2 is skipped in emergency mode; clear any address/contact already
+      // entered so stale values aren't submitted by doRegister().
+      this.clearAddressFields();
       this.page.set(1);
     }
+  }
+
+  /** Reset all page-2 (address & contact) controls and their dependent lists. */
+  private clearAddressFields(): void {
+    const c = this.registerForm.controls;
+    c.stateID.setValue(null);
+    c.districtID.setValue(null);
+    c.subDistrictID.setValue(null);
+    c.villageID.setValue(null);
+    c.houseNumber.setValue('');
+    c.pincode.setValue('');
+    for (const { name } of this.altPhoneControls) {
+      this.registerForm.controls[name].setValue('');
+    }
+    this.districts.set([]);
+    this.subDistricts.set([]);
+    this.villages.set([]);
   }
 
   /** Title → gender auto-fill, mirroring the legacy `titleSelected`. */
@@ -1322,7 +1382,11 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     if (!dob) {
       return;
     }
-    const { age, unit } = this.ageFromDob(new Date(dob));
+    const parsed = fromDateInput(dob);
+    if (!parsed) {
+      return;
+    }
+    const { age, unit } = this.ageFromDob(parsed);
     this.registerForm.controls.age.setValue(age, { emitEvent: false });
     this.registerForm.controls.ageUnit.setValue(unit, { emitEvent: false });
     this.registerForm.controls.age.updateValueAndValidity({ emitEvent: false });
@@ -1380,7 +1444,12 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       return;
     }
     this.beneficiary.getDistricts(stateID).subscribe({
-      next: (rows) => this.districts.set(rows),
+      // Guard against out-of-order responses: ignore if the selection moved on.
+      next: (rows) => {
+        if (this.registerForm.controls.stateID.value === stateID) {
+          this.districts.set(rows);
+        }
+      },
       error: () => undefined,
     });
   }
@@ -1395,7 +1464,12 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       return;
     }
     this.beneficiary.getSubDistricts(districtID).subscribe({
-      next: (rows) => this.subDistricts.set(rows),
+      // Guard against out-of-order responses: ignore if the selection moved on.
+      next: (rows) => {
+        if (this.registerForm.controls.districtID.value === districtID) {
+          this.subDistricts.set(rows);
+        }
+      },
       error: () => undefined,
     });
   }
@@ -1408,7 +1482,12 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       return;
     }
     this.beneficiary.getVillages(subDistrictID).subscribe({
-      next: (rows) => this.villages.set(rows),
+      // Guard against out-of-order responses: ignore if the selection moved on.
+      next: (rows) => {
+        if (this.registerForm.controls.subDistrictID.value === subDistrictID) {
+          this.villages.set(rows);
+        }
+      },
       error: () => undefined,
     });
   }
@@ -1469,6 +1548,12 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   }
 
   doRegister(): void {
+    // Hard guard: a disabled form reports as valid, so this must run before the
+    // invalid-check below to stop a submit with an empty phoneNo.
+    if (this.cliMissing() || !this.callStore.cli()) {
+      toast.error(this.i18n.instant('registration.toast.noCli'));
+      return;
+    }
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       // Surface page-1 errors even if the agent is on page 2.

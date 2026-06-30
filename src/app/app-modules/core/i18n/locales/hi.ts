@@ -160,6 +160,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.toast.error': 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।',
   'registration.toast.noCli': 'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध नहीं है।',
   'registration.toast.masterError': 'कुछ फ़ॉर्म विकल्प लोड नहीं हो सके।',
+  'registration.notice.noCli':
+    'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध न होने के कारण पंजीकरण उपलब्ध नहीं है।',
   'registration.section.identity': 'व्यक्तिगत विवरण',
   'registration.section.address': 'पता और संपर्क',
   'registration.field.title': 'शीर्षक',

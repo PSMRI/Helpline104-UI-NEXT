@@ -158,6 +158,8 @@ export const en = {
   'registration.toast.error': 'Something went wrong. Please try again.',
   'registration.toast.noCli': 'No caller number is available for this call.',
   'registration.toast.masterError': 'Could not load some form options.',
+  'registration.notice.noCli':
+    'Registration is unavailable because no caller number is available for this call.',
   'registration.section.identity': 'Personal details',
   'registration.section.address': 'Address & contact',
   'registration.field.title': 'Title',

@@ -161,6 +161,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.toast.error': 'কিবা ভুল হ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'registration.toast.noCli': 'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নহয়।',
   'registration.toast.masterError': 'কিছুমান ফৰ্ম বিকল্প ল’ড কৰিব পৰা নগ’ল।',
+  'registration.notice.noCli':
+    'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নোহোৱাৰ বাবে পঞ্জীয়ন উপলব্ধ নহয়।',
   'registration.section.identity': 'ব্যক্তিগত বিৱৰণ',
   'registration.section.address': 'ঠিকনা আৰু যোগাযোগ',
   'registration.field.title': 'উপাধি',

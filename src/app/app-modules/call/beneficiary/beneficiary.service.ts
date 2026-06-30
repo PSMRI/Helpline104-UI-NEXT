@@ -139,7 +139,7 @@ export class BeneficiaryService {
    */
   getRegistrationData(
     providerServiceMapID: number | null,
-  ): Observable<RegistrationMasterData> {
+  ): Observable<RegistrationMasterData | undefined> {
     return this.http
       .post<ApiResponse<RegistrationMasterData>>(
         this.baseUrl + REGISTRATION_DATA_PATH,
@@ -220,13 +220,14 @@ export class BeneficiaryService {
 
   /**
    * Read a data envelope: a non-200 status is a hard error; otherwise return
-   * `data` (the legacy `extractData` returned `data` when present).
+   * `data`, which may be absent (the legacy `extractData` returned `data` when
+   * present). Callers must handle the `undefined` case.
    */
-  private readData<T>(res: ApiResponse<T>): T {
+  private readData<T>(res: ApiResponse<T>): T | undefined {
     if (res.statusCode && res.statusCode !== 200) {
       throw this.toError(res);
     }
-    return res.data as T;
+    return res.data;
   }
 
   /**
