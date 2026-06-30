@@ -27,6 +27,8 @@ import {
   inject,
 } from '@angular/core';
 
+import { RouterOutlet } from '@angular/router';
+
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCircleDot, lucidePhoneIncoming } from '@ng-icons/lucide';
 
@@ -34,7 +36,6 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
 import { CallDurationTimerComponent } from './call-duration-timer.component';
-import { RoleDispatcherComponent } from './role-dispatcher.component';
 
 /**
  * On-call workspace shell (`/innerpage`), reached only while a call is connected
@@ -50,10 +51,10 @@ import { RoleDispatcherComponent } from './role-dispatcher.component';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RouterOutlet,
     NgIcon,
     TranslatePipe,
     CallDurationTimerComponent,
-    RoleDispatcherComponent,
   ],
   viewProviders: [provideIcons({ lucidePhoneIncoming, lucideCircleDot })],
   template: `
@@ -93,7 +94,7 @@ import { RoleDispatcherComponent } from './role-dispatcher.component';
 
       <main class="flex-1 bg-muted/40 py-6">
         <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <app-role-dispatcher />
+          <router-outlet />
         </div>
       </main>
     </div>

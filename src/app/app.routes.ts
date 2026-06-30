@@ -75,12 +75,31 @@ export const routes: Routes = [
   {
     // On-call workspace shell. Authenticated AND only while a call is connected
     // (inboundGuard); reaching it without an active call bounces to /dashboard.
+    // The shell hosts a <router-outlet>; the role dispatcher (default) switches
+    // to the role workspaces, and `hao` is the HAO (Health Assistant Officer)
+    // service workspace reached once the caller is identified.
     path: 'innerpage',
     canActivate: [authGuard, inboundGuard],
     loadComponent: () =>
       import('./app-modules/call/innerpage/innerpage.component').then(
         (m) => m.InnerpageComponent,
       ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./app-modules/call/innerpage/role-dispatcher.component').then(
+            (m) => m.RoleDispatcherComponent,
+          ),
+      },
+      {
+        path: 'hao',
+        loadComponent: () =>
+          import('./app-modules/call/hao/hao-workspace.component').then(
+            (m) => m.HaoWorkspaceComponent,
+          ),
+      },
+    ],
   },
   {
     path: 'supervisor',
