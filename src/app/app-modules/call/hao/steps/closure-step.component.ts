@@ -101,18 +101,18 @@ import { HaoService } from '../hao.service';
           </label>
           <select
             id="hao-cl-type"
-            formControlName="callTypeID"
+            formControlName="callGroupType"
             class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            [attr.aria-invalid]="isInvalid('callTypeID') || null"
+            [attr.aria-invalid]="isInvalid('callGroupType') || null"
           >
             <option [ngValue]="null">
               {{ 'hao.closure.selectCallType' | translate: lang() }}
             </option>
-            @for (type of callTypes(); track type.callTypeID) {
-              <option [ngValue]="type.callTypeID">{{ type.callType }}</option>
+            @for (type of callTypes(); track type.callGroupType) {
+              <option [ngValue]="type.callGroupType">{{ type.callGroupType }}</option>
             }
           </select>
-          @if (isInvalid('callTypeID')) {
+          @if (isInvalid('callGroupType')) {
             <p class="text-xs font-medium text-destructive" role="alert">
               {{ 'hao.closure.callTypeRequired' | translate: lang() }}
             </p>
@@ -135,8 +135,8 @@ import { HaoService } from '../hao.service';
             <option [ngValue]="null">
               {{ 'hao.closure.selectCallSubType' | translate: lang() }}
             </option>
-            @for (sub of subTypes(); track sub.callSubTypeID) {
-              <option [ngValue]="sub.callSubTypeID">{{ sub.callSubType }}</option>
+            @for (sub of subTypes(); track sub.callTypeID) {
+              <option [ngValue]="sub.callTypeID">{{ sub.callTypeDesc }}</option>
             }
           </select>
           @if (isInvalid('callSubTypeID')) {
@@ -299,7 +299,7 @@ export class ClosureStepComponent {
   readonly transferring = signal(false);
 
   // Form values mirrored to signals so conditional UI updates under zoneless CD.
-  private readonly selectedCallTypeId = signal<number | null>(null);
+  private readonly selectedCallGroup = signal<string | null>(null);
   readonly followUpRequired = signal(false);
   readonly doTransfer = signal(false);
   readonly selectedCampaign = signal<string | null>(null);
@@ -307,7 +307,9 @@ export class ClosureStepComponent {
   readonly form = this.fb.nonNullable.group({
     isEmergency: [false],
     isSuicidal: [false],
-    callTypeID: this.fb.control<number | null>(null, Validators.required),
+    // Top-level call type = the group name (callGroupType); sub-type = the
+    // chosen nested sub-type's numeric callTypeID.
+    callGroupType: this.fb.control<string | null>(null, Validators.required),
     callSubTypeID: this.fb.control<number | null>(null),
     isFollowupRequired: [false],
     followUpDate: this.fb.control<string | null>(null),
@@ -317,10 +319,14 @@ export class ClosureStepComponent {
     remarks: this.fb.control<string | null>(null),
   });
 
-  /** Sub-types of the currently selected call type. */
+  /**
+   * Sub-types of the currently selected call-type group — the group's nested
+   * `callTypes` from the `getCallTypesV1` response (derived client-side; there
+   * is no separate sub-type endpoint).
+   */
   readonly subTypes = computed<CallSubType[]>(() => {
-    const typeId = this.selectedCallTypeId();
-    return this.callTypes().find((t) => t.callTypeID === typeId)?.subType ?? [];
+    const group = this.selectedCallGroup();
+    return this.callTypes().find((t) => t.callGroupType === group)?.callTypes ?? [];
   });
 
   constructor() {
@@ -328,10 +334,10 @@ export class ClosureStepComponent {
 
     const c = this.form.controls;
 
-    c.callTypeID.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
-      this.selectedCallTypeId.set(value);
-      // A new call type invalidates any previously chosen sub-type, and the
-      // sub-type is mandatory only when the new type actually has sub-types.
+    c.callGroupType.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
+      this.selectedCallGroup.set(value);
+      // A new call-type group invalidates any previously chosen sub-type, and
+      // the sub-type is mandatory only when the new group actually has any.
       c.callSubTypeID.reset(null);
       const hasSubTypes = this.subTypes().length > 0;
       c.callSubTypeID.setValidators(hasSubTypes ? [Validators.required] : []);
@@ -399,18 +405,39 @@ export class ClosureStepComponent {
     }
 
     const value = this.form.getRawValue();
+    // The mandatory call disposition (callType group + numeric callTypeID +
+    // fitToBlock) is derived entirely from the chosen sub-type object. If none
+    // resolves — a group with no sub-types, or none picked — there is no valid
+    // callTypeID to send, so force the sub-type requirement and stop rather than
+    // shipping a null id. (Groups carry sub-types in practice; this guards the
+    // contract's `callTypes: []` possibility.)
+    const subType = this.subTypes().find((s) => s.callTypeID === value.callSubTypeID);
+    if (!subType) {
+      this.form.controls.callSubTypeID.setValidators([Validators.required]);
+      this.form.controls.callSubTypeID.updateValueAndValidity();
+      this.form.markAllAsTouched();
+      return;
+    }
+
     const request: CloseCallRequest = {
       benCallID,
-      callID: this.callStore.callId(),
+      // Legacy mapping: callID carries the CTI session id; benCallID the AMRIT
+      // call id (which falls back to the session id until it is resolved).
+      callID: this.callStore.sessionId(),
       beneficiaryRegID: this.callStore.beneficiaryId(),
-      callTypeID: value.callTypeID as number,
-      callSubTypeID: value.callSubTypeID,
+      callType: subType.callGroupType,
+      callTypeID: subType.callTypeID,
+      fitToBlock: subType.fitToBlock,
       isFollowupRequired: value.isFollowupRequired,
-      followUpDate: value.isFollowupRequired ? value.followUpDate : null,
+      prefferedDateTime: value.isFollowupRequired ? value.followUpDate : null,
+      requestedFor: value.remarks?.trim() || null,
       isEmergency: value.isEmergency,
       isSuicidal: value.isSuicidal,
-      remarks: value.remarks?.trim() || null,
       isServiceAvailed: this.serviceAvailed(),
+      providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
+      agentID: this.authStore.user()?.agentID ?? null,
+      endCall: !andContinue,
+      IsOutbound: false,
       createdBy: this.authStore.user()?.userName ?? '',
     };
 
@@ -483,9 +510,12 @@ export class ClosureStepComponent {
   }
 
   private loadCallTypes(): void {
-    const providerServiceMapID =
-      this.authStore.currentRole()?.providerServiceMapID ?? null;
-    this.haoService.getCallTypes(providerServiceMapID).subscribe({
+    // The backend keys call types off the selected service id (the legacy
+    // closure sent `current_service.serviceID` in the `providerServiceMapID`
+    // field) plus the campaign flag. The HAO workspace is the inbound service
+    // flow, so request inbound call types.
+    const serviceID = this.authStore.currentRole()?.serviceID ?? null;
+    this.haoService.getCallTypes(serviceID, true).subscribe({
       next: (types) => this.callTypes.set(types),
       error: () => this.callTypes.set([]),
     });
@@ -502,8 +532,8 @@ export class ClosureStepComponent {
     });
   }
 
-  private loadSkills(campaignID: string): void {
-    this.haoService.getCampaignSkills(campaignID).subscribe({
+  private loadSkills(campaignName: string): void {
+    this.haoService.getCampaignSkills(campaignName).subscribe({
       next: (skills) => this.skills.set(skills),
       error: () => this.skills.set([]),
     });

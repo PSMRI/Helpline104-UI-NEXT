@@ -104,8 +104,8 @@ import { HaoService } from '../hao.service';
           <option [ngValue]="null">
             {{ 'hao.caseSheet.selectDiagnosis' | translate: lang() }}
           </option>
-          @for (disease of diseases(); track disease.diseaseID) {
-            <option [ngValue]="disease.diseaseID">{{ disease.diseaseName }}</option>
+          @for (disease of diseases(); track disease.diseasesummaryID) {
+            <option [ngValue]="disease.diseasesummaryID">{{ disease.diseaseName }}</option>
           }
         </select>
       </div>
@@ -199,7 +199,7 @@ export class CaseSheetComponent {
 
     const value = this.form.getRawValue();
     const selectedDisease = this.diseases().find(
-      (disease) => disease.diseaseID === value.provisionalDiagnosisID,
+      (disease) => disease.diseasesummaryID === value.provisionalDiagnosisID,
     );
 
     const request: CaseSheetRequest = {

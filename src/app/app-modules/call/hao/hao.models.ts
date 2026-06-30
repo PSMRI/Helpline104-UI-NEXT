@@ -82,10 +82,11 @@ export type HaoServiceId =
 /**
  * A diagnosis option returned by `diseaseController/getAvailableDiseases`
  * ({104}), used to populate the provisional-diagnosis selector on the case
- * sheet.
+ * sheet. The id field is `diseasesummaryID` (verified against the UAT response,
+ * not `diseaseID`).
  */
 export interface AvailableDisease {
-  diseaseID: number;
+  diseasesummaryID: number;
   diseaseName: string;
   [key: string]: unknown;
 }
@@ -134,40 +135,73 @@ export interface PresentCaseSheet {
 
 // --- Closure --------------------------------------------------------------
 
-/** A call sub-type nested under a {@link CallType} (`call/getCallTypesV1`). */
+/**
+ * A selectable call sub-type, nested under a {@link CallType} group in the
+ * `call/getCallTypesV1` response (shape verified against UAT). The Sub-Type
+ * dropdown shows {@link callTypeDesc} and stores {@link callTypeID};
+ * {@link fitToBlock} rides along into the closure payload. There is NO separate
+ * sub-type endpoint — sub-types are the group's nested {@link CallType.callTypes}.
+ */
 export interface CallSubType {
-  callSubTypeID: number;
-  callSubType: string;
-  [key: string]: unknown;
-}
-
-/** A mandatory call disposition type returned by `call/getCallTypesV1`. */
-export interface CallType {
   callTypeID: number;
-  callType: string;
-  subType?: CallSubType[];
+  /** Human label for the sub-type, e.g. "For Call Disconnect". */
+  callTypeDesc: string;
+  /** Owning group name, repeated on each sub-type by the backend. */
+  callGroupType: string;
+  isInbound: boolean;
+  isOutbound: boolean;
+  /** Whether choosing this sub-type blocks the caller's number. */
+  fitToBlock: boolean;
+  fitForFollowUp: boolean;
   [key: string]: unknown;
 }
 
 /**
- * Disposition payload for `call/closeCall`. Call Type / Call Sub-Type are
- * mandatory in the legacy closure; follow-up date is required only when
- * follow-up is requested.
+ * A call-type group returned by `call/getCallTypesV1` (shape verified against
+ * UAT). The Call Type dropdown shows {@link callGroupType}; its
+ * {@link callTypes} are the sub-types for the Sub-Type dropdown.
+ */
+export interface CallType {
+  callGroupType: string;
+  callTypes: CallSubType[];
+  [key: string]: unknown;
+}
+
+/**
+ * Disposition payload for `call/closeCall`, mirroring the legacy closure
+ * request field names (verified against the Angular 4 `closure.component`):
+ * `callType` is the selected group, `callTypeID` the chosen sub-type id, and
+ * `fitToBlock` is carried from that sub-type. Remarks map to `requestedFor`,
+ * the follow-up datetime to `prefferedDateTime` (legacy spelling), and the
+ * selected service id to `providerServiceMapID`. The HAO workspace is inbound,
+ * so `IsOutbound` is false; `endCall` is true on Submit & Close.
  */
 export interface CloseCallRequest {
   benCallID: string;
   callID?: string | null;
   beneficiaryRegID?: number | null;
+  /** Selected call-type group, e.g. "Valid" / "Transfer". */
+  callType: string;
+  /** Chosen sub-type id from the group's nested {@link CallType.callTypes}. */
   callTypeID: number;
-  callSubTypeID: number | null;
+  /** Carried from the chosen sub-type's {@link CallSubType.fitToBlock}. */
+  fitToBlock: boolean;
   isFollowupRequired: boolean;
-  /** ISO date (yyyy-MM-dd); present only when {@link isFollowupRequired}. */
-  followUpDate?: string | null;
+  /** Follow-up datetime; present only when {@link isFollowupRequired} (legacy name). */
+  prefferedDateTime?: string | null;
+  /** Remarks (legacy field name). */
+  requestedFor?: string | null;
   isEmergency: boolean;
   isSuicidal: boolean;
-  remarks?: string | null;
   /** True once any service was saved during the call (marks the call valid). */
   isServiceAvailed: boolean;
+  /** Selected service id (legacy sent `current_service.serviceID` here). */
+  providerServiceMapID: number | null;
+  agentID: number | null;
+  /** True on Submit & Close; false on Submit & Continue. */
+  endCall: boolean;
+  /** HAO workspace is the inbound flow. */
+  IsOutbound: boolean;
   createdBy: string;
 }
 

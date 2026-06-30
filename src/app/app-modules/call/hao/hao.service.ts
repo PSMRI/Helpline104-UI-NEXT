@@ -118,11 +118,21 @@ export class HaoService {
 
   // --- Closure ------------------------------------------------------------
 
-  /** Mandatory Call Type / Call Sub-Type catalogue for the closure form. */
-  getCallTypes(providerServiceMapID: number | null): Observable<CallType[]> {
+  /**
+   * Mandatory Call Type catalogue for the closure form.
+   *
+   * Mirrors the legacy `closure` request body exactly: the backend keys the
+   * list off the selected service id sent in the (legacy-named)
+   * `providerServiceMapID` field — the Angular 4 app populated it with
+   * `current_service.serviceID` — together with the inbound/outbound flag.
+   * Passing the resolved `providerServiceMapID` here (as the old code did) or
+   * omitting the flag returns an empty list.
+   */
+  getCallTypes(serviceID: number | null, isInbound: boolean): Observable<CallType[]> {
     return this.http
       .post<ApiResponse<CallType[]>>(this.baseCommon + PATHS.callTypes, {
-        providerServiceMapID,
+        providerServiceMapID: serviceID,
+        ...(isInbound ? { isInbound: true } : { isOutbound: true }),
       })
       .pipe(map((res) => res.data ?? []));
   }
