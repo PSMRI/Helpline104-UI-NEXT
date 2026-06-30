@@ -29,6 +29,7 @@ import {
   signal,
   viewChildren,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * Custom Angular CDK stepper for the HAO workspace.
@@ -118,6 +119,17 @@ export class HaoStepperComponent extends CdkStepper {
 
   /** Header that currently holds the roving tabindex (focus target). */
   readonly focusedIndex = signal(0);
+
+  constructor() {
+    super();
+    // Keep the roving tabindex on the selected step even when the step changes
+    // programmatically (e.g. the workspace's Proceed/Cancel buttons call
+    // next()/previous()). Without this, keyboard users would re-enter the
+    // tablist on a header that no longer matches the visible step.
+    this.selectionChange
+      .pipe(takeUntilDestroyed())
+      .subscribe(({ selectedIndex }) => this.focusedIndex.set(selectedIndex));
+  }
 
   /** Select a step directly from its header (the wizard dot). */
   onHeaderClick(index: number): void {

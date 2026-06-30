@@ -236,7 +236,7 @@ import { HaoService } from '../hao.service';
               type="button"
               zType="outline"
               [zLoading]="transferring()"
-              [zDisabled]="transferring() || !selectedCampaign()"
+              [zDisabled]="actionBusy() || !selectedCampaign()"
               (click)="transfer()"
             >
               {{ 'hao.closure.transfer' | translate: lang() }}
@@ -251,7 +251,7 @@ import { HaoService } from '../hao.service';
           type="button"
           zType="outline"
           [zLoading]="submitting()"
-          [zDisabled]="submitting()"
+          [zDisabled]="actionBusy()"
           (click)="submit(true)"
         >
           {{ 'hao.closure.submitContinue' | translate: lang() }}
@@ -260,7 +260,7 @@ import { HaoService } from '../hao.service';
           z-button
           type="button"
           [zLoading]="submitting()"
-          [zDisabled]="submitting()"
+          [zDisabled]="actionBusy()"
           (click)="submit(false)"
         >
           {{ 'hao.closure.submitClose' | translate: lang() }}
@@ -297,6 +297,18 @@ export class ClosureStepComponent {
   readonly skills = signal<CampaignSkill[]>([]);
   readonly submitting = signal(false);
   readonly transferring = signal(false);
+  /** A confirmation dialog is open for a terminal action (close/continue/transfer). */
+  readonly confirming = signal(false);
+
+  /**
+   * True while any terminal action is mid-flight — a confirmation is open or a
+   * close/continue/transfer request is in progress. All terminal buttons gate
+   * on this so the agent cannot issue duplicate dispositions, or close and
+   * transfer the same live call concurrently.
+   */
+  readonly actionBusy = computed(
+    () => this.submitting() || this.transferring() || this.confirming(),
+  );
 
   // Form values mirrored to signals so conditional UI updates under zoneless CD.
   private readonly selectedCallGroup = signal<string | null>(null);
@@ -390,7 +402,9 @@ export class ClosureStepComponent {
    * call) outcomes — both first confirm with the agent.
    */
   submit(andContinue: boolean): void {
-    if (this.submitting()) {
+    // Block while any terminal action is open/in-flight so a second click can't
+    // open another confirmation or fire a duplicate disposition.
+    if (this.actionBusy()) {
       return;
     }
     if (this.form.invalid) {
@@ -445,6 +459,7 @@ export class ClosureStepComponent {
       ? 'hao.closure.confirmContinue'
       : 'hao.closure.confirmClose';
 
+    this.confirming.set(true);
     this.confirmDialog
       .confirm({
         title: this.i18n.instant('hao.closure.confirmTitle'),
@@ -453,6 +468,7 @@ export class ClosureStepComponent {
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
       })
       .subscribe((confirmed) => {
+        this.confirming.set(false);
         if (confirmed) {
           this.recordDisposition(request, andContinue);
         }
@@ -482,30 +498,47 @@ export class ClosureStepComponent {
     const campaign = this.selectedCampaign();
     const agentID = this.authStore.user()?.agentID ?? null;
     const benCallID = this.callStore.callId() ?? this.callStore.sessionId();
-    if (!campaign || agentID === null || !benCallID || this.transferring()) {
+    // Block while any terminal action is open/in-flight so a transfer cannot run
+    // concurrently with (or duplicate) a close/continue on the same live call.
+    if (!campaign || agentID === null || !benCallID || this.actionBusy()) {
       return;
     }
 
     const skill = this.form.controls.skill.value;
-    this.transferring.set(true);
-    this.haoService
-      .transferCall({
-        transferFrom: agentID,
-        transferCampaignInfo: campaign,
-        skillTransferFlag: !!skill,
-        skill,
-        agentIPAddress: null,
-        benCallID,
+    // Transferring hands off the live call — confirm first, like close/continue.
+    this.confirming.set(true);
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('hao.closure.confirmTitle'),
+        message: this.i18n.instant('hao.closure.confirmTransfer'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
       })
-      .subscribe({
-        next: () => {
-          this.transferring.set(false);
-          this.transferred.emit();
-        },
-        error: () => {
-          this.transferring.set(false);
-          this.showError('hao.closure.transferError');
-        },
+      .subscribe((confirmed) => {
+        this.confirming.set(false);
+        if (!confirmed) {
+          return;
+        }
+        this.transferring.set(true);
+        this.haoService
+          .transferCall({
+            transferFrom: agentID,
+            transferCampaignInfo: campaign,
+            skillTransferFlag: !!skill,
+            skill,
+            agentIPAddress: null,
+            benCallID,
+          })
+          .subscribe({
+            next: () => {
+              this.transferring.set(false);
+              this.transferred.emit();
+            },
+            error: () => {
+              this.transferring.set(false);
+              this.showError('hao.closure.transferError');
+            },
+          });
       });
   }
 
@@ -517,7 +550,12 @@ export class ClosureStepComponent {
     const serviceID = this.authStore.currentRole()?.serviceID ?? null;
     this.haoService.getCallTypes(serviceID, true).subscribe({
       next: (types) => this.callTypes.set(types),
-      error: () => this.callTypes.set([]),
+      // A call type is mandatory to close, so a silent empty list would strand
+      // the agent. Surface the failure so they can retry rather than guess.
+      error: () => {
+        this.callTypes.set([]);
+        this.showError('hao.closure.callTypesLoadError');
+      },
     });
   }
 
@@ -534,8 +572,19 @@ export class ClosureStepComponent {
 
   private loadSkills(campaignName: string): void {
     this.haoService.getCampaignSkills(campaignName).subscribe({
-      next: (skills) => this.skills.set(skills),
-      error: () => this.skills.set([]),
+      // Apply only if this is still the selected campaign — a slower response
+      // for a previously-selected campaign must not overwrite the current one's
+      // skills (and let a stale skill be submitted).
+      next: (skills) => {
+        if (this.selectedCampaign() === campaignName) {
+          this.skills.set(skills);
+        }
+      },
+      error: () => {
+        if (this.selectedCampaign() === campaignName) {
+          this.skills.set([]);
+        }
+      },
     });
   }
 

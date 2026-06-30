@@ -177,6 +177,8 @@ export const en = {
   'hao.caseSheet.chiefComplaints': 'Chief Complaints',
   'hao.caseSheet.chiefComplaintsPlaceholder': "Describe the caller's complaints",
   'hao.caseSheet.chiefComplaintsRequired': 'Chief complaints are required.',
+  'hao.caseSheet.chiefComplaintsTooLong':
+    'Chief complaints must be 2000 characters or fewer.',
   'hao.caseSheet.provisionalDiagnosis': 'Provisional Diagnosis',
   'hao.caseSheet.selectDiagnosis': 'Select a diagnosis',
   'hao.caseSheet.healthAdvice': 'Health Advice',
@@ -210,9 +212,12 @@ export const en = {
   'hao.closure.confirmTitle': 'Closure',
   'hao.closure.confirmContinue': 'Submit this disposition and continue the call?',
   'hao.closure.confirmClose': 'Submit this disposition and close the call?',
+  'hao.closure.confirmTransfer': 'Transfer this call to the selected campaign?',
   'hao.closure.noCallError': 'No active call to close.',
   'hao.closure.closeError': 'Unable to close the call. Please try again.',
   'hao.closure.transferError': 'Unable to transfer the call. Please try again.',
+  'hao.closure.callTypesLoadError':
+    'Unable to load call types. Please try again.',
 } as const;
 
 /** Every translatable key in the app, derived from the English dictionary. */

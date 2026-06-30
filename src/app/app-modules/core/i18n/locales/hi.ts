@@ -179,6 +179,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.caseSheet.chiefComplaints': 'मुख्य शिकायतें',
   'hao.caseSheet.chiefComplaintsPlaceholder': 'कॉल करने वाले की शिकायतें बताएं',
   'hao.caseSheet.chiefComplaintsRequired': 'मुख्य शिकायतें आवश्यक हैं।',
+  'hao.caseSheet.chiefComplaintsTooLong':
+    'मुख्य शिकायतें 2000 अक्षरों से अधिक नहीं होनी चाहिए।',
   'hao.caseSheet.provisionalDiagnosis': 'अस्थायी निदान',
   'hao.caseSheet.selectDiagnosis': 'निदान चुनें',
   'hao.caseSheet.healthAdvice': 'स्वास्थ्य सलाह',
@@ -212,7 +214,10 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.confirmTitle': 'समापन',
   'hao.closure.confirmContinue': 'यह डिस्पोज़िशन सबमिट करें और कॉल जारी रखें?',
   'hao.closure.confirmClose': 'यह डिस्पोज़िशन सबमिट करें और कॉल बंद करें?',
+  'hao.closure.confirmTransfer': 'इस कॉल को चयनित अभियान में स्थानांतरित करें?',
   'hao.closure.noCallError': 'बंद करने के लिए कोई सक्रिय कॉल नहीं है।',
   'hao.closure.closeError': 'कॉल बंद करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.transferError': 'कॉल स्थानांतरित करने में असमर्थ। कृपया पुनः प्रयास करें।',
+  'hao.closure.callTypesLoadError':
+    'कॉल प्रकार लोड करने में असमर्थ। कृपया पुनः प्रयास करें।',
 };

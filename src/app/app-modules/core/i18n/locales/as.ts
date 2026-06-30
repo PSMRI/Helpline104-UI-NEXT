@@ -180,6 +180,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.chiefComplaints': 'মুখ্য অভিযোগ',
   'hao.caseSheet.chiefComplaintsPlaceholder': 'কলাৰৰ অভিযোগসমূহ বৰ্ণনা কৰক',
   'hao.caseSheet.chiefComplaintsRequired': 'মুখ্য অভিযোগ আৱশ্যক।',
+  'hao.caseSheet.chiefComplaintsTooLong':
+    'মুখ্য অভিযোগ 2000 আখৰৰ ভিতৰত হ’ব লাগে।',
   'hao.caseSheet.provisionalDiagnosis': 'অস্থায়ী নিৰ্ণয়',
   'hao.caseSheet.selectDiagnosis': 'নিৰ্ণয় বাছনি কৰক',
   'hao.caseSheet.healthAdvice': 'স্বাস্থ্য পৰামৰ্শ',
@@ -213,7 +215,10 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.confirmTitle': 'সমাপন',
   'hao.closure.confirmContinue': 'এই ডিচপোজিচন দাখিল কৰি কল অব্যাহত ৰাখিব নে?',
   'hao.closure.confirmClose': 'এই ডিচপোজিচন দাখিল কৰি কল বন্ধ কৰিব নে?',
+  'hao.closure.confirmTransfer': 'এই কল বাছনি কৰা অভিযানলৈ স্থানান্তৰ কৰিব নে?',
   'hao.closure.noCallError': 'বন্ধ কৰিবলৈ কোনো সক্ৰিয় কল নাই।',
   'hao.closure.closeError': 'কল বন্ধ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.transferError': 'কল স্থানান্তৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'hao.closure.callTypesLoadError':
+    'কলৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
 };

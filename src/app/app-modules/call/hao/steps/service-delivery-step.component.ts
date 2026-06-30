@@ -143,8 +143,8 @@ export class ServiceDeliveryStepComponent {
   /** Emitted whenever a service is successfully saved (marks the call valid). */
   readonly serviceAvailed = output<void>();
 
+  /** The agent's raw tab choice; may not be visible for the current role. */
   private readonly _activeTabId = signal<HaoServiceId>('healthAdvice');
-  readonly activeTabId = this._activeTabId.asReadonly();
 
   /** Tabs visible for the current role (always-on screenings + granted screens). */
   readonly visibleTabs = computed(() => {
@@ -154,9 +154,24 @@ export class ServiceDeliveryStepComponent {
     );
   });
 
+  /**
+   * The effective active tab, clamped to {@link visibleTabs}. The default
+   * ('healthAdvice') is filtered out for roles without the Health_Advice screen,
+   * so fall back to the first visible tab — never leave a hidden tab "selected"
+   * (which would show its panel with no matching tab in the strip).
+   */
+  readonly activeTabId = computed<HaoServiceId>(() => {
+    const visible = this.visibleTabs();
+    const selected = this._activeTabId();
+    if (visible.some((tab) => tab.id === selected)) {
+      return selected;
+    }
+    return visible[0]?.id ?? selected;
+  });
+
   /** Label key of the active tab, for the placeholder heading. */
   readonly activeTabLabelKey = computed<TranslationKey>(() => {
-    const active = this._activeTabId();
+    const active = this.activeTabId();
     return (
       SERVICE_TABS.find((tab) => tab.id === active)?.labelKey ??
       'hao.service.healthAdvisory'

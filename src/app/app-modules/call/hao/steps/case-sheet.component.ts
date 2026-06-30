@@ -23,6 +23,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
   input,
   output,
@@ -42,7 +43,11 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 import { AuthStore } from '../../../core/auth/auth.store';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
-import { AvailableDisease, CaseSheetRequest } from '../hao.models';
+import {
+  AvailableDisease,
+  CaseSheetRequest,
+  PresentCaseSheet,
+} from '../hao.models';
 import { HaoService } from '../hao.service';
 
 /**
@@ -81,13 +86,25 @@ import { HaoService } from '../hao.service';
           z-input
           id="hao-cs-complaints"
           rows="3"
+          maxlength="2000"
           formControlName="chiefComplaints"
           [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
+          [attr.aria-describedby]="
+            isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null
+          "
           [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
         ></textarea>
         @if (isInvalid('chiefComplaints')) {
-          <p class="text-xs font-medium text-destructive" role="alert">
-            {{ 'hao.caseSheet.chiefComplaintsRequired' | translate: lang() }}
+          <p
+            id="hao-cs-complaints-error"
+            class="text-xs font-medium text-destructive"
+            role="alert"
+          >
+            @if (form.controls.chiefComplaints.hasError('maxlength')) {
+              {{ 'hao.caseSheet.chiefComplaintsTooLong' | translate: lang() }}
+            } @else {
+              {{ 'hao.caseSheet.chiefComplaintsRequired' | translate: lang() }}
+            }
           </p>
         }
       </div>
@@ -168,6 +185,9 @@ export class CaseSheetComponent {
   readonly diseases = signal<AvailableDisease[]>([]);
   readonly saving = signal(false);
 
+  /** Beneficiary whose existing sheet has already been fetched (prefill once). */
+  private prefilledFor: number | null = null;
+
   readonly form = this.fb.nonNullable.group({
     chiefComplaints: ['', [Validators.required, Validators.maxLength(2000)]],
     provisionalDiagnosisID: this.fb.control<number | null>(null),
@@ -181,6 +201,41 @@ export class CaseSheetComponent {
       // A missing catalogue must not block free-text complaints/advice; the
       // diagnosis selector simply stays empty.
       error: () => this.diseases.set([]),
+    });
+
+    // Prefill from any case sheet already saved for the caller, so re-entering
+    // the service step restores prior work instead of starting blank (which
+    // could also trigger a duplicate save). Runs once per beneficiary.
+    effect(() => {
+      const id = this.beneficiaryId();
+      if (id !== null && id !== this.prefilledFor) {
+        this.prefilledFor = id;
+        this.loadExistingCaseSheet(id);
+      }
+    });
+  }
+
+  /** Fetch and apply any previously saved case sheet for the beneficiary. */
+  private loadExistingCaseSheet(beneficiaryRegID: number): void {
+    this.haoService.getPresentCaseSheet(beneficiaryRegID).subscribe({
+      next: (sheet) => {
+        // Best-effort prefill: never clobber edits the agent has already made.
+        if (sheet && this.form.pristine) {
+          this.applyExistingCaseSheet(sheet);
+        }
+      },
+      // Prefill is best-effort; a failure just leaves a blank form.
+      error: () => undefined,
+    });
+  }
+
+  /** Patch the form from an existing case sheet, keeping it pristine. */
+  private applyExistingCaseSheet(sheet: PresentCaseSheet): void {
+    this.form.patchValue({
+      chiefComplaints: sheet.chiefComplaints ?? '',
+      provisionalDiagnosisID: sheet.provisionalDiagnosisID ?? null,
+      healthAdvice: sheet.healthAdvice ?? null,
+      remarks: sheet.remarks ?? null,
     });
   }
 
