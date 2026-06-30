@@ -220,4 +220,6 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.transferError': 'कॉल स्थानांतरित करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.callTypesLoadError':
     'कॉल प्रकार लोड करने में असमर्थ। कृपया पुनः प्रयास करें।',
+  'hao.closure.noServiceError':
+    'आपकी भूमिका को कोई सेवा नहीं सौंपी गई है, इसलिए कॉल प्रकार लोड नहीं किए जा सकते। कृपया अपने व्यवस्थापक से संपर्क करें।',
 };

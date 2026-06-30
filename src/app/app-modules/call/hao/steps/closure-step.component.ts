@@ -548,6 +548,14 @@ export class ClosureStepComponent {
     // field) plus the campaign flag. The HAO workspace is the inbound service
     // flow, so request inbound call types.
     const serviceID = this.authStore.currentRole()?.serviceID ?? null;
+    // Without a service id the backend cannot key the catalogue (it would
+    // return an empty list). Stop here and tell the agent rather than firing a
+    // request that silently strands them with no call types and no reason.
+    if (serviceID === null) {
+      this.callTypes.set([]);
+      this.showError('hao.closure.noServiceError');
+      return;
+    }
     this.haoService.getCallTypes(serviceID, true).subscribe({
       next: (types) => this.callTypes.set(types),
       // A call type is mandatory to close, so a silent empty list would strand

@@ -22,7 +22,7 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, throwError } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -127,8 +127,15 @@ export class HaoService {
    * `current_service.serviceID` — together with the inbound/outbound flag.
    * Passing the resolved `providerServiceMapID` here (as the old code did) or
    * omitting the flag returns an empty list.
+   *
+   * A null `serviceID` cannot key any catalogue — the backend would silently
+   * return `[]`, stranding the agent with no way to close the call and no
+   * indication why. Reject it up front so the caller's error path runs instead.
    */
   getCallTypes(serviceID: number | null, isInbound: boolean): Observable<CallType[]> {
+    if (serviceID === null) {
+      return throwError(() => new Error('getCallTypes: serviceID is required'));
+    }
     return this.http
       .post<ApiResponse<CallType[]>>(this.baseCommon + PATHS.callTypes, {
         providerServiceMapID: serviceID,

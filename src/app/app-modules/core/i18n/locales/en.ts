@@ -218,6 +218,8 @@ export const en = {
   'hao.closure.transferError': 'Unable to transfer the call. Please try again.',
   'hao.closure.callTypesLoadError':
     'Unable to load call types. Please try again.',
+  'hao.closure.noServiceError':
+    'No service is assigned to your role, so call types cannot be loaded. Please contact your administrator.',
 } as const;
 
 /** Every translatable key in the app, derived from the English dictionary. */
