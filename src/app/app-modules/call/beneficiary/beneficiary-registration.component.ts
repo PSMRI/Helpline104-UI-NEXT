@@ -1506,10 +1506,15 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         providerServiceMapID: role?.providerServiceMapID ?? null,
         firstName: v.firstName.trim(),
         lastName: v.lastName.trim(),
-        dOB: v.dob ? `${v.dob}T00:00:00.000Z` : undefined,
+        // Send local-midnight IST (matches legacy's moment(...).format('...Z')
+        // local-offset contract). A bare UTC `Z` shifts the date back a day for
+        // IST agents (e.g. 1990-01-01 -> 1989-12-31T18:30:00Z).
+        dOB: v.dob ? `${v.dob}T00:00:00.000+05:30` : undefined,
         ageUnits: v.ageUnit,
+        // The UI exposes a single combined "Father / spouse name" field bound to
+        // fatherName; route that same value to spouseName (never lastName).
         fatherName: v.fatherName.trim() || null,
-        spouseName: v.lastName.trim() || null,
+        spouseName: v.fatherName.trim() || null,
         beneficiaryIdentities: [
           {
             govtIdentityNo: v.govtIdentityNo.trim() || null,
