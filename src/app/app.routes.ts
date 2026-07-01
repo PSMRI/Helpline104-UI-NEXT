@@ -86,6 +86,7 @@ export const routes: Routes = [
       ),
     children: [
       {
+        // Default on-call view: the role dispatcher (placeholder for now).
         path: '',
         loadComponent: () =>
           import('./app-modules/call/innerpage/role-dispatcher.component').then(
@@ -93,6 +94,15 @@ export const routes: Routes = [
           ),
       },
       {
+        // Caller identification / beneficiary registration (RO workspace step 1).
+        path: 'registration',
+        loadComponent: () =>
+          import(
+            './app-modules/call/beneficiary/beneficiary-registration.component'
+          ).then((m) => m.BeneficiaryRegistrationComponent),
+      },
+      {
+        // HAO (Health Assistant Officer) service workspace.
         path: 'hao',
         loadComponent: () =>
           import('./app-modules/call/hao/hao-workspace.component').then(

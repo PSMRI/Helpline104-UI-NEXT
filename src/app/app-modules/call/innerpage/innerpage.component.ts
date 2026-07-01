@@ -42,20 +42,15 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
  * (see {@link inboundGuard}).
  *
  * Renders the caller header (the inbound phone number / CLI), the agent's
- * on-call status, a live call-duration timer, and hosts the role dispatcher that
- * will switch to the RO/HAO workspaces. This is the shell only — the dispatcher
- * is currently a placeholder.
+ * on-call status and a live call-duration timer, and hosts a `<router-outlet>`
+ * for the on-call child screens — the role dispatcher (default) and the
+ * beneficiary registration / caller identification screen.
  */
 @Component({
   selector: 'app-innerpage',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    RouterOutlet,
-    NgIcon,
-    TranslatePipe,
-    CallDurationTimerComponent,
-  ],
+  imports: [RouterOutlet, NgIcon, TranslatePipe, CallDurationTimerComponent],
   viewProviders: [provideIcons({ lucidePhoneIncoming, lucideCircleDot })],
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
