@@ -1052,6 +1052,13 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   readonly searchLoading = signal(false);
   readonly searchAttempted = signal(false);
   readonly searchCriteriaError = signal(false);
+  /**
+   * Monotonic id for the latest search request. Bumped on every {@link doSearch}
+   * call (including the empty-criteria reset), so a slow in-flight response whose
+   * id no longer matches is dropped instead of clobbering the reset state — the
+   * same out-of-order guard used by the address cascade.
+   */
+  private searchRequestId = 0;
 
   readonly registerLoading = signal(false);
 
@@ -1511,6 +1518,9 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   }
 
   doSearch(): void {
+    // Bump the request id first so any in-flight response (including one fired
+    // before an empty-criteria reset) is treated as stale and dropped below.
+    const requestId = ++this.searchRequestId;
     const { firstName, lastName, beneficiaryID, genderID } =
       this.searchForm.getRawValue();
     const hasCriteria = !!(firstName.trim() || lastName.trim() || beneficiaryID.trim());
@@ -1518,6 +1528,9 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       this.searchResults.set([]);
       this.searchAttempted.set(false);
       this.searchCriteriaError.set(true);
+      // A prior in-flight request is now stale (its handlers early-return), so
+      // clear the loading flag here or it would stay stuck on.
+      this.searchLoading.set(false);
       return;
     }
     this.searchCriteriaError.set(false);
@@ -1531,12 +1544,20 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         genderID: genderID ?? undefined,
       })
       .subscribe({
+        // Guard against out-of-order responses: ignore if a newer search (or a
+        // reset) has since been issued.
         next: (rows) => {
+          if (this.searchRequestId !== requestId) {
+            return;
+          }
           this.searchResults.set(rows);
           this.searchAttempted.set(true);
           this.searchLoading.set(false);
         },
         error: (err: BeneficiaryError) => {
+          if (this.searchRequestId !== requestId) {
+            return;
+          }
           this.searchLoading.set(false);
           this.searchAttempted.set(true);
           this.searchResults.set([]);
