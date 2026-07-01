@@ -683,10 +683,19 @@ function fromDateInput(value: string): Date | null {
 
                 <z-form-field>
                   <label z-form-label>{{
-                    'registration.field.fatherSpouse' | translate: lang()
+                    'registration.field.fatherName' | translate: lang()
                   }}</label>
                   <z-form-control>
                     <input z-input formControlName="fatherName" />
+                  </z-form-control>
+                </z-form-field>
+
+                <z-form-field>
+                  <label z-form-label>{{
+                    'registration.field.spouseName' | translate: lang()
+                  }}</label>
+                  <z-form-control>
+                    <input z-input formControlName="spouseName" />
                   </z-form-control>
                 </z-form-field>
 
@@ -1106,6 +1115,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     communityID: new FormControl<number | null>(null),
     maritalStatusID: new FormControl<number | null>(null),
     fatherName: new FormControl('', { nonNullable: true }),
+    spouseName: new FormControl('', { nonNullable: true }),
     educationID: new FormControl<number | null>(null),
     identityType: new FormControl<number | null>(null),
     // Disabled until an ID type is chosen (legacy disables the field too).
@@ -1596,10 +1606,10 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         // IST agents (e.g. 1990-01-01 -> 1989-12-31T18:30:00Z).
         dOB: v.dob ? `${v.dob}T00:00:00.000+05:30` : undefined,
         ageUnits: v.ageUnit,
-        // The UI exposes a single combined "Father / spouse name" field bound to
-        // fatherName; route that same value to spouseName (never lastName).
+        // Father's name and spouse's name are captured in separate optional
+        // fields, matching legacy (never routed to lastName).
         fatherName: v.fatherName.trim() || null,
-        spouseName: v.fatherName.trim() || null,
+        spouseName: v.spouseName.trim() || null,
         beneficiaryIdentities: [
           {
             govtIdentityNo: v.govtIdentityNo.trim() || null,
