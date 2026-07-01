@@ -116,9 +116,6 @@ export const en = {
   'innerpage.identifyCaller': 'Identify caller',
 
   // Beneficiary registration / caller identification
-  'registration.title': 'Identify caller',
-  'registration.subtitle': 'Match this call to a beneficiary',
-  'registration.tab.history': 'This number',
   'registration.tab.search': 'Search',
   'registration.tab.register': 'Register new',
   'registration.history.heading': 'Registrations for this number',

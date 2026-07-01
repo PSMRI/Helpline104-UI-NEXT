@@ -40,7 +40,7 @@ import {
 import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideSearch, lucideUserPlus, lucideUsers } from '@ng-icons/lucide';
+import { lucideSearch, lucideUserPlus } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -76,8 +76,8 @@ import {
   VillageOption,
 } from './beneficiary.models';
 
-/** Which identification tab is showing. */
-type RegistrationTab = 'history' | 'search' | 'register';
+/** Which identification view is showing (the registrations list by default). */
+type RegistrationView = 'list' | 'search' | 'register';
 
 /** Indian mobile number: exactly 10 digits. */
 const PHONE_PATTERN = /^[0-9]{10}$/;
@@ -248,49 +248,38 @@ function validDob(control: AbstractControl): ValidationErrors | null {
     ZardFormMessageComponent,
     ...ZardTableImports,
   ],
-  viewProviders: [provideIcons({ lucideUsers, lucideSearch, lucideUserPlus })],
+  viewProviders: [provideIcons({ lucideSearch, lucideUserPlus })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <header class="mb-5">
-        <h2 class="text-lg font-semibold text-foreground">
-          {{ 'registration.title' | translate: lang() }}
-        </h2>
-        <p class="text-sm text-muted-foreground">
-          {{ 'registration.subtitle' | translate: lang() }}
-        </p>
-      </header>
-
-      <!-- Tabs -->
-      <div
-        class="mb-5 inline-flex flex-wrap gap-1 rounded-md bg-muted p-1"
-        role="tablist"
-        (keydown)="onTabsKeydown($event)"
-      >
-        @for (t of tabs; track t.id) {
-          <button
-            type="button"
-            role="tab"
-            [id]="'tab-' + t.id"
-            [attr.aria-controls]="'panel-' + t.id"
-            [attr.aria-selected]="activeTab() === t.id"
-            [attr.tabindex]="activeTab() === t.id ? 0 : -1"
-            class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            [class]="
-              activeTab() === t.id
-                ? 'bg-card text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            "
-            (click)="activeTab.set(t.id)"
-          >
-            <ng-icon [name]="t.icon" size="16" aria-hidden="true" />
-            {{ t.labelKey | translate: lang() }}
-          </button>
-        }
+      <!-- Action bar: Search / Register new. The registrations list for this
+           number shows by default (no tab); these buttons switch to a sub-view
+           and toggle back to the list when their view is already active. -->
+      <div class="mb-5 flex flex-wrap items-center justify-end gap-2">
+        <button
+          z-button
+          type="button"
+          [zType]="activeView() === 'search' ? 'default' : 'outline'"
+          [attr.aria-pressed]="activeView() === 'search'"
+          (click)="showView('search')"
+        >
+          <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
+          {{ 'registration.tab.search' | translate: lang() }}
+        </button>
+        <button
+          z-button
+          type="button"
+          [zType]="activeView() === 'register' ? 'default' : 'outline'"
+          [attr.aria-pressed]="activeView() === 'register'"
+          (click)="showView('register')"
+        >
+          <ng-icon name="lucideUserPlus" size="16" aria-hidden="true" />
+          {{ 'registration.tab.register' | translate: lang() }}
+        </button>
       </div>
 
-      <!-- History tab -->
-      @if (activeTab() === 'history') {
-        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history">
+      <!-- Default view: registrations for this number, auto-loaded by CLI on init -->
+      @if (activeView() === 'list') {
+        <div>
           <h3 class="mb-3 text-sm font-medium text-foreground">
             {{ 'registration.history.heading' | translate: lang() }}
             @if (cli()) {
@@ -317,16 +306,9 @@ function validDob(control: AbstractControl): ValidationErrors | null {
         </div>
       }
 
-      <!-- Search tab -->
-      @if (activeTab() === 'search') {
-        <form
-          role="tabpanel"
-          id="panel-search"
-          aria-labelledby="tab-search"
-          [formGroup]="searchForm"
-          (ngSubmit)="doSearch()"
-          autocomplete="off"
-        >
+      <!-- Search view -->
+      @if (activeView() === 'search') {
+        <form [formGroup]="searchForm" (ngSubmit)="doSearch()" autocomplete="off">
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <z-form-field>
               <label z-form-label>{{
@@ -408,8 +390,8 @@ function validDob(control: AbstractControl): ValidationErrors | null {
         </form>
       }
 
-      <!-- Register tab -->
-      @if (activeTab() === 'register') {
+      <!-- Register view -->
+      @if (activeView() === 'register') {
         <form [formGroup]="registerForm" (ngSubmit)="doRegister()" autocomplete="off">
           @if (cliMissing()) {
             <div
@@ -1061,20 +1043,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     new Date(new Date().getFullYear() - (MAX_AGE + 1), new Date().getMonth(), new Date().getDate()),
   );
 
-  readonly tabs: ReadonlyArray<{
-    id: RegistrationTab;
-    labelKey:
-      | 'registration.tab.history'
-      | 'registration.tab.search'
-      | 'registration.tab.register';
-    icon: string;
-  }> = [
-    { id: 'history', labelKey: 'registration.tab.history', icon: 'lucideUsers' },
-    { id: 'search', labelKey: 'registration.tab.search', icon: 'lucideSearch' },
-    { id: 'register', labelKey: 'registration.tab.register', icon: 'lucideUserPlus' },
-  ];
-
-  readonly activeTab = signal<RegistrationTab>('history');
+  readonly activeView = signal<RegistrationView>('list');
 
   readonly historyResults = signal<BeneficiaryRecord[]>([]);
   readonly historyLoading = signal(false);
@@ -1242,33 +1211,13 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     return option ? this.i18n.instant(option.labelKey) : (name ?? '—');
   }
 
-  /** WAI-ARIA tablist keyboard navigation (arrows + Home/End). */
-  onTabsKeydown(event: KeyboardEvent): void {
-    const NAV_KEYS = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
-    if (!NAV_KEYS.includes(event.key)) {
-      return;
-    }
-    event.preventDefault();
-    const ids = this.tabs.map((t) => t.id);
-    const current = ids.indexOf(this.activeTab());
-    let next = current;
-    switch (event.key) {
-      case 'ArrowRight':
-        next = (current + 1) % ids.length;
-        break;
-      case 'ArrowLeft':
-        next = (current - 1 + ids.length) % ids.length;
-        break;
-      case 'Home':
-        next = 0;
-        break;
-      case 'End':
-        next = ids.length - 1;
-        break;
-    }
-    const nextId = ids[next];
-    this.activeTab.set(nextId);
-    document.getElementById(`tab-${nextId}`)?.focus();
+  /**
+   * Switch to the Search or Register sub-view, or toggle back to the default
+   * registrations list when that view is already active (so the two action-bar
+   * buttons also serve as the way back to the list).
+   */
+  showView(view: 'search' | 'register'): void {
+    this.activeView.set(this.activeView() === view ? 'list' : view);
   }
 
   ngOnInit(): void {

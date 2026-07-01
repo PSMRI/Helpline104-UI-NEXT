@@ -118,9 +118,6 @@ export const hi: Record<TranslationKey, string> = {
   'innerpage.identifyCaller': 'कॉलर की पहचान करें',
 
   // Beneficiary registration / caller identification
-  'registration.title': 'कॉलर की पहचान करें',
-  'registration.subtitle': 'इस कॉल को किसी लाभार्थी से मिलाएँ',
-  'registration.tab.history': 'यह नंबर',
   'registration.tab.search': 'खोजें',
   'registration.tab.register': 'नया पंजीकरण',
   'registration.history.heading': 'इस नंबर के लिए पंजीकरण',

@@ -119,9 +119,6 @@ export const as: Record<TranslationKey, string> = {
   'innerpage.identifyCaller': 'কলাৰ চিনাক্ত কৰক',
 
   // Beneficiary registration / caller identification
-  'registration.title': 'কলাৰ চিনাক্ত কৰক',
-  'registration.subtitle': 'এই কলটো এজন হিতাধিকাৰীৰ সৈতে মিলাওক',
-  'registration.tab.history': 'এই নম্বৰ',
   'registration.tab.search': 'সন্ধান কৰক',
   'registration.tab.register': 'নতুন পঞ্জীয়ন',
   'registration.history.heading': 'এই নম্বৰৰ বাবে পঞ্জীয়ন',
