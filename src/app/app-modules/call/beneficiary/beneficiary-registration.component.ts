@@ -174,14 +174,49 @@ function toDateInput(date: Date): string {
  * Parse a `YYYY-MM-DD` date-input value as LOCAL midnight. `new Date('YYYY-MM-DD')`
  * parses as UTC, which shifts the calendar day for IST users; constructing from
  * components keeps the date the agent actually picked.
+ *
+ * Returns `null` for a malformed string, an impossible calendar date (e.g.
+ * `2026-02-31`, which the `Date` constructor would silently roll forward), or a
+ * date in the future (a DOB cannot be after today).
  */
 function fromDateInput(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) {
     return null;
   }
-  const [, year, month, day] = match;
-  return new Date(Number(year), Number(month) - 1, Number(day));
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const parsed = new Date(year, month - 1, day);
+  // `Date` normalizes overflow (Feb 31 -> Mar 3), so a component that changed
+  // on the round-trip means the input was not a real calendar date.
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+  // A DOB in the future is invalid; the picked local-midnight date must not be
+  // after "now".
+  if (parsed.getTime() > new Date().getTime()) {
+    return null;
+  }
+  return parsed;
+}
+
+/**
+ * Validates an optional date-of-birth control: an empty value passes (DOB is
+ * optional), but a present value must be a real, non-future calendar date. Reuses
+ * {@link fromDateInput}, which returns `null` for malformed, impossible, or
+ * future dates. Reports an `invalidDob` error.
+ */
+function validDob(control: AbstractControl): ValidationErrors | null {
+  const value = (control.value ?? '') as string;
+  if (value.length === 0) {
+    return null;
+  }
+  return fromDateInput(value) === null ? { invalidDob: true } : null;
 }
 
 /**
@@ -572,9 +607,15 @@ function fromDateInput(value: string): Date | null {
                     formControlName="dob"
                     [attr.min]="minDob"
                     [attr.max]="maxDob"
+                    [attr.aria-invalid]="ariaInvalid('dob')"
                     (change)="onDobChange()"
                   />
                 </z-form-control>
+                @if (showError('dob', 'invalidDob')) {
+                  <z-form-message>{{
+                    'registration.validation.dobInvalid' | translate: lang()
+                  }}</z-form-message>
+                }
               </z-form-field>
 
               <z-form-field>
@@ -1106,7 +1147,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     genderID: new FormControl<number | null>(null, {
       validators: [Validators.required],
     }),
-    dob: new FormControl('', { nonNullable: true }),
+    dob: new FormControl('', { nonNullable: true, validators: [validDob] }),
     age: new FormControl<number | null>(null, {
       validators: [Validators.required, this.ageRangeValidator],
     }),
@@ -1506,7 +1547,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
   /** Validate page-1 identity fields and advance to the address page. */
   goToAddress(): void {
-    const page1 = ['firstName', 'genderID', 'age', 'ageUnit'] as const;
+    const page1 = ['firstName', 'genderID', 'age', 'ageUnit', 'dob'] as const;
     let valid = true;
     for (const name of page1) {
       const control = this.registerForm.controls[name];
@@ -1678,7 +1719,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   }
 
   private isPage1Invalid(): boolean {
-    return (['firstName', 'genderID', 'age', 'ageUnit'] as const).some(
+    return (['firstName', 'genderID', 'age', 'ageUnit', 'dob'] as const).some(
       (name) => this.registerForm.controls[name].invalid,
     );
   }
@@ -1757,6 +1798,7 @@ type RegisterControlName =
   | 'lastName'
   | 'genderID'
   | 'age'
+  | 'dob'
   | 'govtIdentityNo'
   | 'stateID'
   | 'districtID'

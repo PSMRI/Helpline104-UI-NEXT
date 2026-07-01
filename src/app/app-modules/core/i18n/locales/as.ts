@@ -197,6 +197,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.validation.ageRange': 'বৈধ বয়স দিয়ক।',
   'registration.validation.idInvalid': 'বৈধ পৰিচয় নম্বৰ দিয়ক।',
   'registration.validation.pincode': 'বৈধ ৬-অংকীয় পিনক’ড দিয়ক।',
+  'registration.validation.dobInvalid':
+    'বৈধ জন্ম তাৰিখ দিয়ক (ভৱিষ্যতৰ নহয়)।',
 
   // Supervisor placeholder page
   'supervisor.title': 'তত্ত্বাৱধায়ক কাৰ্যকলাপ ক্ষেত্ৰ',

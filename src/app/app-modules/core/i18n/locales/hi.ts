@@ -196,6 +196,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.validation.ageRange': 'मान्य आयु दर्ज करें।',
   'registration.validation.idInvalid': 'मान्य पहचान संख्या दर्ज करें।',
   'registration.validation.pincode': 'मान्य 6-अंकीय पिनकोड दर्ज करें।',
+  'registration.validation.dobInvalid':
+    'मान्य जन्म तिथि दर्ज करें (भविष्य की नहीं)।',
 
   // Supervisor placeholder page
   'supervisor.title': 'पर्यवेक्षक गतिविधि क्षेत्र',

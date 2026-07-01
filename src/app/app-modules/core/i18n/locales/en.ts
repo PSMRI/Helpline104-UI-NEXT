@@ -194,6 +194,8 @@ export const en = {
   'registration.validation.ageRange': 'Enter a valid age.',
   'registration.validation.idInvalid': 'Enter a valid ID number.',
   'registration.validation.pincode': 'Enter a valid 6-digit pincode.',
+  'registration.validation.dobInvalid':
+    'Enter a valid date of birth (not in the future).',
 
   // Supervisor placeholder page
   'supervisor.title': 'Supervisor Activity Area',
