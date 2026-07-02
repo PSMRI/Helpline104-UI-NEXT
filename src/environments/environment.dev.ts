@@ -21,20 +21,21 @@
  */
 
 // Shared AMRIT development environment.
-// Host confirmed with mentor. The 104/1097 API path suffixes still follow the
-// AMRIT v1.0 naming convention and remain to be confirmed with the backend team.
+// Host and gateway prefixes verified against UAT: the APIMAN routes are
+// hyphenated with no version suffix (common-api, admin-api, 104-api, ...).
+// The earlier `*-v1.0` prefixes returned nginx 500 and were never valid.
 
 const devHost = 'https://amritwprdev.piramalswasthya.org/';
 
 const sessionStorageEncKey = '';
-const commonAPI = `${devHost}commonapi-v1.0/`;
-const tmAPI = `${devHost}tmapi-v1.0/`;
-const mmuAPI = `${devHost}mmuapi-v1.0/`;
-const adminAPI = `${devHost}adminapi-v1.0/`;
+const commonAPI = `${devHost}common-api/`;
+const tmAPI = `${devHost}tm-api/`;
+const mmuAPI = `${devHost}mmu-api/`;
+const adminAPI = `${devHost}admin-api/`;
 const telephoneServer = 'https://uatcz.piramalswasthya.org/';
-const fhirAPI = `${devHost}fhirapi-v1.0/`;
-const API1097 = `${devHost}1097api-v1.0/`;
-const API104 = `${devHost}104api-v1.0/`;
+const fhirAPI = `${devHost}fhir-api/`;
+const API1097 = `${devHost}1097-api/`;
+const API104 = `${devHost}104-api/`;
 const siteKey = '';
 const captchaChallengeURL = '';
 const enableCaptcha = false;
