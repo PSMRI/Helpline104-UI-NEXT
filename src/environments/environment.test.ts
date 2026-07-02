@@ -21,20 +21,21 @@
  */
 
 // UAT (User Acceptance Testing) environment.
-// Host confirmed with mentor. The 104/1097 API path suffixes still follow the
-// AMRIT v1.0 naming convention and remain to be confirmed with the backend team.
+// Host and gateway prefixes verified against UAT: the APIMAN routes are
+// hyphenated with no version suffix (common-api, admin-api, 104-api, ...).
+// The earlier `*-v1.0` prefixes returned nginx 500 and were never valid.
 
 const uatHost = 'https://uatamrit.piramalswasthya.org/';
 
 const sessionStorageEncKey = '';
-const commonAPI = `${uatHost}commonapi-v1.0/`;
-const tmAPI = `${uatHost}tmapi-v1.0/`;
-const mmuAPI = `${uatHost}mmuapi-v1.0/`;
-const adminAPI = `${uatHost}adminapi-v1.0/`;
+const commonAPI = `${uatHost}common-api/`;
+const tmAPI = `${uatHost}tm-api/`;
+const mmuAPI = `${uatHost}mmu-api/`;
+const adminAPI = `${uatHost}admin-api/`;
 const telephoneServer = 'https://uatcz.piramalswasthya.org/';
-const fhirAPI = `${uatHost}fhirapi-v1.0/`;
-const API1097 = `${uatHost}1097api-v1.0/`;
-const API104 = `${uatHost}104api-v1.0/`;
+const fhirAPI = `${uatHost}fhir-api/`;
+const API1097 = `${uatHost}1097-api/`;
+const API104 = `${uatHost}104-api/`;
 const siteKey = '';
 const captchaChallengeURL = '';
 const enableCaptcha = false;
