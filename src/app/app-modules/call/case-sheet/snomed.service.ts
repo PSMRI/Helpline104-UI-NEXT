@@ -77,20 +77,28 @@ export class SnomedService {
   /**
    * Read a search envelope: a non-200 status is a hard error; an empty/absent
    * `sctMaster` means "no matches" and resolves to `[]`. Each row is normalised
-   * to a {@link SnomedTerm} with trimmed string fields, and rows missing an id
-   * or term are dropped.
+   * to a {@link SnomedTerm} with trimmed string fields, rows missing an id or
+   * term are dropped, and duplicate `conceptID`s are collapsed to the first
+   * occurrence so the dropdown's `track conceptID` never sees a repeated key
+   * (which would throw NG0955).
    */
   private readTerms(res: ApiResponse<SnomedSearchResponse>): SnomedTerm[] {
     if (res.statusCode && res.statusCode !== 200) {
       throw this.toError(res);
     }
     const rows = res.data?.sctMaster ?? [];
-    return rows
-      .map((row) => ({
-        conceptID: String(row.conceptID ?? '').trim(),
-        term: (row.term ?? '').trim(),
-      }))
-      .filter((row) => row.conceptID.length > 0 && row.term.length > 0);
+    const seen = new Set<string>();
+    const terms: SnomedTerm[] = [];
+    for (const row of rows) {
+      const conceptID = String(row.conceptID ?? '').trim();
+      const term = (row.term ?? '').trim();
+      if (conceptID.length === 0 || term.length === 0 || seen.has(conceptID)) {
+        continue;
+      }
+      seen.add(conceptID);
+      terms.push({ conceptID, term });
+    }
+    return terms;
   }
 
   /**

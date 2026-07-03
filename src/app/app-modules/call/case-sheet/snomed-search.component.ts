@@ -208,7 +208,11 @@ export class SnomedSearchComponent {
   readonly activeIndex = signal(-1);
 
   readonly effectivePlaceholder = computed(
-    () => this.placeholder() || this.i18n.instant('snomed.search.placeholder'),
+    () =>
+      this.placeholder() ||
+      // Read the language signal explicitly so the placeholder re-evaluates
+      // when the agent switches language.
+      this.i18n.instantFor('snomed.search.placeholder', this.lang()),
   );
 
   /** id of the active option for `aria-activedescendant` (null when none). */
