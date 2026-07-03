@@ -194,6 +194,43 @@ export const en = {
   'registration.validation.dobInvalid':
     'Enter a valid date of birth (not in the future).',
 
+  // Case sheet — SNOMED CT chief-complaint search
+  'snomed.search.placeholder': 'Search chief complaint (SNOMED CT)…',
+  'snomed.search.ariaLabel': 'SNOMED CT chief complaint search',
+  'snomed.search.hint': 'Type at least 3 characters to search.',
+  'snomed.search.loading': 'Searching…',
+  'snomed.search.empty': 'No matching SNOMED CT terms.',
+  'snomed.search.error': 'Could not search SNOMED CT terms. Please try again.',
+  'snomed.search.conceptId': 'Concept ID',
+
+  // Case sheet — CDSS (Clinical Decision Support System)
+  'cdss.title': 'Clinical decision support',
+  'cdss.getSuggestions': 'Get CDSS suggestions',
+  'cdss.forComplaint': 'For',
+  'cdss.missingContext':
+    'Enter the patient’s age, gender and chief complaint to get suggestions.',
+  'cdss.questionsHeading': 'Select the closest description',
+  'cdss.noQuestions': 'No CDSS questions are available for this complaint.',
+  'cdss.emergencyBadge': 'Emergency',
+  'cdss.emergencyWarning':
+    'An emergency condition was selected — consider transferring the call to a Medical Officer (MO).',
+  'cdss.diagnosesHeading': 'Suggested diagnoses & advice',
+  'cdss.noDiagnoses': 'No suggested diagnoses were returned.',
+  'cdss.match': 'Match',
+  'cdss.symptomsPresent': 'Mark symptoms present',
+  'cdss.information': 'Information',
+  'cdss.dosDonts': 'Dos & Don’ts',
+  'cdss.selfCare': 'Self-care',
+  'cdss.action': 'Recommended action',
+  'cdss.recommendedActionLabel': 'Recommended action (editable)',
+  'cdss.resetAction': 'Reset to suggested',
+  'cdss.recommendedActionPlaceholder':
+    'Review and edit the recommended action before accepting…',
+  'cdss.selectAtLeastOne': 'Select at least one diagnosis to accept.',
+  'cdss.accept': 'Accept selected',
+  'cdss.back': 'Back',
+  'cdss.restart': 'Start over',
+
   // Supervisor placeholder page
   'supervisor.title': 'Supervisor Activity Area',
   'supervisor.intro':

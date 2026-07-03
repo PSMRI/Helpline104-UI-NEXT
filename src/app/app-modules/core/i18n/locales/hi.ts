@@ -196,6 +196,43 @@ export const hi: Record<TranslationKey, string> = {
   'registration.validation.dobInvalid':
     'मान्य जन्म तिथि दर्ज करें (भविष्य की नहीं)।',
 
+  // Case sheet — SNOMED CT chief-complaint search
+  'snomed.search.placeholder': 'मुख्य शिकायत खोजें (SNOMED CT)…',
+  'snomed.search.ariaLabel': 'SNOMED CT मुख्य शिकायत खोज',
+  'snomed.search.hint': 'खोजने के लिए कम से कम 3 अक्षर टाइप करें।',
+  'snomed.search.loading': 'खोज रहे हैं…',
+  'snomed.search.empty': 'कोई मिलती-जुलती SNOMED CT शर्त नहीं मिली।',
+  'snomed.search.error': 'SNOMED CT शर्तें खोजी नहीं जा सकीं। कृपया पुनः प्रयास करें।',
+  'snomed.search.conceptId': 'कॉन्सेप्ट आईडी',
+
+  // Case sheet — CDSS (Clinical Decision Support System)
+  'cdss.title': 'नैदानिक निर्णय सहायता',
+  'cdss.getSuggestions': 'CDSS सुझाव प्राप्त करें',
+  'cdss.forComplaint': 'के लिए',
+  'cdss.missingContext':
+    'सुझाव पाने के लिए रोगी की आयु, लिंग और मुख्य शिकायत दर्ज करें।',
+  'cdss.questionsHeading': 'निकटतम विवरण चुनें',
+  'cdss.noQuestions': 'इस शिकायत के लिए कोई CDSS प्रश्न उपलब्ध नहीं है।',
+  'cdss.emergencyBadge': 'आपातकाल',
+  'cdss.emergencyWarning':
+    'एक आपातकालीन स्थिति चुनी गई — कॉल को मेडिकल ऑफिसर (MO) को स्थानांतरित करने पर विचार करें।',
+  'cdss.diagnosesHeading': 'सुझाए गए निदान और सलाह',
+  'cdss.noDiagnoses': 'कोई सुझाया गया निदान नहीं मिला।',
+  'cdss.match': 'मिलान',
+  'cdss.symptomsPresent': 'मौजूद लक्षण चिह्नित करें',
+  'cdss.information': 'जानकारी',
+  'cdss.dosDonts': 'क्या करें और क्या न करें',
+  'cdss.selfCare': 'स्व-देखभाल',
+  'cdss.action': 'अनुशंसित कार्रवाई',
+  'cdss.recommendedActionLabel': 'अनुशंसित कार्रवाई (संपादन योग्य)',
+  'cdss.resetAction': 'सुझाव पर रीसेट करें',
+  'cdss.recommendedActionPlaceholder':
+    'स्वीकार करने से पहले अनुशंसित कार्रवाई की समीक्षा और संपादन करें…',
+  'cdss.selectAtLeastOne': 'स्वीकार करने के लिए कम से कम एक निदान चुनें।',
+  'cdss.accept': 'चयनित स्वीकार करें',
+  'cdss.back': 'वापस',
+  'cdss.restart': 'फिर से शुरू करें',
+
   // Supervisor placeholder page
   'supervisor.title': 'पर्यवेक्षक गतिविधि क्षेत्र',
   'supervisor.intro':
