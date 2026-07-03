@@ -491,8 +491,10 @@ export class CdssComponent {
       return;
     }
 
-    const reqId = ++this.questionsReqId;
+    // resetFlow() bumps the request counters, so capture reqId *after* it —
+    // otherwise this request's own response would be treated as stale.
     this.resetFlow();
+    const reqId = ++this.questionsReqId;
     this.loading.set(true);
     this.errorMessage.set('');
 
