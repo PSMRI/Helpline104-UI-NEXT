@@ -526,6 +526,15 @@ export const en = {
   'roleWorkspace.co.subtitle': 'Record the counselling advisory, then close the call.',
   'roleWorkspace.counsellor.title': 'Counsellor',
   'roleWorkspace.counsellor.subtitle': 'Record the counselling case sheet, then close the call.',
+  'roleWorkspace.sio.title': 'Service Information Officer (SIO)',
+  'roleWorkspace.sio.subtitle': 'Provide an SIO service to the caller, then close the call.',
+  'roleWorkspace.pd.title': 'Programme Division (PD)',
+  'roleWorkspace.pd.subtitle': 'Record the case sheet, then close the call.',
+  'roleWorkspace.pd.switchToMo': 'Medical service (MO)',
+  'roleWorkspace.surveyor.title': 'Surveyor',
+  'roleWorkspace.surveyor.subtitle': 'View surveyor call-type reports.',
+  'roleWorkspace.surveyor.reportsTitle': 'Call-type reports',
+  'roleWorkspace.surveyor.reportsPlaceholder': 'The surveyor call-type reports will be available here soon.',
 
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'Services',

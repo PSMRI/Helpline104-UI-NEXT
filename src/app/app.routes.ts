@@ -133,6 +133,30 @@ export const routes: Routes = [
             (m) => m.CounsellorWorkspaceComponent,
           ),
       },
+      {
+        // SIO (Service Information Officer) service-catalogue workspace.
+        path: 'sio',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/sio-workspace.component').then(
+            (m) => m.SioWorkspaceComponent,
+          ),
+      },
+      {
+        // Surveyor workspace (call-type reports host).
+        path: 'surveyor',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/surveyor-workspace.component').then(
+            (m) => m.SurveyorWorkspaceComponent,
+          ),
+      },
+      {
+        // PD (Psychiatrist / Programme Division) case-sheet workspace.
+        path: 'pd',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/pd-workspace.component').then(
+            (m) => m.PdWorkspaceComponent,
+          ),
+      },
     ],
   },
   {

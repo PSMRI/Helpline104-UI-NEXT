@@ -528,6 +528,15 @@ export const hi: Record<TranslationKey, string> = {
   'roleWorkspace.co.subtitle': 'काउंसलिंग सलाह दर्ज करें, फिर कॉल समाप्त करें।',
   'roleWorkspace.counsellor.title': 'काउंसलर',
   'roleWorkspace.counsellor.subtitle': 'काउंसलिंग केस शीट दर्ज करें, फिर कॉल समाप्त करें।',
+  'roleWorkspace.sio.title': 'सर्विस इंफॉर्मेशन ऑफिसर (SIO)',
+  'roleWorkspace.sio.subtitle': 'कॉलर को SIO सेवा प्रदान करें, फिर कॉल समाप्त करें।',
+  'roleWorkspace.pd.title': 'प्रोग्राम डिवीज़न (PD)',
+  'roleWorkspace.pd.subtitle': 'केस शीट दर्ज करें, फिर कॉल समाप्त करें।',
+  'roleWorkspace.pd.switchToMo': 'चिकित्सा सेवा (MO)',
+  'roleWorkspace.surveyor.title': 'सर्वेयर',
+  'roleWorkspace.surveyor.subtitle': 'सर्वेयर कॉल-टाइप रिपोर्ट देखें।',
+  'roleWorkspace.surveyor.reportsTitle': 'कॉल-टाइप रिपोर्ट',
+  'roleWorkspace.surveyor.reportsPlaceholder': 'सर्वेयर कॉल-टाइप रिपोर्ट जल्द ही यहाँ उपलब्ध होंगी।',
 
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'सेवाएं',

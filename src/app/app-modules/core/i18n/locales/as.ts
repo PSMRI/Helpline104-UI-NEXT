@@ -529,6 +529,15 @@ export const as: Record<TranslationKey, string> = {
   'roleWorkspace.co.subtitle': 'কাউঞ্চেলিং পৰামৰ্শ লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
   'roleWorkspace.counsellor.title': 'কাউঞ্চেলাৰ',
   'roleWorkspace.counsellor.subtitle': 'কাউঞ্চেলিং কেছ শ্বীট লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
+  'roleWorkspace.sio.title': 'ছাৰ্ভিচ ইনফৰমেচন অফিচাৰ (SIO)',
+  'roleWorkspace.sio.subtitle': 'কলাৰক এটা SIO সেৱা আগবঢ়াওক, তাৰ পিছত কল সমাপ্ত কৰক।',
+  'roleWorkspace.pd.title': 'প্ৰ’গ্ৰাম ডিভিজন (PD)',
+  'roleWorkspace.pd.subtitle': 'কেছ শ্বীট লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
+  'roleWorkspace.pd.switchToMo': 'চিকিৎসা সেৱা (MO)',
+  'roleWorkspace.surveyor.title': 'জৰীপকৰ্তা',
+  'roleWorkspace.surveyor.subtitle': 'জৰীপকৰ্তাৰ কল-টাইপ প্ৰতিবেদন চাওক।',
+  'roleWorkspace.surveyor.reportsTitle': 'কল-টাইপ প্ৰতিবেদন',
+  'roleWorkspace.surveyor.reportsPlaceholder': 'জৰীপকৰ্তাৰ কল-টাইপ প্ৰতিবেদন সোনকালে ইয়াত উপলব্ধ হ’ব।',
 
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'সেৱাসমূহ',

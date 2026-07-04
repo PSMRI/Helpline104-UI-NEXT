@@ -140,6 +140,13 @@ export class ServiceDeliveryStepComponent {
   /** Screen names the current role holds; gates the optional service tabs. */
   readonly screens = input<readonly string[]>([]);
 
+  /**
+   * Whether the always-on screenings (Diabetic/BP, which have no gating screen)
+   * are offered. HAO shows them (default); SIO does not (legacy SIO listed only
+   * screen-gated services).
+   */
+  readonly showAlwaysOnScreenings = input(true);
+
   /** Emitted whenever a service is successfully saved (marks the call valid). */
   readonly serviceAvailed = output<void>();
 
@@ -149,8 +156,9 @@ export class ServiceDeliveryStepComponent {
   /** Tabs visible for the current role (always-on screenings + granted screens). */
   readonly visibleTabs = computed(() => {
     const granted = new Set(this.screens());
-    return SERVICE_TABS.filter(
-      (tab) => tab.requiresScreen === null || granted.has(tab.requiresScreen),
+    const includeAlwaysOn = this.showAlwaysOnScreenings();
+    return SERVICE_TABS.filter((tab) =>
+      tab.requiresScreen === null ? includeAlwaysOn : granted.has(tab.requiresScreen),
     );
   });
 
