@@ -58,6 +58,10 @@ export class CovidService {
 
   /** COVID master data for the service (categories, symptoms, conditions…). */
   getCovidMasterData(providerServiceMapID: number | null): Observable<CovidMasterData> {
+    if (providerServiceMapID == null) {
+      // No service context — fail rather than requesting `.../covidDetails/null`.
+      return throwError(() => ({ status: 0, errorMessage: GENERIC_ERROR }) as CovidError);
+    }
     return this.http
       .get<ApiResponse<CovidMasterData>>(
         this.config.get104BaseURL() + MASTER_PATH + providerServiceMapID,

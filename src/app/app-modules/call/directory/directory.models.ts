@@ -29,7 +29,7 @@
  *   - POST beneficiary/get/services           (104)    — sub-services (for serviceID1097)
  *   - POST beneficiary/getdirectorySearchHistory (104) — search history
  *   - POST beneficiary/save/directorySearchHistory (104) — save search history
- * The state/district/sub-district/village cascade reuses BeneficiaryService.
+ * The state → district cascade reuses BeneficiaryService.
  */
 
 /** Standard AMRIT API envelope. */

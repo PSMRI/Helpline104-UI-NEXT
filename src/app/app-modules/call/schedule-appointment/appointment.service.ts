@@ -63,6 +63,10 @@ export class AppointmentService {
     providerServiceMapID: number | null,
     blockName: string,
   ): Observable<FacilityOption[]> {
+    if (providerServiceMapID == null) {
+      // No service context — fail rather than requesting `.../facilityMaster/null/...`.
+      return throwError(() => ({ status: 0, errorMessage: GENERIC_ERROR }) as AppointmentError);
+    }
     const url =
       this.config.getCommonBaseURL() +
       FACILITY_MASTER_PATH +

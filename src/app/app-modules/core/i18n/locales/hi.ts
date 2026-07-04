@@ -316,8 +316,6 @@ export const hi: Record<TranslationKey, string> = {
   'directory.select': 'चुनें',
   'directory.state': 'राज्य',
   'directory.district': 'ज़िला',
-  'directory.subDistrict': 'उप-ज़िला',
-  'directory.village': 'गाँव',
   'directory.information': 'आवश्यक जानकारी',
   'directory.subDirectory': 'उप-निर्देशिका',
   'directory.search': 'खोजें',

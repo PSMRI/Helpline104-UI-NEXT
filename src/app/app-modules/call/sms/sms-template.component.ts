@@ -32,6 +32,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject, catchError, of, switchMap } from 'rxjs';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideSend } from '@ng-icons/lucide';
@@ -48,7 +49,7 @@ import { SmsService } from './sms.service';
 import { SmsError, SmsTemplate, SmsType } from './sms.models';
 
 const SELECT_CLASS =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
+  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring';
 const PHONE_PATTERN = /^[0-9]{10}$/;
 
 /**
@@ -113,7 +114,7 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
             <label class="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                class="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                class="h-4 w-4 rounded border-input text-primary focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
                 formControlName="useAlternate"
               />
               {{ 'sms.altNumber' | translate: lang() }}
@@ -175,6 +176,28 @@ export class SmsTemplateComponent implements OnInit {
 
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);
 
+  /** Emits the chosen SMS type; switchMap cancels an in-flight templates load. */
+  private readonly typeChanges = new Subject<number>();
+
+  constructor() {
+    this.typeChanges
+      .pipe(
+        switchMap((typeID) => {
+          const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+          return this.sms.getSmsTemplates(providerServiceMapID, typeID).pipe(
+            // Keep the stream alive on error so later type changes still load.
+            catchError((err: SmsError) => {
+              this.errorMessage.set(err.errorMessage || this.i18n.instant('sms.loadError'));
+              return of<SmsTemplate[]>([]);
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      // Only offer active (non-deleted) templates.
+      .subscribe((list) => this.templates.set(list.filter((t) => t.deleted !== true)));
+  }
+
   ngOnInit(): void {
     if (!this.hasContext()) {
       return;
@@ -208,15 +231,8 @@ export class SmsTemplateComponent implements OnInit {
     if (typeID == null) {
       return;
     }
-    const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
-    this.sms
-      .getSmsTemplates(providerServiceMapID, typeID)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        // Only offer active (non-deleted) templates.
-        next: (list) => this.templates.set(list.filter((t) => t.deleted !== true)),
-        error: (err: SmsError) => this.errorMessage.set(err.errorMessage || this.i18n.instant('sms.loadError')),
-      });
+    this.errorMessage.set('');
+    this.typeChanges.next(typeID);
   }
 
   send(): void {

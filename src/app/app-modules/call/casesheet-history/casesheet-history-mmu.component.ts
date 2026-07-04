@@ -133,6 +133,7 @@ export class CasesheetHistoryMmuComponent {
         this.load(id, tm);
       } else {
         this.rows.set([]);
+        this.errorMessage.set('');
       }
     });
   }

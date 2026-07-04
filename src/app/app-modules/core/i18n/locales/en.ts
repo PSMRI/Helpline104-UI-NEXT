@@ -314,8 +314,6 @@ export const en = {
   'directory.select': 'Select',
   'directory.state': 'State',
   'directory.district': 'District',
-  'directory.subDistrict': 'Sub-district',
-  'directory.village': 'Village',
   'directory.information': 'Information required',
   'directory.subDirectory': 'Sub-directory',
   'directory.search': 'Search',

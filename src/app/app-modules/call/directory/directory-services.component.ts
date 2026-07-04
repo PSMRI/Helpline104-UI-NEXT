@@ -27,7 +27,6 @@ import {
   OnInit,
   computed,
   inject,
-  input,
   output,
   signal,
 } from '@angular/core';
@@ -42,12 +41,7 @@ import { ZardButtonComponent } from '@common-ui/ui/button';
 import { AuthStore } from '../../core/auth/auth.store';
 import { CallStore } from '../call.store';
 import { BeneficiaryService } from '../beneficiary/beneficiary.service';
-import {
-  BlockOption,
-  DistrictOption,
-  StateOption,
-  VillageOption,
-} from '../beneficiary/beneficiary.models';
+import { DistrictOption, StateOption } from '../beneficiary/beneficiary.models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { DirectoryService } from './directory.service';
@@ -60,7 +54,7 @@ import {
 } from './directory.models';
 
 const SELECT_CLASS =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
+  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring';
 
 /** Sub-service name fragments to match per role feature (legacy mapping). */
 const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
@@ -72,13 +66,14 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
 
 /**
  * Directory / institute-information lookup tab. The agent narrows by location
- * (state → district → sub-district → village) and directory type →
+ * (state → district) and directory type →
  * sub-directory, searches for matching institutes, and sees the results plus a
  * running search history. Ported from the legacy `DirectoryServicesComponent`.
  *
- * Standalone, OnPush + signals, Reactive Forms, ZardUI + Tailwind only. The
- * location cascade reuses BeneficiaryService; SMS-out of results is a separate
- * concern (SmsTemplateService) and is intentionally not included here.
+ * Standalone, OnPush + signals, Reactive Forms, ZardUI + Tailwind only. Only
+ * state + district are sent to the backend (matching legacy), so the state
+ * cascade reuses BeneficiaryService for districts; SMS-out of results is a
+ * separate concern (SmsTemplateService) and is intentionally not included here.
  */
 @Component({
   selector: 'app-directory-services',
@@ -121,34 +116,10 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
             <label for="dir-district" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'directory.district' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="dir-district" [class]="selectClass" formControlName="districtID" (change)="onDistrictChange()">
+            <select id="dir-district" [class]="selectClass" formControlName="districtID">
               <option [ngValue]="null" disabled>{{ 'directory.select' | translate: lang() }}</option>
               @for (d of districts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
-              }
-            </select>
-          </div>
-
-          <div>
-            <label for="dir-subdistrict" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'directory.subDistrict' | translate: lang() }}
-            </label>
-            <select id="dir-subdistrict" [class]="selectClass" formControlName="blockID" (change)="onSubDistrictChange()">
-              <option [ngValue]="null" disabled>{{ 'directory.select' | translate: lang() }}</option>
-              @for (b of subDistricts(); track b.blockID) {
-                <option [ngValue]="b.blockID">{{ b.blockName }}</option>
-              }
-            </select>
-          </div>
-
-          <div>
-            <label for="dir-village" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'directory.village' | translate: lang() }}
-            </label>
-            <select id="dir-village" [class]="selectClass" formControlName="districtBranchID">
-              <option [ngValue]="null" disabled>{{ 'directory.select' | translate: lang() }}</option>
-              @for (v of villages(); track v.districtBranchID) {
-                <option [ngValue]="v.districtBranchID">{{ v.villageName }}</option>
               }
             </select>
           </div>
@@ -263,8 +234,6 @@ export class DirectoryServicesComponent implements OnInit {
 
   readonly states = signal<StateOption[]>([]);
   readonly districts = signal<DistrictOption[]>([]);
-  readonly subDistricts = signal<BlockOption[]>([]);
-  readonly villages = signal<VillageOption[]>([]);
   readonly directoryList = signal<DirectoryItem[]>([]);
   readonly subDirectoryList = signal<SubDirectoryItem[]>([]);
   readonly results = signal<InstituteResult[]>([]);
@@ -279,8 +248,6 @@ export class DirectoryServicesComponent implements OnInit {
   readonly form = this.fb.group({
     stateID: this.fb.control<number | null>(null, Validators.required),
     districtID: this.fb.control<number | null>(null, Validators.required),
-    blockID: this.fb.control<number | null>(null),
-    districtBranchID: this.fb.control<number | null>(null),
     instituteDirectoryID: this.fb.control<number | null>(null, Validators.required),
     instituteSubDirectoryID: this.fb.control<number | null>(null, Validators.required),
   });
@@ -327,10 +294,8 @@ export class DirectoryServicesComponent implements OnInit {
   }
 
   onStateChange(): void {
-    this.form.patchValue({ districtID: null, blockID: null, districtBranchID: null });
+    this.form.patchValue({ districtID: null });
     this.districts.set([]);
-    this.subDistricts.set([]);
-    this.villages.set([]);
     const stateID = this.form.controls.stateID.value;
     if (stateID == null) {
       return;
@@ -339,33 +304,6 @@ export class DirectoryServicesComponent implements OnInit {
       .getDistricts(stateID)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: (d) => this.districts.set(d), error: (e: DirectoryError) => this.setError(e) });
-  }
-
-  onDistrictChange(): void {
-    this.form.patchValue({ blockID: null, districtBranchID: null });
-    this.subDistricts.set([]);
-    this.villages.set([]);
-    const districtID = this.form.controls.districtID.value;
-    if (districtID == null) {
-      return;
-    }
-    this.beneficiary
-      .getSubDistricts(districtID)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (b) => this.subDistricts.set(b), error: (e: DirectoryError) => this.setError(e) });
-  }
-
-  onSubDistrictChange(): void {
-    this.form.patchValue({ districtBranchID: null });
-    this.villages.set([]);
-    const blockID = this.form.controls.blockID.value;
-    if (blockID == null) {
-      return;
-    }
-    this.beneficiary
-      .getVillages(blockID)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (v) => this.villages.set(v), error: (e: DirectoryError) => this.setError(e) });
   }
 
   onDirectoryChange(): void {

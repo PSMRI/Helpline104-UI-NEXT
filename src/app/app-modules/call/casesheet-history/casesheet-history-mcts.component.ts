@@ -112,6 +112,8 @@ import {
                     <td colspan="6" class="px-3 py-3">
                       @if (qaLoading()) {
                         <p class="text-sm text-muted-foreground">{{ 'casesheetHistory.loading' | translate: lang() }}</p>
+                      } @else if (qaError()) {
+                        <p class="text-sm font-medium text-destructive" role="alert">{{ qaError() }}</p>
                       } @else if (qaRows().length === 0) {
                         <p class="text-sm text-muted-foreground">{{ 'casesheetHistory.mcts.noQa' | translate: lang() }}</p>
                       } @else {
@@ -155,6 +157,7 @@ export class CasesheetHistoryMctsComponent {
   readonly qaRows = signal<MctsQaRow[]>([]);
   readonly qaOpenFor = signal<number | null>(null);
   readonly qaLoading = signal(false);
+  readonly qaError = signal('');
 
   constructor() {
     // Reload the history whenever the beneficiary id input changes.
@@ -165,6 +168,7 @@ export class CasesheetHistoryMctsComponent {
         this.load(id);
       } else {
         this.rows.set([]);
+        this.errorMessage.set('');
       }
     });
   }
@@ -202,6 +206,7 @@ export class CasesheetHistoryMctsComponent {
     }
     this.qaOpenFor.set(callDetailID);
     this.qaRows.set([]);
+    this.qaError.set('');
     this.qaLoading.set(true);
     this.helpline
       .getMctsCallResponse(callDetailID)
@@ -215,12 +220,14 @@ export class CasesheetHistoryMctsComponent {
           this.qaLoading.set(false);
           this.qaRows.set(rows);
         },
-        error: () => {
+        error: (err: OtherHelplineError) => {
           if (this.qaOpenFor() !== callDetailID) {
             return;
           }
           this.qaLoading.set(false);
           this.qaRows.set([]);
+          // Surface the fetch failure instead of a misleading "no records" state.
+          this.qaError.set(err.errorMessage || this.i18n.instant('casesheetHistory.loadError'));
         },
       });
   }

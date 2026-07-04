@@ -317,8 +317,6 @@ export const as: Record<TranslationKey, string> = {
   'directory.select': 'বাছনি কৰক',
   'directory.state': 'ৰাজ্য',
   'directory.district': 'জিলা',
-  'directory.subDistrict': 'উপ-জিলা',
-  'directory.village': 'গাওঁ',
   'directory.information': 'প্ৰয়োজনীয় তথ্য',
   'directory.subDirectory': 'উপ-ডাইৰেক্টৰী',
   'directory.search': 'সন্ধান কৰক',
