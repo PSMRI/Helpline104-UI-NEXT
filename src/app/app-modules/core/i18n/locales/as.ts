@@ -197,6 +197,43 @@ export const as: Record<TranslationKey, string> = {
   'registration.validation.dobInvalid':
     'বৈধ জন্ম তাৰিখ দিয়ক (ভৱিষ্যতৰ নহয়)।',
 
+  // Case sheet — SNOMED CT chief-complaint search
+  'snomed.search.placeholder': 'মুখ্য অভিযোগ বিচাৰক (SNOMED CT)…',
+  'snomed.search.ariaLabel': 'SNOMED CT মুখ্য অভিযোগ সন্ধান',
+  'snomed.search.hint': 'সন্ধান কৰিবলৈ কমেও ৩টা আখৰ লিখক।',
+  'snomed.search.loading': 'সন্ধান কৰি আছে…',
+  'snomed.search.empty': 'কোনো মিল থকা SNOMED CT শব্দ পোৱা নগ’ল।',
+  'snomed.search.error': 'SNOMED CT শব্দ সন্ধান কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'snomed.search.conceptId': 'কনচেপ্ট আইডি',
+
+  // Case sheet — CDSS (Clinical Decision Support System)
+  'cdss.title': 'চিকিৎসা সিদ্ধান্ত সহায়তা',
+  'cdss.getSuggestions': 'CDSS পৰামৰ্শ লওক',
+  'cdss.forComplaint': 'বাবে',
+  'cdss.missingContext':
+    'পৰামৰ্শ পাবলৈ ৰোগীৰ বয়স, লিংগ আৰু মুখ্য অভিযোগ দিয়ক।',
+  'cdss.questionsHeading': 'নিকটতম বিৱৰণ বাছনি কৰক',
+  'cdss.noQuestions': 'এই অভিযোগৰ বাবে কোনো CDSS প্ৰশ্ন উপলব্ধ নহয়।',
+  'cdss.emergencyBadge': 'জৰুৰীকালীন',
+  'cdss.emergencyWarning':
+    'এটা জৰুৰীকালীন অৱস্থা বাছনি কৰা হ’ল — কলটো মেডিকেল অফিচাৰ (MO)লৈ স্থানান্তৰ কৰাৰ কথা ভাবক।',
+  'cdss.diagnosesHeading': 'পৰামৰ্শিত ৰোগ নিৰ্ণয় আৰু পৰামৰ্শ',
+  'cdss.noDiagnoses': 'কোনো পৰামৰ্শিত ৰোগ নিৰ্ণয় পোৱা নগ’ল।',
+  'cdss.match': 'মিল',
+  'cdss.symptomsPresent': 'উপস্থিত লক্ষণ চিহ্নিত কৰক',
+  'cdss.information': 'তথ্য',
+  'cdss.dosDonts': 'কৰিবলগীয়া আৰু নকৰিবলগীয়া',
+  'cdss.selfCare': 'স্ব-যত্ন',
+  'cdss.action': 'পৰামৰ্শিত ব্যৱস্থা',
+  'cdss.recommendedActionLabel': 'পৰামৰ্শিত ব্যৱস্থা (সম্পাদনযোগ্য)',
+  'cdss.resetAction': 'পৰামৰ্শলৈ ৰিছেট কৰক',
+  'cdss.recommendedActionPlaceholder':
+    'গ্ৰহণ কৰাৰ আগতে পৰামৰ্শিত ব্যৱস্থা পৰীক্ষা আৰু সম্পাদনা কৰক…',
+  'cdss.selectAtLeastOne': 'গ্ৰহণ কৰিবলৈ কমেও এটা ৰোগ নিৰ্ণয় বাছনি কৰক।',
+  'cdss.accept': 'বাছনি কৰাটো গ্ৰহণ কৰক',
+  'cdss.back': 'উভতি যাওক',
+  'cdss.restart': 'পুনৰ আৰম্ভ কৰক',
+
   // Supervisor placeholder page
   'supervisor.title': 'তত্ত্বাৱধায়ক কাৰ্যকলাপ ক্ষেত্ৰ',
   'supervisor.intro':
