@@ -636,6 +636,8 @@ export const en = {
   'outbound.workspace.backToWorklist': 'Back to Worklist',
   'outbound.workspace.proceedTitle': 'Proceed',
   'outbound.workspace.proceedConfirm': 'Proceed to closure for this call?',
+  'outbound.workspace.endCallTitle': 'End Call',
+  'outbound.workspace.endCallConfirm': 'End this call and return to the worklist?',
 
   // Outbound — allocate
   'outbound.allocate.title': 'Allocate Records',

@@ -254,7 +254,6 @@ function recordingKey(entry: RecordingEntry): string {
                           @if (activeAudioKey() === keyOf(rec) && audioSrc()) {
                             <audio controls autoplay preload="none" class="h-8">
                               <source [src]="audioSrc()" type="audio/mpeg" />
-                              <source [src]="audioSrc()" type="audio/ogg" />
                             </audio>
                           } @else {
                             <button
@@ -315,6 +314,12 @@ export class BlockUnblockComponent implements OnInit {
   readonly activeAudioKey = signal<string | null>(null);
   readonly audioSrc = signal('');
   private readonly audioCache = new Map<string, string>();
+
+  // Request-id guards: only the most recent request per operation may apply its
+  // response, so a slow earlier call can't overwrite newer state.
+  private loadReqId = 0;
+  private recordingsReqId = 0;
+  private audioReqId = 0;
 
   ngOnInit(): void {
     this.load();
@@ -386,6 +391,7 @@ export class BlockUnblockComponent implements OnInit {
       return;
     }
     const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    const reqId = ++this.recordingsReqId;
     this.recordingsPhone.set(phoneNo);
     this.recordings.set([]);
     this.activeAudioKey.set(null);
@@ -397,10 +403,16 @@ export class BlockUnblockComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (recordings) => {
+          if (reqId !== this.recordingsReqId) {
+            return;
+          }
           this.recordingsLoading.set(false);
           this.recordings.set(recordings);
         },
         error: (err: BlockUnblockError) => {
+          if (reqId !== this.recordingsReqId) {
+            return;
+          }
           this.recordingsLoading.set(false);
           this.recordings.set([]);
           this.setError(err);
@@ -413,6 +425,9 @@ export class BlockUnblockComponent implements OnInit {
       return;
     }
     const key = recordingKey(rec);
+    // Bump the guard first so an in-flight (non-cached) request can't later
+    // clobber this selection, whether we resolve from cache or the network.
+    const reqId = ++this.audioReqId;
     const cached = this.audioCache.get(key);
     if (cached) {
       this.activeAudioKey.set(key);
@@ -425,6 +440,9 @@ export class BlockUnblockComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (path) => {
+          if (reqId !== this.audioReqId) {
+            return;
+          }
           if (!path) {
             this.setError({
               status: 0,
@@ -436,11 +454,15 @@ export class BlockUnblockComponent implements OnInit {
           this.activeAudioKey.set(key);
           this.audioSrc.set(path);
         },
-        error: () =>
+        error: () => {
+          if (reqId !== this.audioReqId) {
+            return;
+          }
           this.setError({
             status: 0,
             errorMessage: this.i18n.instant('blockUnblock.audioError'),
-          }),
+          });
+        },
       });
   }
 
@@ -458,6 +480,7 @@ export class BlockUnblockComponent implements OnInit {
 
   private load(phoneNo?: string): void {
     const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    const reqId = ++this.loadReqId;
     this.loading.set(true);
     this.errorMessage.set('');
     this.recordingsPhone.set(null);
@@ -466,10 +489,16 @@ export class BlockUnblockComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (entries) => {
+          if (reqId !== this.loadReqId) {
+            return;
+          }
           this.loading.set(false);
           this.blacklist.set(entries);
         },
         error: (err: BlockUnblockError) => {
+          if (reqId !== this.loadReqId) {
+            return;
+          }
           this.loading.set(false);
           this.blacklist.set([]);
           this.setError(err);

@@ -115,7 +115,7 @@ export class BlockUnblockService {
   }
 
   private readData<T>(res: ApiResponse<T>): T | undefined {
-    if (res.statusCode && res.statusCode !== 200) {
+    if (res.statusCode != null && res.statusCode !== 200) {
       throw this.toError(res);
     }
     return res.data;

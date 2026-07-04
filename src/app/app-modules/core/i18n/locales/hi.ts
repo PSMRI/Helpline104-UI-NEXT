@@ -638,6 +638,8 @@ export const hi: Record<TranslationKey, string> = {
   'outbound.workspace.backToWorklist': 'वर्कलिस्ट पर वापस जाएँ',
   'outbound.workspace.proceedTitle': 'आगे बढ़ें',
   'outbound.workspace.proceedConfirm': 'इस कॉल के लिए समापन की ओर बढ़ें?',
+  'outbound.workspace.endCallTitle': 'कॉल समाप्त करें',
+  'outbound.workspace.endCallConfirm': 'इस कॉल को समाप्त करके वर्कलिस्ट पर वापस जाएँ?',
 
   // Outbound — allocate
   'outbound.allocate.title': 'रिकॉर्ड आवंटित करें',

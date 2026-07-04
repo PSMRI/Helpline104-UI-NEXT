@@ -150,7 +150,7 @@ function pad(value: number): string {
         </hao-stepper>
 
         <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
-          <button z-button type="button" zType="ghost" (click)="onCallClosed()">
+          <button z-button type="button" zType="ghost" (click)="endCall()">
             {{ 'outbound.workspace.endCall' | translate: lang() }}
           </button>
           <div class="ml-auto flex gap-3">
@@ -242,6 +242,24 @@ export class OutboundCallWorkspaceComponent {
 
   onContinue(): void {
     this.stepper()?.previous();
+  }
+
+  /** Confirm before ending the call from the footer control. */
+  endCall(): void {
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('outbound.workspace.endCallTitle'),
+        message: this.i18n.instant('outbound.workspace.endCallConfirm'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        destructive: true,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.onCallClosed();
+        }
+      });
   }
 
   onCallClosed(): void {

@@ -72,9 +72,8 @@ import { NotificationService } from './notification.service';
 
       <div class="p-5">
         @if (errorMessage()) {
-          <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
-        }
-        @if (loading()) {
+          <p class="text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
+        } @else if (loading()) {
           <p class="py-6 text-center text-sm text-muted-foreground">
             {{ 'emergencyContacts.loading' | translate: lang() }}
           </p>

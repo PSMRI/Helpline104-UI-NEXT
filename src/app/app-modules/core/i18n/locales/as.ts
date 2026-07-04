@@ -638,6 +638,8 @@ export const as: Record<TranslationKey, string> = {
   'outbound.workspace.backToWorklist': 'ৱৰ্কলিষ্টলৈ উভতি যাওক',
   'outbound.workspace.proceedTitle': 'আগবাঢ়ক',
   'outbound.workspace.proceedConfirm': 'এই কলটোৰ বাবে সমাপনলৈ আগবাঢ়িবনে?',
+  'outbound.workspace.endCallTitle': 'কল সমাপ্ত কৰক',
+  'outbound.workspace.endCallConfirm': 'এই কলটো সমাপ্ত কৰি ৱৰ্কলিষ্টলৈ উভতি যাবনে?',
 
   // Outbound — allocate
   'outbound.allocate.title': 'ৰেকৰ্ড আবণ্টন কৰক',

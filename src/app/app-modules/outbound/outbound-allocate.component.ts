@@ -171,6 +171,12 @@ export class OutboundAllocateComponent {
       }
       this.loadAgents(roleID);
     });
+
+    // Keep the per-agent count within bounds when the record set shrinks.
+    effect(() => {
+      const max = this.records().length;
+      this.allocateNo.update((n) => (n > max ? max : n));
+    });
   }
 
   isSelected(userID: number | undefined): boolean {
