@@ -109,6 +109,30 @@ export const routes: Routes = [
             (m) => m.HaoWorkspaceComponent,
           ),
       },
+      {
+        // MO (Medical Officer) case-sheet workspace.
+        path: 'mo',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/mo-workspace.component').then(
+            (m) => m.MoWorkspaceComponent,
+          ),
+      },
+      {
+        // CO (Counselling Officer) case-sheet workspace.
+        path: 'co',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/co-workspace.component').then(
+            (m) => m.CoWorkspaceComponent,
+          ),
+      },
+      {
+        // Counsellor (mental-health) case-sheet workspace.
+        path: 'counsellor',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/counsellor-workspace.component').then(
+            (m) => m.CounsellorWorkspaceComponent,
+          ),
+      },
     ],
   },
   {

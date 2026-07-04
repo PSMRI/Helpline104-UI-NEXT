@@ -510,6 +510,23 @@ export const en = {
   'hao.workspace.cancelTitle': 'Cancel',
   'hao.workspace.cancelConfirm': 'Return to providing a service?',
 
+  // Role workspaces (MO / CO / Counsellor) shell
+  'roleWorkspace.stepService': 'Case sheet',
+  'roleWorkspace.stepClosure': 'Closure',
+  'roleWorkspace.cancel': 'Cancel',
+  'roleWorkspace.proceedToClosure': 'Proceed to Closure',
+  'roleWorkspace.proceedTitle': 'Closure',
+  'roleWorkspace.proceedConfirm': 'Proceed to closure for this call?',
+  'roleWorkspace.cancelTitle': 'Cancel',
+  'roleWorkspace.cancelConfirm': 'Return to the case sheet?',
+  'roleWorkspace.mo.title': 'Medical Officer (MO)',
+  'roleWorkspace.mo.subtitle': 'Record the medical advisory, then close the call.',
+  'roleWorkspace.mo.switchToCo': 'Switch to CO',
+  'roleWorkspace.co.title': 'Counselling Officer (CO)',
+  'roleWorkspace.co.subtitle': 'Record the counselling advisory, then close the call.',
+  'roleWorkspace.counsellor.title': 'Counsellor',
+  'roleWorkspace.counsellor.subtitle': 'Record the counselling case sheet, then close the call.',
+
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'Services',
   'hao.service.comingSoon': 'This service will be available soon.',

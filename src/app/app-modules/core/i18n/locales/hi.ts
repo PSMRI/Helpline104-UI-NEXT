@@ -512,6 +512,23 @@ export const hi: Record<TranslationKey, string> = {
   'hao.workspace.cancelTitle': 'रद्द करें',
   'hao.workspace.cancelConfirm': 'सेवा प्रदान करने पर वापस जाएं?',
 
+  // Role workspaces (MO / CO / Counsellor) shell
+  'roleWorkspace.stepService': 'केस शीट',
+  'roleWorkspace.stepClosure': 'समापन',
+  'roleWorkspace.cancel': 'रद्द करें',
+  'roleWorkspace.proceedToClosure': 'समापन पर जाएं',
+  'roleWorkspace.proceedTitle': 'समापन',
+  'roleWorkspace.proceedConfirm': 'इस कॉल के लिए समापन पर जाएं?',
+  'roleWorkspace.cancelTitle': 'रद्द करें',
+  'roleWorkspace.cancelConfirm': 'केस शीट पर वापस जाएं?',
+  'roleWorkspace.mo.title': 'मेडिकल ऑफिसर (MO)',
+  'roleWorkspace.mo.subtitle': 'चिकित्सा सलाह दर्ज करें, फिर कॉल समाप्त करें।',
+  'roleWorkspace.mo.switchToCo': 'CO पर स्विच करें',
+  'roleWorkspace.co.title': 'काउंसलिंग ऑफिसर (CO)',
+  'roleWorkspace.co.subtitle': 'काउंसलिंग सलाह दर्ज करें, फिर कॉल समाप्त करें।',
+  'roleWorkspace.counsellor.title': 'काउंसलर',
+  'roleWorkspace.counsellor.subtitle': 'काउंसलिंग केस शीट दर्ज करें, फिर कॉल समाप्त करें।',
+
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'सेवाएं',
   'hao.service.comingSoon': 'यह सेवा शीघ्र ही उपलब्ध होगी।',

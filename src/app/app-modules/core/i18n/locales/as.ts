@@ -513,6 +513,23 @@ export const as: Record<TranslationKey, string> = {
   'hao.workspace.cancelTitle': 'বাতিল কৰক',
   'hao.workspace.cancelConfirm': 'সেৱা আগবঢ়োৱালৈ উভতি যাব নে?',
 
+  // Role workspaces (MO / CO / Counsellor) shell
+  'roleWorkspace.stepService': 'কেছ শ্বীট',
+  'roleWorkspace.stepClosure': 'সমাপ্তি',
+  'roleWorkspace.cancel': 'বাতিল কৰক',
+  'roleWorkspace.proceedToClosure': 'সমাপ্তিলৈ আগবাঢ়ক',
+  'roleWorkspace.proceedTitle': 'সমাপ্তি',
+  'roleWorkspace.proceedConfirm': 'এই কলৰ বাবে সমাপ্তিলৈ আগবাঢ়িব নে?',
+  'roleWorkspace.cancelTitle': 'বাতিল কৰক',
+  'roleWorkspace.cancelConfirm': 'কেছ শ্বীটলৈ উভতি যাব নে?',
+  'roleWorkspace.mo.title': 'মেডিকেল অফিচাৰ (MO)',
+  'roleWorkspace.mo.subtitle': 'চিকিৎসা পৰামৰ্শ লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
+  'roleWorkspace.mo.switchToCo': 'CO-লৈ সলনি কৰক',
+  'roleWorkspace.co.title': 'কাউঞ্চেলিং অফিচাৰ (CO)',
+  'roleWorkspace.co.subtitle': 'কাউঞ্চেলিং পৰামৰ্শ লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
+  'roleWorkspace.counsellor.title': 'কাউঞ্চেলাৰ',
+  'roleWorkspace.counsellor.subtitle': 'কাউঞ্চেলিং কেছ শ্বীট লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
+
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'সেৱাসমূহ',
   'hao.service.comingSoon': 'এই সেৱা সোনকালে উপলব্ধ হ’ব।',
