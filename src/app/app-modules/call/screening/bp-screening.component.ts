@@ -33,6 +33,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { of, switchMap } from 'rxjs';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideHeartPulse } from '@ng-icons/lucide';
@@ -51,18 +52,13 @@ import {
   ScreeningError,
   ScreeningQuestion,
 } from './screening.models';
+import {
+  SCREENING_SELECT_CLASS,
+  calculateObesity,
+  isObesityQuestion,
+  normalizeLabel,
+} from './screening.util';
 
-const SELECT_CLASS =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
-
-/**
- * The obesity question is handled via the weight/height BMI block, not a select.
- * Matched on a whitespace/case-normalised label so it is robust to the legacy
- * label drift ('Obesity, BMI>25' vs 'Obesity,BMI>25').
- */
-function isObesityQuestion(label: string): boolean {
-  return label.replace(/\s+/g, '').toLowerCase() === 'obesity,bmi>25';
-}
 const REMARKS_MAX = 50;
 const GENDER_MALE = 1;
 const GENDER_FEMALE = 2;
@@ -215,7 +211,7 @@ export class BpScreeningComponent implements OnInit {
   readonly saved = output<number>();
 
   readonly lang = this.i18n.language;
-  readonly selectClass = SELECT_CLASS;
+  readonly selectClass = SCREENING_SELECT_CLASS;
   readonly remarksMax = REMARKS_MAX;
 
   readonly questions = signal<ScreeningQuestion[]>([]);
@@ -249,25 +245,19 @@ export class BpScreeningComponent implements OnInit {
 
     this.screening
       .getQuestionTypes()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (types) => {
+      .pipe(
+        switchMap((types) => {
           const bpId = types.find((t) => t.questionType === QUESTION_TYPE.bp)?.questionTypeID;
-          if (bpId == null) {
-            this.loading.set(false);
-            this.buildForm([]);
-            return;
-          }
-          this.screening
-            .getQuestions(bpId, providerServiceMapID)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: (questions) => {
-                this.loading.set(false);
-                this.buildForm(questions);
-              },
-              error: (err: ScreeningError) => this.fail(err),
-            });
+          return bpId == null
+            ? of<ScreeningQuestion[]>([])
+            : this.screening.getQuestions(bpId, providerServiceMapID);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (questions) => {
+          this.loading.set(false);
+          this.buildForm(questions);
         },
         error: (err: ScreeningError) => this.fail(err),
       });
@@ -294,31 +284,24 @@ export class BpScreeningComponent implements OnInit {
     const scores = q.m_104QuestionScore;
     const gender = this.genderId();
     const age = this.age();
-    if (q.question === 'Gender') {
+    // Normalise labels so whitespace/case drift in the backend text still matches.
+    const label = normalizeLabel(q.question);
+    if (label === normalizeLabel('Gender')) {
       if (gender === GENDER_MALE && scores[0]) return scores[0].answer;
       if (gender === GENDER_FEMALE && scores[1]) return scores[1].answer;
     }
-    if (q.question === 'Age; Men > 30, Women> 50' && age != null && scores.length >= 2) {
+    if (label === normalizeLabel('Age; Men > 30, Women> 50') && age != null && scores.length >= 2) {
       const meets = (age > 30 && gender === GENDER_MALE) || (age > 50 && gender === GENDER_FEMALE);
       return meets ? scores[0].answer : scores[1].answer;
     }
-    if (q.question === 'Pregnancy ?' && gender === GENDER_MALE && scores[2]) {
+    if (label === normalizeLabel('Pregnancy ?') && gender === GENDER_MALE && scores[2]) {
       return scores[2].answer;
     }
     return '';
   }
 
   calculateBmi(): void {
-    const w = this.weight.value;
-    const h = this.height.value;
-    if (w == null || h == null || h <= 0) {
-      this.obesity.set('NA');
-      return;
-    }
-    const metres = h * 0.025;
-    const bmi = w / (metres * metres);
-    // Match legacy bands exactly: >25 obese, 0<bmi<25 not obese, else NA (incl. 25).
-    this.obesity.set(bmi > 25 ? 'Yes' : bmi > 0 && bmi < 25 ? 'No' : 'NA');
+    this.obesity.set(calculateObesity(this.weight.value, this.height.value));
   }
 
   save(): void {

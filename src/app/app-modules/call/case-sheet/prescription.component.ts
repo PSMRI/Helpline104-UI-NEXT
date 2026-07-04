@@ -461,7 +461,6 @@ export class PrescriptionComponent implements OnInit {
   readonly lines = signal<PrescribedLine[]>([]);
   readonly history = signal<PrescriptionRecord[]>([]);
   readonly showHistory = signal(false);
-  readonly loading = signal(false);
   readonly saving = signal(false);
   readonly errorMessage = signal('');
 
@@ -648,17 +647,14 @@ export class PrescriptionComponent implements OnInit {
 
   private loadMasters(): void {
     const role = this.authStore.currentRole();
-    this.loading.set(true);
     this.rx
       .getDrugList(role?.providerServiceMapID ?? null)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (drugs) => {
-          this.loading.set(false);
           this.drugs.set(drugs);
         },
         error: (err: PrescriptionError) => {
-          this.loading.set(false);
           this.errorMessage.set(err.errorMessage || this.i18n.instant('prescription.loadError'));
         },
       });

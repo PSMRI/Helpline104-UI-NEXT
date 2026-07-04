@@ -34,7 +34,7 @@ import {
 import { NgClass } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, switchMap } from 'rxjs';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideActivity, lucideChevronLeft } from '@ng-icons/lucide';
@@ -54,19 +54,12 @@ import {
   ScreeningError,
   ScreeningQuestion,
 } from './screening.models';
+import {
+  SCREENING_SELECT_CLASS,
+  calculateObesity,
+  isObesityQuestion,
+} from './screening.util';
 
-/** Shared Tailwind classes for native `<select>` controls (no custom CSS). */
-const SELECT_CLASS =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
-
-/**
- * The obesity question is handled via the weight/height BMI block, not a select.
- * Matched on a whitespace/case-normalised label so it is robust to the legacy
- * label drift ('Obesity,BMI>25' vs 'Obesity, BMI>25').
- */
-function isObesityQuestion(label: string): boolean {
-  return label.replace(/\s+/g, '').toLowerCase() === 'obesity,bmi>25';
-}
 const REMARKS_MAX = 500;
 
 type View = 'criteria' | 'risk';
@@ -299,7 +292,7 @@ export class DiabeticScreeningComponent implements OnInit {
   readonly saved = output<number>();
 
   readonly lang = this.i18n.language;
-  readonly selectClass = SELECT_CLASS;
+  readonly selectClass = SCREENING_SELECT_CLASS;
   readonly remarksMax = REMARKS_MAX;
 
   readonly view = signal<View>('criteria');
@@ -337,24 +330,28 @@ export class DiabeticScreeningComponent implements OnInit {
 
     this.screening
       .getQuestionTypes()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (types) => {
+      .pipe(
+        switchMap((types) => {
           const diabeticId = types.find((t) => t.questionType === QUESTION_TYPE.diabetic)?.questionTypeID;
           const riskId = types.find((t) => t.questionType === QUESTION_TYPE.diabeticRiskFactors)?.questionTypeID;
-          forkJoin({
-            criteria: diabeticId != null ? this.screening.getQuestions(diabeticId, providerServiceMapID) : of([]),
-            risk: riskId != null ? this.screening.getQuestions(riskId, providerServiceMapID) : of([]),
-          })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: ({ criteria, risk }) => {
-                this.loading.set(false);
-                this.buildCriteria(criteria);
-                this.buildRisk(risk);
-              },
-              error: (err: ScreeningError) => this.fail(err),
-            });
+          return forkJoin({
+            criteria:
+              diabeticId != null
+                ? this.screening.getQuestions(diabeticId, providerServiceMapID)
+                : of<ScreeningQuestion[]>([]),
+            risk:
+              riskId != null
+                ? this.screening.getQuestions(riskId, providerServiceMapID)
+                : of<ScreeningQuestion[]>([]),
+          });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: ({ criteria, risk }) => {
+          this.loading.set(false);
+          this.buildCriteria(criteria);
+          this.buildRisk(risk);
         },
         error: (err: ScreeningError) => this.fail(err),
       });
@@ -421,17 +418,7 @@ export class DiabeticScreeningComponent implements OnInit {
   }
 
   calculateBmi(): void {
-    const w = this.weight.value;
-    const h = this.height.value;
-    if (w == null || h == null || h <= 0) {
-      this.obesity.set('NA');
-      return;
-    }
-    // Legacy formula: height entered in cm, converted via *0.025 to metres.
-    const metres = h * 0.025;
-    const bmi = w / (metres * metres);
-    // Match legacy bands exactly: >25 obese, 0<bmi<25 not obese, else NA (incl. 25).
-    this.obesity.set(bmi > 25 ? 'Yes' : bmi > 0 && bmi < 25 ? 'No' : 'NA');
+    this.obesity.set(calculateObesity(this.weight.value, this.height.value));
   }
 
   save(): void {
