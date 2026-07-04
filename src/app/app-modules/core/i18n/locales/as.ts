@@ -53,8 +53,7 @@ export const as: Record<TranslationKey, string> = {
   'dashboard.campaign.outbound': 'বাহিৰৰ',
   'dashboard.campaign.switchToInboundConfirm': 'ভিতৰৰ ম’ডলৈ সলনি কৰিবনে?',
   'dashboard.campaign.switchToOutboundConfirm': 'বাহিৰৰ ম’ডলৈ সলনি কৰিবনে?',
-  'dashboard.campaign.switchError':
-    'কল ম’ড সলনি কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'dashboard.campaign.switchError': 'কল ম’ড সলনি কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
 
   // Call statistics
   'dashboard.callStatistics.title': 'কল পৰিসংখ্যা',
@@ -151,8 +150,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.validation.whitespace': 'কেৱল ৰিক্ত স্থান হ’ব নোৱাৰে।',
   'registration.validation.age': 'বৈধ বয়স দিয়ক (১–১২০)।',
   'registration.validation.phone': 'বৈধ ১০-অংকীয় ফোন নম্বৰ দিয়ক।',
-  'registration.validation.searchCriteria':
-    'সন্ধান কৰিবলৈ নাম বা পঞ্জীয়ন আইডি দিয়ক।',
+  'registration.validation.searchCriteria': 'সন্ধান কৰিবলৈ নাম বা পঞ্জীয়ন আইডি দিয়ক।',
   'registration.toast.selected': 'এই কলৰ বাবে হিতাধিকাৰী বাছনি কৰা হ’ল।',
   'registration.toast.registered': 'হিতাধিকাৰী পঞ্জীয়ন আৰু বাছনি কৰা হ’ল।',
   'registration.toast.error': 'কিবা ভুল হ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
@@ -194,8 +192,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.validation.ageRange': 'বৈধ বয়স দিয়ক।',
   'registration.validation.idInvalid': 'বৈধ পৰিচয় নম্বৰ দিয়ক।',
   'registration.validation.pincode': 'বৈধ ৬-অংকীয় পিনক’ড দিয়ক।',
-  'registration.validation.dobInvalid':
-    'বৈধ জন্ম তাৰিখ দিয়ক (ভৱিষ্যতৰ নহয়)।',
+  'registration.validation.dobInvalid': 'বৈধ জন্ম তাৰিখ দিয়ক (ভৱিষ্যতৰ নহয়)।',
 
   // Case sheet — SNOMED CT chief-complaint search
   'snomed.search.placeholder': 'মুখ্য অভিযোগ বিচাৰক (SNOMED CT)…',
@@ -210,8 +207,7 @@ export const as: Record<TranslationKey, string> = {
   'cdss.title': 'চিকিৎসা সিদ্ধান্ত সহায়তা',
   'cdss.getSuggestions': 'CDSS পৰামৰ্শ লওক',
   'cdss.forComplaint': 'বাবে',
-  'cdss.missingContext':
-    'পৰামৰ্শ পাবলৈ ৰোগীৰ বয়স, লিংগ আৰু মুখ্য অভিযোগ দিয়ক।',
+  'cdss.missingContext': 'পৰামৰ্শ পাবলৈ ৰোগীৰ বয়স, লিংগ আৰু মুখ্য অভিযোগ দিয়ক।',
   'cdss.questionsHeading': 'নিকটতম বিৱৰণ বাছনি কৰক',
   'cdss.noQuestions': 'এই অভিযোগৰ বাবে কোনো CDSS প্ৰশ্ন উপলব্ধ নহয়।',
   'cdss.emergencyBadge': 'জৰুৰীকালীন',
@@ -495,8 +491,7 @@ export const as: Record<TranslationKey, string> = {
   'feedback.catStaffBehavior': 'কৰ্মচাৰীৰ আচৰণ',
   'feedback.catWaitTime': 'অপেক্ষাৰ সময়',
   'feedback.commentPlaceholder': 'আমি ইয়াক কেনেকৈ উন্নত কৰিব পাৰোঁ…',
-  'feedback.anonymousNote':
-    'আপুনি লগ ইন কৰা নাই, এই প্ৰতিক্ৰিয়া বেনামীভাৱে দাখিল কৰা হ’ব।',
+  'feedback.anonymousNote': 'আপুনি লগ ইন কৰা নাই, এই প্ৰতিক্ৰিয়া বেনামীভাৱে দাখিল কৰা হ’ব।',
   'feedback.close': 'বন্ধ কৰক',
   'feedback.okay': 'ঠিক আছে',
 
@@ -537,7 +532,8 @@ export const as: Record<TranslationKey, string> = {
   'roleWorkspace.surveyor.title': 'জৰীপকৰ্তা',
   'roleWorkspace.surveyor.subtitle': 'জৰীপকৰ্তাৰ কল-টাইপ প্ৰতিবেদন চাওক।',
   'roleWorkspace.surveyor.reportsTitle': 'কল-টাইপ প্ৰতিবেদন',
-  'roleWorkspace.surveyor.reportsPlaceholder': 'জৰীপকৰ্তাৰ কল-টাইপ প্ৰতিবেদন সোনকালে ইয়াত উপলব্ধ হ’ব।',
+  'roleWorkspace.surveyor.reportsPlaceholder':
+    'জৰীপকৰ্তাৰ কল-টাইপ প্ৰতিবেদন সোনকালে ইয়াত উপলব্ধ হ’ব।',
 
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'সেৱাসমূহ',
@@ -560,8 +556,7 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.chiefComplaints': 'মুখ্য অভিযোগ',
   'hao.caseSheet.chiefComplaintsPlaceholder': 'কলাৰৰ অভিযোগসমূহ বৰ্ণনা কৰক',
   'hao.caseSheet.chiefComplaintsRequired': 'মুখ্য অভিযোগ আৱশ্যক।',
-  'hao.caseSheet.chiefComplaintsTooLong':
-    'মুখ্য অভিযোগ 2000 আখৰৰ ভিতৰত হ’ব লাগে।',
+  'hao.caseSheet.chiefComplaintsTooLong': 'মুখ্য অভিযোগ 2000 আখৰৰ ভিতৰত হ’ব লাগে।',
   'hao.caseSheet.provisionalDiagnosis': 'অস্থায়ী নিৰ্ণয়',
   'hao.caseSheet.selectDiagnosis': 'নিৰ্ণয় বাছনি কৰক',
   'hao.caseSheet.healthAdvice': 'স্বাস্থ্য পৰামৰ্শ',
@@ -599,8 +594,132 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.noCallError': 'বন্ধ কৰিবলৈ কোনো সক্ৰিয় কল নাই।',
   'hao.closure.closeError': 'কল বন্ধ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.transferError': 'কল স্থানান্তৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
-  'hao.closure.callTypesLoadError':
-    'কলৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'hao.closure.callTypesLoadError': 'কলৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.noServiceError':
     'আপোনাৰ ভূমিকাত কোনো সেৱা নিযুক্ত কৰা হোৱা নাই, সেয়েহে কলৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি আপোনাৰ প্ৰশাসকৰ সৈতে যোগাযোগ কৰক।',
+
+  // Outbound — shared
+  'outbound.backToDashboard': 'ডেছব’ৰ্ডলৈ উভতি যাওক',
+  'outbound.loading': 'ল’ড হৈ আছে…',
+  'outbound.loadError': 'ৰেকৰ্ড ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'outbound.select': 'বাছনি কৰক',
+  'outbound.col.sno': 'ক্ৰ.সং.',
+  'outbound.col.phone': 'ফ’ন নম্বৰ',
+  'outbound.col.benId': 'হিতাধিকাৰী আইডি',
+  'outbound.col.benName': 'হিতাধিকাৰীৰ নাম',
+  'outbound.col.remarks': 'মন্তব্য',
+  'outbound.col.preferredDate': 'পছন্দৰ তাৰিখ',
+  'outbound.col.attempts': 'প্ৰচেষ্টা',
+  'outbound.col.service': 'সেৱা',
+  'outbound.col.action': 'কাৰ্য',
+  'outbound.role.hao': 'স্বাস্থ্য পৰামৰ্শ',
+  'outbound.role.mo': 'চিকিৎসা পৰামৰ্শ',
+  'outbound.role.co': 'কাউঞ্চেলিং',
+  'outbound.role.pd': 'মনোৰোগ বিশেষজ্ঞ',
+  'outbound.role.sio': 'সেৱা উন্নতি',
+
+  // Outbound — worklist
+  'outbound.worklist.title': 'আউটবাউণ্ড ৱৰ্কলিষ্ট',
+  'outbound.worklist.open': 'খোলক',
+  'outbound.worklist.empty': 'কোনো আউটবাউণ্ড কল নিযুক্ত কৰা হোৱা নাই।',
+  'outbound.worklist.manualDial': 'মেনুৱেল ডায়েল',
+  'outbound.worklist.dialDeferred':
+    'মেনুৱেল ডায়েলিং ছফ্টফ’নে (CTI) পৰিচালনা কৰে, যি এই বিল্ডত উপলব্ধ নহয়।',
+
+  // Outbound — workspace
+  'outbound.workspace.unknownCaller': 'অজ্ঞাত কলাৰ',
+  'outbound.workspace.callTime': 'কল সময়',
+  'outbound.workspace.stepCaseSheet': 'কেছ শ্বীট',
+  'outbound.workspace.stepClosure': 'সমাপন',
+  'outbound.workspace.endCall': 'কল সমাপ্ত কৰক',
+  'outbound.workspace.cancel': 'কেছ শ্বীটলৈ উভতি যাওক',
+  'outbound.workspace.proceedToClosure': 'সমাপনলৈ আগবাঢ়ক',
+  'outbound.workspace.noSelection': 'কোনো আউটবাউণ্ড কল বাছনি কৰা হোৱা নাই।',
+  'outbound.workspace.backToWorklist': 'ৱৰ্কলিষ্টলৈ উভতি যাওক',
+  'outbound.workspace.proceedTitle': 'আগবাঢ়ক',
+  'outbound.workspace.proceedConfirm': 'এই কলটোৰ বাবে সমাপনলৈ আগবাঢ়িবনে?',
+
+  // Outbound — allocate
+  'outbound.allocate.title': 'ৰেকৰ্ড আবণ্টন কৰক',
+  'outbound.allocate.records': 'ৰেকৰ্ড',
+  'outbound.allocate.noAgents': 'এই ভূমিকাৰ বাবে কোনো এজেণ্ট উপলব্ধ নাই।',
+  'outbound.allocate.selectAgents': 'এজেণ্ট বাছনি কৰক',
+  'outbound.allocate.perAgent': 'প্ৰতি এজেণ্ট ৰেকৰ্ড',
+  'outbound.allocate.allocate': 'আবণ্টন কৰক',
+  'outbound.allocate.error': 'ৰেকৰ্ড আবণ্টন কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+
+  // Outbound — search
+  'outbound.search.title': 'আউটবাউণ্ড ৰেকৰ্ড সন্ধান কৰক',
+  'outbound.search.startDate': 'আৰম্ভণিৰ তাৰিখ',
+  'outbound.search.endDate': 'শেষ তাৰিখ',
+  'outbound.search.search': 'সন্ধান কৰক',
+  'outbound.search.total': 'মুঠ অনাবণ্টিত',
+  'outbound.search.allocate': 'আবণ্টন কৰক',
+  'outbound.search.emptyBucket': 'এই ভূমিকাৰ বাবে কোনো ৰেকৰ্ড নাই।',
+
+  // Outbound — reallocate
+  'outbound.reallocate.title': 'কল পুনৰ আবণ্টন কৰক',
+  'outbound.reallocate.role': 'ভূমিকা',
+  'outbound.reallocate.agent': 'এজেণ্ট',
+  'outbound.reallocate.fetch': 'ৰেকৰ্ড আনক',
+  'outbound.reallocate.records': 'ৰেকৰ্ড',
+  'outbound.reallocate.moveToBin': 'বিনলৈ স্থানান্তৰ কৰক',
+  'outbound.reallocate.moveToBinConfirm':
+    'এই এজেণ্টৰ সকলো ৰেকৰ্ড পুনৰ অনাবণ্টিত বিনলৈ স্থানান্তৰ কৰিবনে?',
+  'outbound.reallocate.reallocate': 'পুনৰ আবণ্টন কৰক',
+  'outbound.reallocate.noRecords': 'এই এজেণ্টৰ বাবে কোনো ৰেকৰ্ড পোৱা নগ’ল।',
+
+  // Emergency contacts (on-call view)
+  'emergencyContacts.title': 'জৰুৰীকালীন যোগাযোগ',
+  'emergencyContacts.close': 'বন্ধ কৰক',
+  'emergencyContacts.loading': 'ল’ড হৈ আছে…',
+  'emergencyContacts.empty': 'কোনো জৰুৰীকালীন যোগাযোগ নাই।',
+  'emergencyContacts.name': 'যোগাযোগৰ নাম',
+  'emergencyContacts.designation': 'পদবী',
+  'emergencyContacts.location': 'স্থান',
+  'emergencyContacts.number': 'যোগাযোগ নম্বৰ',
+  'emergencyContacts.loadError':
+    'জৰুৰীকালীন যোগাযোগ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+
+  // Alternate email
+  'alternateEmail.title': 'ইমেইল পঠিয়াওক',
+  'alternateEmail.close': 'বন্ধ কৰক',
+  'alternateEmail.authorityEmails': 'কৰ্তৃপক্ষৰ ইমেইল',
+  'alternateEmail.loading': 'ল’ড হৈ আছে…',
+  'alternateEmail.noAuthorityEmails': 'কোনো কৰ্তৃপক্ষৰ ইমেইল উপলব্ধ নাই।',
+  'alternateEmail.manualEmails': 'অতিৰিক্ত ইমেইল',
+  'alternateEmail.add': 'যোগ কৰক',
+  'alternateEmail.enterEmail': 'ইমেইল দিয়ক',
+  'alternateEmail.invalidEmail': 'এটা বৈধ ইমেইল ঠিকনা দিয়ক।',
+  'alternateEmail.delete': 'মচি পেলাওক',
+  'alternateEmail.send': 'ইমেইল পঠিয়াওক',
+  'alternateEmail.loadError': 'কৰ্তৃপক্ষৰ ইমেইল ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'alternateEmail.sendError': 'ইমেইল পঠিয়াব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+
+  // Block / unblock number
+  'blockUnblock.title': 'এটা নম্বৰ ব্লেকলিষ্ট কৰক',
+  'blockUnblock.searchByPhone': 'ফ’ন নম্বৰেৰে সন্ধান কৰক',
+  'blockUnblock.phone': 'ফ’ন নম্বৰ',
+  'blockUnblock.search': 'সন্ধান কৰক',
+  'blockUnblock.loading': 'ল’ড হৈ আছে…',
+  'blockUnblock.status': 'স্থিতি',
+  'blockUnblock.callCount': 'কল সংখ্যা',
+  'blockUnblock.reason': 'কাৰণ',
+  'blockUnblock.blockedTill': 'পৰ্যন্ত অৱৰুদ্ধ',
+  'blockUnblock.action': 'কাৰ্য',
+  'blockUnblock.blocked': 'অৱৰুদ্ধ',
+  'blockUnblock.unblocked': 'অনৱৰুদ্ধ',
+  'blockUnblock.block': 'অৱৰুদ্ধ কৰক',
+  'blockUnblock.unblock': 'অনৱৰুদ্ধ কৰক',
+  'blockUnblock.blockConfirm': 'এই ফ’ন নম্বৰটো অৱৰুদ্ধ কৰিবনে?',
+  'blockUnblock.unblockConfirm': 'এই ফ’ন নম্বৰটো অনৱৰুদ্ধ কৰিবনে?',
+  'blockUnblock.nuisanceCall': 'উপদ্ৰৱ কল',
+  'blockUnblock.noRecords': 'কোনো ৰেকৰ্ড পোৱা নগ’ল।',
+  'blockUnblock.recordingsFor': 'ইয়াৰ বাবে কল ৰেকৰ্ডিং',
+  'blockUnblock.callId': 'কল আইডি',
+  'blockUnblock.agentId': 'এজেণ্ট আইডি',
+  'blockUnblock.recording': 'অডিঅ’ ৰেকৰ্ডিং',
+  'blockUnblock.play': 'বজাওক',
+  'blockUnblock.loadError': 'ৰেকৰ্ড ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'blockUnblock.audioError': 'অডিঅ’ ৰেকৰ্ডিং ল’ড কৰিব পৰা নগ’ল।',
 };
