@@ -35,6 +35,18 @@ import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import type { TranslationKey } from '../../../core/i18n/locales';
 import { HaoScreenName, HaoServiceId } from '../hao.models';
 import { CaseSheetComponent } from './case-sheet.component';
+import { DiabeticScreeningComponent } from '../../screening/diabetic-screening.component';
+import { BpScreeningComponent } from '../../screening/bp-screening.component';
+import { DirectoryServicesComponent } from '../../directory/directory-services.component';
+import { CovidServiceComponent } from '../../covid/covid-service.component';
+import { BloodOnCallComponent } from '../../sio/blood-on-call/blood-on-call.component';
+import { EpidemicOutbreakComponent } from '../../sio/epidemic-outbreak/epidemic-outbreak.component';
+import { FoodSafetyComponent } from '../../sio/food-safety/food-safety.component';
+import { GrievanceServiceComponent } from '../../sio/grievance/grievance.component';
+import { OrganDonationComponent } from '../../sio/organ-donation/organ-donation.component';
+import { SchemeServiceComponent } from '../../sio/scheme/scheme.component';
+import { ImrMmrComponent } from '../../sio/imr-mmr/imr-mmr.component';
+import { BalVivahComponent } from '../../sio/bal-vivah/bal-vivah.component';
 
 /** Describes one selectable service tab and how it is gated. */
 interface ServiceTab {
@@ -81,7 +93,22 @@ const SERVICE_TABS: readonly ServiceTab[] = [
   selector: 'app-hao-service-delivery-step',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, CaseSheetComponent],
+  imports: [
+    TranslatePipe,
+    CaseSheetComponent,
+    DiabeticScreeningComponent,
+    BpScreeningComponent,
+    DirectoryServicesComponent,
+    CovidServiceComponent,
+    BloodOnCallComponent,
+    EpidemicOutbreakComponent,
+    FoodSafetyComponent,
+    GrievanceServiceComponent,
+    OrganDonationComponent,
+    SchemeServiceComponent,
+    ImrMmrComponent,
+    BalVivahComponent,
+  ],
   template: `
     <div class="flex flex-col gap-4">
       <div
@@ -107,23 +134,62 @@ const SERVICE_TABS: readonly ServiceTab[] = [
       </div>
 
       <div role="tabpanel" class="min-h-[18rem]">
-        @if (activeTabId() === 'healthAdvice') {
-          <app-hao-case-sheet
-            [beneficiaryId]="beneficiaryId()"
-            [callId]="callId()"
-            (serviceAvailed)="serviceAvailed.emit()"
-          />
-        } @else {
-          <div
-            class="flex min-h-[16rem] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center"
-          >
-            <p class="text-base font-medium text-foreground">
-              {{ activeTabLabelKey() | translate: lang() }}
-            </p>
-            <p class="max-w-md text-sm text-muted-foreground">
-              {{ 'hao.service.comingSoon' | translate: lang() }}
-            </p>
-          </div>
+        @switch (activeTabId()) {
+          @case ('healthAdvice') {
+            <app-hao-case-sheet
+              [beneficiaryId]="beneficiaryId()"
+              [callId]="callId()"
+              (serviceAvailed)="serviceAvailed.emit()"
+            />
+          }
+          @case ('diabeticScreening') {
+            <app-diabetic-screening (saved)="serviceAvailed.emit()" />
+          }
+          @case ('bpScreening') {
+            <app-bp-screening (saved)="serviceAvailed.emit()" />
+          }
+          @case ('bloodOnCall') {
+            <app-sio-blood-on-call (serviceProvided)="serviceAvailed.emit()" />
+          }
+          @case ('directory') {
+            <app-directory-services (serviceProvided)="serviceAvailed.emit()" />
+          }
+          @case ('epidemic') {
+            <app-sio-epidemic-outbreak (serviceProvided)="serviceAvailed.emit()" />
+          }
+          @case ('foodSafety') {
+            <app-sio-food-safety (serviceProvided)="serviceAvailed.emit()" />
+          }
+          @case ('grievance') {
+            <app-sio-grievance (serviceProvided)="serviceAvailed.emit()" />
+          }
+          @case ('organDonation') {
+            <app-sio-organ-donation (serviceProvided)="serviceAvailed.emit()" />
+          }
+          @case ('schemes') {
+            <app-sio-scheme (serviceProvided)="serviceAvailed.emit()" />
+          }
+          @case ('covid19') {
+            <app-covid-service (saved)="serviceAvailed.emit()" />
+          }
+          @case ('imrMmr') {
+            <app-sio-imr-mmr (serviceProvided)="serviceAvailed.emit()" />
+          }
+          @case ('balVivah') {
+            <app-sio-bal-vivah (serviceProvided)="serviceAvailed.emit()" />
+          }
+          @default {
+            <div
+              class="flex min-h-[16rem] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center"
+            >
+              <p class="text-base font-medium text-foreground">
+                {{ activeTabLabelKey() | translate: lang() }}
+              </p>
+              <p class="max-w-md text-sm text-muted-foreground">
+                {{ 'hao.service.comingSoon' | translate: lang() }}
+              </p>
+            </div>
+          }
         }
       </div>
     </div>
