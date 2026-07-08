@@ -125,6 +125,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.history.empty': 'এই নম্বৰৰ বাবে কোনো পঞ্জীয়ন পোৱা নগ’ল।',
   'registration.search.empty': 'আপোনাৰ সন্ধানৰ সৈতে কোনো হিতাধিকাৰী মিলা নাই।',
   'registration.search.prompt': 'নাম বা পঞ্জীয়ন আইডি দিয়ক, তাৰ পিছত সন্ধান কৰক।',
+  'registration.search.error':
+    'সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ\'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'registration.col.regId': 'পঞ্জী. আইডি',
   'registration.col.name': 'নাম',
   'registration.col.gender': 'লিংগ',
@@ -597,6 +599,10 @@ export const as: Record<TranslationKey, string> = {
   'hao.service.covid19': 'কোভিড-১৯',
   'hao.service.imrMmr': 'আইএমআৰ / এমএমআৰ তথ্য',
   'hao.service.balVivah': 'বাল বিবাহ',
+  'hao.service.snomed': 'SNOMED CT',
+  'hao.service.cdss': 'CDSS',
+  'hao.service.prescription': 'ঔষধপত্ৰ',
+  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'মুখ্য অভিযোগ',

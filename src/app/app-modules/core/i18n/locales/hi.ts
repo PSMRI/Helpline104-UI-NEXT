@@ -125,6 +125,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.history.empty': 'इस नंबर के लिए कोई पंजीकरण नहीं मिला।',
   'registration.search.empty': 'आपकी खोज से कोई लाभार्थी मेल नहीं खाता।',
   'registration.search.prompt': 'नाम या पंजीकरण आईडी दर्ज करें, फिर खोजें।',
+  'registration.search.error':
+    'खोज पूरी नहीं हो सकी — शायद समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
   'registration.col.regId': 'पंजी. आईडी',
   'registration.col.name': 'नाम',
   'registration.col.gender': 'लिंग',
@@ -597,6 +599,10 @@ export const hi: Record<TranslationKey, string> = {
   'hao.service.covid19': 'कोविड-19',
   'hao.service.imrMmr': 'आईएमआर / एमएमआर जानकारी',
   'hao.service.balVivah': 'बाल विवाह',
+  'hao.service.snomed': 'SNOMED CT',
+  'hao.service.cdss': 'CDSS',
+  'hao.service.prescription': 'प्रिस्क्रिप्शन',
+  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'मुख्य शिकायतें',
