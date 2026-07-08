@@ -52,9 +52,9 @@ export const routes: Routes = [
     // First-login security-question setup, reached when login reports Status "New".
     path: 'set-security-questions',
     loadComponent: () =>
-      import(
-        './app-modules/account-recovery/set-security-questions.component'
-      ).then((m) => m.SetSecurityQuestionsComponent),
+      import('./app-modules/account-recovery/set-security-questions.component').then(
+        (m) => m.SetSecurityQuestionsComponent,
+      ),
   },
   {
     path: 'role-selection',
@@ -68,9 +68,7 @@ export const routes: Routes = [
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./app-modules/dashboard/dashboard.component').then(
-        (m) => m.DashboardComponent,
-      ),
+      import('./app-modules/dashboard/dashboard.component').then((m) => m.DashboardComponent),
   },
   {
     // On-call workspace shell. Authenticated AND only while a call is connected
@@ -81,9 +79,7 @@ export const routes: Routes = [
     path: 'innerpage',
     canActivate: [authGuard, inboundGuard],
     loadComponent: () =>
-      import('./app-modules/call/innerpage/innerpage.component').then(
-        (m) => m.InnerpageComponent,
-      ),
+      import('./app-modules/call/innerpage/innerpage.component').then((m) => m.InnerpageComponent),
     children: [
       {
         // Default on-call view: the role dispatcher (placeholder for now).
@@ -97,9 +93,9 @@ export const routes: Routes = [
         // Caller identification / beneficiary registration (RO workspace step 1).
         path: 'registration',
         loadComponent: () =>
-          import(
-            './app-modules/call/beneficiary/beneficiary-registration.component'
-          ).then((m) => m.BeneficiaryRegistrationComponent),
+          import('./app-modules/call/beneficiary/beneficiary-registration.component').then(
+            (m) => m.BeneficiaryRegistrationComponent,
+          ),
       },
       {
         // HAO (Health Assistant Officer) service workspace.
@@ -109,23 +105,114 @@ export const routes: Routes = [
             (m) => m.HaoWorkspaceComponent,
           ),
       },
+      {
+        // MO (Medical Officer) case-sheet workspace.
+        path: 'mo',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/mo-workspace.component').then(
+            (m) => m.MoWorkspaceComponent,
+          ),
+      },
+      {
+        // CO (Counselling Officer) case-sheet workspace.
+        path: 'co',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/co-workspace.component').then(
+            (m) => m.CoWorkspaceComponent,
+          ),
+      },
+      {
+        // Counsellor (mental-health) case-sheet workspace.
+        path: 'counsellor',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/counsellor-workspace.component').then(
+            (m) => m.CounsellorWorkspaceComponent,
+          ),
+      },
+      {
+        // SIO (Service Information Officer) service-catalogue workspace.
+        path: 'sio',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/sio-workspace.component').then(
+            (m) => m.SioWorkspaceComponent,
+          ),
+      },
+      {
+        // Surveyor workspace (call-type reports host).
+        path: 'surveyor',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/surveyor-workspace.component').then(
+            (m) => m.SurveyorWorkspaceComponent,
+          ),
+      },
+      {
+        // PD (Psychiatrist / Programme Division) case-sheet workspace.
+        path: 'pd',
+        loadComponent: () =>
+          import('./app-modules/call/role-workspace/pd-workspace.component').then(
+            (m) => m.PdWorkspaceComponent,
+          ),
+      },
     ],
   },
   {
     path: 'supervisor',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./app-modules/supervisor/supervisor.component').then(
-        (m) => m.SupervisorComponent,
+      import('./app-modules/supervisor/supervisor.component').then((m) => m.SupervisorComponent),
+  },
+  {
+    // Supervisor: block / unblock a caller number and review nuisance-call
+    // recordings.
+    path: 'supervisor/block-unblock',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./app-modules/supervisor/config/block-unblock.component').then(
+        (m) => m.BlockUnblockComponent,
       ),
+  },
+  {
+    // Outbound campaign screens (worklist, on-call workspace, and the
+    // supervisor search/reallocate management views).
+    path: 'outbound',
+    canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'worklist', pathMatch: 'full' },
+      {
+        path: 'worklist',
+        loadComponent: () =>
+          import('./app-modules/outbound/outbound-worklist.component').then(
+            (m) => m.OutboundWorklistComponent,
+          ),
+      },
+      {
+        path: 'workspace',
+        loadComponent: () =>
+          import('./app-modules/outbound/outbound-call-workspace.component').then(
+            (m) => m.OutboundCallWorkspaceComponent,
+          ),
+      },
+      {
+        path: 'search',
+        loadComponent: () =>
+          import('./app-modules/outbound/outbound-search.component').then(
+            (m) => m.OutboundSearchComponent,
+          ),
+      },
+      {
+        path: 'reallocate',
+        loadComponent: () =>
+          import('./app-modules/outbound/reallocate-calls.component').then(
+            (m) => m.ReallocateCallsComponent,
+          ),
+      },
+    ],
   },
   {
     // Post-logout landing for the dashboard logout / feedback links. Unguarded:
     // the session has already been cleared by the time the user lands here.
     path: 'feedback',
     loadComponent: () =>
-      import('./app-modules/feedback/feedback.component').then(
-        (m) => m.FeedbackComponent,
-      ),
+      import('./app-modules/feedback/feedback.component').then((m) => m.FeedbackComponent),
   },
 ];

@@ -148,8 +148,7 @@ export const en = {
   'registration.validation.whitespace': 'Cannot be only spaces.',
   'registration.validation.age': 'Enter a valid age (1–120).',
   'registration.validation.phone': 'Enter a valid 10-digit phone number.',
-  'registration.validation.searchCriteria':
-    'Enter a name or registration ID to search.',
+  'registration.validation.searchCriteria': 'Enter a name or registration ID to search.',
   'registration.toast.selected': 'Beneficiary selected for this call.',
   'registration.toast.registered': 'Beneficiary registered and selected.',
   'registration.toast.error': 'Something went wrong. Please try again.',
@@ -191,8 +190,7 @@ export const en = {
   'registration.validation.ageRange': 'Enter a valid age.',
   'registration.validation.idInvalid': 'Enter a valid ID number.',
   'registration.validation.pincode': 'Enter a valid 6-digit pincode.',
-  'registration.validation.dobInvalid':
-    'Enter a valid date of birth (not in the future).',
+  'registration.validation.dobInvalid': 'Enter a valid date of birth (not in the future).',
 
   // Case sheet — SNOMED CT chief-complaint search
   'snomed.search.placeholder': 'Search chief complaint (SNOMED CT)…',
@@ -207,8 +205,7 @@ export const en = {
   'cdss.title': 'Clinical decision support',
   'cdss.getSuggestions': 'Get CDSS suggestions',
   'cdss.forComplaint': 'For',
-  'cdss.missingContext':
-    'Enter the patient’s age, gender and chief complaint to get suggestions.',
+  'cdss.missingContext': 'Enter the patient’s age, gender and chief complaint to get suggestions.',
   'cdss.questionsHeading': 'Select the closest description',
   'cdss.noQuestions': 'No CDSS questions are available for this complaint.',
   'cdss.emergencyBadge': 'Emergency',
@@ -224,8 +221,7 @@ export const en = {
   'cdss.action': 'Recommended action',
   'cdss.recommendedActionLabel': 'Recommended action (editable)',
   'cdss.resetAction': 'Reset to suggested',
-  'cdss.recommendedActionPlaceholder':
-    'Review and edit the recommended action before accepting…',
+  'cdss.recommendedActionPlaceholder': 'Review and edit the recommended action before accepting…',
   'cdss.selectAtLeastOne': 'Select at least one diagnosis to accept.',
   'cdss.accept': 'Accept selected',
   'cdss.back': 'Back',
@@ -400,7 +396,8 @@ export const en = {
   'diseaseSummary.empty': 'No items.',
   'diseaseSummary.remove': 'Remove',
   'diseaseSummary.summary': 'Summary',
-  'diseaseSummary.couldBeDangerous': 'Could be dangerous if the answer is Yes to any of the following',
+  'diseaseSummary.couldBeDangerous':
+    'Could be dangerous if the answer is Yes to any of the following',
   'diseaseSummary.causes': 'Causes',
   'diseaseSummary.dosDonts': 'Dos & Don’ts',
   'diseaseSummary.signsSymptoms': 'Signs & symptoms',
@@ -492,8 +489,7 @@ export const en = {
   'feedback.catStaffBehavior': 'Staff Behavior',
   'feedback.catWaitTime': 'Wait Time',
   'feedback.commentPlaceholder': 'How we can make it better…',
-  'feedback.anonymousNote':
-    'You are not logged in, this feedback will be submitted anonymously.',
+  'feedback.anonymousNote': 'You are not logged in, this feedback will be submitted anonymously.',
   'feedback.close': 'Close',
   'feedback.okay': 'Okay',
 
@@ -509,6 +505,33 @@ export const en = {
   'hao.workspace.proceedConfirm': 'Proceed to closure for this call?',
   'hao.workspace.cancelTitle': 'Cancel',
   'hao.workspace.cancelConfirm': 'Return to providing a service?',
+
+  // Role workspaces (MO / CO / Counsellor) shell
+  'roleWorkspace.stepService': 'Case sheet',
+  'roleWorkspace.stepClosure': 'Closure',
+  'roleWorkspace.cancel': 'Cancel',
+  'roleWorkspace.proceedToClosure': 'Proceed to Closure',
+  'roleWorkspace.proceedTitle': 'Closure',
+  'roleWorkspace.proceedConfirm': 'Proceed to closure for this call?',
+  'roleWorkspace.cancelTitle': 'Cancel',
+  'roleWorkspace.cancelConfirm': 'Return to the case sheet?',
+  'roleWorkspace.mo.title': 'Medical Officer (MO)',
+  'roleWorkspace.mo.subtitle': 'Record the medical advisory, then close the call.',
+  'roleWorkspace.mo.switchToCo': 'Switch to CO',
+  'roleWorkspace.co.title': 'Counselling Officer (CO)',
+  'roleWorkspace.co.subtitle': 'Record the counselling advisory, then close the call.',
+  'roleWorkspace.counsellor.title': 'Counsellor',
+  'roleWorkspace.counsellor.subtitle': 'Record the counselling case sheet, then close the call.',
+  'roleWorkspace.sio.title': 'Service Information Officer (SIO)',
+  'roleWorkspace.sio.subtitle': 'Provide an SIO service to the caller, then close the call.',
+  'roleWorkspace.pd.title': 'Programme Division (PD)',
+  'roleWorkspace.pd.subtitle': 'Record the case sheet, then close the call.',
+  'roleWorkspace.pd.switchToMo': 'Medical service (MO)',
+  'roleWorkspace.surveyor.title': 'Surveyor',
+  'roleWorkspace.surveyor.subtitle': 'View surveyor call-type reports.',
+  'roleWorkspace.surveyor.reportsTitle': 'Call-type reports',
+  'roleWorkspace.surveyor.reportsPlaceholder':
+    'The surveyor call-type reports will be available here soon.',
 
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'Services',
@@ -531,8 +554,7 @@ export const en = {
   'hao.caseSheet.chiefComplaints': 'Chief Complaints',
   'hao.caseSheet.chiefComplaintsPlaceholder': "Describe the caller's complaints",
   'hao.caseSheet.chiefComplaintsRequired': 'Chief complaints are required.',
-  'hao.caseSheet.chiefComplaintsTooLong':
-    'Chief complaints must be 2000 characters or fewer.',
+  'hao.caseSheet.chiefComplaintsTooLong': 'Chief complaints must be 2000 characters or fewer.',
   'hao.caseSheet.provisionalDiagnosis': 'Provisional Diagnosis',
   'hao.caseSheet.selectDiagnosis': 'Select a diagnosis',
   'hao.caseSheet.healthAdvice': 'Health Advice',
@@ -570,10 +592,135 @@ export const en = {
   'hao.closure.noCallError': 'No active call to close.',
   'hao.closure.closeError': 'Unable to close the call. Please try again.',
   'hao.closure.transferError': 'Unable to transfer the call. Please try again.',
-  'hao.closure.callTypesLoadError':
-    'Unable to load call types. Please try again.',
+  'hao.closure.callTypesLoadError': 'Unable to load call types. Please try again.',
   'hao.closure.noServiceError':
     'No service is assigned to your role, so call types cannot be loaded. Please contact your administrator.',
+
+  // Outbound — shared
+  'outbound.backToDashboard': 'Back to Dashboard',
+  'outbound.loading': 'Loading…',
+  'outbound.loadError': 'Unable to load records. Please try again.',
+  'outbound.select': 'Select',
+  'outbound.col.sno': 'S.No',
+  'outbound.col.phone': 'Phone Number',
+  'outbound.col.benId': 'Beneficiary ID',
+  'outbound.col.benName': 'Beneficiary Name',
+  'outbound.col.remarks': 'Remarks',
+  'outbound.col.preferredDate': 'Preferred Date',
+  'outbound.col.attempts': 'Attempts',
+  'outbound.col.service': 'Service',
+  'outbound.col.action': 'Action',
+  'outbound.role.hao': 'Health Advisory',
+  'outbound.role.mo': 'Medical Advisory',
+  'outbound.role.co': 'Counselling',
+  'outbound.role.pd': 'Psychiatrist',
+  'outbound.role.sio': 'Service Improvements',
+
+  // Outbound — worklist
+  'outbound.worklist.title': 'Outbound Worklist',
+  'outbound.worklist.open': 'Open',
+  'outbound.worklist.empty': 'No outbound calls assigned.',
+  'outbound.worklist.manualDial': 'Manual Dial',
+  'outbound.worklist.dialDeferred':
+    'Manual dialing is handled by the softphone (CTI), which is not available in this build.',
+
+  // Outbound — workspace
+  'outbound.workspace.unknownCaller': 'Unknown caller',
+  'outbound.workspace.callTime': 'Call time',
+  'outbound.workspace.stepCaseSheet': 'Case Sheet',
+  'outbound.workspace.stepClosure': 'Closure',
+  'outbound.workspace.endCall': 'End Call',
+  'outbound.workspace.cancel': 'Back to Case Sheet',
+  'outbound.workspace.proceedToClosure': 'Proceed to Closure',
+  'outbound.workspace.noSelection': 'No outbound call selected.',
+  'outbound.workspace.backToWorklist': 'Back to Worklist',
+  'outbound.workspace.proceedTitle': 'Proceed',
+  'outbound.workspace.proceedConfirm': 'Proceed to closure for this call?',
+  'outbound.workspace.endCallTitle': 'End Call',
+  'outbound.workspace.endCallConfirm': 'End this call and return to the worklist?',
+
+  // Outbound — allocate
+  'outbound.allocate.title': 'Allocate Records',
+  'outbound.allocate.records': 'records',
+  'outbound.allocate.noAgents': 'No agents available for this role.',
+  'outbound.allocate.selectAgents': 'Select agents',
+  'outbound.allocate.perAgent': 'Records per agent',
+  'outbound.allocate.allocate': 'Allocate',
+  'outbound.allocate.error': 'Unable to allocate records. Please try again.',
+
+  // Outbound — search
+  'outbound.search.title': 'Search Outbound Records',
+  'outbound.search.startDate': 'Start Date',
+  'outbound.search.endDate': 'End Date',
+  'outbound.search.search': 'Search',
+  'outbound.search.total': 'Total unallocated',
+  'outbound.search.allocate': 'Allocate',
+  'outbound.search.emptyBucket': 'No records for this role.',
+
+  // Outbound — reallocate
+  'outbound.reallocate.title': 'Reallocate Calls',
+  'outbound.reallocate.role': 'Role',
+  'outbound.reallocate.agent': 'Agent',
+  'outbound.reallocate.fetch': 'Fetch Records',
+  'outbound.reallocate.records': 'Records',
+  'outbound.reallocate.moveToBin': 'Move to Bin',
+  'outbound.reallocate.moveToBinConfirm':
+    'Move all of this agent’s records back to the unallocated bin?',
+  'outbound.reallocate.reallocate': 'Reallocate',
+  'outbound.reallocate.noRecords': 'No records found for this agent.',
+
+  // Emergency contacts (on-call view)
+  'emergencyContacts.title': 'Emergency Contacts',
+  'emergencyContacts.close': 'Close',
+  'emergencyContacts.loading': 'Loading…',
+  'emergencyContacts.empty': 'No emergency contacts exist.',
+  'emergencyContacts.name': 'Contact Name',
+  'emergencyContacts.designation': 'Designation',
+  'emergencyContacts.location': 'Location',
+  'emergencyContacts.number': 'Contact Number',
+  'emergencyContacts.loadError': 'Unable to load emergency contacts. Please try again.',
+
+  // Alternate email
+  'alternateEmail.title': 'Send Email',
+  'alternateEmail.close': 'Close',
+  'alternateEmail.authorityEmails': 'Authority Emails',
+  'alternateEmail.loading': 'Loading…',
+  'alternateEmail.noAuthorityEmails': 'No authority emails available.',
+  'alternateEmail.manualEmails': 'Additional Emails',
+  'alternateEmail.add': 'Add',
+  'alternateEmail.enterEmail': 'Enter email',
+  'alternateEmail.invalidEmail': 'Enter a valid email address.',
+  'alternateEmail.delete': 'Delete',
+  'alternateEmail.send': 'Send Email',
+  'alternateEmail.loadError': 'Unable to load authority emails. Please try again.',
+  'alternateEmail.sendError': 'Unable to send the email. Please try again.',
+
+  // Block / unblock number
+  'blockUnblock.title': 'Blacklist a Number',
+  'blockUnblock.searchByPhone': 'Search by phone number',
+  'blockUnblock.phone': 'Phone Number',
+  'blockUnblock.search': 'Search',
+  'blockUnblock.loading': 'Loading…',
+  'blockUnblock.status': 'Status',
+  'blockUnblock.callCount': 'Call Count',
+  'blockUnblock.reason': 'Reason',
+  'blockUnblock.blockedTill': 'Blocked Till',
+  'blockUnblock.action': 'Action',
+  'blockUnblock.blocked': 'Blocked',
+  'blockUnblock.unblocked': 'Unblocked',
+  'blockUnblock.block': 'Block',
+  'blockUnblock.unblock': 'Unblock',
+  'blockUnblock.blockConfirm': 'Block this phone number?',
+  'blockUnblock.unblockConfirm': 'Unblock this phone number?',
+  'blockUnblock.nuisanceCall': 'Nuisance Call',
+  'blockUnblock.noRecords': 'No records found.',
+  'blockUnblock.recordingsFor': 'Call recordings for',
+  'blockUnblock.callId': 'Call ID',
+  'blockUnblock.agentId': 'Agent ID',
+  'blockUnblock.recording': 'Audio Recording',
+  'blockUnblock.play': 'Play',
+  'blockUnblock.loadError': 'Unable to load records. Please try again.',
+  'blockUnblock.audioError': 'Unable to load the audio recording.',
 } as const;
 
 /** Every translatable key in the app, derived from the English dictionary. */

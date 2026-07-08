@@ -24,8 +24,9 @@ import { CdkStep } from '@angular/cdk/stepper';
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
+  input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -35,42 +36,37 @@ import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
-import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import type { TranslationKey } from '../../core/i18n/locales';
 import { CallStore } from '../call.store';
-import { SERVICE_104, collectServiceScreens } from '../role-workspace/role-screens.util';
-import { HaoStepperComponent } from './hao-stepper.component';
-import { ClosureStepComponent } from './steps/closure-step.component';
-import { ServiceDeliveryStepComponent } from './steps/service-delivery-step.component';
-
-/** Screen that means the agent also holds the RO (registration) role. */
-const SCREEN_REGISTRATION = 'Registration';
+import { HaoStepperComponent } from '../hao/hao-stepper.component';
+import { CaseSheetComponent } from '../hao/steps/case-sheet.component';
+import { ClosureStepComponent } from '../hao/steps/closure-step.component';
 
 /**
- * HAO (Health Assistant Officer) workspace — the main working area once the
- * inbound caller is identified (route `/innerpage/hao`).
+ * Shared shell for the single-case-sheet role workspaces (MO / CO / Counsellor).
  *
- * Replaces the legacy `104-hao` Bootstrap carousel-as-wizard with an Angular CDK
- * stepper: step 1 provides the service (the case sheet and the screen-gated
- * service tabs), step 2 closes the call. Wizard navigation that the legacy app
- * drove with imperative jQuery (`#myCarousel.carousel(n)`, `active-tab` toggles,
- * `#cancelLink/#closureLink` disabling) is now declarative — the footer buttons
- * drive {@link HaoStepperComponent} and the steps signal their outcomes back via
- * outputs.
+ * These roles differ from HAO only in that they provide a single advisory case
+ * sheet rather than the full `<md-tab-group>` service catalogue. Structurally
+ * they are the same two-step wizard the legacy `104-mo` / `104-co` /
+ * `104-counsellor` carousels drove with jQuery: step 1 records the case sheet,
+ * step 2 closes the call. Navigation is declarative via {@link HaoStepperComponent}.
  *
- * Reads the resolved `beneficiaryId` from the {@link CallStore} and passes it to
- * the service/closure steps; on close (or transfer) it ends the call and returns
- * to the dashboard.
+ * Title/subtitle are inputs so each role component supplies its own labels; an
+ * optional role-switch action (e.g. MO → CO, the legacy `roleChanged`) is
+ * surfaced via {@link switchRole}. Reads `beneficiaryId`/`callId` from the
+ * {@link CallStore}; on close (or transfer) it ends the call and returns to the
+ * dashboard.
  */
 @Component({
-  selector: 'app-hao-workspace',
+  selector: 'app-role-workspace',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkStep,
     HaoStepperComponent,
-    ServiceDeliveryStepComponent,
+    CaseSheetComponent,
     ClosureStepComponent,
     ZardButtonComponent,
     TranslatePipe,
@@ -78,28 +74,20 @@ const SCREEN_REGISTRATION = 'Registration';
   template: `
     <section class="rounded-xl border border-border bg-card p-4 sm:p-6">
       <header class="mb-2 flex flex-col gap-1">
-        <h1 class="text-lg font-semibold text-foreground">
-          {{ 'hao.workspace.title' | translate: lang() }}
-        </h1>
-        <p class="text-sm text-muted-foreground">
-          {{ 'hao.workspace.subtitle' | translate: lang() }}
-        </p>
+        <h1 class="text-lg font-semibold text-foreground">{{ titleKey() | translate: lang() }}</h1>
+        <p class="text-sm text-muted-foreground">{{ subtitleKey() | translate: lang() }}</p>
       </header>
 
       <hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
-        <cdk-step
-          [label]="'hao.workspace.stepService' | translate: lang()"
-          [completed]="true"
-        >
-          <app-hao-service-delivery-step
+        <cdk-step [label]="'roleWorkspace.stepService' | translate: lang()" [completed]="true">
+          <app-hao-case-sheet
             [beneficiaryId]="beneficiaryId()"
             [callId]="callId()"
-            [screens]="screens()"
             (serviceAvailed)="onServiceAvailed()"
           />
         </cdk-step>
 
-        <cdk-step [label]="'hao.workspace.stepClosure' | translate: lang()">
+        <cdk-step [label]="'roleWorkspace.stepClosure' | translate: lang()">
           <app-hao-closure-step
             [serviceAvailed]="serviceAvailed()"
             (closed)="onCallClosed()"
@@ -110,19 +98,19 @@ const SCREEN_REGISTRATION = 'Registration';
       </hao-stepper>
 
       <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
-        @if (showBackToRo()) {
-          <button z-button type="button" zType="outline" (click)="backToRo()">
-            {{ 'hao.workspace.backToRo' | translate: lang() }}
+        @if (showSwitchRole() && switchRoleLabelKey(); as labelKey) {
+          <button z-button type="button" zType="outline" (click)="switchRole.emit()">
+            {{ labelKey | translate: lang() }}
           </button>
         }
         <div class="ml-auto flex gap-3">
           @if (stepIndex() === 1) {
             <button z-button type="button" zType="outline" (click)="cancelToService()">
-              {{ 'hao.workspace.cancel' | translate: lang() }}
+              {{ 'roleWorkspace.cancel' | translate: lang() }}
             </button>
           } @else {
             <button z-button type="button" (click)="proceedToClosure()">
-              {{ 'hao.workspace.proceedToClosure' | translate: lang() }}
+              {{ 'roleWorkspace.proceedToClosure' | translate: lang() }}
             </button>
           }
         </div>
@@ -130,46 +118,45 @@ const SCREEN_REGISTRATION = 'Registration';
     </section>
   `,
 })
-export class HaoWorkspaceComponent {
+export class RoleWorkspaceComponent {
   private readonly callStore = inject(CallStore);
-  private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly lang = this.i18n.language;
 
+  /** Workspace heading / subheading translation keys (supplied per role). */
+  readonly titleKey = input.required<TranslationKey>();
+  readonly subtitleKey = input.required<TranslationKey>();
+  /** Show the optional role-switch action (e.g. MO → CO). */
+  readonly showSwitchRole = input(false);
+  /** Label for the role-switch action; required when {@link showSwitchRole}. */
+  readonly switchRoleLabelKey = input<TranslationKey | null>(null);
+
+  /** Emitted when the agent triggers the role switch. */
+  readonly switchRole = output<void>();
+
   private readonly stepper = viewChild.required(HaoStepperComponent);
 
-  /** Index of the active wizard step (0 = service, 1 = closure). */
+  /** Active wizard step (0 = case sheet, 1 = closure). */
   readonly stepIndex = signal(0);
 
-  /** True once any service was saved during the call. */
   private readonly _serviceAvailed = signal(false);
   readonly serviceAvailed = this._serviceAvailed.asReadonly();
 
   readonly beneficiaryId = this.callStore.beneficiaryId;
   readonly callId = this.callStore.callId;
 
-  /** Screen names granted to the agent on the 104 service. */
-  readonly screens = computed(() =>
-    collectServiceScreens(this.authStore.privileges(), SERVICE_104),
-  );
-
-  /** Show "Back to RO" when the agent also holds the registration role. */
-  readonly showBackToRo = computed(() => this.screens().includes(SCREEN_REGISTRATION));
-
-  /** Mark the call valid when a service is saved (legacy `serviceAvailed`). */
   onServiceAvailed(): void {
     this._serviceAvailed.set(true);
   }
 
-  /** Move to the closure step after confirming (legacy "Close Call" button). */
   proceedToClosure(): void {
     this.confirmDialog
       .confirm({
-        title: this.i18n.instant('hao.workspace.proceedTitle'),
-        message: this.i18n.instant('hao.workspace.proceedConfirm'),
+        title: this.i18n.instant('roleWorkspace.proceedTitle'),
+        message: this.i18n.instant('roleWorkspace.proceedConfirm'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
       })
@@ -180,12 +167,11 @@ export class HaoWorkspaceComponent {
       });
   }
 
-  /** Return to the service step after confirming (legacy "Cancel" button). */
   cancelToService(): void {
     this.confirmDialog
       .confirm({
-        title: this.i18n.instant('hao.workspace.cancelTitle'),
-        message: this.i18n.instant('hao.workspace.cancelConfirm'),
+        title: this.i18n.instant('roleWorkspace.cancelTitle'),
+        message: this.i18n.instant('roleWorkspace.cancelConfirm'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
       })
@@ -196,20 +182,12 @@ export class HaoWorkspaceComponent {
       });
   }
 
-  /** Closure recorded → end the call and return to the dashboard. */
   onCallClosed(): void {
     this.callStore.endCall();
     void this.router.navigate(['/dashboard']);
   }
 
-  /** Submit & Continue → keep the call, reset to the service step. */
   onContinue(): void {
     this.stepper().previous();
-  }
-
-  /** Hand the call back to the RO (registration) workspace. */
-  backToRo(): void {
-    this.callStore.setBeneficiaryId(null);
-    void this.router.navigate(['/innerpage']);
   }
 }

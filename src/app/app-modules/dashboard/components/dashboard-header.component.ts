@@ -41,7 +41,7 @@ import { APP_VERSION } from '../../core/app-version';
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { EmergencyContactsDialogComponent } from './dialogs/emergency-contacts-dialog.component';
+import { EmergencyContactsViewComponent } from '../../call/emergency-contacts/emergency-contacts-view.component';
 
 const FEEDBACK_ROUTE = '/feedback';
 const SERVICE_104 = '104';
@@ -233,12 +233,14 @@ export class DashboardHeaderComponent {
   }
 
   openContacts(): void {
-    this.dialog.create({
-      zTitle: this.i18n.instant('dashboard.header.contacts'),
-      zContent: EmergencyContactsDialogComponent,
+    const ref = this.dialog.create({
+      zContent: EmergencyContactsViewComponent,
       zHideFooter: true,
+      zClosable: false,
       zWidth: '32rem',
     });
+    // The view renders its own header + close button; close the dialog when it fires.
+    ref.componentInstance?.closed.subscribe(() => ref.close());
   }
 
   logout(): void {
