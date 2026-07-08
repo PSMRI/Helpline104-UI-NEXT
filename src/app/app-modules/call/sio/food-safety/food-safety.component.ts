@@ -305,7 +305,7 @@ export class FoodSafetyComponent implements OnInit {
   /** Fixed complaint types (value = the string sent as `typeOfRequest`). */
   readonly complaintTypes = COMPLAINT_TYPES;
   /** Today's date (yyyy-MM-dd) used to cap the incident-date picker. */
-  readonly today = new Date().toISOString().slice(0, 10);
+  readonly today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
 
   /** Symptom checkbox fields: form-control key → label key. */
   readonly symptomFields = [
