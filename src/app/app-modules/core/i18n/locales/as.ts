@@ -74,6 +74,17 @@ export const as: Record<TranslationKey, string> = {
   'dashboard.alerts.noOfficeBulletin': 'কোনো কাৰ্যালয় বাৰ্তা পোৱা নগ’ল',
   'dashboard.alerts.noNotifications': 'কোনো জাননী বাৰ্তা পোৱা নগ’ল',
 
+  // Alerts & Notifications messages dialog
+  'dashboard.alertsDialog.empty': 'কোনো বাৰ্তা পোৱা নগ’ল',
+  'dashboard.alertsDialog.markRead': 'পঢ়া বুলি চিহ্নিত কৰক',
+  'dashboard.alertsDialog.markUnread': 'নপঢ়া বুলি চিহ্নিত কৰক',
+  'dashboard.alertsDialog.delete': 'মচি পেলাওক',
+  'dashboard.alertsDialog.deleteTitle': 'মচি পেলাওক',
+  'dashboard.alertsDialog.deleteConfirm': 'আপুনি সঁচাকৈয়ে মচি পেলাব বিচাৰে নে?',
+  'dashboard.alertsDialog.readAll': 'সকলো পঢ়া',
+  'dashboard.alertsDialog.unreadAll': 'সকলো নপঢ়া',
+  'dashboard.alertsDialog.error': 'বাৰ্তা আপডেট কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+
   // Reports panel
   'dashboard.reports.title': 'প্ৰতিবেদন',
   'dashboard.reports.sno': 'ক্ৰম',

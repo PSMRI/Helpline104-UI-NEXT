@@ -44,6 +44,8 @@ export interface AuthUser {
 
 /** The service + role the agent selected after login. */
 export interface CurrentRole {
+  /** Selected role id (login response `RoleID`), e.g. for notification APIs. */
+  roleID: number | null;
   roleName: string;
   serviceID: number | null;
   serviceName: string | null;

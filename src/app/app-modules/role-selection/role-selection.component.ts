@@ -110,6 +110,7 @@ export class RoleSelectionComponent {
     const providerServiceMapping = mapping?.providerServiceMapping;
 
     this.authStore.setCurrentRole({
+      roleID: role.RoleID ?? null,
       roleName: role.RoleName ?? '',
       serviceName: service.serviceName ?? null,
       serviceID: providerServiceMapping?.m_ServiceMaster?.serviceID ?? null,

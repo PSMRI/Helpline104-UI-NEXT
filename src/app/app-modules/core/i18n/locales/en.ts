@@ -72,6 +72,17 @@ export const en = {
   'dashboard.alerts.noOfficeBulletin': 'No office messages found',
   'dashboard.alerts.noNotifications': 'No notification messages found',
 
+  // Alerts & Notifications messages dialog
+  'dashboard.alertsDialog.empty': 'No messages found',
+  'dashboard.alertsDialog.markRead': 'Mark as read',
+  'dashboard.alertsDialog.markUnread': 'Mark as unread',
+  'dashboard.alertsDialog.delete': 'Delete',
+  'dashboard.alertsDialog.deleteTitle': 'Delete',
+  'dashboard.alertsDialog.deleteConfirm': 'Are you sure you want to delete?',
+  'dashboard.alertsDialog.readAll': 'Read All',
+  'dashboard.alertsDialog.unreadAll': 'Unread All',
+  'dashboard.alertsDialog.error': 'Unable to update the message. Please try again.',
+
   // Reports panel
   'dashboard.reports.title': 'Reports',
   'dashboard.reports.sno': 'S.No',
