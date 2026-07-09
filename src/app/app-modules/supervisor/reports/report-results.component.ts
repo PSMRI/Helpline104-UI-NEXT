@@ -54,15 +54,20 @@ import { ReportRunner } from './report-runner';
           {{ 'supReports.rowCount' | translate: lang() }}:
           <strong class="text-foreground">{{ runner().rows().length }}</strong>
         </p>
-        <app-data-table
-          [columns]="runner().columns()"
-          [data]="runner().rows()"
-          [pageSize]="10"
-          [filterable]="true"
-          [exportable]="false"
-          [searchPlaceholder]="'supReports.search' | translate: lang()"
-          [emptyMessage]="'supReports.noData' | translate: lang()"
-        />
+        <!-- Report workbooks routinely have 10-20 columns; keep the wide table
+             scrolling inside its own container so the page never scrolls
+             horizontally at narrow widths. -->
+        <div class="overflow-x-auto">
+          <app-data-table
+            [columns]="runner().columns()"
+            [data]="runner().rows()"
+            [pageSize]="10"
+            [filterable]="true"
+            [exportable]="false"
+            [searchPlaceholder]="'supReports.search' | translate: lang()"
+            [emptyMessage]="'supReports.noData' | translate: lang()"
+          />
+        </div>
       </div>
     }
   `,
