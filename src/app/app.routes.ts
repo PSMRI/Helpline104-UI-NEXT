@@ -189,6 +189,15 @@ export const routes: Routes = [
       // blood-url) get their real routes in the stacked config branch and are
       // deliberately not placeholdered here.
       {
+        // Grievance tracking: forward grievances to district authorities via
+        // email (edit) and record the responses received (update).
+        path: 'grievance',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/grievance/grievance.component').then(
+            (m) => m.SupervisorGrievanceComponent,
+          ),
+      },
+      {
         // Reports hub: every supervisor report behind one tabbed container.
         path: 'reports',
         loadComponent: () =>
@@ -254,6 +263,71 @@ export const routes: Routes = [
               ),
           },
         ],
+      },
+      {
+        // Upload health schemes with an attached document.
+        path: 'upload-schemes',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/upload-schemes/upload-schemes.component').then(
+            (m) => m.UploadSchemesComponent,
+          ),
+      },
+      {
+        // Blood bank URL configuration.
+        path: 'blood-url',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/blood-url/blood-url.component').then(
+            (m) => m.BloodUrlComponent,
+          ),
+      },
+      {
+        // Force-logout a logged-in agent by username.
+        path: 'force-logout',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/force-logout/force-logout.component').then(
+            (m) => m.ForceLogoutComponent,
+          ),
+      },
+      {
+        // Knowledge management (content management): upload KM documents
+        // against a service / category / sub-category.
+        path: 'content-management',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/knowledge-management/knowledge-management.component'
+          ).then((m) => m.KnowledgeManagementComponent),
+      },
+      {
+        // Communication: location-specific messages for offices.
+        path: 'communication/location-messages',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/communication/location-communication.component'
+          ).then((m) => m.LocationCommunicationComponent),
+      },
+      {
+        // Communication: Alert / Notification messages per role and office.
+        path: 'communication/alerts-notifications',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/communication/alerts-notifications.component'
+          ).then((m) => m.AlertsNotificationsComponent),
+      },
+      {
+        // Communication: training resources (KM notifications per role).
+        path: 'communication/training-resources',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/communication/training-resources.component'
+          ).then((m) => m.TrainingResourcesAdminComponent),
+      },
+      {
+        // Communication: emergency contacts admin.
+        path: 'communication/emergency-contacts',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/communication/emergency-contacts-admin.component'
+          ).then((m) => m.EmergencyContactsAdminComponent),
       },
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
