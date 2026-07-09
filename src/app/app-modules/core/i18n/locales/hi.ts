@@ -330,6 +330,12 @@ export const hi: Record<TranslationKey, string> = {
   'casesheetHistory.empty': 'कोई रिकॉर्ड नहीं मिला।',
   'casesheetHistory.loadError': 'इतिहास लोड नहीं हो सका। कृपया पुनः प्रयास करें।',
   'casesheetHistory.action': 'कार्रवाई',
+  'casesheetHistory.sectionTitle': 'केस-शीट इतिहास',
+  'casesheetHistory.show': 'इतिहास देखें',
+  'casesheetHistory.hide': 'इतिहास छिपाएँ',
+  'casesheetHistory.tabMcts': 'MCTS',
+  'casesheetHistory.tabMmu': 'ई-हेल्थ सुविधा',
+  'casesheetHistory.tabTm': 'टेलीमेडिसिन',
   'casesheetHistory.mcts.title': 'MCTS कॉल इतिहास',
   'casesheetHistory.mcts.callType': 'कॉल प्रकार',
   'casesheetHistory.mcts.callDate': 'कॉल तिथि',
@@ -347,6 +353,9 @@ export const hi: Record<TranslationKey, string> = {
   'casesheetHistory.mmu.visitCategory': 'विज़िट श्रेणी',
   'casesheetHistory.mmu.visitCode': 'विज़िट कोड',
   'casesheetHistory.mmu.view': 'देखें',
+  'casesheetHistory.mmu.selectedVisit': 'चयनित विज़िट',
+  'casesheetHistory.mmu.detailUnavailable':
+    'इस विज़िट के लिए पूर्ण केस-शीट दृश्य अभी उपलब्ध नहीं है।',
 
   // Schedule appointment
   'appointment.title': 'अपॉइंटमेंट शेड्यूल करें',
@@ -563,6 +572,9 @@ export const hi: Record<TranslationKey, string> = {
   'hao.caseSheet.healthAdvicePlaceholder': 'कॉल करने वाले को दी गई सलाह',
   'hao.caseSheet.remarks': 'टिप्पणियां',
   'hao.caseSheet.save': 'केस शीट सहेजें',
+  'hao.caseSheet.viewDiseaseSummary': 'रोग सारांश देखें',
+  'hao.caseSheet.diseaseSummaryError':
+    'रोग सारांश लोड नहीं हो सका। कृपया पुनः प्रयास करें।',
   'hao.caseSheet.saveSuccess': 'केस शीट सफलतापूर्वक सहेजी गई।',
   'hao.caseSheet.saveError': 'केस शीट सहेजने में असमर्थ। कृपया पुनः प्रयास करें।',
 
@@ -586,6 +598,7 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.selectSkill': 'कौशल चुनें',
   'hao.closure.transfer': 'स्थानांतरित करें',
   'hao.closure.submitContinue': 'सबमिट करें और जारी रखें',
+  'hao.closure.scheduleAppointment': 'अपॉइंटमेंट शेड्यूल करें',
   'hao.closure.submitClose': 'सबमिट करें और बंद करें',
   'hao.closure.confirmTitle': 'समापन',
   'hao.closure.confirmContinue': 'यह डिस्पोज़िशन सबमिट करें और कॉल जारी रखें?',
