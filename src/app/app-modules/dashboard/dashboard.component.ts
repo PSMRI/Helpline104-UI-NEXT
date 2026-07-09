@@ -26,15 +26,20 @@ import {
   DestroyRef,
   computed,
   inject,
+  signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { environment } from '@env/environment';
+
+import { catchError, filter, of, switchMap, timer } from 'rxjs';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { CallStore } from '../call/call.store';
 import { parseInboundCtiMessage } from '../call/cti-message';
 import { AuthStore } from '../core/auth/auth.store';
+import { AgentState, AgentStatusService } from './agent-status.service';
 import { AgentIdComponent } from './components/agent-id.component';
 import { AlertsPanelComponent } from './components/alerts-panel.component';
 import { ActivityPanelComponent } from './components/activity-panel.component';
@@ -63,6 +68,12 @@ const ACTIVITY_BADGE_BY_FEATURE: Record<string, number> = {
   CO: 4,
   Supervisor: 1,
 };
+
+/** How often the agent's telephony state is refreshed (legacy: 15 s). */
+const AGENT_STATUS_POLL_MS = 15_000;
+
+/** States whose type suffix the legacy dashboard suppressed. */
+const ON_CALL_STATES: readonly string[] = ['INCALL', 'CLOSURE'];
 
 /**
  * Extract the origin from a configured base URL. Returns a token that can never
@@ -120,7 +131,7 @@ function safeOrigin(url: string): string {
             @if (showAgentId() || showCampaignToggle()) {
               <div class="flex flex-wrap items-center justify-between gap-4">
                 @if (showAgentId()) {
-                  <app-agent-id />
+                  <app-agent-id [status]="agentStatus()" />
                 }
                 @if (showCampaignToggle()) {
                   <app-campaign-toggle />
@@ -164,12 +175,18 @@ export class DashboardComponent {
   private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
   private readonly router = inject(Router);
+  private readonly agentStatusApi = inject(AgentStatusService);
+  private readonly dashboardStore = inject(DashboardStore);
 
   /** Hides the dev-only inbound-call simulator from production builds. */
   readonly isProduction = environment.production;
 
   /** Origin of the CZentrix telephony server, the only trusted CTI sender. */
   private readonly telephonyOrigin = safeOrigin(environment.telephoneServer);
+
+  /** The agent's live telephony state ("READY (IDLE)"), polled every 15 s. */
+  private readonly _agentStatus = signal('');
+  readonly agentStatus = this._agentStatus.asReadonly();
 
   constructor() {
     // The CZentrix CTI soft-phone iframe announces inbound calls to the host
@@ -186,6 +203,56 @@ export class DashboardComponent {
     inject(DestroyRef).onDestroy(() =>
       window.removeEventListener('message', onMessage),
     );
+
+    // Poll the agent's telephony state (legacy DashboardUserIdComponent:
+    // immediate call + every 15 s) to refresh the "My ID" status line and keep
+    // the campaign selector in sync with the dialer mode. Supervisors have no
+    // personal agent line, so they are never polled. A failed poll falls back
+    // to the inbound campaign, as in the legacy error handler; the next tick
+    // retries. Inbound-call routing itself stays with the CTI postMessage flow
+    // above — the poller never navigates.
+    timer(0, AGENT_STATUS_POLL_MS)
+      .pipe(
+        takeUntilDestroyed(),
+        filter(
+          () => !this.isSupervisor() && this.authStore.user()?.agentID != null,
+        ),
+        switchMap(() =>
+          this.agentStatusApi
+            .getAgentStatus(this.authStore.user()?.agentID ?? 0)
+            .pipe(catchError(() => of(null))),
+        ),
+      )
+      .subscribe((state) => this.applyAgentState(state));
+  }
+
+  /** Fold one polled CTI state into the status line and campaign selector. */
+  private applyAgentState(state: AgentState | null): void {
+    if (!state) {
+      // A failed/empty poll clears the status line so it never shows a stale
+      // state once the agent's telephony state can no longer be read.
+      this._agentStatus.set('');
+      this.dashboardStore.setCampaign('inbound');
+      return;
+    }
+    const stateName = state.stateObj?.stateName ?? '';
+    if (stateName) {
+      const stateType = state.stateObj?.stateType ?? '';
+      const suppressType = ON_CALL_STATES.includes(stateName.toUpperCase());
+      this._agentStatus.set(
+        stateType && !suppressType ? `${stateName} (${stateType})` : stateName,
+      );
+    } else {
+      // A polled state with no stateName clears the line rather than leaving
+      // the previous state showing.
+      this._agentStatus.set('');
+    }
+    const dialer = state.dialer_type?.toUpperCase();
+    if (dialer === 'PROGRESSIVE') {
+      this.dashboardStore.setCampaign('inbound');
+    } else if (dialer === 'PREVIEW') {
+      this.dashboardStore.setCampaign('outbound');
+    }
   }
 
   /**
