@@ -894,5 +894,5 @@ export const as: Record<TranslationKey, string> = {
   'supervisor.nav.alertsNotifications': 'সতৰ্কবাৰ্তা আৰু অধিসূচনাসমূহ',
   'supervisor.nav.locationMessages': 'অৱস্থান বাৰ্তাসমূহ',
   'supervisor.nav.trainingResources': 'প্ৰশিক্ষণ সম্পদ',
-  'supervisor.nav.emergencyContacts': 'জৰুৰীকালীন পৰিচয়',
+  'supervisor.nav.emergencyContacts': 'জৰুৰীকালীন যোগাযোগ',
 };

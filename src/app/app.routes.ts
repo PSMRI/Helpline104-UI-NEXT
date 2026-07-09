@@ -23,6 +23,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './app-modules/core/auth/auth.guard';
+import { supervisorGuard } from './app-modules/core/auth/supervisor.guard';
 import { inboundGuard } from './app-modules/call/inbound.guard';
 
 export const routes: Routes = [
@@ -160,7 +161,7 @@ export const routes: Routes = [
     // sections (activities, reports, configurations) as routed children.
     // Sections not yet migrated share the placeholder component.
     path: 'supervisor',
-    canActivate: [authGuard],
+    canActivate: [authGuard, supervisorGuard],
     loadComponent: () =>
       import('./app-modules/supervisor/supervisor-workspace.component').then(
         (m) => m.SupervisorWorkspaceComponent,
@@ -182,16 +183,18 @@ export const routes: Routes = [
           ),
       },
       // Sidebar sections not yet migrated share the placeholder component
-      // until their real screens land. The sections owned by the stacked
-      // reports/config branches (grievance, upload-schemes, communication/*,
-      // force-logout, content-management, blood-url) get their real routes
-      // there and are deliberately not placeholdered here.
+      // until their real screens land. The config-owned sections (grievance,
+      // upload-schemes, communication/*, force-logout, content-management,
+      // blood-url) get their real routes in the stacked config branch. `reports`
+      // is a placeholder here so its sidebar link resolves on this branch alone;
+      // the stacked reports branch (PR #20) replaces it with the real hub.
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
         ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
+        ['reports', 'supervisor.nav.reports'],
       ].map(([path, titleKey]) => ({
         path,
         data: { titleKey },
