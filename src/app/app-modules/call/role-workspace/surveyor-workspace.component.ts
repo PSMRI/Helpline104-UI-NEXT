@@ -22,20 +22,17 @@
 
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideClipboardList } from '@ng-icons/lucide';
-
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { CallTypeReportComponent } from '../../reports/call-type-report.component';
 
 /**
  * Surveyor on-call workspace (route `/innerpage/surveyor`).
  *
  * Unlike the other role workspaces, the legacy `104-surveyor` is not a
  * case-sheet/closure wizard — it simply hosts the surveyor call-type reports
- * (`<app-surveyor-calltype-reports>`). That report is part of the reporting
- * suite and is migrated separately; this workspace provides the titled host and
- * a placeholder until the report component lands.
+ * (`<app-surveyor-calltype-reports>`), rebuilt as
+ * {@link CallTypeReportComponent}.
  *
  * Standalone, OnPush + signals, ZardUI + Tailwind only.
  */
@@ -43,8 +40,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
   selector: 'app-surveyor-workspace',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, TranslatePipe],
-  viewProviders: [provideIcons({ lucideClipboardList })],
+  imports: [TranslatePipe, CallTypeReportComponent],
   template: `
     <section class="rounded-xl border border-border bg-card p-4 sm:p-6">
       <header class="mb-4 flex flex-col gap-1">
@@ -56,17 +52,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
         </p>
       </header>
 
-      <div
-        class="flex min-h-[16rem] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center"
-      >
-        <ng-icon name="lucideClipboardList" size="40" class="text-muted-foreground" aria-hidden="true" />
-        <p class="text-base font-medium text-foreground">
-          {{ 'roleWorkspace.surveyor.reportsTitle' | translate: lang() }}
-        </p>
-        <p class="max-w-md text-sm text-muted-foreground">
-          {{ 'roleWorkspace.surveyor.reportsPlaceholder' | translate: lang() }}
-        </p>
-      </div>
+      <app-call-type-report />
     </section>
   `,
 })
