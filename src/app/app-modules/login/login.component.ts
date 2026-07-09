@@ -45,6 +45,7 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { AuthStore } from '../core/auth/auth.store';
 import { LoginResponse, Privilege } from '../core/auth/auth.models';
+import { CzentrixService } from '../core/services/czentrix.service';
 import { AccountRecoveryStore } from '../account-recovery/account-recovery.store';
 import { LoginError, LoginService } from './login.service';
 import { encryptPassword } from './password-crypto';
@@ -60,10 +61,11 @@ const CONCURRENT_SESSION_CODE = 5002;
  * to a standalone reactive-form component using ZardUI.
  *
  * Flow: encrypt password (legacy format) -> userAuthenticate -> require a 104
- * privilege -> AuthStore.setSession() -> navigate to role selection.
+ * privilege -> AuthStore.setSession() -> CTI handshake (fire-and-forget) ->
+ * navigate to role selection.
  *
- * Deferred from this P1 (clear TODOs): captcha, CTI login token, auto-resume
- * of an existing session, and the concurrent-session "kick & re-auth" flow.
+ * Deferred from this P1 (clear TODOs): captcha, auto-resume of an existing
+ * session, and the concurrent-session "kick & re-auth" flow.
  */
 @Component({
   selector: 'app-login',
@@ -88,6 +90,7 @@ const CONCURRENT_SESSION_CODE = 5002;
 export class LoginComponent {
   private readonly loginService = inject(LoginService);
   private readonly authStore = inject(AuthStore);
+  private readonly czentrix = inject(CzentrixService);
   private readonly recoveryStore = inject(AccountRecoveryStore);
   private readonly router = inject(Router);
   private readonly confirmDialog = inject(ConfirmDialogService);
@@ -169,6 +172,15 @@ export class LoginComponent {
         },
         privileges: privileges104,
       });
+      // CTI handshake: getLoginKey -> getAgentIPAddress -> doAgentLogin. Fired
+      // in the background (as the legacy app did) so a dark softphone never
+      // blocks the portal login; the service stores the key/IP for later use.
+      const agentID = response.agentID ?? null;
+      if (agentID !== null) {
+        this.czentrix
+          .startCtiSession(userID, this.lastEncryptedPassword, agentID)
+          .subscribe();
+      }
       void this.router.navigate([ROLE_SELECTION_ROUTE]);
     } else if (response.isAuthenticated && response.Status === 'New') {
       // First-login: the user must set security questions before a session is
