@@ -1085,6 +1085,8 @@ export const hi: Record<TranslationKey, string> = {
   'supGrievance.email.enterEmail': 'ईमेल दर्ज करें',
   'supGrievance.email.deleteRow': 'पंक्ति को हटाएं',
   'supGrievance.email.addManually': 'मैन्युअल रूप से जोड़ें',
+  'supGrievance.email.sent': 'शिकायत ईमेल द्वारा भेज दी गई।',
+  'supGrievance.email.sendError': 'ईमेल नहीं भेजा जा सका। कृपया पुनः प्रयास करें।',
   'supGrievance.email.close': 'बंद करे',
   'supGrievance.email.send': 'ईमेल भेजें',
 

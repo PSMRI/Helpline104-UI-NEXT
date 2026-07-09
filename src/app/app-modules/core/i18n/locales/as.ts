@@ -1087,6 +1087,8 @@ export const as: Record<TranslationKey, string> = {
   'supGrievance.email.enterEmail': 'ই-মেইল প্ৰবিষ্ট কৰক',
   'supGrievance.email.deleteRow': 'শাৰী মচি পেলাওক',
   'supGrievance.email.addManually': 'হাতেৰে যোগ কৰক',
+  'supGrievance.email.sent': 'অভিযোগ ইমেইলযোগে প্ৰেৰণ কৰা হ’ল।',
+  'supGrievance.email.sendError': 'ইমেইল প্ৰেৰণ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'supGrievance.email.close': 'বন্ধ কৰক',
   'supGrievance.email.send': 'ইমেইল প্ৰেৰণ কৰক',
 
