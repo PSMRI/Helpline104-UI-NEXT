@@ -39,6 +39,7 @@ import {
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePlus, lucideTrash2 } from '@ng-icons/lucide';
+import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
@@ -227,9 +228,21 @@ export class AlternateEmailDialogComponent implements OnInit {
       .sendEmail(this.data.feedbackID, finalEmails)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        // Legacy closed the dialog on success AND on failure alike.
-        next: () => this.dialogRef.close(),
-        error: () => this.dialogRef.close(),
+        // Confirm the forward on success, and — unlike the legacy dialog which
+        // closed on failure too — keep the dialog open with an error on failure
+        // so the supervisor never believes a grievance was forwarded when the
+        // send actually failed.
+        next: () => {
+          this.sending.set(false);
+          toast.success(this.i18n.instant('supGrievance.email.sent'));
+          this.dialogRef.close(true);
+        },
+        error: (err: SupervisorError) => {
+          this.sending.set(false);
+          const msg = err.errorMessage || this.i18n.instant('supGrievance.email.sendError');
+          this.errorMessage.set(msg);
+          toast.error(msg);
+        },
       });
   }
 

@@ -1007,6 +1007,8 @@ export const en = {
   'supGrievance.email.enterEmail': 'Enter email',
   'supGrievance.email.deleteRow': 'Delete row',
   'supGrievance.email.addManually': 'Add manually',
+  'supGrievance.email.sent': 'Grievance forwarded by email.',
+  'supGrievance.email.sendError': 'Could not send the email. Please try again.',
   'supGrievance.email.close': 'Close',
   'supGrievance.email.send': 'Send Email',
 
