@@ -1176,6 +1176,7 @@ export const hi: Record<TranslationKey, string> = {
   // Blood bank URL
   'supBlood.title': 'रक्त URL अपडेट करें',
   'supBlood.currentUrl': 'वर्तमान यूआरएल',
+  'supBlood.urlPlaceholder': 'http से शुरू होने वाला यूआरएल दर्ज करें',
   'supBlood.urlLabel': 'ब्लड बैंक का यूआरएल',
   'supBlood.invalidUrl': 'असामान्य यूआरएल',
   'supBlood.edit': 'संपादित करें',

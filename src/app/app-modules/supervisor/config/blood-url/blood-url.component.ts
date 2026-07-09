@@ -46,8 +46,6 @@ import { BloodUrlService } from './blood-url.service';
 
 /** Legacy website pattern (`website_expression`). */
 const WEBSITE_PATTERN = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9.-]+\.[a-zA-Z]{2,5}[.]{0,1}/;
-/** Legacy placeholder shown when no URL is configured yet. */
-const NO_URL_PLACEHOLDER = 'Enter URL starting with http';
 
 /**
  * Blood bank URL config (legacy `SupervisorBloodUrlComponent`): shows the
@@ -85,7 +83,9 @@ const NO_URL_PLACEHOLDER = 'Enter URL starting with http';
               >{{ currentUrl() }}</a
             >
           } @else {
-            <span class="text-muted-foreground">{{ currentUrl() }}</span>
+            <span class="text-muted-foreground">
+              {{ 'supBlood.urlPlaceholder' | translate: lang() }}
+            </span>
           }
           <button
             z-button
@@ -143,7 +143,7 @@ export class BloodUrlComponent implements OnInit {
   readonly editing = signal(false);
   readonly saving = signal(false);
   readonly errorMessage = signal('');
-  readonly currentUrl = signal(NO_URL_PLACEHOLDER);
+  readonly currentUrl = signal('');
   readonly hasUrl = signal(false);
 
   private institutionID: number | null = null;
@@ -173,7 +173,7 @@ export class BloodUrlComponent implements OnInit {
             this.hasUrl.set(true);
           } else {
             this.institutionID = null;
-            this.currentUrl.set(NO_URL_PLACEHOLDER);
+            this.currentUrl.set('');
             this.hasUrl.set(false);
           }
         },
