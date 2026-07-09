@@ -181,25 +181,17 @@ export const routes: Routes = [
             (m) => m.BlockUnblockComponent,
           ),
       },
-      // Sidebar sections not yet migrated share the placeholder component so
-      // every nav entry resolves (no NG04002 dead links) until its real screen
-      // lands. The reports hub and configuration screens replace their entries
-      // with real routes in the stacked follow-up branches.
+      // Sidebar sections not yet migrated share the placeholder component
+      // until their real screens land. The sections owned by the stacked
+      // reports/config branches (grievance, upload-schemes, communication/*,
+      // force-logout, content-management, blood-url) get their real routes
+      // there and are deliberately not placeholdered here.
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
         ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
-        ['grievance', 'supervisor.nav.grievance'],
-        ['upload-schemes', 'supervisor.nav.uploadSchemes'],
-        ['communication/alerts-notifications', 'supervisor.nav.alertsNotifications'],
-        ['communication/location-messages', 'supervisor.nav.locationMessages'],
-        ['communication/training-resources', 'supervisor.nav.trainingResources'],
-        ['communication/emergency-contacts', 'supervisor.nav.emergencyContacts'],
-        ['force-logout', 'supervisor.nav.forceLogout'],
-        ['content-management', 'supervisor.nav.contentManagement'],
-        ['blood-url', 'supervisor.nav.bloodUrl'],
       ].map(([path, titleKey]) => ({
         path,
         data: { titleKey },
