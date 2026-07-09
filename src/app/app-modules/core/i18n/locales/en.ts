@@ -327,6 +327,12 @@ export const en = {
   'casesheetHistory.empty': 'No records found.',
   'casesheetHistory.loadError': 'Could not load history. Please try again.',
   'casesheetHistory.action': 'Action',
+  'casesheetHistory.sectionTitle': 'Case-sheet History',
+  'casesheetHistory.show': 'View history',
+  'casesheetHistory.hide': 'Hide history',
+  'casesheetHistory.tabMcts': 'MCTS',
+  'casesheetHistory.tabMmu': 'e-Health Facility',
+  'casesheetHistory.tabTm': 'Telemedicine',
   'casesheetHistory.mcts.title': 'MCTS call history',
   'casesheetHistory.mcts.callType': 'Call type',
   'casesheetHistory.mcts.callDate': 'Call date',
@@ -344,6 +350,9 @@ export const en = {
   'casesheetHistory.mmu.visitCategory': 'Visit category',
   'casesheetHistory.mmu.visitCode': 'Visit code',
   'casesheetHistory.mmu.view': 'View',
+  'casesheetHistory.mmu.selectedVisit': 'Selected visit',
+  'casesheetHistory.mmu.detailUnavailable':
+    'The full case-sheet view for this visit is not yet available.',
 
   // Schedule appointment
   'appointment.title': 'Schedule appointment',
@@ -598,6 +607,9 @@ export const en = {
   'hao.caseSheet.healthAdvicePlaceholder': 'Advice given to the caller',
   'hao.caseSheet.remarks': 'Remarks',
   'hao.caseSheet.save': 'Save Case Sheet',
+  'hao.caseSheet.viewDiseaseSummary': 'View disease summary',
+  'hao.caseSheet.diseaseSummaryError':
+    'Unable to load the disease summary. Please try again.',
   'hao.caseSheet.saveSuccess': 'Case sheet saved successfully.',
   'hao.caseSheet.saveError': 'Unable to save the case sheet. Please try again.',
 
@@ -621,6 +633,7 @@ export const en = {
   'hao.closure.selectSkill': 'Select skill',
   'hao.closure.transfer': 'Transfer',
   'hao.closure.submitContinue': 'Submit & Continue',
+  'hao.closure.scheduleAppointment': 'Schedule Appointment',
   'hao.closure.submitClose': 'Submit & Close',
   'hao.closure.confirmTitle': 'Closure',
   'hao.closure.confirmContinue': 'Submit this disposition and continue the call?',

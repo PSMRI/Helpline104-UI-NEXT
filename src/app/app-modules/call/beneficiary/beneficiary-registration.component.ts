@@ -1654,6 +1654,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
           this.resolveBeneficiary(
             created.beneficiaryRegID,
             'registration.toast.registered',
+            v.districtID,
           );
         },
         error: (err: BeneficiaryError) => {
@@ -1696,14 +1697,19 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
   /** Select an existing beneficiary for this call. */
   selectBeneficiary(row: BeneficiaryRecord): void {
-    this.resolveBeneficiary(row.beneficiaryRegID, 'registration.toast.selected');
+    this.resolveBeneficiary(
+      row.beneficiaryRegID,
+      'registration.toast.selected',
+      readDistrictID(row.i_bendemographics?.['districtID']),
+    );
   }
 
   private resolveBeneficiary(
     beneficiaryRegID: number,
     toastKey: 'registration.toast.selected' | 'registration.toast.registered',
+    districtID: number | null,
   ): void {
-    this.callStore.setBeneficiaryId(beneficiaryRegID);
+    this.callStore.setBeneficiaryId(beneficiaryRegID, districtID);
     toast.success(this.i18n.instant(toastKey));
     void this.router.navigate(['/innerpage']);
   }
@@ -1775,3 +1781,12 @@ type RegisterControlName =
   | 'subDistrictID'
   | 'villageID'
   | 'pincode';
+
+/**
+ * Coerce a beneficiary demographics `districtID` (loosely typed via the record's
+ * index signature) into a `number | null` for the CallStore.
+ */
+function readDistrictID(value: unknown): number | null {
+  const id = typeof value === 'string' ? Number(value) : value;
+  return typeof id === 'number' && Number.isFinite(id) ? id : null;
+}

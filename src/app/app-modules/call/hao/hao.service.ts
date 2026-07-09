@@ -25,6 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map, throwError } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
+import { DiseaseSummaryDetail } from '../case-sheet/disease-summary.models';
 import {
   ApiResponse,
   AvailableDisease,
@@ -42,6 +43,7 @@ import {
 const PATHS = {
   // Case sheet (Health Advisory) — ip104
   availableDiseases: 'diseaseController/getAvailableDiseases',
+  diseaseByID: 'diseaseController/getDiseasesByID',
   presentCaseSheet: 'beneficiary/getPresentCaseSheet',
   saveCaseSheet: 'beneficiary/save/benCaseSheet',
   // Closure / call lifecycle — common-api
@@ -88,6 +90,22 @@ export class HaoService {
         {},
       )
       .pipe(map((res) => res.data ?? []));
+  }
+
+  /**
+   * Full disease-summary detail for one catalogue entry (legacy
+   * `diseaseController/getDiseasesByID`, keyed by the summary object). Feeds the
+   * disease-summary detail modal opened from the case sheet.
+   */
+  getDiseaseSummaryDetail(
+    disease: AvailableDisease,
+  ): Observable<DiseaseSummaryDetail> {
+    return this.http
+      .post<ApiResponse<DiseaseSummaryDetail>>(
+        this.base104 + PATHS.diseaseByID,
+        disease,
+      )
+      .pipe(map((res) => res.data ?? {}));
   }
 
   /**

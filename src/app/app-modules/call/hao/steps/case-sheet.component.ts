@@ -42,13 +42,22 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { AuthStore } from '../../../core/auth/auth.store';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { TranslationKey } from '../../../core/i18n/locales';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
+import { CasesheetHistoryMctsComponent } from '../../casesheet-history/casesheet-history-mcts.component';
+import { CasesheetHistoryMmuComponent } from '../../casesheet-history/casesheet-history-mmu.component';
+import { MmuVisitRow } from '../../casesheet-history/other-helpline.models';
+import { DiseaseSummaryDetail } from '../../case-sheet/disease-summary.models';
+import { ViewDiseaseSummaryDetailsComponent } from '../../case-sheet/view-disease-summary-details.component';
 import {
   AvailableDisease,
   CaseSheetRequest,
   PresentCaseSheet,
 } from '../hao.models';
 import { HaoService } from '../hao.service';
+
+/** History tabs shown in the case-sheet history section. */
+type HistoryTab = 'mcts' | 'mmu' | 'tm';
 
 /**
  * Health Advisory case sheet — the primary HAO service (legacy `<app-case-sheet>`,
@@ -69,6 +78,9 @@ import { HaoService } from '../hao.service';
     TranslatePipe,
     ZardButtonComponent,
     ZardInputDirective,
+    CasesheetHistoryMctsComponent,
+    CasesheetHistoryMmuComponent,
+    ViewDiseaseSummaryDetailsComponent,
   ],
   template: `
     <form
@@ -113,19 +125,43 @@ import { HaoService } from '../hao.service';
         <label class="text-sm font-medium" for="hao-cs-diagnosis">
           {{ 'hao.caseSheet.provisionalDiagnosis' | translate: lang() }}
         </label>
-        <select
-          id="hao-cs-diagnosis"
-          formControlName="provisionalDiagnosisID"
-          class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <option [ngValue]="null">
-            {{ 'hao.caseSheet.selectDiagnosis' | translate: lang() }}
-          </option>
-          @for (disease of diseases(); track disease.diseasesummaryID) {
-            <option [ngValue]="disease.diseasesummaryID">{{ disease.diseaseName }}</option>
-          }
-        </select>
+        <div class="flex flex-wrap items-center gap-2">
+          <select
+            id="hao-cs-diagnosis"
+            formControlName="provisionalDiagnosisID"
+            class="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option [ngValue]="null">
+              {{ 'hao.caseSheet.selectDiagnosis' | translate: lang() }}
+            </option>
+            @for (disease of diseases(); track disease.diseasesummaryID) {
+              <option [ngValue]="disease.diseasesummaryID">{{ disease.diseaseName }}</option>
+            }
+          </select>
+          <button
+            z-button
+            type="button"
+            zType="outline"
+            zSize="sm"
+            [zLoading]="loadingDisease()"
+            [zDisabled]="form.controls.provisionalDiagnosisID.value === null || loadingDisease()"
+            (click)="openDiseaseSummary()"
+          >
+            {{ 'hao.caseSheet.viewDiseaseSummary' | translate: lang() }}
+          </button>
+        </div>
+        @if (diseaseError()) {
+          <p class="text-xs font-medium text-destructive" role="alert">{{ diseaseError() }}</p>
+        }
       </div>
+
+      @if (diseaseDetail(); as detail) {
+        <app-view-disease-summary-details
+          [detail]="detail"
+          (accepted)="closeDiseaseSummary()"
+          (cancelled)="closeDiseaseSummary()"
+        />
+      }
 
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium" for="hao-cs-advice">
@@ -163,6 +199,91 @@ import { HaoService } from '../hao.service';
         </button>
       </div>
     </form>
+
+    @if (beneficiaryId() !== null) {
+      <section class="mt-6 border-t border-border pt-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-foreground">
+            {{ 'casesheetHistory.sectionTitle' | translate: lang() }}
+          </h2>
+          <button z-button type="button" zType="ghost" zSize="sm" (click)="toggleHistory()">
+            {{
+              (historyOpen() ? 'casesheetHistory.hide' : 'casesheetHistory.show')
+                | translate: lang()
+            }}
+          </button>
+        </div>
+
+        @if (historyOpen()) {
+          <div class="mt-3 flex flex-wrap gap-2" role="tablist">
+            @for (tab of historyTabs; track tab.id) {
+              <button
+                z-button
+                type="button"
+                [zType]="activeTab() === tab.id ? 'default' : 'outline'"
+                zSize="sm"
+                role="tab"
+                [attr.aria-selected]="activeTab() === tab.id"
+                (click)="activeTab.set(tab.id)"
+              >
+                {{ tab.labelKey | translate: lang() }}
+              </button>
+            }
+          </div>
+
+          <div class="mt-3">
+            @switch (activeTab()) {
+              @case ('mcts') {
+                <app-casesheet-history-mcts [benRegID]="beneficiaryId()" />
+              }
+              @case ('mmu') {
+                <app-casesheet-history-mmu
+                  [benRegID]="beneficiaryId()"
+                  (selectVisit)="onSelectVisit($event)"
+                />
+              }
+              @case ('tm') {
+                <app-casesheet-history-mmu
+                  [benRegID]="beneficiaryId()"
+                  [isTm]="true"
+                  (selectVisit)="onSelectVisit($event)"
+                />
+              }
+            }
+
+            @if (selectedVisit(); as visit) {
+              <div class="mt-3 rounded-lg border border-border bg-muted/30 p-4 text-sm">
+                <div class="mb-2 flex items-center justify-between">
+                  <h3 class="font-semibold text-foreground">
+                    {{ 'casesheetHistory.mmu.selectedVisit' | translate: lang() }}
+                  </h3>
+                  <button z-button type="button" zType="ghost" zSize="sm" (click)="selectedVisit.set(null)">
+                    {{ 'diseaseSummary.close' | translate: lang() }}
+                  </button>
+                </div>
+                <dl class="grid gap-x-6 gap-y-1 sm:grid-cols-2">
+                  <div class="flex justify-between gap-2">
+                    <dt class="text-muted-foreground">{{ 'casesheetHistory.mmu.visitCategory' | translate: lang() }}</dt>
+                    <dd class="text-foreground">{{ visit.VisitCategory || '—' }}</dd>
+                  </div>
+                  <div class="flex justify-between gap-2">
+                    <dt class="text-muted-foreground">{{ 'casesheetHistory.mmu.visitReason' | translate: lang() }}</dt>
+                    <dd class="text-foreground">{{ visit.VisitReason || '—' }}</dd>
+                  </div>
+                  <div class="flex justify-between gap-2">
+                    <dt class="text-muted-foreground">{{ 'casesheetHistory.mmu.visitCode' | translate: lang() }}</dt>
+                    <dd class="text-foreground">{{ visit.visitCode || '—' }}</dd>
+                  </div>
+                </dl>
+                <p class="mt-2 text-xs text-muted-foreground">
+                  {{ 'casesheetHistory.mmu.detailUnavailable' | translate: lang() }}
+                </p>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
   `,
 })
 export class CaseSheetComponent {
@@ -184,6 +305,23 @@ export class CaseSheetComponent {
 
   readonly diseases = signal<AvailableDisease[]>([]);
   readonly saving = signal(false);
+
+  /** Disease-summary detail modal state (null = closed). */
+  readonly diseaseDetail = signal<DiseaseSummaryDetail | null>(null);
+  readonly loadingDisease = signal(false);
+  readonly diseaseError = signal('');
+
+  /** Case-sheet history section state. */
+  readonly historyOpen = signal(false);
+  readonly activeTab = signal<HistoryTab>('mcts');
+  readonly selectedVisit = signal<MmuVisitRow | null>(null);
+
+  /** History tab definitions (label keys resolved in the template). */
+  readonly historyTabs: ReadonlyArray<{ id: HistoryTab; labelKey: TranslationKey }> = [
+    { id: 'mcts', labelKey: 'casesheetHistory.tabMcts' },
+    { id: 'mmu', labelKey: 'casesheetHistory.tabMmu' },
+    { id: 'tm', labelKey: 'casesheetHistory.tabTm' },
+  ];
 
   /** Beneficiary whose existing sheet has already been fetched (prefill once). */
   private prefilledFor: number | null = null;
@@ -243,6 +381,44 @@ export class CaseSheetComponent {
   isInvalid(controlName: keyof typeof this.form.controls): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && (control.touched || control.dirty);
+  }
+
+  /** Fetch and open the disease-summary detail for the selected diagnosis. */
+  openDiseaseSummary(): void {
+    const id = this.form.controls.provisionalDiagnosisID.value;
+    const disease = this.diseases().find((d) => d.diseasesummaryID === id);
+    if (!disease || this.loadingDisease()) {
+      return;
+    }
+    this.loadingDisease.set(true);
+    this.diseaseError.set('');
+    this.haoService.getDiseaseSummaryDetail(disease).subscribe({
+      next: (detail) => {
+        this.loadingDisease.set(false);
+        this.diseaseDetail.set(detail);
+      },
+      error: () => {
+        this.loadingDisease.set(false);
+        this.diseaseError.set(
+          this.i18n.instant('hao.caseSheet.diseaseSummaryError'),
+        );
+      },
+    });
+  }
+
+  /** Dismiss the disease-summary detail modal. */
+  closeDiseaseSummary(): void {
+    this.diseaseDetail.set(null);
+  }
+
+  /** Toggle the case-sheet history section. */
+  toggleHistory(): void {
+    this.historyOpen.update((open) => !open);
+  }
+
+  /** Record the visit the agent chose to view from the MMU/TM history. */
+  onSelectVisit(visit: MmuVisitRow): void {
+    this.selectedVisit.set(visit);
   }
 
   save(): void {

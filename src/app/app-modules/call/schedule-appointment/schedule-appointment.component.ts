@@ -26,7 +26,6 @@ import {
   DestroyRef,
   OnInit,
   inject,
-  input,
   output,
   signal,
 } from '@angular/core';
@@ -61,9 +60,9 @@ const SLOT_MAX_MINUTES = 13 * 60;
  * Schedule-appointment modal, ported from the legacy `ScheduleAppointmentComponent`.
  * The agent picks a block → facility (CHO centre; code/CHO auto-filled), a
  * date-time within the 10:00–13:00 slot, and optionally an alternate mobile,
- * then submits. Beneficiary/call/agent context is read from the stores; the
- * district is an input. Emits {@link saved} / {@link cancelled} for the host
- * (which owns the dialog chrome).
+ * then submits. Beneficiary/call/agent context — including the district whose
+ * blocks are loaded — is read from the stores. Emits {@link saved} /
+ * {@link cancelled} for the host (which owns the dialog chrome).
  *
  * Standalone, OnPush + signals, Reactive Forms, ZardUI + Tailwind only.
  */
@@ -204,9 +203,6 @@ export class ScheduleAppointmentComponent implements OnInit {
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** District whose blocks to load (from the beneficiary's address). */
-  readonly districtID = input<number | null>(null);
-
   readonly saved = output<void>();
   readonly cancelled = output<void>();
 
@@ -236,7 +232,9 @@ export class ScheduleAppointmentComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const districtID = this.districtID();
+    // District is captured on the CallStore when the caller's beneficiary is
+    // resolved during registration; without it the block list stays empty.
+    const districtID = this.callStore.districtID();
     if (districtID == null) {
       return;
     }
