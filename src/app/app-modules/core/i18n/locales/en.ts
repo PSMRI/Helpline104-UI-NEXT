@@ -544,6 +544,7 @@ export const en = {
   'reports.callType.empty': 'No records found',
   'reports.callType.loadError': 'Unable to load the report. Please try again.',
   'reports.callType.dateRangeError': 'End date cannot be before start date.',
+  'reports.callType.dateRequired': 'Start date and end date are required.',
   'reports.callType.col.benId': 'Beneficiary ID',
   'reports.callType.col.benName': 'Beneficiary Name',
   'reports.callType.col.callType': 'Call Type',

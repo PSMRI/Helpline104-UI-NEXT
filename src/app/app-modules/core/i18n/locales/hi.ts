@@ -546,6 +546,7 @@ export const hi: Record<TranslationKey, string> = {
   'reports.callType.empty': 'कोई रिकॉर्ड नहीं मिला',
   'reports.callType.loadError': 'रिपोर्ट लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
   'reports.callType.dateRangeError': 'अंतिम तिथि प्रारंभ तिथि से पहले नहीं हो सकती।',
+  'reports.callType.dateRequired': 'प्रारंभ तिथि और अंतिम तिथि आवश्यक हैं।',
   'reports.callType.col.benId': 'लाभार्थी आईडी',
   'reports.callType.col.benName': 'लाभार्थी का नाम',
   'reports.callType.col.callType': 'कॉल टाइप',
