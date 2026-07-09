@@ -31,7 +31,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -166,6 +166,10 @@ function toDateInput(date: Date): string {
           <p class="mt-3 text-sm font-medium text-destructive" role="alert">
             {{ 'reports.callType.dateRangeError' | translate: lang() }}
           </p>
+        } @else if (filterForm.invalid && filterForm.touched) {
+          <p class="mt-3 text-sm font-medium text-destructive" role="alert">
+            {{ 'reports.callType.dateRequired' | translate: lang() }}
+          </p>
         }
 
         <div class="mt-4">
@@ -174,7 +178,7 @@ function toDateInput(date: Date): string {
             type="submit"
             zType="default"
             [zLoading]="loading()"
-            [zDisabled]="loading()"
+            [zDisabled]="loading() || filterForm.invalid"
           >
             {{ 'reports.callType.search' | translate: lang() }}
           </button>
@@ -336,9 +340,12 @@ export class CallTypeReportComponent implements OnInit {
       toDateInput(
         new Date(new Date().setDate(new Date().getDate() - DEFAULT_RANGE_DAYS)),
       ),
-      { nonNullable: true },
+      { nonNullable: true, validators: [Validators.required] },
     ),
-    endDate: new FormControl(toDateInput(new Date()), { nonNullable: true }),
+    endDate: new FormControl(toDateInput(new Date()), {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     status: new FormControl<string>('All', { nonNullable: true }),
     pageSize: new FormControl<number | string>(PAGE_SIZES[0], { nonNullable: true }),
   });
@@ -394,6 +401,12 @@ export class CallTypeReportComponent implements OnInit {
   }
 
   search(): void {
+    // Both dates are required; without this guard a cleared date input would
+    // run an unbounded-range query against the server-paged worklist.
+    if (this.filterForm.invalid) {
+      this.filterForm.markAllAsTouched();
+      return;
+    }
     const { startDate, endDate } = this.filterForm.getRawValue();
     if (startDate && endDate && endDate < startDate) {
       this.dateRangeError.set(true);

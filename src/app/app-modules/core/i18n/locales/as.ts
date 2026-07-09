@@ -546,6 +546,7 @@ export const as: Record<TranslationKey, string> = {
   'reports.callType.empty': 'কোনো ৰেকৰ্ড পোৱা নগ’ল',
   'reports.callType.loadError': 'প্ৰতিবেদন ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'reports.callType.dateRangeError': 'শেষ তাৰিখ আৰম্ভণিৰ তাৰিখৰ আগত হ’ব নোৱাৰে।',
+  'reports.callType.dateRequired': 'আৰম্ভণিৰ তাৰিখ আৰু শেষ তাৰিখ আৱশ্যক।',
   'reports.callType.col.benId': 'হিতাধিকাৰী আইডি',
   'reports.callType.col.benName': 'হিতাধিকাৰীৰ নাম',
   'reports.callType.col.callType': 'কল টাইপ',
