@@ -1162,6 +1162,7 @@ export const en = {
   'supScheme.chooseFile': 'Please choose a file for upload',
   'supScheme.fileTooLarge': 'File Size should not exceed',
   'supScheme.invalidFileName': 'Invalid file name',
+  'supScheme.fileReadError': 'Could not read the file. Please try again.',
   'supScheme.uploadedFile': 'Uploaded File',
   'supScheme.back': 'Back',
   'supScheme.submit': 'Submit',
@@ -1181,7 +1182,7 @@ export const en = {
   'supBlood.cancel': 'Cancel',
   'supBlood.update': 'Update',
   'supBlood.updated': 'Blood URL updated successfully',
-  'supBlood.updateError': 'Error occured while updating',
+  'supBlood.updateError': 'Error occurred while updating',
 
   // Force logout
   'supLogout.title': 'Force Logout',

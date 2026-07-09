@@ -40,6 +40,7 @@ import { toast } from 'ngx-sonner';
 import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { AuthStore } from '../../../core/auth/auth.store';
+import { ConfigService } from '../../../core/services/config.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { SupervisorError } from '../../shared/supervisor-api';
@@ -68,9 +69,6 @@ const VALID_FILE_EXTENSIONS = [
 ];
 /** Max upload size in MB (legacy `maxFileSize`). */
 const MAX_FILE_SIZE_MB = 5;
-/** OpenKM download base for previously uploaded files (legacy `getFileURL`). */
-const OPENKM_DOWNLOAD_BASE =
-  'https://guest:guest@uatamrit.piramalswasthya.org:8084/OpenKM/Download?uuid=';
 
 /**
  * Knowledge management / content management (legacy
@@ -218,6 +216,7 @@ const OPENKM_DOWNLOAD_BASE =
 export class KnowledgeManagementComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(KnowledgeManagementService);
+  private readonly config = inject(ConfigService);
   private readonly authStore = inject(AuthStore);
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
@@ -272,7 +271,7 @@ export class KnowledgeManagementComponent implements OnInit {
   }
 
   fileUrl(file: KmFileEntry): string {
-    return OPENKM_DOWNLOAD_BASE + (file.fileUID ?? '');
+    return this.config.getOpenKmBaseURL() + (file.fileUID ?? '');
   }
 
   onServiceChange(): void {

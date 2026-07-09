@@ -265,6 +265,11 @@ const MAX_FILE_SIZE_MB = 5;
                 {{ 'supScheme.invalidFileName' | translate: lang() }}
               </p>
             }
+            @if (fileReadError()) {
+              <p class="mt-1 text-xs font-medium text-destructive" role="alert">
+                {{ 'supScheme.fileReadError' | translate: lang() }}
+              </p>
+            }
           </div>
           @if (existingFileName()) {
             <div>
@@ -283,7 +288,7 @@ const MAX_FILE_SIZE_MB = 5;
               type="button"
               zType="default"
               [zLoading]="saving()"
-              [zDisabled]="form.invalid || fileInvalid() || saving()"
+              [zDisabled]="form.invalid || fileInvalid() || reading() || saving()"
               (click)="save()"
             >
               {{
@@ -321,14 +326,24 @@ export class UploadSchemesComponent implements OnInit {
   readonly fileTooLarge = signal(false);
   readonly invalidFileType = signal(false);
   readonly invalidFileName = signal(false);
+  /** The attachment is being read as base64; the save must wait for it. */
+  readonly reading = signal(false);
+  /** The FileReader failed (onerror); the attachment could not be read. */
+  readonly fileReadError = signal(false);
   readonly fileInvalid = computed(
-    () => this.fileTooLarge() || this.invalidFileType() || this.invalidFileName(),
+    () =>
+      this.fileTooLarge() ||
+      this.invalidFileType() ||
+      this.invalidFileName() ||
+      this.fileReadError(),
   );
 
   private editingSchemeID: number | null = null;
   private editingKmFileManagerID: number | null = null;
   private file: File | null = null;
   private fileContent: string | null = null;
+  /** Extension (no dot) resolved from the chosen file's last segment. */
+  private fileExt: string | null = null;
 
   readonly form = this.fb.group({
     schemeName: this.fb.control('', {
@@ -416,12 +431,17 @@ export class UploadSchemesComponent implements OnInit {
       return;
     }
     const file = files[0];
-    const parts = file.name.split('.');
-    if (!parts[0]) {
+    // Extension = the last dot-segment, so names with multiple dots
+    // ("scheme.final.pdf") validate on ".pdf" rather than being rejected.
+    const name = file.name;
+    const lastDot = name.lastIndexOf('.');
+    const baseName = lastDot > 0 ? name.slice(0, lastDot) : name;
+    const ext = lastDot > 0 ? name.slice(lastDot + 1).toLowerCase() : '';
+    if (!baseName) {
       this.invalidFileName.set(true);
       return;
     }
-    if (parts.length !== 2 || !VALID_FILE_EXTENSIONS.includes(parts[1].toLowerCase())) {
+    if (!ext || !VALID_FILE_EXTENSIONS.includes(ext)) {
       this.invalidFileType.set(true);
       return;
     }
@@ -429,10 +449,19 @@ export class UploadSchemesComponent implements OnInit {
       this.fileTooLarge.set(true);
       return;
     }
+    // Read as base64. Block the save until the read completes (onload) and
+    // surface a read failure (onerror) instead of silently saving no content.
+    this.reading.set(true);
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onload = () => {
       this.file = file;
+      this.fileExt = ext;
       this.fileContent = typeof reader.result === 'string' ? reader.result : null;
+      this.reading.set(false);
+    };
+    reader.onerror = () => {
+      this.reading.set(false);
+      this.fileReadError.set(true);
     };
     reader.readAsDataURL(file);
   }
@@ -440,14 +469,17 @@ export class UploadSchemesComponent implements OnInit {
   private resetFile(): void {
     this.file = null;
     this.fileContent = null;
+    this.fileExt = null;
+    this.reading.set(false);
     this.noFileChosen.set(false);
     this.fileTooLarge.set(false);
     this.invalidFileType.set(false);
     this.invalidFileName.set(false);
+    this.fileReadError.set(false);
   }
 
   save(): void {
-    if (this.form.invalid || this.fileInvalid()) {
+    if (this.form.invalid || this.fileInvalid() || this.reading()) {
       this.form.markAllAsTouched();
       return;
     }
@@ -468,7 +500,7 @@ export class UploadSchemesComponent implements OnInit {
             createdBy: userName,
             kmFileManager: {
               fileName: this.file.name,
-              fileExtension: '.' + this.file.name.split('.')[1],
+              fileExtension: '.' + (this.fileExt ?? ''),
               providerServiceMapID: psmID,
               userID,
               fileContent: this.fileContent.split(',')[1] ?? '',

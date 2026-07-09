@@ -211,9 +211,21 @@ export class AlternateEmailDialogComponent implements OnInit {
     this.manualEmails.removeAt(index);
   }
 
-  /** Legacy gating: at least one authority email picked, manual rows all valid. */
+  /**
+   * Enabled when there is at least one recipient — a picked authority email OR a
+   * valid manually-entered address — and all manual rows are valid. This lets the
+   * supervisor still forward the grievance when the district has no authority
+   * emails on file (the "Add manually" fallback), which the legacy
+   * authority-only gate blocked.
+   */
   canSend(): boolean {
-    return this.selected().size > 0 && this.manualForm.valid;
+    if (!this.manualForm.valid) {
+      return false;
+    }
+    const manualCount = this.manualEmails.controls.filter(
+      (c) => ((c.value as string) ?? '').trim().length > 0,
+    ).length;
+    return this.selected().size > 0 || manualCount > 0;
   }
 
   send(): void {
