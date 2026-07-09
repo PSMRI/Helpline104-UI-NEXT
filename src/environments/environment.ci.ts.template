@@ -31,6 +31,7 @@ const mmuAPI = '<%= MMU_API_BASE %>';
 const adminAPI = '<%= ADMIN_API_BASE %>';
 const telephoneServer = '<%= TELEPHONE_SERVER %>';
 const fhirAPI = '<%= FHIR_API_BASE %>';
+const openKmBaseUrl = '<%= OPENKM_BASE_URL %>';
 const API1097 = '<%= API_1097_BASE %>';
 const API104 = '<%= API_104_BASE %>';
 const siteKey = '<%= SITE_KEY %>';
@@ -43,6 +44,7 @@ export const environment = {
   commonAPI: commonAPI,
   ip1097: API1097,
   telephoneServer: telephoneServer,
+  openKmBaseUrl: openKmBaseUrl,
   adminAPI: adminAPI,
   ip104: API104,
   mmuAPI: mmuAPI,
