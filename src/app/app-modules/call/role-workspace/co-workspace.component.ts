@@ -29,7 +29,9 @@ import { RoleWorkspaceComponent } from './role-workspace.component';
  *
  * Ported from the legacy `104-co`: a counselling case-sheet → closure wizard.
  * (The legacy CO also exposed Blood-request / Directory service tabs; those
- * remain the shared service tabs and are wired separately.)
+ * remain the shared service tabs and are wired separately.) The legacy CO
+ * auto-opened the beneficiary-consent dialog on entry; `requireConsent`
+ * restores that gate.
  */
 @Component({
   selector: 'app-co-workspace',
@@ -40,6 +42,7 @@ import { RoleWorkspaceComponent } from './role-workspace.component';
     <app-role-workspace
       titleKey="roleWorkspace.co.title"
       subtitleKey="roleWorkspace.co.subtitle"
+      [requireConsent]="true"
     />
   `,
 })

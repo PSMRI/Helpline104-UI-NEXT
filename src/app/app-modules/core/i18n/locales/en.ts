@@ -579,6 +579,13 @@ export const en = {
   'reports.cdi.empty': 'No report found for this call.',
   'reports.cdi.error': 'Unable to load the report. Please try again.',
 
+  // Beneficiary consent (CO / Counsellor), ported from the legacy 104-consent
+  'consent.title': 'Beneficiary Consent',
+  'consent.message':
+    'Namaskar, I am your Counselor. Thank you for seeking counselling services from 104 Helpline. Our conversations throughout the course of counselling will be confidential. However, call recordings may be utilized for internal training & research purposes. Our team may follow up with you at periodic intervals to monitor progress. You are free to withdraw from the counselling service at any point of time. Do you agree to these terms of service?',
+  'consent.yes': 'Yes',
+  'consent.no': 'No',
+
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'Services',
   'hao.service.comingSoon': 'This service will be available soon.',

@@ -41,6 +41,7 @@ import { RoleWorkspaceComponent } from './role-workspace.component';
     <app-role-workspace
       titleKey="roleWorkspace.counsellor.title"
       subtitleKey="roleWorkspace.counsellor.subtitle"
+      [requireConsent]="true"
     />
   `,
 })
