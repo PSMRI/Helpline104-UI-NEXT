@@ -1246,6 +1246,7 @@ export const en = {
   // Blood bank URL
   'supBlood.title': 'Update Blood URL',
   'supBlood.currentUrl': 'Current URL',
+  'supBlood.urlPlaceholder': 'Enter URL starting with http',
   'supBlood.urlLabel': 'Blood Bank URL',
   'supBlood.invalidUrl': 'Invalid URL',
   'supBlood.edit': 'Edit',

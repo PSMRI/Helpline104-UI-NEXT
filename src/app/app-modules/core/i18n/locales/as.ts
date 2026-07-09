@@ -1253,6 +1253,7 @@ export const as: Record<TranslationKey, string> = {
   // Blood bank URL
   'supBlood.title': 'ৰক্তৰ ইউআৰএল (URL) আপডেট কৰক',
   'supBlood.currentUrl': 'বৰ্তমান ইউআৰএল',
+  'supBlood.urlPlaceholder': 'http ৰে আৰম্ভ হোৱা ইউআৰএল দিয়ক',
   'supBlood.urlLabel': 'ব্লাড বেংক ইউআৰএল',
   'supBlood.invalidUrl': 'অবৈধ ইউআৰএল',
   'supBlood.edit': 'সম্পাদনা কৰক',
