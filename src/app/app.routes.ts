@@ -185,16 +185,81 @@ export const routes: Routes = [
       // Sidebar sections not yet migrated share the placeholder component
       // until their real screens land. The config-owned sections (grievance,
       // upload-schemes, communication/*, force-logout, content-management,
-      // blood-url) get their real routes in the stacked config branch. `reports`
-      // is a placeholder here so its sidebar link resolves on this branch alone;
-      // the stacked reports branch (PR #20) replaces it with the real hub.
+      // blood-url) get their real routes in the stacked config branch and are
+      // deliberately not placeholdered here.
+      {
+        // Reports hub: every supervisor report behind one tabbed container.
+        path: 'reports',
+        loadComponent: () =>
+          import('./app-modules/supervisor/reports/reports-hub.component').then(
+            (m) => m.SupervisorReportsHubComponent,
+          ),
+        children: [
+          { path: '', redirectTo: 'call-quality', pathMatch: 'full' },
+          {
+            path: 'call-quality',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/call-quality-report.component').then(
+                (m) => m.CallQualityReportComponent,
+              ),
+          },
+          {
+            path: 'qa-report',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/qa-report.component').then(
+                (m) => m.QaReportComponent,
+              ),
+          },
+          {
+            path: 'call-summary',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/call-summary-report.component').then(
+                (m) => m.CallSummaryReportComponent,
+              ),
+          },
+          {
+            path: 'call-type',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/call-type-reports.component').then(
+                (m) => m.CallTypeReportsComponent,
+              ),
+          },
+          {
+            path: 'complaint-detail',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/complaint-detail-report.component').then(
+                (m) => m.ComplaintDetailReportComponent,
+              ),
+          },
+          {
+            path: 'district-call-volume',
+            loadComponent: () =>
+              import(
+                './app-modules/supervisor/reports/district-call-volume-report.component'
+              ).then((m) => m.DistrictCallVolumeReportComponent),
+          },
+          {
+            path: 'diseases-summary',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/diseases-summary-report.component').then(
+                (m) => m.DiseasesSummaryReportComponent,
+              ),
+          },
+          {
+            path: 'unblock-user',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/unblock-user-report.component').then(
+                (m) => m.UnblockUserReportComponent,
+              ),
+          },
+        ],
+      },
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
         ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
-        ['reports', 'supervisor.nav.reports'],
       ].map(([path, titleKey]) => ({
         path,
         data: { titleKey },
