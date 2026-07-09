@@ -471,6 +471,34 @@ export const en = {
     'Activities, reports and configurations for supervisors will be managed here.',
   'supervisor.backToDashboard': 'Back to Dashboard',
 
+  // Supervisor workspace shell
+  'supervisor.nav.overview': 'Overview',
+  'supervisor.nav.activities': 'Activities',
+  'supervisor.nav.agentStatus': 'Agent Status',
+  'supervisor.nav.blockUnblock': 'Block / Unblock Number',
+  'supervisor.nav.outboundAllocation': 'Outbound Call Allocation',
+  'supervisor.nav.outboundReallocation': 'Outbound Call Re-allocation',
+  'supervisor.nav.qualityAudit': 'Quality Audit',
+  'supervisor.nav.grievance': 'Grievance Tracking',
+  'supervisor.nav.uploadSchemes': 'Upload Schemes',
+  'supervisor.nav.uploadSymptoms': 'Upload Symptoms',
+  'supervisor.nav.communication': 'Communication',
+  'supervisor.nav.forceLogout': 'Force Logout',
+  'supervisor.nav.reports': 'Reports',
+  'supervisor.nav.configurations': 'Configurations',
+  'supervisor.nav.contentManagement': 'Content Management',
+  'supervisor.nav.smsTemplates': 'SMS Templates',
+  'supervisor.nav.bloodUrl': 'Blood Bank URL',
+  'supervisor.nav.diseasesSummary': 'Diseases Summary',
+  'supervisor.home.title': 'Supervisor Console',
+  'supervisor.home.reportsHint': 'Download call, quality and CRM reports.',
+  'supervisor.home.blockUnblockHint': 'Manage blacklisted caller numbers.',
+  'supervisor.home.outboundAllocationHint': 'Allocate unassigned outbound calls to agents.',
+  'supervisor.home.outboundReallocationHint': 'Move allocated outbound calls between agents.',
+  'supervisor.placeholder.title': 'Coming soon',
+  'supervisor.placeholder.body':
+    'This supervisor section has not been migrated yet. Please use the legacy application for now.',
+
   // Post-logout feedback page
   'feedback.loggedOut': 'You have logged out of the session',
   'feedback.subtitle': 'We’d love to hear about your experience (optional)',
@@ -856,6 +884,12 @@ export const en = {
   'sio.outbound.designation': 'Designation',
   'sio.outbound.feedback': 'Feedback',
   'sio.outbound.requestFulfilled': 'Request Fulfilled',
+
+  // Communication nav additions (sidebar)
+  'supervisor.nav.alertsNotifications': 'Alerts & Notifications',
+  'supervisor.nav.locationMessages': 'Location Messages',
+  'supervisor.nav.trainingResources': 'Training Resources',
+  'supervisor.nav.emergencyContacts': 'Emergency Contacts',
 } as const;
 
 /** Every translatable key in the app, derived from the English dictionary. */

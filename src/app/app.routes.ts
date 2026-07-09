@@ -156,20 +156,46 @@ export const routes: Routes = [
     ],
   },
   {
+    // Supervisor Activity Area: a sidebar shell hosting the supervisor
+    // sections (activities, reports, configurations) as routed children.
+    // Sections not yet migrated share the placeholder component.
     path: 'supervisor',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./app-modules/supervisor/supervisor.component').then((m) => m.SupervisorComponent),
-  },
-  {
-    // Supervisor: block / unblock a caller number and review nuisance-call
-    // recordings.
-    path: 'supervisor/block-unblock',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./app-modules/supervisor/config/block-unblock.component').then(
-        (m) => m.BlockUnblockComponent,
+      import('./app-modules/supervisor/supervisor-workspace.component').then(
+        (m) => m.SupervisorWorkspaceComponent,
       ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./app-modules/supervisor/supervisor-home.component').then(
+            (m) => m.SupervisorHomeComponent,
+          ),
+      },
+      {
+        // Block / unblock a caller number and review nuisance-call recordings.
+        path: 'block-unblock',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/block-unblock.component').then(
+            (m) => m.BlockUnblockComponent,
+          ),
+      },
+      ...[
+        ['agent-status', 'supervisor.nav.agentStatus'],
+        ['quality-audit', 'supervisor.nav.qualityAudit'],
+        ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
+        ['sms-templates', 'supervisor.nav.smsTemplates'],
+        ['diseases-summary', 'supervisor.nav.diseasesSummary'],
+      ].map(([path, titleKey]) => ({
+        path,
+        data: { titleKey },
+        loadComponent: () =>
+          import('./app-modules/supervisor/supervisor-placeholder.component').then(
+            (m) => m.SupervisorPlaceholderComponent,
+          ),
+      })),
+    ],
   },
   {
     // Outbound campaign screens (worklist, on-call workspace, and the
