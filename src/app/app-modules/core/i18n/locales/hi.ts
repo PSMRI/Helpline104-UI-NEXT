@@ -74,6 +74,17 @@ export const hi: Record<TranslationKey, string> = {
   'dashboard.alerts.noOfficeBulletin': 'कोई कार्यालय संदेश नहीं मिला',
   'dashboard.alerts.noNotifications': 'कोई सूचना संदेश नहीं मिला',
 
+  // Alerts & Notifications messages dialog
+  'dashboard.alertsDialog.empty': 'कोई संदेश नहीं मिला',
+  'dashboard.alertsDialog.markRead': 'पढ़ा हुआ चिह्नित करें',
+  'dashboard.alertsDialog.markUnread': 'अपठित चिह्नित करें',
+  'dashboard.alertsDialog.delete': 'हटाएं',
+  'dashboard.alertsDialog.deleteTitle': 'हटाएं',
+  'dashboard.alertsDialog.deleteConfirm': 'क्या आप वाकई हटाना चाहते हैं?',
+  'dashboard.alertsDialog.readAll': 'सभी पढ़े हुए',
+  'dashboard.alertsDialog.unreadAll': 'सभी अपठित',
+  'dashboard.alertsDialog.error': 'संदेश अपडेट नहीं हो सका। कृपया पुनः प्रयास करें।',
+
   // Reports panel
   'dashboard.reports.title': 'विवरण',
   'dashboard.reports.sno': 'क्र.सं.',
