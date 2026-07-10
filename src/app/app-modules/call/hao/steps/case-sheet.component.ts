@@ -23,12 +23,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
   output,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -44,10 +46,15 @@ import { AuthStore } from '../../../core/auth/auth.store';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslationKey } from '../../../core/i18n/locales';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
+import { CallStore } from '../../call.store';
 import { CasesheetHistoryMctsComponent } from '../../casesheet-history/casesheet-history-mcts.component';
 import { CasesheetHistoryMmuComponent } from '../../casesheet-history/casesheet-history-mmu.component';
 import { MmuVisitRow } from '../../casesheet-history/other-helpline.models';
+import { CdssComponent } from '../../case-sheet/cdss.component';
+import type { CdssGender, CdssSelection } from '../../case-sheet/cdss.models';
 import { DiseaseSummaryDetail } from '../../case-sheet/disease-summary.models';
+import { SnomedSearchComponent } from '../../case-sheet/snomed-search.component';
+import type { SnomedTerm } from '../../case-sheet/snomed.models';
 import { ViewDiseaseSummaryDetailsComponent } from '../../case-sheet/view-disease-summary-details.component';
 import {
   AvailableDisease,
@@ -58,6 +65,20 @@ import { HaoService } from '../hao.service';
 
 /** History tabs shown in the case-sheet history section. */
 type HistoryTab = 'mcts' | 'mmu' | 'tm';
+
+/** Map a gender name (any casing) to the single-letter CDSS gender code. */
+function toCdssGender(genderName: string | null | undefined): CdssGender | null {
+  switch (genderName?.trim().charAt(0).toUpperCase()) {
+    case 'M':
+      return 'M';
+    case 'F':
+      return 'F';
+    case 'T':
+      return 'T';
+    default:
+      return null;
+  }
+}
 
 /**
  * Health Advisory case sheet — the primary HAO service (legacy `<app-case-sheet>`,
@@ -81,6 +102,8 @@ type HistoryTab = 'mcts' | 'mmu' | 'tm';
     CasesheetHistoryMctsComponent,
     CasesheetHistoryMmuComponent,
     ViewDiseaseSummaryDetailsComponent,
+    SnomedSearchComponent,
+    CdssComponent,
   ],
   template: `
     <form
@@ -119,6 +142,8 @@ type HistoryTab = 'mcts' | 'mmu' | 'tm';
             }
           </p>
         }
+        <!-- SNOMED CT search: picking a term fills the chief complaint above. -->
+        <app-snomed-search (selected)="onSnomedSelected($event)" />
       </div>
 
       <div class="flex flex-col gap-1.5">
@@ -187,6 +212,17 @@ type HistoryTab = 'mcts' | 'mmu' | 'tm';
           formControlName="remarks"
         ></textarea>
       </div>
+
+      <!-- Clinical decision support: fed the chief complaint above plus the
+           caller's age/gender; accepting a suggestion fills Health Advice. -->
+      <app-cdss
+        [complaint]="complaint()"
+        [age]="patientAge()"
+        [gender]="patientGender()"
+        [role]="roleCode()"
+        [disabled]="saving()"
+        (selection)="onCdssSelection($event)"
+      />
 
       <div class="flex justify-end">
         <button
@@ -290,6 +326,7 @@ export class CaseSheetComponent {
   private readonly fb = inject(FormBuilder);
   private readonly haoService = inject(HaoService);
   private readonly authStore = inject(AuthStore);
+  private readonly callStore = inject(CallStore);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
@@ -332,6 +369,34 @@ export class CaseSheetComponent {
     healthAdvice: this.fb.control<string | null>(null),
     remarks: this.fb.control<string | null>(null),
   });
+
+  /** Live chief-complaint text — the symptom the embedded CDSS advises on. */
+  readonly complaint = toSignal(this.form.controls.chiefComplaints.valueChanges, {
+    initialValue: this.form.controls.chiefComplaints.value,
+  });
+
+  /** Patient context for the embedded clinical tools (from the CallStore). */
+  readonly patientAge = computed(() => this.callStore.demographics()?.age ?? null);
+  readonly patientGender = computed<CdssGender | null>(() =>
+    toCdssGender(this.callStore.demographics()?.genderName),
+  );
+  /** Current role's feature code (CDSS warns non-MO roles to transfer). */
+  readonly roleCode = computed(() => this.authStore.currentRole()?.featureCode ?? '');
+
+  /** A picked SNOMED CT term becomes the chief complaint. */
+  onSnomedSelected(term: SnomedTerm): void {
+    this.form.controls.chiefComplaints.setValue(term.term);
+    this.form.controls.chiefComplaints.markAsDirty();
+  }
+
+  /** Accepted CDSS advice is written into the health-advice field. */
+  onCdssSelection(selection: CdssSelection): void {
+    const action = selection.recommendedAction?.trim();
+    if (action) {
+      this.form.controls.healthAdvice.setValue(action);
+      this.form.controls.healthAdvice.markAsDirty();
+    }
+  }
 
   constructor() {
     this.haoService.getAvailableDiseases().subscribe({

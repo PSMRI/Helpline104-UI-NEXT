@@ -123,6 +123,8 @@ export const en = {
   'registration.history.empty': 'No existing registrations for this number.',
   'registration.search.empty': 'No beneficiaries match your search.',
   'registration.search.prompt': 'Enter a name or registration ID, then search.',
+  'registration.search.error':
+    'The search could not be completed — it may have timed out. Please try again.',
   'registration.col.regId': 'Reg. ID',
   'registration.col.name': 'Name',
   'registration.col.gender': 'Gender',
@@ -595,6 +597,10 @@ export const en = {
   'hao.service.covid19': 'Covid-19',
   'hao.service.imrMmr': 'IMR / MMR Information',
   'hao.service.balVivah': 'Bal Vivah',
+  'hao.service.snomed': 'SNOMED CT',
+  'hao.service.cdss': 'CDSS',
+  'hao.service.prescription': 'Prescription',
+  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'Chief Complaints',

@@ -56,7 +56,7 @@ import { ZardTableImports } from '@common-ui/ui/table';
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { CallStore } from '../call.store';
+import { CallerDemographics, CallStore } from '../call.store';
 import { BeneficiaryService } from './beneficiary.service';
 import {
   BeneficiaryError,
@@ -370,7 +370,14 @@ function validDob(control: AbstractControl): ValidationErrors | null {
           </div>
 
           <div class="mt-5">
-            @if (!searchAttempted()) {
+            @if (searchError()) {
+              <p
+                class="rounded-md border border-dashed border-destructive/50 py-8 text-center text-sm font-medium text-destructive"
+                role="alert"
+              >
+                {{ 'registration.search.error' | translate: lang() }}
+              </p>
+            } @else if (!searchAttempted()) {
               <p class="text-sm text-muted-foreground">
                 {{ 'registration.search.prompt' | translate: lang() }}
               </p>
@@ -1052,6 +1059,8 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   readonly searchLoading = signal(false);
   readonly searchAttempted = signal(false);
   readonly searchCriteriaError = signal(false);
+  /** True when the last search request failed (e.g. a 504 timeout). */
+  readonly searchError = signal(false);
   /**
    * Monotonic id for the latest search request. Bumped on every {@link doSearch}
    * call (including the empty-criteria reset), so a slow in-flight response whose
@@ -1528,12 +1537,14 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       this.searchResults.set([]);
       this.searchAttempted.set(false);
       this.searchCriteriaError.set(true);
+      this.searchError.set(false);
       // A prior in-flight request is now stale (its handlers early-return), so
       // clear the loading flag here or it would stay stuck on.
       this.searchLoading.set(false);
       return;
     }
     this.searchCriteriaError.set(false);
+    this.searchError.set(false);
     this.searchLoading.set(true);
 
     this.beneficiary
@@ -1552,6 +1563,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
           }
           this.searchResults.set(rows);
           this.searchAttempted.set(true);
+          this.searchError.set(false);
           this.searchLoading.set(false);
         },
         error: (err: BeneficiaryError) => {
@@ -1559,10 +1571,13 @@ export class BeneficiaryRegistrationComponent implements OnInit {
             return;
           }
           this.searchLoading.set(false);
-          this.searchAttempted.set(true);
           this.searchResults.set([]);
+          // A failed request is NOT an empty result — flag it so the panel shows
+          // a retryable error (e.g. a 504 timeout) instead of "no matches".
+          this.searchAttempted.set(true);
+          this.searchError.set(true);
           toast.error(
-            err?.errorMessage || this.i18n.instant('registration.toast.error'),
+            err?.errorMessage || this.i18n.instant('registration.search.error'),
           );
         },
       });
@@ -1655,6 +1670,15 @@ export class BeneficiaryRegistrationComponent implements OnInit {
             created.beneficiaryRegID,
             'registration.toast.registered',
             v.districtID,
+            {
+              firstName: v.firstName.trim() || null,
+              lastName: v.lastName.trim() || null,
+              // Age captured in years only (the form's default age unit); other
+              // units are left null so the clinical tools don't misread them.
+              age: v.ageUnit === 'years' ? v.age : null,
+              genderId: v.genderID,
+              genderName,
+            },
           );
         },
         error: (err: BeneficiaryError) => {
@@ -1697,10 +1721,23 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
   /** Select an existing beneficiary for this call. */
   selectBeneficiary(row: BeneficiaryRecord): void {
+    // Age is only meaningful in years for the clinical tools; a months/days
+    // infant age is left null rather than mis-read as years.
+    const ageInYears =
+      row.ageUnits === undefined || /year/i.test(row.ageUnits)
+        ? (row.actualAge ?? null)
+        : null;
     this.resolveBeneficiary(
       row.beneficiaryRegID,
       'registration.toast.selected',
       readDistrictID(row.i_bendemographics?.['districtID']),
+      {
+        firstName: row.firstName ?? null,
+        lastName: row.lastName ?? null,
+        age: ageInYears,
+        genderId: row.m_gender?.genderID ?? null,
+        genderName: row.m_gender?.genderName ?? null,
+      },
     );
   }
 
@@ -1708,8 +1745,10 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     beneficiaryRegID: number,
     toastKey: 'registration.toast.selected' | 'registration.toast.registered',
     districtID: number | null,
+    demographics: CallerDemographics,
   ): void {
     this.callStore.setBeneficiaryId(beneficiaryRegID, districtID);
+    this.callStore.setDemographics(demographics);
     toast.success(this.i18n.instant(toastKey));
     void this.router.navigate(['/innerpage']);
   }
