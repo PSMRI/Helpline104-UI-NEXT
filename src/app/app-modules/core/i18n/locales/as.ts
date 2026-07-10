@@ -330,6 +330,12 @@ export const as: Record<TranslationKey, string> = {
   'casesheetHistory.empty': 'কোনো ৰেকৰ্ড পোৱা নগ’ল।',
   'casesheetHistory.loadError': 'ইতিহাস ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'casesheetHistory.action': 'কাৰ্য',
+  'casesheetHistory.sectionTitle': 'কেছ-শ্বীট ইতিহাস',
+  'casesheetHistory.show': 'ইতিহাস চাওক',
+  'casesheetHistory.hide': 'ইতিহাস লুকুৱাওক',
+  'casesheetHistory.tabMcts': 'MCTS',
+  'casesheetHistory.tabMmu': 'ই-স্বাস্থ্য কেন্দ্ৰ',
+  'casesheetHistory.tabTm': 'টেলিমেডিচিন',
   'casesheetHistory.mcts.title': 'MCTS কল ইতিহাস',
   'casesheetHistory.mcts.callType': 'কলৰ প্ৰকাৰ',
   'casesheetHistory.mcts.callDate': 'কলৰ তাৰিখ',
@@ -347,6 +353,9 @@ export const as: Record<TranslationKey, string> = {
   'casesheetHistory.mmu.visitCategory': 'ভ্ৰমণৰ শ্ৰেণী',
   'casesheetHistory.mmu.visitCode': 'ভ্ৰমণ ক’ড',
   'casesheetHistory.mmu.view': 'চাওক',
+  'casesheetHistory.mmu.selectedVisit': 'নিৰ্বাচিত ভ্ৰমণ',
+  'casesheetHistory.mmu.detailUnavailable':
+    'এই ভ্ৰমণৰ সম্পূৰ্ণ কেছ-শ্বীট দৃশ্য এতিয়ালৈকে উপলব্ধ নহয়।',
 
   // Schedule appointment
   'appointment.title': 'এপইণ্টমেণ্ট সূচী কৰক',
@@ -600,6 +609,9 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.healthAdvicePlaceholder': 'কলাৰক দিয়া পৰামৰ্শ',
   'hao.caseSheet.remarks': 'মন্তব্য',
   'hao.caseSheet.save': 'কেছ শ্বীট সংৰক্ষণ কৰক',
+  'hao.caseSheet.viewDiseaseSummary': 'ৰোগৰ সাৰাংশ চাওক',
+  'hao.caseSheet.diseaseSummaryError':
+    'ৰোগৰ সাৰাংশ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.caseSheet.saveSuccess': 'কেছ শ্বীট সফলতাৰে সংৰক্ষণ কৰা হ’ল।',
   'hao.caseSheet.saveError': 'কেছ শ্বীট সংৰক্ষণ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
 
@@ -623,6 +635,7 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.selectSkill': 'দক্ষতা বাছনি কৰক',
   'hao.closure.transfer': 'স্থানান্তৰ কৰক',
   'hao.closure.submitContinue': 'দাখিল কৰক আৰু অব্যাহত ৰাখক',
+  'hao.closure.scheduleAppointment': 'এপইণ্টমেণ্ট সময়সূচী কৰক',
   'hao.closure.submitClose': 'দাখিল কৰক আৰু বন্ধ কৰক',
   'hao.closure.confirmTitle': 'সমাপন',
   'hao.closure.confirmContinue': 'এই ডিচপোজিচন দাখিল কৰি কল অব্যাহত ৰাখিব নে?',
