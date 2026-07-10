@@ -20,34 +20,21 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideDownload, lucideEye } from '@ng-icons/lucide';
-
-import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
-import { AuthStore } from '../../core/auth/auth.store';
-import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
-import { ReportRunner } from './report-runner';
-import { ReportResultsComponent } from './report-results.component';
+import { ReportFormBase } from './report-form-base';
+import { ReportDateRangeComponent } from './report-date-range.component';
+import { ReportShellComponent } from './report-shell.component';
 import { CallTypeGroup, CallTypeOption, RoleOption } from './reports.models';
-import { SupervisorReportsService } from './reports.service';
-import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from './reports.util';
+import { rangeEndIso, rangeStartIso } from './reports.util';
+
+const FILE_NAME = 'Call_Summary_Report';
 
 /**
  * Call Summary report (legacy `SupervisorCallSummaryReportComponent`): a date
@@ -61,52 +48,26 @@ import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from 
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    NgIcon,
     TranslatePipe,
-    ZardButtonComponent,
     ZardInputDirective,
-    ReportResultsComponent,
+    ReportDateRangeComponent,
+    ReportShellComponent,
   ],
-  viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
-    <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <h3 class="mb-4 text-base font-semibold text-foreground">
-        {{ 'supReports.callSummary.title' | translate: lang() }}
-      </h3>
-
-      @if (runner.errorMessage()) {
-        <p class="mb-3 text-sm font-medium text-destructive" role="alert">
-          {{ runner.errorMessage() }}
-        </p>
-      }
-
+    <app-report-shell
+      titleKey="supReports.callSummary.title"
+      [runner]="runner"
+      [disabled]="form.invalid"
+      (view)="view()"
+      (export)="export()"
+    >
       <form [formGroup]="form" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <label for="cs-start" class="mb-1 block text-xs font-medium text-muted-foreground">
-            {{ 'supReports.startDate' | translate: lang() }}
-          </label>
-          <input
-            id="cs-start"
-            type="date"
-            [class]="selectClass"
-            formControlName="startDate"
-            [max]="maxDate"
-            (change)="onStartChange()"
-          />
-        </div>
-        <div>
-          <label for="cs-end" class="mb-1 block text-xs font-medium text-muted-foreground">
-            {{ 'supReports.endDate' | translate: lang() }}
-          </label>
-          <input
-            id="cs-end"
-            type="date"
-            [class]="selectClass"
-            formControlName="endDate"
-            [min]="form.controls.startDate.value"
-            [max]="endMax()"
-          />
-        </div>
+        <app-report-date-range
+          idPrefix="cs"
+          [start]="form.controls.startDate"
+          [end]="form.controls.endDate"
+          [maxDate]="maxDate"
+        />
         <div>
           <label for="cs-role" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supReports.filter.skillset' | translate: lang() }}
@@ -163,67 +124,21 @@ import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from 
           </select>
         </div>
       </form>
-
-      <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
-          <ng-icon name="lucideEye" size="16" aria-hidden="true" />
-          {{ 'supReports.view' | translate: lang() }}
-        </button>
-        <button
-          z-button
-          type="button"
-          zType="outline"
-          [zLoading]="runner.exporting()"
-          [zDisabled]="form.invalid"
-          (click)="export()"
-        >
-          <ng-icon name="lucideDownload" size="16" aria-hidden="true" />
-          {{ 'supReports.export' | translate: lang() }}
-        </button>
-      </div>
-
-      <app-report-results [runner]="runner" />
-    </section>
+    </app-report-shell>
   `,
 })
-export class CallSummaryReportComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
-  private readonly service = inject(SupervisorReportsService);
-  private readonly authStore = inject(AuthStore);
-  private readonly i18n = inject(I18nService);
-  private readonly destroyRef = inject(DestroyRef);
-
-  readonly lang = this.i18n.language;
-  readonly selectClass = SUP_SELECT_CLASS;
-  readonly maxDate = todayInput();
-  readonly runner = new ReportRunner(this.i18n, this.destroyRef);
-
+export class CallSummaryReportComponent extends ReportFormBase implements OnInit {
   readonly form = this.fb.group({
-    startDate: this.fb.control<string>('', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    endDate: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
+    ...this.dateRangeControls(),
     roleName: this.fb.control<string | null>(null),
     agentID: this.fb.control<string>('', { nonNullable: true }),
     callType: this.fb.control<CallTypeGroup | null>(null),
     subCallType: this.fb.control<CallTypeOption | null>(null),
   });
 
-  readonly endMax = signal(this.maxDate);
   readonly roles = signal<RoleOption[]>([]);
   readonly callTypeGroups = signal<CallTypeGroup[]>([]);
   readonly callSubTypes = signal<CallTypeOption[]>([]);
-
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
 
   ngOnInit(): void {
     const psmID = this.providerServiceMapID();
@@ -237,15 +152,6 @@ export class CallSummaryReportComponent implements OnInit {
       .subscribe({ next: (groups) => this.callTypeGroups.set(groups), error: () => undefined });
   }
 
-  onStartChange(): void {
-    const { startDate, endDate } = this.form.getRawValue();
-    this.endMax.set(maxEndFor(startDate, this.maxDate));
-    const clamped = clampEndDate(startDate, endDate, this.maxDate);
-    if (clamped) {
-      this.form.patchValue({ endDate: clamped });
-    }
-  }
-
   /** Repopulate the sub-type options from the chosen group (legacy). */
   onCallTypeChange(): void {
     const group = this.form.controls.callType.value;
@@ -253,15 +159,11 @@ export class CallSummaryReportComponent implements OnInit {
     this.callSubTypes.set(group?.callTypes ?? []);
   }
 
-  view(): void {
-    this.runner.view(this.request());
+  protected exportFileName(): string {
+    return FILE_NAME;
   }
 
-  export(): void {
-    this.runner.export(this.request(), 'Call_Summary_Report');
-  }
-
-  private request(): Observable<Blob> {
+  protected request(): Observable<Blob> {
     const value = this.form.getRawValue();
     return this.service.getCallSummaryReport({
       startDate: rangeStartIso(value.startDate),
@@ -271,7 +173,7 @@ export class CallSummaryReportComponent implements OnInit {
       roleName: value.roleName,
       callTypeName: value.callType?.callGroupType ?? null,
       callTypeID: value.subCallType?.callTypeID ?? null,
-      fileName: 'Call_Summary_Report',
+      fileName: FILE_NAME,
     });
   }
 }

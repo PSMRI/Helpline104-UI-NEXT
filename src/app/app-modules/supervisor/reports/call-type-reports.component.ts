@@ -20,31 +20,17 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideDownload, lucideEye } from '@ng-icons/lucide';
-
-import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
-import { AuthStore } from '../../core/auth/auth.store';
-import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
-import { ReportRunner } from './report-runner';
-import { ReportResultsComponent } from './report-results.component';
+import { ReportFormBase } from './report-form-base';
+import { ReportDateRangeComponent } from './report-date-range.component';
+import { ReportShellComponent } from './report-shell.component';
 import {
   ComplaintDetailRequest,
   DistrictOption,
@@ -55,15 +41,8 @@ import {
   VillageOption,
   WorkLocationOption,
 } from './reports.models';
-import { Crm104ReportKey, SupervisorReportsService } from './reports.service';
-import {
-  clampEndDate,
-  maxEndFor,
-  rangeEndIso,
-  rangeStartIso,
-  stateIDForRole,
-  todayInput,
-} from './reports.util';
+import { Crm104ReportKey } from './reports.service';
+import { rangeEndIso, rangeStartIso, stateIDForRole } from './reports.util';
 
 /** Simple date-range services: service name → endpoint key + file name. */
 const SIMPLE_SERVICES: Record<string, { key: Crm104ReportKey; fileName: string }> = {
@@ -100,52 +79,26 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    NgIcon,
     TranslatePipe,
-    ZardButtonComponent,
     ZardInputDirective,
-    ReportResultsComponent,
+    ReportDateRangeComponent,
+    ReportShellComponent,
   ],
-  viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
-    <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <h3 class="mb-4 text-base font-semibold text-foreground">
-        {{ 'supReports.callTypeReports.title' | translate: lang() }}
-      </h3>
-
-      @if (runner.errorMessage()) {
-        <p class="mb-3 text-sm font-medium text-destructive" role="alert">
-          {{ runner.errorMessage() }}
-        </p>
-      }
-
+    <app-report-shell
+      titleKey="supReports.callTypeReports.title"
+      [runner]="runner"
+      [disabled]="form.invalid"
+      (view)="view()"
+      (export)="export()"
+    >
       <form [formGroup]="form" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <label for="ct-start" class="mb-1 block text-xs font-medium text-muted-foreground">
-            {{ 'supReports.startDate' | translate: lang() }}
-          </label>
-          <input
-            id="ct-start"
-            type="date"
-            [class]="selectClass"
-            formControlName="startDate"
-            [max]="maxDate"
-            (change)="onStartChange()"
-          />
-        </div>
-        <div>
-          <label for="ct-end" class="mb-1 block text-xs font-medium text-muted-foreground">
-            {{ 'supReports.endDate' | translate: lang() }}
-          </label>
-          <input
-            id="ct-end"
-            type="date"
-            [class]="selectClass"
-            formControlName="endDate"
-            [min]="form.controls.startDate.value"
-            [max]="endMax()"
-          />
-        </div>
+        <app-report-date-range
+          idPrefix="ct"
+          [start]="form.controls.startDate"
+          [end]="form.controls.endDate"
+          [maxDate]="maxDate"
+        />
         <div>
           <label for="ct-service" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supReports.filter.service' | translate: lang() }}
@@ -165,7 +118,7 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
           </select>
         </div>
 
-        @if (service() === 'Grievance') {
+        @if (selectedService() === 'Grievance') {
           <div>
             <label for="ct-grtype" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supReports.filter.type' | translate: lang() }}
@@ -179,7 +132,7 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
           </div>
         }
 
-        @if (service() === 'Blood Request Detail') {
+        @if (selectedService() === 'Blood Request Detail') {
           <div>
             <label for="ct-brd" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supReports.filter.searchCriteria' | translate: lang() }}
@@ -200,7 +153,7 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
           </div>
         }
 
-        @if (service() === 'Counselling Service Detail') {
+        @if (selectedService() === 'Counselling Service Detail') {
           <div>
             <label for="ct-cd" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supReports.filter.reportOn' | translate: lang() }}
@@ -268,7 +221,7 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
           </div>
         }
 
-        @if (service() === 'Medical Services Detail') {
+        @if (selectedService() === 'Medical Services Detail') {
           <div>
             <label for="ct-role" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supReports.filter.skillset' | translate: lang() }}
@@ -297,7 +250,7 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
           </div>
         }
 
-        @if (service() === 'Grievance Detail') {
+        @if (selectedService() === 'Grievance Detail') {
           <div>
             <label for="ct-fbtype" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supReports.filter.feedbackType' | translate: lang() }}
@@ -345,55 +298,15 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
           />
         </div>
       </form>
-
-      <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
-          <ng-icon name="lucideEye" size="16" aria-hidden="true" />
-          {{ 'supReports.view' | translate: lang() }}
-        </button>
-        <button
-          z-button
-          type="button"
-          zType="outline"
-          [zLoading]="runner.exporting()"
-          [zDisabled]="form.invalid"
-          (click)="export()"
-        >
-          <ng-icon name="lucideDownload" size="16" aria-hidden="true" />
-          {{ 'supReports.export' | translate: lang() }}
-        </button>
-      </div>
-
-      <app-report-results [runner]="runner" />
-    </section>
+    </app-report-shell>
   `,
 })
-export class CallTypeReportsComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
-  private readonly service_ = inject(SupervisorReportsService);
-  private readonly authStore = inject(AuthStore);
-  private readonly i18n = inject(I18nService);
-  private readonly destroyRef = inject(DestroyRef);
-
-  readonly lang = this.i18n.language;
-  readonly selectClass = SUP_SELECT_CLASS;
-  readonly maxDate = todayInput();
+export class CallTypeReportsComponent extends ReportFormBase implements OnInit {
   readonly brdCriterias = BRD_CRITERIAS;
   readonly cdCriterias = CD_CRITERIAS;
-  readonly runner = new ReportRunner(this.i18n, this.destroyRef);
 
   readonly form = this.fb.group({
-    startDate: this.fb.control<string>('', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    endDate: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
+    ...this.dateRangeControls(),
     service: this.fb.control<string | null>(null, Validators.required),
     grievanceType: this.fb.control<number | 'all'>('all', { nonNullable: true }),
     searchCriteriaBRD: this.fb.control<string | null>(null),
@@ -408,8 +321,7 @@ export class CallTypeReportsComponent implements OnInit {
     agentID: this.fb.control<string>('', { nonNullable: true }),
   });
 
-  readonly endMax = signal(this.maxDate);
-  readonly service = signal<string | null>(null);
+  readonly selectedService = signal<string | null>(null);
   readonly services = signal<string[]>([]);
   readonly grievanceTypes = signal<FeedbackTypeOption[]>([]);
   readonly feedbackTypes = signal<FeedbackTypeOption[]>([]);
@@ -422,7 +334,7 @@ export class CallTypeReportsComponent implements OnInit {
 
   /** District cascade shows for the detail services (legacy conditionals). */
   readonly showLocationCascade = computed(() => {
-    const service = this.service();
+    const service = this.selectedService();
     if (service === 'Medical Services Detail') {
       return true;
     }
@@ -435,20 +347,16 @@ export class CallTypeReportsComponent implements OnInit {
 
   private readonly brdCriteria = signal<string | null>(null);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
-
   ngOnInit(): void {
     const psmID = this.providerServiceMapID();
-    this.service_
+    this.service
       .getServices(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (list) => this.services.set(this.buildServiceOptions(list)),
         error: () => this.services.set(this.buildServiceOptions([])),
       });
-    this.service_
+    this.service
       .getFeedbackTypes(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -460,17 +368,17 @@ export class CallTypeReportsComponent implements OnInit {
         },
         error: () => undefined,
       });
-    this.service_
+    this.service
       .getRoles(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: (roles) => this.roles.set(roles), error: () => undefined });
-    this.service_
+    this.service
       .getWorkLocations(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: (list) => this.workLocations.set(list), error: () => undefined });
     const stateID = stateIDForRole(this.authStore.privileges(), this.authStore.currentRole());
     if (stateID != null) {
-      this.service_
+      this.service
         .getDistricts(stateID)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({ next: (list) => this.districts.set(list), error: () => undefined });
@@ -508,18 +416,9 @@ export class CallTypeReportsComponent implements OnInit {
     return options;
   }
 
-  onStartChange(): void {
-    const { startDate, endDate } = this.form.getRawValue();
-    this.endMax.set(maxEndFor(startDate, this.maxDate));
-    const clamped = clampEndDate(startDate, endDate, this.maxDate);
-    if (clamped) {
-      this.form.patchValue({ endDate: clamped });
-    }
-  }
-
   /** Reset the service-specific filters when the service changes (legacy). */
   onServiceChange(): void {
-    this.service.set(this.form.controls.service.value);
+    this.selectedService.set(this.form.controls.service.value);
     this.brdCriteria.set(null);
     this.form.patchValue({
       grievanceType: 'all',
@@ -549,7 +448,7 @@ export class CallTypeReportsComponent implements OnInit {
     this.subDistricts.set([]);
     this.villages.set([]);
     if (districtID != null) {
-      this.service_
+      this.service
         .getSubDistricts(districtID)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({ next: (list) => this.subDistricts.set(list), error: () => undefined });
@@ -561,7 +460,7 @@ export class CallTypeReportsComponent implements OnInit {
     this.form.patchValue({ villageID: null });
     this.villages.set([]);
     if (blockID != null) {
-      this.service_
+      this.service
         .getVillages(blockID)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({ next: (list) => this.villages.set(list), error: () => undefined });
@@ -573,28 +472,14 @@ export class CallTypeReportsComponent implements OnInit {
     this.form.patchValue({ feedbackNatureID: null });
     this.feedbackNatures.set([]);
     if (type?.feedbackTypeID != null) {
-      this.service_
+      this.service
         .getFeedbackNatureTypes(this.providerServiceMapID(), type.feedbackTypeID)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({ next: (list) => this.feedbackNatures.set(list), error: () => undefined });
     }
   }
 
-  view(): void {
-    const request = this.request();
-    if (request) {
-      this.runner.view(request);
-    }
-  }
-
-  export(): void {
-    const request = this.request();
-    if (request) {
-      this.runner.export(request, this.fileName());
-    }
-  }
-
-  private fileName(): string {
+  protected exportFileName(): string {
     const service = this.form.controls.service.value ?? '';
     const simple = SIMPLE_SERVICES[service];
     if (simple) {
@@ -617,7 +502,7 @@ export class CallTypeReportsComponent implements OnInit {
   }
 
   /** Build the legacy per-service request (the big `searchReports` switch). */
-  private request(): Observable<Blob> | null {
+  protected request(): Observable<Blob> | null {
     const value = this.form.getRawValue();
     const service = value.service ?? '';
     const psmID = this.providerServiceMapID();
@@ -627,7 +512,7 @@ export class CallTypeReportsComponent implements OnInit {
 
     const simple = SIMPLE_SERVICES[service];
     if (simple) {
-      return this.service_.getCrm104Report(simple.key, {
+      return this.service.getCrm104Report(simple.key, {
         providerServiceMapID: psmID,
         startDateTime: start,
         endDateTime: end,
@@ -638,7 +523,7 @@ export class CallTypeReportsComponent implements OnInit {
 
     switch (service) {
       case 'Medical Services Detail':
-        return this.service_.getCrm104Report('medicalAdvise', {
+        return this.service.getCrm104Report('medicalAdvise', {
           startDateTime: start,
           endDateTime: end,
           providerServiceMapID: psmID,
@@ -650,7 +535,7 @@ export class CallTypeReportsComponent implements OnInit {
           fileName: 'Medical_Services_Detail',
         });
       case 'Counselling Service Detail':
-        return this.service_.getCrm104Report('mentalHealth', {
+        return this.service.getCrm104Report('mentalHealth', {
           startDateTime: start,
           endDateTime: end,
           providerServiceMapID: psmID,
@@ -658,7 +543,7 @@ export class CallTypeReportsComponent implements OnInit {
           fileName: 'Counselling_Service_Detail',
         });
       case 'Blood Request Detail':
-        return this.service_.getCrm104Report('bloodRequestDetail', {
+        return this.service.getCrm104Report('bloodRequestDetail', {
           startDateTime: start,
           endDateTime: end,
           providerServiceMapID: psmID,
@@ -669,7 +554,7 @@ export class CallTypeReportsComponent implements OnInit {
           fileName: 'Blood_Request_Detail',
         });
       case 'Grievance':
-        return this.service_.getCrm104Report('grievance', {
+        return this.service.getCrm104Report('grievance', {
           providerServiceMapID: psmID,
           startDateTime: start,
           endDateTime: end,
@@ -694,7 +579,7 @@ export class CallTypeReportsComponent implements OnInit {
             fileName: 'Grievance_Detail',
           });
         }
-        return this.service_.getComplaintDetailReport(requests);
+        return this.service.getComplaintDetailReport(requests);
       }
       default:
         return null;

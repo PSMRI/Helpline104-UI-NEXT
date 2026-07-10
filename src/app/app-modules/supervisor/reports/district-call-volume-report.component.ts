@@ -20,40 +20,17 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideDownload, lucideEye } from '@ng-icons/lucide';
-
-import { ZardButtonComponent } from '@common-ui/ui/button';
-
-import { AuthStore } from '../../core/auth/auth.store';
-import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
-import { ReportRunner } from './report-runner';
-import { ReportResultsComponent } from './report-results.component';
+import { ReportFormBase } from './report-form-base';
+import { ReportDateRangeComponent } from './report-date-range.component';
+import { ReportShellComponent } from './report-shell.component';
 import { DistrictOption } from './reports.models';
-import { SupervisorReportsService } from './reports.service';
-import {
-  clampEndDate,
-  maxEndFor,
-  rangeEndIso,
-  rangeStartIso,
-  stateIDForRole,
-  yesterdayInput,
-} from './reports.util';
+import { rangeEndIso, rangeStartIso, stateIDForRole, yesterdayInput } from './reports.util';
 
 const FILE_NAME = 'District_Wise_Call_Volume_Report';
 
@@ -68,47 +45,22 @@ const FILE_NAME = 'District_Wise_Call_Volume_Report';
   selector: 'app-district-call-volume-report',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ReportResultsComponent],
-  viewProviders: [provideIcons({ lucideDownload, lucideEye })],
+  imports: [ReactiveFormsModule, TranslatePipe, ReportDateRangeComponent, ReportShellComponent],
   template: `
-    <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <h3 class="mb-4 text-base font-semibold text-foreground">
-        {{ 'supReports.district.title' | translate: lang() }}
-      </h3>
-
-      @if (runner.errorMessage()) {
-        <p class="mb-3 text-sm font-medium text-destructive" role="alert">
-          {{ runner.errorMessage() }}
-        </p>
-      }
-
+    <app-report-shell
+      titleKey="supReports.district.title"
+      [runner]="runner"
+      [disabled]="form.invalid"
+      (view)="view()"
+      (export)="export()"
+    >
       <form [formGroup]="form" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <label for="dv-start" class="mb-1 block text-xs font-medium text-muted-foreground">
-            {{ 'supReports.startDate' | translate: lang() }}
-          </label>
-          <input
-            id="dv-start"
-            type="date"
-            [class]="selectClass"
-            formControlName="startDate"
-            [max]="maxDate"
-            (change)="onStartChange()"
-          />
-        </div>
-        <div>
-          <label for="dv-end" class="mb-1 block text-xs font-medium text-muted-foreground">
-            {{ 'supReports.endDate' | translate: lang() }}
-          </label>
-          <input
-            id="dv-end"
-            type="date"
-            [class]="selectClass"
-            formControlName="endDate"
-            [min]="form.controls.startDate.value"
-            [max]="endMax()"
-          />
-        </div>
+        <app-report-date-range
+          idPrefix="dv"
+          [start]="form.controls.startDate"
+          [end]="form.controls.endDate"
+          [maxDate]="maxDate"
+        />
         <div>
           <label for="dv-district" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supReports.filter.district' | translate: lang() }}
@@ -121,63 +73,19 @@ const FILE_NAME = 'District_Wise_Call_Volume_Report';
           </select>
         </div>
       </form>
-
-      <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
-          <ng-icon name="lucideEye" size="16" aria-hidden="true" />
-          {{ 'supReports.view' | translate: lang() }}
-        </button>
-        <button
-          z-button
-          type="button"
-          zType="outline"
-          [zLoading]="runner.exporting()"
-          [zDisabled]="form.invalid"
-          (click)="export()"
-        >
-          <ng-icon name="lucideDownload" size="16" aria-hidden="true" />
-          {{ 'supReports.export' | translate: lang() }}
-        </button>
-      </div>
-
-      <app-report-results [runner]="runner" />
-    </section>
+    </app-report-shell>
   `,
 })
-export class DistrictCallVolumeReportComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
-  private readonly service = inject(SupervisorReportsService);
-  private readonly authStore = inject(AuthStore);
-  private readonly i18n = inject(I18nService);
-  private readonly destroyRef = inject(DestroyRef);
-
-  readonly lang = this.i18n.language;
-  readonly selectClass = SUP_SELECT_CLASS;
-  /** Aggregation runs nightly, so the report is available up to yesterday. */
-  readonly maxDate = yesterdayInput();
-  readonly runner = new ReportRunner(this.i18n, this.destroyRef);
-
+export class DistrictCallVolumeReportComponent extends ReportFormBase implements OnInit {
   readonly form = this.fb.group({
-    startDate: this.fb.control<string>('', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    endDate: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
+    ...this.dateRangeControls(),
     district: this.fb.control<DistrictOption | null>(null),
   });
 
-  readonly endMax = signal(this.maxDate);
   readonly districts = signal<DistrictOption[]>([]);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
+  /** Aggregation runs nightly, so the report is available up to yesterday. */
+  override readonly maxDate: string = yesterdayInput();
 
   ngOnInit(): void {
     const stateID = stateIDForRole(this.authStore.privileges(), this.authStore.currentRole());
@@ -189,24 +97,11 @@ export class DistrictCallVolumeReportComponent implements OnInit {
     }
   }
 
-  onStartChange(): void {
-    const { startDate, endDate } = this.form.getRawValue();
-    this.endMax.set(maxEndFor(startDate, this.maxDate));
-    const clamped = clampEndDate(startDate, endDate, this.maxDate);
-    if (clamped) {
-      this.form.patchValue({ endDate: clamped });
-    }
+  protected exportFileName(): string {
+    return FILE_NAME;
   }
 
-  view(): void {
-    this.runner.view(this.request());
-  }
-
-  export(): void {
-    this.runner.export(this.request(), FILE_NAME);
-  }
-
-  private request(): Observable<Blob> {
+  protected request(): Observable<Blob> {
     const value = this.form.getRawValue();
     return this.service.getDistrictWiseCallReport({
       startDate: rangeStartIso(value.startDate),
