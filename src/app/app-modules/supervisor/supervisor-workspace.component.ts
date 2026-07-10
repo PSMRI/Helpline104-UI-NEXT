@@ -20,7 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -37,6 +37,7 @@ import {
   lucideMapPin,
   lucideMegaphone,
   lucideMessageSquare,
+  lucidePanelLeft,
   lucidePhoneCall,
   lucidePhoneForwarded,
   lucidePhoneOff,
@@ -72,40 +73,37 @@ interface SupervisorNavGroup {
  * Configurations. Sections not yet migrated route to the shared placeholder;
  * outbound allocation/re-allocation reuse the existing `/outbound` screens.
  */
+const ACTIVITIES_NAV: readonly SupervisorNavItem[] = [
+  { labelKey: 'supervisor.nav.agentStatus', icon: 'lucideActivity', link: '/supervisor/agent-status' },
+  { labelKey: 'supervisor.nav.blockUnblock', icon: 'lucidePhoneOff', link: '/supervisor/block-unblock' },
+  { labelKey: 'supervisor.nav.outboundAllocation', icon: 'lucidePhoneForwarded', link: '/outbound/search' },
+  { labelKey: 'supervisor.nav.outboundReallocation', icon: 'lucideRefreshCw', link: '/outbound/reallocate' },
+  { labelKey: 'supervisor.nav.qualityAudit', icon: 'lucideHeadphones', link: '/supervisor/quality-audit' },
+  { labelKey: 'supervisor.nav.grievance', icon: 'lucideMessageSquare', link: '/supervisor/grievance' },
+  { labelKey: 'supervisor.nav.uploadSchemes', icon: 'lucideUpload', link: '/supervisor/upload-schemes' },
+  { labelKey: 'supervisor.nav.uploadSymptoms', icon: 'lucideFilePlus2', link: '/supervisor/upload-symptoms' },
+  { labelKey: 'supervisor.nav.alertsNotifications', icon: 'lucideMegaphone', link: '/supervisor/communication/alerts-notifications' },
+  { labelKey: 'supervisor.nav.locationMessages', icon: 'lucideMapPin', link: '/supervisor/communication/location-messages' },
+  { labelKey: 'supervisor.nav.trainingResources', icon: 'lucideBookOpen', link: '/supervisor/communication/training-resources' },
+  { labelKey: 'supervisor.nav.emergencyContacts', icon: 'lucidePhoneCall', link: '/supervisor/communication/emergency-contacts' },
+  { labelKey: 'supervisor.nav.forceLogout', icon: 'lucideLogOut', link: '/supervisor/force-logout' },
+];
+
+const REPORTS_NAV: readonly SupervisorNavItem[] = [
+  { labelKey: 'supervisor.nav.reports', icon: 'lucideChartColumn', link: '/supervisor/reports' },
+];
+
+const CONFIG_NAV: readonly SupervisorNavItem[] = [
+  { labelKey: 'supervisor.nav.contentManagement', icon: 'lucideFileText', link: '/supervisor/content-management' },
+  { labelKey: 'supervisor.nav.smsTemplates', icon: 'lucideMessageSquare', link: '/supervisor/sms-templates' },
+  { labelKey: 'supervisor.nav.bloodUrl', icon: 'lucideDroplets', link: '/supervisor/blood-url' },
+  { labelKey: 'supervisor.nav.diseasesSummary', icon: 'lucideStethoscope', link: '/supervisor/diseases-summary' },
+];
+
 const NAV_GROUPS: readonly SupervisorNavGroup[] = [
-  {
-    labelKey: 'supervisor.nav.activities',
-    items: [
-      { labelKey: 'supervisor.nav.agentStatus', icon: 'lucideActivity', link: '/supervisor/agent-status' },
-      { labelKey: 'supervisor.nav.blockUnblock', icon: 'lucidePhoneOff', link: '/supervisor/block-unblock' },
-      { labelKey: 'supervisor.nav.outboundAllocation', icon: 'lucidePhoneForwarded', link: '/outbound/search' },
-      { labelKey: 'supervisor.nav.outboundReallocation', icon: 'lucideRefreshCw', link: '/outbound/reallocate' },
-      { labelKey: 'supervisor.nav.qualityAudit', icon: 'lucideHeadphones', link: '/supervisor/quality-audit' },
-      { labelKey: 'supervisor.nav.grievance', icon: 'lucideMessageSquare', link: '/supervisor/grievance' },
-      { labelKey: 'supervisor.nav.uploadSchemes', icon: 'lucideUpload', link: '/supervisor/upload-schemes' },
-      { labelKey: 'supervisor.nav.uploadSymptoms', icon: 'lucideFilePlus2', link: '/supervisor/upload-symptoms' },
-      { labelKey: 'supervisor.nav.alertsNotifications', icon: 'lucideMegaphone', link: '/supervisor/communication/alerts-notifications' },
-      { labelKey: 'supervisor.nav.locationMessages', icon: 'lucideMapPin', link: '/supervisor/communication/location-messages' },
-      { labelKey: 'supervisor.nav.trainingResources', icon: 'lucideBookOpen', link: '/supervisor/communication/training-resources' },
-      { labelKey: 'supervisor.nav.emergencyContacts', icon: 'lucidePhoneCall', link: '/supervisor/communication/emergency-contacts' },
-      { labelKey: 'supervisor.nav.forceLogout', icon: 'lucideLogOut', link: '/supervisor/force-logout' },
-    ],
-  },
-  {
-    labelKey: 'supervisor.nav.reports',
-    items: [
-      { labelKey: 'supervisor.nav.reports', icon: 'lucideChartColumn', link: '/supervisor/reports' },
-    ],
-  },
-  {
-    labelKey: 'supervisor.nav.configurations',
-    items: [
-      { labelKey: 'supervisor.nav.contentManagement', icon: 'lucideFileText', link: '/supervisor/content-management' },
-      { labelKey: 'supervisor.nav.smsTemplates', icon: 'lucideMessageSquare', link: '/supervisor/sms-templates' },
-      { labelKey: 'supervisor.nav.bloodUrl', icon: 'lucideDroplets', link: '/supervisor/blood-url' },
-      { labelKey: 'supervisor.nav.diseasesSummary', icon: 'lucideStethoscope', link: '/supervisor/diseases-summary' },
-    ],
-  },
+  { labelKey: 'supervisor.nav.activities', items: ACTIVITIES_NAV },
+  { labelKey: 'supervisor.nav.reports', items: REPORTS_NAV },
+  { labelKey: 'supervisor.nav.configurations', items: CONFIG_NAV },
 ];
 
 /**
@@ -135,6 +133,7 @@ const NAV_GROUPS: readonly SupervisorNavGroup[] = [
       lucideMapPin,
       lucideMegaphone,
       lucideMessageSquare,
+      lucidePanelLeft,
       lucidePhoneCall,
       lucidePhoneForwarded,
       lucidePhoneOff,
@@ -148,9 +147,23 @@ const NAV_GROUPS: readonly SupervisorNavGroup[] = [
       <header
         class="flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 sm:px-6"
       >
-        <h1 class="text-lg font-semibold">
-          {{ 'supervisor.title' | translate: lang() }}
-        </h1>
+        <div class="flex items-center gap-2">
+          <button
+            z-button
+            type="button"
+            zType="ghost"
+            zSize="icon"
+            class="hidden md:inline-flex"
+            aria-label="Toggle sidebar"
+            [attr.aria-expanded]="sidebarOpen()"
+            (click)="toggleSidebar()"
+          >
+            <ng-icon name="lucidePanelLeft" size="18" aria-hidden="true" />
+          </button>
+          <h1 class="text-lg font-semibold">
+            {{ 'supervisor.title' | translate: lang() }}
+          </h1>
+        </div>
         <button z-button type="button" zType="outline" zSize="sm" (click)="goToDashboard()">
           {{ 'supervisor.backToDashboard' | translate: lang() }}
         </button>
@@ -158,7 +171,12 @@ const NAV_GROUPS: readonly SupervisorNavGroup[] = [
 
       <div class="flex flex-1">
         <aside
-          class="hidden w-60 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border bg-card px-3 py-4 md:flex"
+          class="hidden shrink-0 flex-col gap-4 bg-card py-4 transition-[width] duration-200 md:flex"
+          [class]="
+            sidebarOpen()
+              ? 'w-60 overflow-y-auto border-r border-border px-3'
+              : 'w-0 overflow-hidden'
+          "
         >
           <a
             routerLink="/supervisor"
@@ -206,6 +224,11 @@ export class SupervisorWorkspaceComponent {
 
   readonly lang = this.i18n.language;
   readonly navGroups = NAV_GROUPS;
+  readonly sidebarOpen = signal(true);
+
+  toggleSidebar(): void {
+    this.sidebarOpen.update((open) => !open);
+  }
 
   goToDashboard(): void {
     void this.router.navigate(['/dashboard']);
