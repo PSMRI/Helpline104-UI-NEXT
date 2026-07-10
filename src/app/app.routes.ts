@@ -209,6 +209,15 @@ export const routes: Routes = [
     ],
   },
   {
+    // Agent reports (from the dashboard Reports panel).
+    path: 'reports/call-type',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./app-modules/reports/call-type-report-page.component').then(
+        (m) => m.CallTypeReportPageComponent,
+      ),
+  },
+  {
     // Post-logout landing for the dashboard logout / feedback links. Unguarded:
     // the session has already been cleared by the time the user lands here.
     path: 'feedback',

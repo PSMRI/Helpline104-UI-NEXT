@@ -20,38 +20,42 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideFileDown } from '@ng-icons/lucide';
+import { lucideChartColumn } from '@ng-icons/lucide';
 
 import { ZardTableImports } from '@common-ui/ui/table';
 
 import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslationKey } from '../../core/i18n/locales';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
-/** A placeholder report row (the 104 reports feed is not yet wired). */
-interface ReportRow {
-  readonly sno: number;
-  readonly date: string;
+/** One report the agent can open from the dashboard. */
+interface ReportLink {
+  readonly nameKey: TranslationKey;
+  readonly route: string;
 }
 
-const PLACEHOLDER_REPORTS: readonly ReportRow[] = [
-  { sno: 1, date: '10-01-17' },
-  { sno: 2, date: '10-01-17' },
-  { sno: 3, date: '10-01-17' },
+/** The reports available to an agent (legacy: the surveyor CDI report). */
+const AGENT_REPORTS: readonly ReportLink[] = [
+  { nameKey: 'reports.callType.title', route: '/reports/call-type' },
 ];
 
 /**
- * Reports panel. Shows the recent-reports table with an export affordance and a
- * "More" link. Report data is not yet wired, so static placeholder rows render.
+ * Reports panel: the reports the signed-in agent can open. Each row (and
+ * "View All") navigates to the report's page. The legacy dashboard widget was
+ * a static placeholder; the agent-facing report itself is the surveyor
+ * call-type (Customer Delight Index) report.
  */
 @Component({
   selector: 'app-reports-panel',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, ZardTableImports, TranslatePipe],
-  viewProviders: [provideIcons({ lucideFileDown })],
+  imports: [DatePipe, NgIcon, ZardTableImports, TranslatePipe],
+  viewProviders: [provideIcons({ lucideChartColumn })],
   template: `
     <section
       class="flex h-full flex-col rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
@@ -62,13 +66,12 @@ const PLACEHOLDER_REPORTS: readonly ReportRow[] = [
         <h2 class="text-lg font-semibold">
           {{ 'dashboard.reports.title' | translate: lang() }}
         </h2>
-        <button
-          type="button"
-          class="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          [attr.aria-label]="'dashboard.reports.export' | translate: lang()"
-        >
-          <ng-icon name="lucideFileDown" size="18" aria-hidden="true" />
-        </button>
+        <ng-icon
+          name="lucideChartColumn"
+          size="18"
+          class="text-primary"
+          aria-hidden="true"
+        />
       </header>
 
       <div class="flex flex-1 flex-col px-4 py-3">
@@ -83,13 +86,19 @@ const PLACEHOLDER_REPORTS: readonly ReportRow[] = [
             </tr>
           </thead>
           <tbody z-table-body>
-            @for (row of reports; track row.sno) {
+            @for (report of reports; track report.route; let i = $index) {
               <tr z-table-row>
-                <td z-table-cell>{{ row.sno }}</td>
+                <td z-table-cell>{{ i + 1 }}</td>
                 <td z-table-cell>
-                  {{ 'dashboard.reports.reportName' | translate: lang() }}
+                  <button
+                    type="button"
+                    class="font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring"
+                    (click)="open(report)"
+                  >
+                    {{ report.nameKey | translate: lang() }}
+                  </button>
                 </td>
-                <td z-table-cell>{{ row.date }}</td>
+                <td z-table-cell>{{ today | date: 'dd-MM-yy' }}</td>
               </tr>
             }
           </tbody>
@@ -99,6 +108,7 @@ const PLACEHOLDER_REPORTS: readonly ReportRow[] = [
           <button
             type="button"
             class="text-sm font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring"
+            (click)="open(reports[0])"
           >
             {{ 'dashboard.reports.more' | translate: lang() }}
           </button>
@@ -109,6 +119,13 @@ const PLACEHOLDER_REPORTS: readonly ReportRow[] = [
 })
 export class ReportsPanelComponent {
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
+
   readonly lang = this.i18n.language;
-  readonly reports = PLACEHOLDER_REPORTS;
+  readonly reports = AGENT_REPORTS;
+  readonly today = new Date();
+
+  open(report: ReportLink): void {
+    void this.router.navigate([report.route]);
+  }
 }
