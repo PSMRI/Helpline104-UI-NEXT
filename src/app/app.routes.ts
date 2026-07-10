@@ -162,6 +162,7 @@ export const routes: Routes = [
     // Sections not yet migrated share the placeholder component.
     path: 'supervisor',
     canActivate: [authGuard, supervisorGuard],
+    canMatch: [supervisorGuard],
     loadComponent: () =>
       import('./app-modules/supervisor/supervisor-workspace.component').then(
         (m) => m.SupervisorWorkspaceComponent,
