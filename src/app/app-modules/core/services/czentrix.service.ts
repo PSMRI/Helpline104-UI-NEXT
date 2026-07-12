@@ -29,7 +29,10 @@ import { ConfigService } from './config.service';
 
 /**
  * CZentrix CTI endpoints, proxied by Common-API (never the CZentrix telephony
- * server directly). Ported from the legacy `CzentrixServices` URL fields.
+ * server directly). Ported from the legacy `CzentrixServices` URL fields, plus
+ * the two call-lifecycle endpoints (`call/*`) the legacy app fired around CTI
+ * connect events (`CallServices.storeCallID`, `CallerService.getBeneficiaryByCallID`).
+ * Call *closure* (`call/closeCall`) lives with the closure form in `hao.service.ts`.
  *
  * Not ported: the legacy helpers that bypassed Common-API and hit the CZentrix
  * `apps/appsHandler.php` GET API directly (hold/unhold, ready/pause,
@@ -51,6 +54,9 @@ const PATHS = {
   getTransferCampaigns: 'cti/getTransferCampaigns',
   getCampaignSkills: 'cti/getCampaignSkills',
   transferCall: 'cti/transferCall',
+  // Call lifecycle (fired around CTI connect events)
+  startCall: 'call/startCall',
+  beneficiaryByCallID: 'call/beneficiaryByCallID',
 } as const;
 
 /**
@@ -102,6 +108,51 @@ export interface CtiTransferCallRequest {
 }
 
 /**
+ * Body of `call/startCall`, field-for-field the `callerObj` the legacy
+ * innerpage/dashboard built when a CTI call connected.
+ */
+export interface StartCallRequest {
+  /** Known beneficiary, or null when the caller is not yet identified. */
+  beneficiaryRegID: number | null;
+  /** CZentrix session id delivered in the CTI `Accept` event. */
+  callID: string;
+  receivedRoleName: string | null;
+  createdBy: string | null;
+  /** Caller line identification (the caller's phone number). */
+  phoneNo: string | null;
+  agentID: number | null;
+  callReceivedUserID: number | null;
+  calledServiceID: number | null;
+  isOutbound: boolean;
+  /** Legacy set this only on outbound manual dials. */
+  isOutboundManualDial?: boolean;
+}
+
+/**
+ * Payload of a successful `call/startCall`. The legacy success handler read
+ * only `benCallID` (the AMRIT call id) and stashed the rest as the beneficiary
+ * details blob, so everything else stays loosely typed.
+ */
+export interface StartCallResponse {
+  benCallID?: number | string;
+  [key: string]: unknown;
+}
+
+/**
+ * Payload of `call/beneficiaryByCallID`. When the caller's number matches a
+ * registered beneficiary the backend attaches it as `i_beneficiary`; absent
+ * otherwise. Only the id the call flow needs is typed strictly.
+ */
+export interface BeneficiaryByCallIdResponse {
+  i_beneficiary?: {
+    beneficiaryRegID?: number;
+    districtID?: number;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+/**
  * CZentrix CTI API, proxied through Common-API. Ported from the legacy
  * `CzentrixServices`; request bodies keep the exact legacy (snake_case)
  * shapes and responses are unwrapped from the {@link ApiResponse} envelope,
@@ -125,9 +176,7 @@ export class CzentrixService {
   private readonly _loginKey = signal<string | null>(
     this.storage.getItem(CTI_STORAGE_KEYS.loginKey),
   );
-  private readonly _agentIP = signal<string | null>(
-    this.storage.getItem(CTI_STORAGE_KEYS.agentIP),
-  );
+  private readonly _agentIP = signal<string | null>(this.storage.getItem(CTI_STORAGE_KEYS.agentIP));
   private readonly _agentID = signal<number | null>(
     toNumberOrNull(this.storage.getItem(CTI_STORAGE_KEYS.agentID)),
   );
@@ -229,6 +278,34 @@ export class CzentrixService {
     });
   }
 
+  // --- Call lifecycle -------------------------------------------------------
+
+  /**
+   * Register a connected CTI call with the backend, which creates the AMRIT
+   * call record and returns its id (`benCallID`) — the id every subsequent
+   * save (case sheet, closure, prescriptions, …) is keyed on. Ported from the
+   * legacy `CallServices.storeCallID`.
+   */
+  startCall(request: StartCallRequest): Observable<StartCallResponse> {
+    return this.http
+      .post<ApiResponse<StartCallResponse>>(this.baseCommon + PATHS.startCall, request)
+      .pipe(map((res) => res.data ?? {}));
+  }
+
+  /**
+   * Resolve the beneficiary the backend already associates with a CZentrix
+   * call id (e.g. a repeat caller). Resolves with no `i_beneficiary` when the
+   * caller is unknown — identification then falls to the registration screen.
+   * Ported from the legacy `CallerService.getBeneficiaryByCallID`.
+   */
+  getBeneficiaryByCallID(callID: string): Observable<BeneficiaryByCallIdResponse> {
+    return this.http
+      .post<ApiResponse<BeneficiaryByCallIdResponse>>(this.baseCommon + PATHS.beneficiaryByCallID, {
+        callID,
+      })
+      .pipe(map((res) => res.data ?? {}));
+  }
+
   // --- Agent state & calls --------------------------------------------------
 
   /** The agent's live telephony state (`cti/getAgentState`). */
@@ -321,8 +398,7 @@ export class CzentrixService {
    * transfer with a non-empty skill, exactly as the legacy body was built.
    */
   transferCall(request: CtiTransferCallRequest): Observable<CtiPayload> {
-    const isSkillTransfer =
-      request.skillTransferFlag !== undefined && request.skill !== undefined;
+    const isSkillTransfer = request.skillTransferFlag !== undefined && request.skill !== undefined;
     const body: Record<string, unknown> = {
       transfer_from: request.transferFrom,
       transfer_campaign_info: request.transferCampaignInfo,
@@ -356,10 +432,7 @@ export class CzentrixService {
 
   private setAgentID(agentID: number | null): void {
     this._agentID.set(agentID);
-    this.persist(
-      CTI_STORAGE_KEYS.agentID,
-      agentID === null ? null : String(agentID),
-    );
+    this.persist(CTI_STORAGE_KEYS.agentID, agentID === null ? null : String(agentID));
   }
 
   private clearCtiSession(): void {

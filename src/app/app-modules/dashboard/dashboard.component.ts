@@ -37,8 +37,9 @@ import { catchError, filter, of, switchMap, timer } from 'rxjs';
 import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { CallStore } from '../call/call.store';
-import { parseInboundCtiMessage } from '../call/cti-message';
+import { InboundCtiMessage, parseInboundCtiMessage } from '../call/cti-message';
 import { AuthStore } from '../core/auth/auth.store';
+import { CzentrixService } from '../core/services/czentrix.service';
 import { AgentState, AgentStatusService } from './agent-status.service';
 import { AgentIdComponent } from './components/agent-id.component';
 import { AlertsPanelComponent } from './components/alerts-panel.component';
@@ -174,6 +175,7 @@ function safeOrigin(url: string): string {
 export class DashboardComponent {
   private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
+  private readonly czentrixApi = inject(CzentrixService);
   private readonly router = inject(Router);
   private readonly agentStatusApi = inject(AgentStatusService);
   private readonly dashboardStore = inject(DashboardStore);
@@ -200,9 +202,7 @@ export class DashboardComponent {
       this.handleCtiMessage(event.data);
     };
     window.addEventListener('message', onMessage);
-    inject(DestroyRef).onDestroy(() =>
-      window.removeEventListener('message', onMessage),
-    );
+    inject(DestroyRef).onDestroy(() => window.removeEventListener('message', onMessage));
 
     // Poll the agent's telephony state (legacy DashboardUserIdComponent:
     // immediate call + every 15 s) to refresh the "My ID" status line and keep
@@ -214,9 +214,7 @@ export class DashboardComponent {
     timer(0, AGENT_STATUS_POLL_MS)
       .pipe(
         takeUntilDestroyed(),
-        filter(
-          () => !this.isSupervisor() && this.authStore.user()?.agentID != null,
-        ),
+        filter(() => !this.isSupervisor() && this.authStore.user()?.agentID != null),
         switchMap(() =>
           this.agentStatusApi
             .getAgentStatus(this.authStore.user()?.agentID ?? 0)
@@ -239,9 +237,7 @@ export class DashboardComponent {
     if (stateName) {
       const stateType = state.stateObj?.stateType ?? '';
       const suppressType = ON_CALL_STATES.includes(stateName.toUpperCase());
-      this._agentStatus.set(
-        stateType && !suppressType ? `${stateName} (${stateType})` : stateName,
-      );
+      this._agentStatus.set(stateType && !suppressType ? `${stateName} (${stateType})` : stateName);
     } else {
       // A polled state with no stateName clears the line rather than leaving
       // the previous state showing.
@@ -274,10 +270,7 @@ export class DashboardComponent {
       return;
     }
     // De-dupe: the iframe may re-post the same event for one connected call.
-    if (
-      this.callStore.onCall() &&
-      this.callStore.sessionId() === inbound.sessionId
-    ) {
+    if (this.callStore.onCall() && this.callStore.sessionId() === inbound.sessionId) {
       return;
     }
 
@@ -285,7 +278,68 @@ export class DashboardComponent {
       cli: inbound.cli,
       sessionId: inbound.sessionId,
     });
-    void this.router.navigate(['/innerpage']);
+    this.registerInboundCall(inbound);
+    // Land on caller identification (legacy: registration is the first on-call
+    // step); once a beneficiary is resolved, the dispatcher takes over.
+    void this.router.navigate(['/innerpage', 'registration']);
+  }
+
+  /**
+   * Register the connected call with the AMRIT backend and resolve any
+   * beneficiary it already knows for this call — the two lifecycle calls the
+   * legacy innerpage/104 components fired right after a CTI connect.
+   *
+   * Both requests run in the background while the agent lands on the on-call
+   * workspace; neither failing blocks call handling (closure falls back to the
+   * CZentrix session id when no AMRIT call id was resolved, and an unresolved
+   * caller is simply identified manually on the registration screen).
+   */
+  private registerInboundCall(inbound: InboundCtiMessage): void {
+    const user = this.authStore.user();
+    const role = this.authStore.currentRole();
+    // If the store's session changes before a response lands (call ended or a
+    // new call connected), the response belongs to a stale call — drop it.
+    const sessionId = inbound.sessionId;
+
+    this.czentrixApi
+      .startCall({
+        beneficiaryRegID: null,
+        callID: inbound.sessionId,
+        receivedRoleName: role?.roleName ?? null,
+        createdBy: user?.userName ?? null,
+        phoneNo: inbound.cli,
+        agentID: user?.agentID ?? null,
+        callReceivedUserID: user?.userID ?? null,
+        calledServiceID: role?.serviceID ?? null,
+        isOutbound: false,
+      })
+      .subscribe({
+        next: (res) => {
+          if (this.callStore.sessionId() !== sessionId) {
+            return;
+          }
+          if (res.benCallID != null) {
+            this.callStore.setCallId(String(res.benCallID));
+          }
+        },
+        error: (err) => console.warn('call/startCall failed', err),
+      });
+
+    this.czentrixApi.getBeneficiaryByCallID(inbound.sessionId).subscribe({
+      next: (res) => {
+        if (this.callStore.sessionId() !== sessionId) {
+          return;
+        }
+        const beneficiary = res.i_beneficiary;
+        if (beneficiary?.beneficiaryRegID != null) {
+          this.callStore.setBeneficiaryId(
+            beneficiary.beneficiaryRegID,
+            beneficiary.districtID ?? null,
+          );
+        }
+      },
+      error: (err) => console.warn('call/beneficiaryByCallID failed', err),
+    });
   }
 
   /**
@@ -299,9 +353,7 @@ export class DashboardComponent {
     window.postMessage(`Accept|${cli}|${sessionId}|INBOUND`, window.location.origin);
   }
 
-  private readonly featureCode = computed(
-    () => this.authStore.currentRole()?.featureCode ?? null,
-  );
+  private readonly featureCode = computed(() => this.authStore.currentRole()?.featureCode ?? null);
 
   private readonly hasHealthAdvicePrivilege = computed(() =>
     this.authStore
@@ -317,9 +369,7 @@ export class DashboardComponent {
       ),
   );
 
-  readonly isSupervisor = computed(
-    () => this.featureCode() === SUPERVISOR_FEATURE_CODE,
-  );
+  readonly isSupervisor = computed(() => this.featureCode() === SUPERVISOR_FEATURE_CODE);
 
   readonly showAgentId = computed(() => !this.isSupervisor());
 
@@ -331,8 +381,7 @@ export class DashboardComponent {
       return false;
     }
     return (
-      (code !== null && CAMPAIGN_FEATURE_CODES.includes(code)) ||
-      this.hasHealthAdvicePrivilege()
+      (code !== null && CAMPAIGN_FEATURE_CODES.includes(code)) || this.hasHealthAdvicePrivilege()
     );
   });
 
