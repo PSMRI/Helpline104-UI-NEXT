@@ -45,6 +45,7 @@ import { AuthStore } from '../../../core/auth/auth.store';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
+import { ScheduleAppointmentComponent } from '../../schedule-appointment/schedule-appointment.component';
 import {
   CallSubType,
   CallType,
@@ -79,6 +80,7 @@ import { HaoService } from '../hao.service';
     TranslatePipe,
     ZardButtonComponent,
     ZardInputDirective,
+    ScheduleAppointmentComponent,
   ],
   template: `
     <form class="flex flex-col gap-5" [formGroup]="form" novalidate>
@@ -245,7 +247,23 @@ import { HaoService } from '../hao.service';
         }
       </div>
 
+      @if (showAppointment()) {
+        <app-schedule-appointment
+          (saved)="showAppointment.set(false)"
+          (cancelled)="showAppointment.set(false)"
+        />
+      }
+
       <div class="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
+        <button
+          z-button
+          type="button"
+          zType="outline"
+          [zDisabled]="actionBusy()"
+          (click)="showAppointment.set(true)"
+        >
+          {{ 'hao.closure.scheduleAppointment' | translate: lang() }}
+        </button>
         <button
           z-button
           type="button"
@@ -297,6 +315,9 @@ export class ClosureStepComponent {
   readonly skills = signal<CampaignSkill[]>([]);
   readonly submitting = signal(false);
   readonly transferring = signal(false);
+
+  /** Whether the schedule-appointment form is shown (legacy referral flow). */
+  readonly showAppointment = signal(false);
   /** A confirmation dialog is open for a terminal action (close/continue/transfer). */
   readonly confirming = signal(false);
 

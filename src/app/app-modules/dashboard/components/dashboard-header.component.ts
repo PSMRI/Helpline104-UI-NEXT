@@ -49,8 +49,8 @@ const SERVICE_104 = '104';
 const LICENSE_URL =
   'https://uatamrit.piramalswasthya.org/common-api/license.html';
 
-/** Title alias: the HAO/RO hybrid role displays as "RO Dashboard". */
-const TITLE_ROLE_ALIASES: Record<string, string> = { HAO: 'RO' };
+/** Title aliases — empty: each role displays its own code (HAO shows as HAO Dashboard). */
+const TITLE_ROLE_ALIASES: Record<string, string> = {};
 
 /**
  * Top navigation bar: AMRIT branding, the centered "{role} Dashboard" title, a

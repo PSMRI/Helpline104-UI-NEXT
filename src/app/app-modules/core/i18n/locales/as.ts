@@ -74,6 +74,17 @@ export const as: Record<TranslationKey, string> = {
   'dashboard.alerts.noOfficeBulletin': 'কোনো কাৰ্যালয় বাৰ্তা পোৱা নগ’ল',
   'dashboard.alerts.noNotifications': 'কোনো জাননী বাৰ্তা পোৱা নগ’ল',
 
+  // Alerts & Notifications messages dialog
+  'dashboard.alertsDialog.empty': 'কোনো বাৰ্তা পোৱা নগ’ল',
+  'dashboard.alertsDialog.markRead': 'পঢ়া বুলি চিহ্নিত কৰক',
+  'dashboard.alertsDialog.markUnread': 'নপঢ়া বুলি চিহ্নিত কৰক',
+  'dashboard.alertsDialog.delete': 'মচি পেলাওক',
+  'dashboard.alertsDialog.deleteTitle': 'মচি পেলাওক',
+  'dashboard.alertsDialog.deleteConfirm': 'আপুনি সঁচাকৈয়ে মচি পেলাব বিচাৰে নে?',
+  'dashboard.alertsDialog.readAll': 'সকলো পঢ়া',
+  'dashboard.alertsDialog.unreadAll': 'সকলো নপঢ়া',
+  'dashboard.alertsDialog.error': 'বাৰ্তা আপডেট কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+
   // Reports panel
   'dashboard.reports.title': 'প্ৰতিবেদন',
   'dashboard.reports.sno': 'ক্ৰম',
@@ -125,6 +136,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.history.empty': 'এই নম্বৰৰ বাবে কোনো পঞ্জীয়ন পোৱা নগ’ল।',
   'registration.search.empty': 'আপোনাৰ সন্ধানৰ সৈতে কোনো হিতাধিকাৰী মিলা নাই।',
   'registration.search.prompt': 'নাম বা পঞ্জীয়ন আইডি দিয়ক, তাৰ পিছত সন্ধান কৰক।',
+  'registration.search.error':
+    'সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ\'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'registration.col.regId': 'পঞ্জী. আইডি',
   'registration.col.name': 'নাম',
   'registration.col.gender': 'লিংগ',
@@ -330,6 +343,12 @@ export const as: Record<TranslationKey, string> = {
   'casesheetHistory.empty': 'কোনো ৰেকৰ্ড পোৱা নগ’ল।',
   'casesheetHistory.loadError': 'ইতিহাস ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'casesheetHistory.action': 'কাৰ্য',
+  'casesheetHistory.sectionTitle': 'কেছ-শ্বীট ইতিহাস',
+  'casesheetHistory.show': 'ইতিহাস চাওক',
+  'casesheetHistory.hide': 'ইতিহাস লুকুৱাওক',
+  'casesheetHistory.tabMcts': 'MCTS',
+  'casesheetHistory.tabMmu': 'ই-স্বাস্থ্য কেন্দ্ৰ',
+  'casesheetHistory.tabTm': 'টেলিমেডিচিন',
   'casesheetHistory.mcts.title': 'MCTS কল ইতিহাস',
   'casesheetHistory.mcts.callType': 'কলৰ প্ৰকাৰ',
   'casesheetHistory.mcts.callDate': 'কলৰ তাৰিখ',
@@ -347,6 +366,9 @@ export const as: Record<TranslationKey, string> = {
   'casesheetHistory.mmu.visitCategory': 'ভ্ৰমণৰ শ্ৰেণী',
   'casesheetHistory.mmu.visitCode': 'ভ্ৰমণ ক’ড',
   'casesheetHistory.mmu.view': 'চাওক',
+  'casesheetHistory.mmu.selectedVisit': 'নিৰ্বাচিত ভ্ৰমণ',
+  'casesheetHistory.mmu.detailUnavailable':
+    'এই ভ্ৰমণৰ সম্পূৰ্ণ কেছ-শ্বীট দৃশ্য এতিয়ালৈকে উপলব্ধ নহয়।',
 
   // Schedule appointment
   'appointment.title': 'এপইণ্টমেণ্ট সূচী কৰক',
@@ -535,6 +557,43 @@ export const as: Record<TranslationKey, string> = {
   'roleWorkspace.surveyor.reportsPlaceholder':
     'জৰীপকৰ্তাৰ কল-টাইপ প্ৰতিবেদন সোনকালে ইয়াত উপলব্ধ হ’ব।',
 
+  // Agent reports — Call Type (Customer Delight Index) report
+  'reports.backToDashboard': 'ডেশ্ববৰ্ডলৈ উভতি যাওক',
+  'reports.callType.title': 'কল টাইপ প্ৰতিবেদন',
+  'reports.callType.startDate': 'আৰম্ভণিৰ তাৰিখ',
+  'reports.callType.endDate': 'শেষ তাৰিখ',
+  'reports.callType.status': 'কলৰ অৱস্থা',
+  'reports.callType.rowsPerPage': 'প্ৰতি পৃষ্ঠাত শাৰী',
+  'reports.callType.search': 'সন্ধান কৰক',
+  'reports.callType.empty': 'কোনো ৰেকৰ্ড পোৱা নগ’ল',
+  'reports.callType.loadError': 'প্ৰতিবেদন ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'reports.callType.dateRangeError': 'শেষ তাৰিখ আৰম্ভণিৰ তাৰিখৰ আগত হ’ব নোৱাৰে।',
+  'reports.callType.dateRequired': 'আৰম্ভণিৰ তাৰিখ আৰু শেষ তাৰিখ আৱশ্যক।',
+  'reports.callType.col.benId': 'হিতাধিকাৰী আইডি',
+  'reports.callType.col.benName': 'হিতাধিকাৰীৰ নাম',
+  'reports.callType.col.callType': 'কল টাইপ',
+  'reports.callType.col.remarks': 'মন্তব্য',
+  'reports.callType.col.status': 'অৱস্থা',
+  'reports.callType.col.callDate': 'কলৰ তাৰিখ',
+  'reports.callType.col.lastCalledOn': 'শেষবাৰ কল কৰা তাৰিখ',
+  'reports.callType.col.action': 'কাৰ্য',
+  'reports.callType.report': 'প্ৰতিবেদন',
+  'reports.callType.dial': 'ডায়েল',
+  'reports.callType.dialDeferred':
+    'বাকী থকা কল ডায়েল কৰিবলৈ CTI ছফ্ট-ফোন সংযোগৰ প্ৰয়োজন, যি স্থগিত কৰা হৈছে।',
+  'reports.callType.previous': 'আগৰ',
+  'reports.callType.next': 'পৰৱৰ্তী',
+  'reports.callType.page': 'পৃষ্ঠা',
+  'reports.cdi.title': 'কাষ্টমাৰ ডিলাইট প্ৰতিবেদন',
+  'reports.cdi.question': 'প্ৰশ্ন',
+  'reports.cdi.answer': 'উত্তৰ',
+  'reports.cdi.weightage': 'গুৰুত্ব',
+  'reports.cdi.total': 'মুঠ গুৰুত্ব',
+  'reports.cdi.na': 'প্ৰযোজ্য নহয়',
+  'reports.cdi.loading': 'প্ৰতিবেদন ল’ড হৈ আছে…',
+  'reports.cdi.empty': 'এই কলৰ বাবে কোনো প্ৰতিবেদন পোৱা নগ’ল।',
+  'reports.cdi.error': 'প্ৰতিবেদন ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'সেৱাসমূহ',
   'hao.service.comingSoon': 'এই সেৱা সোনকালে উপলব্ধ হ’ব।',
@@ -551,6 +610,10 @@ export const as: Record<TranslationKey, string> = {
   'hao.service.covid19': 'কোভিড-১৯',
   'hao.service.imrMmr': 'আইএমআৰ / এমএমআৰ তথ্য',
   'hao.service.balVivah': 'বাল বিবাহ',
+  'hao.service.snomed': 'SNOMED CT',
+  'hao.service.cdss': 'CDSS',
+  'hao.service.prescription': 'ঔষধপত্ৰ',
+  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'মুখ্য অভিযোগ',
@@ -563,6 +626,9 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.healthAdvicePlaceholder': 'কলাৰক দিয়া পৰামৰ্শ',
   'hao.caseSheet.remarks': 'মন্তব্য',
   'hao.caseSheet.save': 'কেছ শ্বীট সংৰক্ষণ কৰক',
+  'hao.caseSheet.viewDiseaseSummary': 'ৰোগৰ সাৰাংশ চাওক',
+  'hao.caseSheet.diseaseSummaryError':
+    'ৰোগৰ সাৰাংশ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.caseSheet.saveSuccess': 'কেছ শ্বীট সফলতাৰে সংৰক্ষণ কৰা হ’ল।',
   'hao.caseSheet.saveError': 'কেছ শ্বীট সংৰক্ষণ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
 
@@ -586,6 +652,7 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.selectSkill': 'দক্ষতা বাছনি কৰক',
   'hao.closure.transfer': 'স্থানান্তৰ কৰক',
   'hao.closure.submitContinue': 'দাখিল কৰক আৰু অব্যাহত ৰাখক',
+  'hao.closure.scheduleAppointment': 'এপইণ্টমেণ্ট সময়সূচী কৰক',
   'hao.closure.submitClose': 'দাখিল কৰক আৰু বন্ধ কৰক',
   'hao.closure.confirmTitle': 'সমাপন',
   'hao.closure.confirmContinue': 'এই ডিচপোজিচন দাখিল কৰি কল অব্যাহত ৰাখিব নে?',

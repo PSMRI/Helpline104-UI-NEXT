@@ -20,16 +20,19 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideLayoutDashboard, lucideUserSearch } from '@ng-icons/lucide';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 
+import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { CallStore } from '../call.store';
+import { roleWorkspacePath } from '../role-workspace/role-screens.util';
 
 /**
  * Placeholder for the on-call role dispatcher.
@@ -71,7 +74,27 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
     </section>
   `,
 })
-export class RoleDispatcherComponent {
+export class RoleDispatcherComponent implements OnInit {
   private readonly i18n = inject(I18nService);
+  private readonly callStore = inject(CallStore);
+  private readonly authStore = inject(AuthStore);
+  private readonly router = inject(Router);
+
   readonly lang = this.i18n.language;
+
+  /**
+   * Once the caller is identified (a beneficiary is resolved on the CallStore),
+   * hand off to the agent's role workspace — e.g. `/innerpage/hao` for HAO. When
+   * no beneficiary is resolved yet, or the role has no dedicated workspace (RO),
+   * the "identify caller" placeholder is shown instead.
+   */
+  ngOnInit(): void {
+    if (this.callStore.beneficiaryId() === null) {
+      return;
+    }
+    const path = roleWorkspacePath(this.authStore.currentRole()?.featureCode);
+    if (path) {
+      void this.router.navigate(['/innerpage', path]);
+    }
+  }
 }

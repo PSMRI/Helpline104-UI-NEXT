@@ -26,6 +26,32 @@ import { Privilege } from '../../core/auth/auth.models';
 export const SERVICE_104 = '104';
 
 /**
+ * Maps a role's {@link CurrentRole.featureCode} to its on-call workspace child
+ * route under `/innerpage`. `RO` (registration-only) has no service workspace —
+ * it stays on the dispatcher/registration screen — so it (and any unknown code)
+ * returns `null`.
+ */
+const WORKSPACE_PATH_BY_FEATURE: Readonly<Record<string, string>> = {
+  HAO: 'hao',
+  MO: 'mo',
+  CO: 'co',
+  SIO: 'sio',
+  PD: 'pd',
+  Surveyor: 'surveyor',
+};
+
+/**
+ * The `/innerpage` child path for a role's feature code, or `null` when the role
+ * has no dedicated service workspace (e.g. RO, or an unrecognised code).
+ */
+export function roleWorkspacePath(featureCode: string | null | undefined): string | null {
+  if (!featureCode) {
+    return null;
+  }
+  return WORKSPACE_PATH_BY_FEATURE[featureCode] ?? null;
+}
+
+/**
  * Gather the distinct screen names the agent holds on a given service, across
  * all of that service's roles. Mirrors the legacy `dataService.screens` list the
  * `<md-tab-group>` gated its service tabs against (see also

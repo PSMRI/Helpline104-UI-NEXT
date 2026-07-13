@@ -59,13 +59,17 @@ export type HaoScreenName =
 
 /**
  * Stable identifiers for the service tabs of the "Provide Service" step. The
- * three screening tabs (health advice, diabetic, BP) are always shown; the rest
- * are gated by {@link HaoScreenName}.
+ * always-on tabs (health advice, the prescription tool, the diabetic and BP
+ * screenings, and the SMS sender) are shown for every HAO agent; the rest are
+ * gated by {@link HaoScreenName}. (SNOMED and CDSS are not tabs — they live
+ * inside the Health Advisory case sheet, which supplies their chief complaint.)
  */
 export type HaoServiceId =
   | 'healthAdvice'
+  | 'prescription'
   | 'diabeticScreening'
   | 'bpScreening'
+  | 'sms'
   | 'bloodOnCall'
   | 'directory'
   | 'epidemic'

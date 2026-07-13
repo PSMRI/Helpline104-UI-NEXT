@@ -72,6 +72,17 @@ export const en = {
   'dashboard.alerts.noOfficeBulletin': 'No office messages found',
   'dashboard.alerts.noNotifications': 'No notification messages found',
 
+  // Alerts & Notifications messages dialog
+  'dashboard.alertsDialog.empty': 'No messages found',
+  'dashboard.alertsDialog.markRead': 'Mark as read',
+  'dashboard.alertsDialog.markUnread': 'Mark as unread',
+  'dashboard.alertsDialog.delete': 'Delete',
+  'dashboard.alertsDialog.deleteTitle': 'Delete',
+  'dashboard.alertsDialog.deleteConfirm': 'Are you sure you want to delete?',
+  'dashboard.alertsDialog.readAll': 'Read All',
+  'dashboard.alertsDialog.unreadAll': 'Unread All',
+  'dashboard.alertsDialog.error': 'Unable to update the message. Please try again.',
+
   // Reports panel
   'dashboard.reports.title': 'Reports',
   'dashboard.reports.sno': 'S.No',
@@ -123,6 +134,8 @@ export const en = {
   'registration.history.empty': 'No existing registrations for this number.',
   'registration.search.empty': 'No beneficiaries match your search.',
   'registration.search.prompt': 'Enter a name or registration ID, then search.',
+  'registration.search.error':
+    'The search could not be completed — it may have timed out. Please try again.',
   'registration.col.regId': 'Reg. ID',
   'registration.col.name': 'Name',
   'registration.col.gender': 'Gender',
@@ -327,6 +340,12 @@ export const en = {
   'casesheetHistory.empty': 'No records found.',
   'casesheetHistory.loadError': 'Could not load history. Please try again.',
   'casesheetHistory.action': 'Action',
+  'casesheetHistory.sectionTitle': 'Case-sheet History',
+  'casesheetHistory.show': 'View history',
+  'casesheetHistory.hide': 'Hide history',
+  'casesheetHistory.tabMcts': 'MCTS',
+  'casesheetHistory.tabMmu': 'e-Health Facility',
+  'casesheetHistory.tabTm': 'Telemedicine',
   'casesheetHistory.mcts.title': 'MCTS call history',
   'casesheetHistory.mcts.callType': 'Call type',
   'casesheetHistory.mcts.callDate': 'Call date',
@@ -344,6 +363,9 @@ export const en = {
   'casesheetHistory.mmu.visitCategory': 'Visit category',
   'casesheetHistory.mmu.visitCode': 'Visit code',
   'casesheetHistory.mmu.view': 'View',
+  'casesheetHistory.mmu.selectedVisit': 'Selected visit',
+  'casesheetHistory.mmu.detailUnavailable':
+    'The full case-sheet view for this visit is not yet available.',
 
   // Schedule appointment
   'appointment.title': 'Schedule appointment',
@@ -533,6 +555,43 @@ export const en = {
   'roleWorkspace.surveyor.reportsPlaceholder':
     'The surveyor call-type reports will be available here soon.',
 
+  // Agent reports — Call Type (Customer Delight Index) report
+  'reports.backToDashboard': 'Back to Dashboard',
+  'reports.callType.title': 'Call Type Reports',
+  'reports.callType.startDate': 'Start Date',
+  'reports.callType.endDate': 'End Date',
+  'reports.callType.status': 'Call Status',
+  'reports.callType.rowsPerPage': 'Rows per page',
+  'reports.callType.search': 'Search',
+  'reports.callType.empty': 'No records found',
+  'reports.callType.loadError': 'Unable to load the report. Please try again.',
+  'reports.callType.dateRangeError': 'End date cannot be before start date.',
+  'reports.callType.dateRequired': 'Start date and end date are required.',
+  'reports.callType.col.benId': 'Beneficiary ID',
+  'reports.callType.col.benName': 'Beneficiary Name',
+  'reports.callType.col.callType': 'Call Type',
+  'reports.callType.col.remarks': 'Remarks',
+  'reports.callType.col.status': 'Status',
+  'reports.callType.col.callDate': 'Date of Call',
+  'reports.callType.col.lastCalledOn': 'Last Called On',
+  'reports.callType.col.action': 'Action',
+  'reports.callType.report': 'Report',
+  'reports.callType.dial': 'Dial',
+  'reports.callType.dialDeferred':
+    'Dialing a pending call requires the CTI soft-phone integration, which is deferred.',
+  'reports.callType.previous': 'Previous',
+  'reports.callType.next': 'Next',
+  'reports.callType.page': 'Page',
+  'reports.cdi.title': 'Customer Delight Report',
+  'reports.cdi.question': 'Question',
+  'reports.cdi.answer': 'Answer',
+  'reports.cdi.weightage': 'Weightage',
+  'reports.cdi.total': 'Total Weightage',
+  'reports.cdi.na': 'NA',
+  'reports.cdi.loading': 'Loading report…',
+  'reports.cdi.empty': 'No report found for this call.',
+  'reports.cdi.error': 'Unable to load the report. Please try again.',
+
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'Services',
   'hao.service.comingSoon': 'This service will be available soon.',
@@ -549,6 +608,10 @@ export const en = {
   'hao.service.covid19': 'Covid-19',
   'hao.service.imrMmr': 'IMR / MMR Information',
   'hao.service.balVivah': 'Bal Vivah',
+  'hao.service.snomed': 'SNOMED CT',
+  'hao.service.cdss': 'CDSS',
+  'hao.service.prescription': 'Prescription',
+  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'Chief Complaints',
@@ -561,6 +624,9 @@ export const en = {
   'hao.caseSheet.healthAdvicePlaceholder': 'Advice given to the caller',
   'hao.caseSheet.remarks': 'Remarks',
   'hao.caseSheet.save': 'Save Case Sheet',
+  'hao.caseSheet.viewDiseaseSummary': 'View disease summary',
+  'hao.caseSheet.diseaseSummaryError':
+    'Unable to load the disease summary. Please try again.',
   'hao.caseSheet.saveSuccess': 'Case sheet saved successfully.',
   'hao.caseSheet.saveError': 'Unable to save the case sheet. Please try again.',
 
@@ -584,6 +650,7 @@ export const en = {
   'hao.closure.selectSkill': 'Select skill',
   'hao.closure.transfer': 'Transfer',
   'hao.closure.submitContinue': 'Submit & Continue',
+  'hao.closure.scheduleAppointment': 'Schedule Appointment',
   'hao.closure.submitClose': 'Submit & Close',
   'hao.closure.confirmTitle': 'Closure',
   'hao.closure.confirmContinue': 'Submit this disposition and continue the call?',

@@ -74,6 +74,17 @@ export const hi: Record<TranslationKey, string> = {
   'dashboard.alerts.noOfficeBulletin': 'कोई कार्यालय संदेश नहीं मिला',
   'dashboard.alerts.noNotifications': 'कोई सूचना संदेश नहीं मिला',
 
+  // Alerts & Notifications messages dialog
+  'dashboard.alertsDialog.empty': 'कोई संदेश नहीं मिला',
+  'dashboard.alertsDialog.markRead': 'पढ़ा हुआ चिह्नित करें',
+  'dashboard.alertsDialog.markUnread': 'अपठित चिह्नित करें',
+  'dashboard.alertsDialog.delete': 'हटाएं',
+  'dashboard.alertsDialog.deleteTitle': 'हटाएं',
+  'dashboard.alertsDialog.deleteConfirm': 'क्या आप वाकई हटाना चाहते हैं?',
+  'dashboard.alertsDialog.readAll': 'सभी पढ़े हुए',
+  'dashboard.alertsDialog.unreadAll': 'सभी अपठित',
+  'dashboard.alertsDialog.error': 'संदेश अपडेट नहीं हो सका। कृपया पुनः प्रयास करें।',
+
   // Reports panel
   'dashboard.reports.title': 'विवरण',
   'dashboard.reports.sno': 'क्र.सं.',
@@ -125,6 +136,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.history.empty': 'इस नंबर के लिए कोई पंजीकरण नहीं मिला।',
   'registration.search.empty': 'आपकी खोज से कोई लाभार्थी मेल नहीं खाता।',
   'registration.search.prompt': 'नाम या पंजीकरण आईडी दर्ज करें, फिर खोजें।',
+  'registration.search.error':
+    'खोज पूरी नहीं हो सकी — शायद समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
   'registration.col.regId': 'पंजी. आईडी',
   'registration.col.name': 'नाम',
   'registration.col.gender': 'लिंग',
@@ -330,6 +343,12 @@ export const hi: Record<TranslationKey, string> = {
   'casesheetHistory.empty': 'कोई रिकॉर्ड नहीं मिला।',
   'casesheetHistory.loadError': 'इतिहास लोड नहीं हो सका। कृपया पुनः प्रयास करें।',
   'casesheetHistory.action': 'कार्रवाई',
+  'casesheetHistory.sectionTitle': 'केस-शीट इतिहास',
+  'casesheetHistory.show': 'इतिहास देखें',
+  'casesheetHistory.hide': 'इतिहास छिपाएँ',
+  'casesheetHistory.tabMcts': 'MCTS',
+  'casesheetHistory.tabMmu': 'ई-हेल्थ सुविधा',
+  'casesheetHistory.tabTm': 'टेलीमेडिसिन',
   'casesheetHistory.mcts.title': 'MCTS कॉल इतिहास',
   'casesheetHistory.mcts.callType': 'कॉल प्रकार',
   'casesheetHistory.mcts.callDate': 'कॉल तिथि',
@@ -347,6 +366,9 @@ export const hi: Record<TranslationKey, string> = {
   'casesheetHistory.mmu.visitCategory': 'विज़िट श्रेणी',
   'casesheetHistory.mmu.visitCode': 'विज़िट कोड',
   'casesheetHistory.mmu.view': 'देखें',
+  'casesheetHistory.mmu.selectedVisit': 'चयनित विज़िट',
+  'casesheetHistory.mmu.detailUnavailable':
+    'इस विज़िट के लिए पूर्ण केस-शीट दृश्य अभी उपलब्ध नहीं है।',
 
   // Schedule appointment
   'appointment.title': 'अपॉइंटमेंट शेड्यूल करें',
@@ -535,6 +557,43 @@ export const hi: Record<TranslationKey, string> = {
   'roleWorkspace.surveyor.reportsPlaceholder':
     'सर्वेयर कॉल-टाइप रिपोर्ट जल्द ही यहाँ उपलब्ध होंगी।',
 
+  // Agent reports — Call Type (Customer Delight Index) report
+  'reports.backToDashboard': 'डैशबोर्ड पर वापस जाएं',
+  'reports.callType.title': 'कॉल टाइप रिपोर्ट',
+  'reports.callType.startDate': 'प्रारंभ तिथि',
+  'reports.callType.endDate': 'अंतिम तिथि',
+  'reports.callType.status': 'कॉल स्थिति',
+  'reports.callType.rowsPerPage': 'प्रति पृष्ठ पंक्तियाँ',
+  'reports.callType.search': 'खोजें',
+  'reports.callType.empty': 'कोई रिकॉर्ड नहीं मिला',
+  'reports.callType.loadError': 'रिपोर्ट लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
+  'reports.callType.dateRangeError': 'अंतिम तिथि प्रारंभ तिथि से पहले नहीं हो सकती।',
+  'reports.callType.dateRequired': 'प्रारंभ तिथि और अंतिम तिथि आवश्यक हैं।',
+  'reports.callType.col.benId': 'लाभार्थी आईडी',
+  'reports.callType.col.benName': 'लाभार्थी का नाम',
+  'reports.callType.col.callType': 'कॉल टाइप',
+  'reports.callType.col.remarks': 'टिप्पणियाँ',
+  'reports.callType.col.status': 'स्थिति',
+  'reports.callType.col.callDate': 'कॉल की तिथि',
+  'reports.callType.col.lastCalledOn': 'अंतिम कॉल तिथि',
+  'reports.callType.col.action': 'कार्रवाई',
+  'reports.callType.report': 'रिपोर्ट',
+  'reports.callType.dial': 'डायल',
+  'reports.callType.dialDeferred':
+    'लंबित कॉल डायल करने के लिए CTI सॉफ्ट-फोन एकीकरण आवश्यक है, जो स्थगित है।',
+  'reports.callType.previous': 'पिछला',
+  'reports.callType.next': 'अगला',
+  'reports.callType.page': 'पृष्ठ',
+  'reports.cdi.title': 'कस्टमर डिलाइट रिपोर्ट',
+  'reports.cdi.question': 'प्रश्न',
+  'reports.cdi.answer': 'उत्तर',
+  'reports.cdi.weightage': 'वेटेज',
+  'reports.cdi.total': 'कुल वेटेज',
+  'reports.cdi.na': 'लागू नहीं',
+  'reports.cdi.loading': 'रिपोर्ट लोड हो रही है…',
+  'reports.cdi.empty': 'इस कॉल के लिए कोई रिपोर्ट नहीं मिली।',
+  'reports.cdi.error': 'रिपोर्ट लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
+
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'सेवाएं',
   'hao.service.comingSoon': 'यह सेवा शीघ्र ही उपलब्ध होगी।',
@@ -551,6 +610,10 @@ export const hi: Record<TranslationKey, string> = {
   'hao.service.covid19': 'कोविड-19',
   'hao.service.imrMmr': 'आईएमआर / एमएमआर जानकारी',
   'hao.service.balVivah': 'बाल विवाह',
+  'hao.service.snomed': 'SNOMED CT',
+  'hao.service.cdss': 'CDSS',
+  'hao.service.prescription': 'प्रिस्क्रिप्शन',
+  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'मुख्य शिकायतें',
@@ -563,6 +626,9 @@ export const hi: Record<TranslationKey, string> = {
   'hao.caseSheet.healthAdvicePlaceholder': 'कॉल करने वाले को दी गई सलाह',
   'hao.caseSheet.remarks': 'टिप्पणियां',
   'hao.caseSheet.save': 'केस शीट सहेजें',
+  'hao.caseSheet.viewDiseaseSummary': 'रोग सारांश देखें',
+  'hao.caseSheet.diseaseSummaryError':
+    'रोग सारांश लोड नहीं हो सका। कृपया पुनः प्रयास करें।',
   'hao.caseSheet.saveSuccess': 'केस शीट सफलतापूर्वक सहेजी गई।',
   'hao.caseSheet.saveError': 'केस शीट सहेजने में असमर्थ। कृपया पुनः प्रयास करें।',
 
@@ -586,6 +652,7 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.selectSkill': 'कौशल चुनें',
   'hao.closure.transfer': 'स्थानांतरित करें',
   'hao.closure.submitContinue': 'सबमिट करें और जारी रखें',
+  'hao.closure.scheduleAppointment': 'अपॉइंटमेंट शेड्यूल करें',
   'hao.closure.submitClose': 'सबमिट करें और बंद करें',
   'hao.closure.confirmTitle': 'समापन',
   'hao.closure.confirmContinue': 'यह डिस्पोज़िशन सबमिट करें और कॉल जारी रखें?',

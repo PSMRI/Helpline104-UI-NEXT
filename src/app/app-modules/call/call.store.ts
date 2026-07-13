@@ -45,6 +45,21 @@ export interface InboundCallSeed {
 }
 
 /**
+ * Demographics of the resolved beneficiary, captured when the caller is
+ * identified (selected or newly registered). The service workspace reads these
+ * to give its clinical tools patient context — CDSS needs age/gender, the
+ * prescription shows the patient identity, the screenings pre-fill the age band.
+ */
+export interface CallerDemographics {
+  readonly firstName: string | null;
+  readonly lastName: string | null;
+  /** Whole-unit age in years, or null when unknown. */
+  readonly age: number | null;
+  readonly genderId: number | null;
+  readonly genderName: string | null;
+}
+
+/**
  * Signal store for the live inbound call.
  *
  * Holds the state the on-call workspace is built from: whether a call is active
@@ -76,6 +91,8 @@ export class CallStore {
     readStoredTimestamp(this.storage.getItem(CALL_STORAGE_KEYS.startedAt)),
   );
   private readonly _beneficiaryId = signal<number | null>(null);
+  private readonly _districtID = signal<number | null>(null);
+  private readonly _demographics = signal<CallerDemographics | null>(null);
 
   /** True while an inbound call is connected; gates the on-call workspace. */
   readonly onCall = this._onCall.asReadonly();
@@ -87,6 +104,14 @@ export class CallStore {
   readonly callId = this._callId.asReadonly();
   /** Resolved beneficiary id for the caller, or null until identified. */
   readonly beneficiaryId = this._beneficiaryId.asReadonly();
+  /**
+   * District id of the resolved beneficiary, or null until identified. Captured
+   * alongside the beneficiary so downstream screens (e.g. schedule-appointment)
+   * can load the district's blocks/facilities without a separate lookup.
+   */
+  readonly districtID = this._districtID.asReadonly();
+  /** Demographics of the resolved beneficiary, or null until identified. */
+  readonly demographics = this._demographics.asReadonly();
   /** Epoch ms when the active call connected, or null when not on a call. */
   readonly startedAt = this._startedAt.asReadonly();
 
@@ -107,6 +132,8 @@ export class CallStore {
     // endCall()).
     this._callId.set(null);
     this._beneficiaryId.set(null);
+    this._districtID.set(null);
+    this._demographics.set(null);
 
     this.storage.setItem(CALL_STORAGE_KEYS.onCall, ON_CALL_YES);
     this.storage.setItem(CALL_STORAGE_KEYS.cli, seed.cli);
@@ -121,9 +148,24 @@ export class CallStore {
     this.storage.setItem(CALL_STORAGE_KEYS.callId, callId);
   }
 
-  /** Record the beneficiary resolved for the caller (in-memory only). */
-  setBeneficiaryId(beneficiaryId: number | null): void {
+  /**
+   * Record the beneficiary resolved for the caller, and their district
+   * (in-memory only). The district is beneficiary-scoped, so clearing the
+   * beneficiary (passing null) also clears it.
+   */
+  setBeneficiaryId(beneficiaryId: number | null, districtID: number | null = null): void {
     this._beneficiaryId.set(beneficiaryId);
+    this._districtID.set(beneficiaryId === null ? null : districtID);
+    // Demographics only make sense while a beneficiary is set; clearing the id
+    // (e.g. "Back to RO") drops the stale patient context too.
+    if (beneficiaryId === null) {
+      this._demographics.set(null);
+    }
+  }
+
+  /** Record the resolved beneficiary's demographics (in-memory only). */
+  setDemographics(demographics: CallerDemographics | null): void {
+    this._demographics.set(demographics);
   }
 
   /** Clear all live-call state (signals + persisted keys) on call close. */
@@ -134,6 +176,8 @@ export class CallStore {
     this._callId.set(null);
     this._startedAt.set(null);
     this._beneficiaryId.set(null);
+    this._districtID.set(null);
+    this._demographics.set(null);
 
     this.storage.removeItem(CALL_STORAGE_KEYS.onCall);
     this.storage.removeItem(CALL_STORAGE_KEYS.cli);
