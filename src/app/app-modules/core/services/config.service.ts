@@ -76,6 +76,14 @@ export class ConfigService {
     return environment.telephoneServer;
   }
 
+  /**
+   * OpenKM document-download base (KM/content-management file links). Configured
+   * per environment; must NOT embed credentials — the server handles auth.
+   */
+  getOpenKmBaseURL(): string {
+    return environment.openKmBaseUrl;
+  }
+
   // --- Behaviour flags -----------------------------------------------------
   /**
    * Whether to append `?apikey=<apiman_key>` to outbound requests (APIMAN

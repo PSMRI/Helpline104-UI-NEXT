@@ -34,6 +34,8 @@ const mmuAPI = `${devHost}mmu-api/`;
 const adminAPI = `${devHost}admin-api/`;
 const telephoneServer = 'https://uatcz.piramalswasthya.org/';
 const fhirAPI = `${devHost}fhir-api/`;
+// OpenKM document-download base (placeholder — set the real host; no credentials).
+const openKmBaseUrl = 'https://amritwprdev.piramalswasthya.org:8084/OpenKM/Download?uuid=';
 const API1097 = `${devHost}1097-api/`;
 const API104 = `${devHost}104-api/`;
 const siteKey = '';
@@ -46,6 +48,7 @@ export const environment = {
   commonAPI: commonAPI,
   ip1097: API1097,
   telephoneServer: telephoneServer,
+  openKmBaseUrl: openKmBaseUrl,
   adminAPI: adminAPI,
   ip104: API104,
   mmuAPI: mmuAPI,
