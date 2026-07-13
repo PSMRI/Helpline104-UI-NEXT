@@ -495,6 +495,36 @@ export const hi: Record<TranslationKey, string> = {
     'पर्यवेक्षकों के लिए गतिविधियाँ, विवरण और कॉन्फ़िगरेशन यहाँ प्रबंधित किए जाएंगे।',
   'supervisor.backToDashboard': 'डैशबोर्ड पर वापस जाएं',
 
+  // Supervisor workspace shell
+  'supervisor.nav.overview': 'अवलोकन',
+  'supervisor.nav.activities': 'गतिविधियाँ',
+  'supervisor.nav.agentStatus': 'एजेंट स्थिति',
+  'supervisor.nav.blockUnblock': 'नंबर ब्लॉक / अनब्लॉक करें',
+  'supervisor.nav.outboundAllocation': 'आउटबाउंड कॉल आवंटन',
+  'supervisor.nav.outboundReallocation': 'आउटबाउंड कॉल पुनः आवंटन',
+  'supervisor.nav.qualityAudit': 'गुणवत्ता ऑडिट',
+  'supervisor.nav.grievance': 'शिकायत ट्रैकिंग',
+  'supervisor.nav.uploadSchemes': 'योजनाएँ अपलोड करें',
+  'supervisor.nav.uploadSymptoms': 'लक्षण अपलोड करें',
+  'supervisor.nav.communication': 'संचार',
+  'supervisor.nav.forceLogout': 'फोर्स लॉगआउट',
+  'supervisor.nav.reports': 'रिपोर्ट',
+  'supervisor.nav.configurations': 'कॉन्फ़िगरेशन',
+  'supervisor.nav.contentManagement': 'सामग्री प्रबंधन',
+  'supervisor.nav.smsTemplates': 'एसएमएस टेम्पलेट',
+  'supervisor.nav.bloodUrl': 'ब्लड बैंक यूआरएल',
+  'supervisor.nav.diseasesSummary': 'रोग सारांश',
+  'supervisor.home.title': 'पर्यवेक्षक कंसोल',
+  'supervisor.home.reportsHint': 'कॉल, गुणवत्ता और सीआरएम रिपोर्ट डाउनलोड करें।',
+  'supervisor.home.blockUnblockHint': 'ब्लैकलिस्ट किए गए कॉलर नंबर प्रबंधित करें।',
+  'supervisor.home.outboundAllocationHint':
+    'अनासाइन की गई आउटबाउंड कॉल एजेंटों को आवंटित करें।',
+  'supervisor.home.outboundReallocationHint':
+    'आवंटित आउटबाउंड कॉल एजेंटों के बीच स्थानांतरित करें।',
+  'supervisor.placeholder.title': 'जल्द आ रहा है',
+  'supervisor.placeholder.body':
+    'यह पर्यवेक्षक अनुभाग अभी माइग्रेट नहीं हुआ है। कृपया अभी के लिए लीगेसी एप्लिकेशन का उपयोग करें।',
+
   // Post-logout feedback page
   'feedback.loggedOut': 'आप सत्र से लॉग आउट हो गए हैं',
   'feedback.subtitle': 'हम आपके अनुभव के बारे में जानना चाहेंगे (वैकल्पिक)',
@@ -931,4 +961,10 @@ export const hi: Record<TranslationKey, string> = {
   'sio.outbound.designation': 'पदनाम',
   'sio.outbound.feedback': 'प्रतिक्रिया',
   'sio.outbound.requestFulfilled': 'अनुरोध पूरा हुआ',
+
+  // Communication nav additions (sidebar)
+  'supervisor.nav.alertsNotifications': 'चेतावनी और सूचनाएं',
+  'supervisor.nav.locationMessages': 'स्थान संदेश',
+  'supervisor.nav.trainingResources': 'प्रशिक्षण संसाधन',
+  'supervisor.nav.emergencyContacts': 'आपातकालीन संपर्क',
 };

@@ -495,6 +495,36 @@ export const as: Record<TranslationKey, string> = {
     'তত্ত্বাৱধায়কৰ বাবে কাৰ্যকলাপ, প্ৰতিবেদন আৰু কনফিগাৰেচন ইয়াত পৰিচালনা কৰা হ’ব।',
   'supervisor.backToDashboard': 'ডেশ্ববৰ্ডলৈ উভতি যাওক',
 
+  // Supervisor workspace shell
+  'supervisor.nav.overview': 'অৱলোকন',
+  'supervisor.nav.activities': 'কাৰ্যকলাপসমূহ',
+  'supervisor.nav.agentStatus': 'এজেণ্টৰ স্থিতি',
+  'supervisor.nav.blockUnblock': 'নম্বৰ ব্লক / আনব্লক কৰক',
+  'supervisor.nav.outboundAllocation': 'আউটবাউণ্ড কল আবণ্টন',
+  'supervisor.nav.outboundReallocation': 'আউটবাউণ্ড কল পুনৰ আবণ্টন',
+  'supervisor.nav.qualityAudit': 'গুণগত মান নিৰীক্ষা',
+  'supervisor.nav.grievance': 'অভিযোগ অনুসৰণ',
+  'supervisor.nav.uploadSchemes': 'আঁচনি আপল’ড কৰক',
+  'supervisor.nav.uploadSymptoms': 'লক্ষণ আপল’ড কৰক',
+  'supervisor.nav.communication': 'যোগাযোগ',
+  'supervisor.nav.forceLogout': 'ফৰ্চ লগআউট',
+  'supervisor.nav.reports': 'প্ৰতিবেদন',
+  'supervisor.nav.configurations': 'কনফিগাৰেচন',
+  'supervisor.nav.contentManagement': 'সমল ব্যৱস্থাপনা',
+  'supervisor.nav.smsTemplates': 'এছএমএছ টেমপ্লেট',
+  'supervisor.nav.bloodUrl': 'ব্লাড বেংক ইউআৰএল',
+  'supervisor.nav.diseasesSummary': 'ৰোগৰ সাৰাংশ',
+  'supervisor.home.title': 'তত্ত্বাৱধায়ক কনচ’ল',
+  'supervisor.home.reportsHint': 'কল, গুণগত মান আৰু চিআৰএম প্ৰতিবেদন ডাউনল’ড কৰক।',
+  'supervisor.home.blockUnblockHint': 'ব্লেকলিষ্ট কৰা কলাৰ নম্বৰ পৰিচালনা কৰক।',
+  'supervisor.home.outboundAllocationHint':
+    'আবণ্টন নোহোৱা আউটবাউণ্ড কল এজেণ্টক আবণ্টন কৰক।',
+  'supervisor.home.outboundReallocationHint':
+    'আবণ্টিত আউটবাউণ্ড কল এজেণ্টৰ মাজত স্থানান্তৰ কৰক।',
+  'supervisor.placeholder.title': 'সোনকালে আহি আছে',
+  'supervisor.placeholder.body':
+    'এই তত্ত্বাৱধায়ক অংশটো এতিয়ালৈকে স্থানান্তৰ কৰা হোৱা নাই। অনুগ্ৰহ কৰি এতিয়াৰ বাবে লিগেচী এপ্লিকেচন ব্যৱহাৰ কৰক।',
+
   // Post-logout feedback page
   'feedback.loggedOut': 'আপুনি ছেচনৰ পৰা লগ আউট হৈছে',
   'feedback.subtitle': 'আমি আপোনাৰ অভিজ্ঞতাৰ বিষয়ে জানিব বিচাৰোঁ (বৈকল্পিক)',
@@ -933,4 +963,10 @@ export const as: Record<TranslationKey, string> = {
   'sio.outbound.designation': 'পদবী',
   'sio.outbound.feedback': 'মতামত',
   'sio.outbound.requestFulfilled': 'অনুৰোধ পূৰণ কৰা হ’ল',
+
+  // Communication nav additions (sidebar)
+  'supervisor.nav.alertsNotifications': 'সতৰ্কবাৰ্তা আৰু অধিসূচনাসমূহ',
+  'supervisor.nav.locationMessages': 'অৱস্থান বাৰ্তাসমূহ',
+  'supervisor.nav.trainingResources': 'প্ৰশিক্ষণ সম্পদ',
+  'supervisor.nav.emergencyContacts': 'জৰুৰীকালীন যোগাযোগ',
 };
