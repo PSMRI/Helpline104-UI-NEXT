@@ -24,6 +24,7 @@ import { CdkStep } from '@angular/cdk/stepper';
 import {
   ChangeDetectionStrategy,
   Component,
+  OnInit,
   inject,
   input,
   output,
@@ -58,6 +59,12 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
  * surfaced via {@link switchRole}. Reads `beneficiaryId`/`callId` from the
  * {@link CallStore}; on close (or transfer) it ends the call and returns to the
  * dashboard.
+ *
+ * Counselling roles set {@link requireConsent}: the beneficiary-consent script
+ * (legacy `104-consent` dialog, auto-opened by `104-co` with `disableClose`) is
+ * read to the caller before counselling starts. Declining jumps straight to the
+ * closure step, and returning to the case sheet without consent re-opens the
+ * dialog — the legacy `consentGranted` gate.
  */
 @Component({
   selector: 'app-role-workspace',
@@ -118,7 +125,7 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
     </section>
   `,
 })
-export class RoleWorkspaceComponent {
+export class RoleWorkspaceComponent implements OnInit {
   private readonly callStore = inject(CallStore);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
@@ -133,6 +140,8 @@ export class RoleWorkspaceComponent {
   readonly showSwitchRole = input(false);
   /** Label for the role-switch action; required when {@link showSwitchRole}. */
   readonly switchRoleLabelKey = input<TranslationKey | null>(null);
+  /** Read the beneficiary-consent script before counselling (CO / Counsellor). */
+  readonly requireConsent = input(false);
 
   /** Emitted when the agent triggers the role switch. */
   readonly switchRole = output<void>();
@@ -145,8 +154,39 @@ export class RoleWorkspaceComponent {
   private readonly _serviceAvailed = signal(false);
   readonly serviceAvailed = this._serviceAvailed.asReadonly();
 
+  /** True once the caller agreed to the consent terms (legacy `consentGranted`). */
+  private readonly consentGranted = signal(false);
+
   readonly beneficiaryId = this.callStore.beneficiaryId;
   readonly callId = this.callStore.callId;
+
+  ngOnInit(): void {
+    if (this.requireConsent()) {
+      this.openConsent();
+    }
+  }
+
+  /**
+   * Read the consent script and record the caller's answer (legacy
+   * `openConsent`). Declining moves the wizard to the closure step so the
+   * agent can only close the call, mirroring `closeCallIfConsentNotProvided`.
+   */
+  private openConsent(): void {
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('consent.title'),
+        message: this.i18n.instant('consent.message'),
+        okText: this.i18n.instant('consent.yes'),
+        cancelText: this.i18n.instant('consent.no'),
+        width: '36rem',
+      })
+      .subscribe((granted) => {
+        this.consentGranted.set(granted);
+        if (!granted && this.stepIndex() === 0) {
+          this.stepper().next();
+        }
+      });
+  }
 
   onServiceAvailed(): void {
     this._serviceAvailed.set(true);
@@ -178,6 +218,11 @@ export class RoleWorkspaceComponent {
       .subscribe((confirmed) => {
         if (confirmed) {
           this.stepper().previous();
+          // Back on the case sheet without consent → ask again (legacy
+          // `openDialog` re-opened the consent while `consentGranted` was false).
+          if (this.requireConsent() && !this.consentGranted()) {
+            this.openConsent();
+          }
         }
       });
   }

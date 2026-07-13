@@ -594,6 +594,13 @@ export const hi: Record<TranslationKey, string> = {
   'reports.cdi.empty': 'इस कॉल के लिए कोई रिपोर्ट नहीं मिली।',
   'reports.cdi.error': 'रिपोर्ट लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
 
+  // Beneficiary consent (CO / Counsellor), ported from the legacy 104-consent
+  'consent.title': 'लाभार्थी सहमति',
+  'consent.message':
+    'नमस्कार, मैं आपका काउंसलर हूँ। 104 हेल्पलाइन से काउंसलिंग सेवाएं लेने के लिए धन्यवाद। काउंसलिंग के दौरान हमारी बातचीत गोपनीय रहेगी। हालाँकि, कॉल रिकॉर्डिंग का उपयोग आंतरिक प्रशिक्षण और अनुसंधान के लिए किया जा सकता है। हमारी टीम प्रगति की निगरानी के लिए समय-समय पर आपसे संपर्क कर सकती है। आप किसी भी समय काउंसलिंग सेवा से हटने के लिए स्वतंत्र हैं। क्या आप सेवा की इन शर्तों से सहमत हैं?',
+  'consent.yes': 'हाँ',
+  'consent.no': 'नहीं',
+
   // HAO service tabs ("Provide Service" step)
   'hao.service.tablistLabel': 'सेवाएं',
   'hao.service.comingSoon': 'यह सेवा शीघ्र ही उपलब्ध होगी।',
