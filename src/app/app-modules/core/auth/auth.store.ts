@@ -34,9 +34,11 @@ import {
  * Signal-based store for the authenticated session: token, user, current role
  * and privileges. Replaces the legacy `AuthService` token helpers.
  *
- * The token and APIMAN key are persisted to (and rehydrated from) storage so
- * they survive a page reload — the HTTP interceptors read the token from here.
- * User/role/privileges live in memory and are repopulated on login.
+ * The whole session — token, APIMAN key, user, current role and privileges —
+ * is persisted to (and rehydrated from) storage so it survives a page reload;
+ * without the role/privileges a reload stranded the user on a role-less
+ * dashboard ("not authorised to access any 104 services" on Switch Role).
+ * The HTTP interceptors read the token from here.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthStore {
@@ -48,9 +50,15 @@ export class AuthStore {
   private readonly _apimanKey = signal<string | null>(
     this.storage.getItem(AUTH_STORAGE_KEYS.apimanKey),
   );
-  private readonly _user = signal<AuthUser | null>(null);
-  private readonly _currentRole = signal<CurrentRole | null>(null);
-  private readonly _privileges = signal<Privilege[]>([]);
+  private readonly _user = signal<AuthUser | null>(
+    readStoredJson<AuthUser>(this.storage.getItem(AUTH_STORAGE_KEYS.user)),
+  );
+  private readonly _currentRole = signal<CurrentRole | null>(
+    readStoredJson<CurrentRole>(this.storage.getItem(AUTH_STORAGE_KEYS.currentRole)),
+  );
+  private readonly _privileges = signal<Privilege[]>(
+    readStoredJson<Privilege[]>(this.storage.getItem(AUTH_STORAGE_KEYS.privileges)) ?? [],
+  );
 
   /** Raw auth token sent as the `Authorization` header (no `Bearer` prefix). */
   readonly token = this._token.asReadonly();
@@ -77,8 +85,15 @@ export class AuthStore {
     this._privileges.set(params.privileges ?? []);
 
     this.storage.setItem(AUTH_STORAGE_KEYS.token, params.token);
-    // A fresh login must not inherit a previous session's APIMAN key; it is
-    // re-captured at service/role selection.
+    this.storage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(params.user));
+    this.storage.setItem(
+      AUTH_STORAGE_KEYS.privileges,
+      JSON.stringify(params.privileges ?? []),
+    );
+    // A fresh login clears any previously selected role and must not inherit a
+    // previous session's APIMAN key; both are re-captured at role selection.
+    this._currentRole.set(null);
+    this.storage.removeItem(AUTH_STORAGE_KEYS.currentRole);
     this.setApimanKey(null);
   }
 
@@ -88,6 +103,7 @@ export class AuthStore {
    */
   setCurrentRole(role: CurrentRole): void {
     this._currentRole.set(role);
+    this.storage.setItem(AUTH_STORAGE_KEYS.currentRole, JSON.stringify(role));
     this.setApimanKey(role.apimanClientKey ?? null);
   }
 
@@ -99,6 +115,9 @@ export class AuthStore {
     this._privileges.set([]);
 
     this.storage.removeItem(AUTH_STORAGE_KEYS.token);
+    this.storage.removeItem(AUTH_STORAGE_KEYS.user);
+    this.storage.removeItem(AUTH_STORAGE_KEYS.currentRole);
+    this.storage.removeItem(AUTH_STORAGE_KEYS.privileges);
     this.setApimanKey(null);
   }
 
@@ -111,5 +130,17 @@ export class AuthStore {
       this._apimanKey.set(null);
       this.storage.removeItem(AUTH_STORAGE_KEYS.apimanKey);
     }
+  }
+}
+
+/** Parse a stored JSON value, returning null when absent or corrupted. */
+function readStoredJson<T>(raw: string | null): T | null {
+  if (!raw) {
+    return null;
+  }
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
   }
 }

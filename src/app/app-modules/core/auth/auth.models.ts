@@ -31,6 +31,9 @@
 export const AUTH_STORAGE_KEYS = {
   token: 'authToken',
   apimanKey: 'apiman_key',
+  user: 'authUser',
+  currentRole: 'authCurrentRole',
+  privileges: 'authPrivileges',
 } as const;
 
 /** The authenticated user, distilled from the login response. */

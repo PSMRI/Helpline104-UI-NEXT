@@ -184,16 +184,24 @@ export const routes: Routes = [
           ),
       },
       // Sidebar sections not yet migrated share the placeholder component
-      // until their real screens land. The config-owned sections (grievance,
-      // upload-schemes, communication/*, force-logout, content-management,
-      // blood-url) get their real routes in the stacked config branch. `reports`
-      // is a placeholder here so its sidebar link resolves on this branch alone;
-      // the stacked reports branch (PR #20) replaces it with the real hub.
+      // until their real screens land (the config screens and the real reports
+      // hub are on the feat/supervisor-config and feat/supervisor-reports
+      // branches). EVERY sidebar link must resolve here: a missing route makes
+      // the click throw NG04002 and silently do nothing.
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
+        ['grievance', 'supervisor.nav.grievance'],
+        ['upload-schemes', 'supervisor.nav.uploadSchemes'],
         ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
+        ['communication/alerts-notifications', 'supervisor.nav.alertsNotifications'],
+        ['communication/location-messages', 'supervisor.nav.locationMessages'],
+        ['communication/training-resources', 'supervisor.nav.trainingResources'],
+        ['communication/emergency-contacts', 'supervisor.nav.emergencyContacts'],
+        ['force-logout', 'supervisor.nav.forceLogout'],
+        ['content-management', 'supervisor.nav.contentManagement'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
+        ['blood-url', 'supervisor.nav.bloodUrl'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
         ['reports', 'supervisor.nav.reports'],
       ].map(([path, titleKey]) => ({
