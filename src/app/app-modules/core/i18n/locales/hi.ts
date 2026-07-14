@@ -546,6 +546,7 @@ export const hi: Record<TranslationKey, string> = {
   'supReports.noData': 'चयनित फ़िल्टर के लिए कोई डेटा नहीं मिला।',
   'supReports.fetchError': 'रिपोर्ट प्राप्त नहीं हो सकी। कृपया पुनः प्रयास करें।',
   'supReports.lookupError': 'रिपोर्ट विकल्प लोड नहीं हो सके। कृपया पुनः प्रयास करें।',
+  'supReports.unsupportedReport': 'यह रिपोर्ट उपलब्ध नहीं है। कृपया कोई अन्य रिपोर्ट चुनें।',
   'supReports.parseError':
     'रिपोर्ट का पूर्वावलोकन नहीं हो सका। डाउनलोड करने के लिए निर्यात का उपयोग करें।',
   'supReports.downloaded': 'रिपोर्ट डाउनलोड हो गई।',
@@ -1129,17 +1130,20 @@ export const hi: Record<TranslationKey, string> = {
   'supComm.endMustBeAfterStart': 'तक मान्य, से मान्य की तुलना में भविष्य की तारीख होनी चाहिए',
   'supComm.subjectMin': 'विषय आवश्यक है (न्यूनतम 5 वर्ण)',
   'supComm.messageMin': 'संदेश आवश्यक है (न्यूनतम 5 वर्ण)',
-  'supComm.noNotificationTypes': 'कोई अधिसूचना प्रकार नहीं मिला। संपर्क व्यवस्थापक',
+  'supComm.noNotificationTypes':
+    'कोई अधिसूचना प्रकार नहीं मिला। कृपया तकनीकी सहायता से संपर्क करें',
   'supComm.noOffices': 'काम का कोई स्थान नहीं मिला',
   'supComm.noOfficesForRole': 'उनमें चयनित भूमिका के साथ कोई कार्यालय कार्यात्मक नहीं मिला',
   'supComm.noRoles': 'कोई भूमिका नहीं मिली',
   'supComm.locationMessageCreated': 'स्थान संदेश सफलतापूर्वक बनाया गया',
-  'supComm.locationMessageCreateFailed': 'स्थान संदेश बनाना विफल रहा। बैकएंड टीम से संपर्क करें',
+  'supComm.locationMessageCreateFailed':
+    'स्थान संदेश बनाना विफल रहा। कृपया तकनीकी सहायता से संपर्क करें',
   'supComm.alertCreated': 'चेतावनी सफलतापूर्वक बनाया गया',
   'supComm.notificationCreated': 'अधिसूचना सफलतापूर्वक बनाई गई',
-  'supComm.createFailed': 'अधिसूचना/चेतावनी बनाना विफल रहा। बैकएंड टीम से संपर्क करें',
+  'supComm.createFailed':
+    'अधिसूचना/चेतावनी बनाना विफल रहा। कृपया तकनीकी सहायता से संपर्क करें',
   'supComm.editedSuccessfully': 'सफलतापूर्वक संपादित किया गया',
-  'supComm.editFailed': 'संपादन विफल। डीबी टीम से संपर्क करें',
+  'supComm.editFailed': 'संपादन विफल। कृपया तकनीकी सहायता से संपर्क करें',
   'supComm.endTimeBeforeStart': 'समाप्ति समय प्रारंभ समय से कम नहीं हो सकता',
   'supComm.startEndTimeSame': 'प्रारंभ समय और समाप्ति समय समान नहीं हो सकता',
 
@@ -1161,7 +1165,7 @@ export const hi: Record<TranslationKey, string> = {
   'supEmerg.update': 'अपडेट करें',
   'supEmerg.edit': 'संपादित करें',
   'supEmerg.action': 'कार्य',
-  'supEmerg.activate': 'सक्रिय',
+  'supEmerg.activate': 'सक्रिय करें',
   'supEmerg.deactivate': 'निष्क्रिय करें',
   'supEmerg.loading': 'लोड हो रहा है…',
   'supEmerg.noRecords': 'कोई रिकॉर्ड नहीं मिला',

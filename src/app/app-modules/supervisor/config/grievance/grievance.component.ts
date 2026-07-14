@@ -689,27 +689,45 @@ export class SupervisorGrievanceComponent implements OnInit {
     this.service
       .getFeedbackTypes(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (types) => this.feedbackTypes.set(types), error: () => undefined });
+      .subscribe({
+        next: (types) => this.feedbackTypes.set(types),
+        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+      });
     this.service
       .getFeedbackStatuses()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (s) => this.feedbackStatuses.set(s), error: () => undefined });
+      .subscribe({
+        next: (s) => this.feedbackStatuses.set(s),
+        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+      });
     this.service
       .getEmailStatuses()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (s) => this.emailStatuses.set(s), error: () => undefined });
+      .subscribe({
+        next: (s) => this.emailStatuses.set(s),
+        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+      });
     this.service
       .getSeverities(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (s) => this.severities.set(s), error: () => undefined });
+      .subscribe({
+        next: (s) => this.severities.set(s),
+        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+      });
     this.service
       .getDesignations()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (d) => this.designations.set(d), error: () => undefined });
+      .subscribe({
+        next: (d) => this.designations.set(d),
+        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+      });
     this.service
       .getInstituteTypes(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (t) => this.instituteTypes.set(t), error: () => undefined });
+      .subscribe({
+        next: (t) => this.instituteTypes.set(t),
+        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+      });
 
     this.onSearch();
   }

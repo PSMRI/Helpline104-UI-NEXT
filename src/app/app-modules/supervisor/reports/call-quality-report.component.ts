@@ -41,6 +41,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TranslationKey } from '../../core/i18n/locales';
+import { SupervisorError } from '../shared/supervisor-api';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
@@ -294,22 +295,34 @@ export class CallQualityReportComponent {
       this.service
         .getCallTypes(psmID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.callTypes.set(list), error: () => undefined });
+        .subscribe({
+          next: (list) => this.callTypes.set(list),
+          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+        });
     } else if (criteria === 'AgentWiseReport' && !this.agents().length) {
       this.service
         .getAgents(psmID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.agents.set(list), error: () => undefined });
+        .subscribe({
+          next: (list) => this.agents.set(list),
+          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+        });
     } else if (criteria === 'LocationWiseReport' && !this.workLocations().length) {
       this.service
         .getWorkLocations(psmID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.workLocations.set(list), error: () => undefined });
+        .subscribe({
+          next: (list) => this.workLocations.set(list),
+          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+        });
     } else if (criteria === 'SkillsetWiseReport' && !this.roles().length) {
       this.service
         .getRoles(psmID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.roles.set(list), error: () => undefined });
+        .subscribe({
+          next: (list) => this.roles.set(list),
+          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+        });
     }
   }
 

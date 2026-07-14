@@ -461,7 +461,7 @@ export class EmergencyContactsAdminComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (designations) => this.designations.set(designations),
-        error: () => undefined,
+        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
       });
     this.loading.set(true);
     this.service

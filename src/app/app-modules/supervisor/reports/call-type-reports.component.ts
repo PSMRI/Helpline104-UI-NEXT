@@ -584,6 +584,8 @@ export class CallTypeReportsComponent implements OnInit {
     const request = this.request();
     if (request) {
       this.runner.view(request);
+    } else {
+      this.runner.errorMessage.set(this.i18n.instant('supReports.unsupportedReport'));
     }
   }
 
@@ -591,6 +593,8 @@ export class CallTypeReportsComponent implements OnInit {
     const request = this.request();
     if (request) {
       this.runner.export(request, this.fileName());
+    } else {
+      this.runner.errorMessage.set(this.i18n.instant('supReports.unsupportedReport'));
     }
   }
 

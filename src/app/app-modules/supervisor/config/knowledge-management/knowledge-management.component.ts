@@ -275,6 +275,7 @@ export class KnowledgeManagementComponent implements OnInit {
   }
 
   onServiceChange(): void {
+    this.errorMessage.set('');
     const subServiceID = this.form.controls.subServiceID.value;
     this.form.controls.categoryID.setValue(null);
     this.form.controls.subCategoryID.setValue(null);
@@ -307,6 +308,7 @@ export class KnowledgeManagementComponent implements OnInit {
   }
 
   onCategoryChange(): void {
+    this.errorMessage.set('');
     const categoryID = this.form.controls.categoryID.value;
     this.form.controls.subCategoryID.setValue(null);
     this.subCategories.set([]);

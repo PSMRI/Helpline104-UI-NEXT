@@ -546,6 +546,8 @@ export const as: Record<TranslationKey, string> = {
   'supReports.noData': 'নিৰ্বাচিত ফিল্টাৰৰ বাবে কোনো তথ্য পোৱা নগ’ল।',
   'supReports.fetchError': 'প্ৰতিবেদন আনিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'supReports.lookupError': 'প্ৰতিবেদনৰ বিকল্পসমূহ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'supReports.unsupportedReport':
+    'এই প্ৰতিবেদন উপলব্ধ নহয়। অনুগ্ৰহ কৰি আন এখন প্ৰতিবেদন বাছনি কৰক।',
   'supReports.parseError':
     'প্ৰতিবেদনৰ পূৰ্বদৰ্শন কৰিব পৰা নগ’ল। ডাউনল’ড কৰিবলৈ ৰপ্তানি ব্যৱহাৰ কৰক।',
   'supReports.downloaded': 'প্ৰতিবেদন ডাউনল’ড হ’ল।',
@@ -1131,18 +1133,20 @@ export const as: Record<TranslationKey, string> = {
   'supComm.endMustBeAfterStart': 'লৈকে বৈধ, ইয়াৰ পৰা বৈধতকৈ ভৱিষ্যতৰ তাৰিখ হ’ব লাগিব',
   'supComm.subjectMin': 'বিষয়ৰ প্ৰয়োজন (নূন্যতম 5 টা বৰ্ণ)',
   'supComm.messageMin': 'বাৰ্তাৰ প্ৰয়োজন (নূন্যতম 5 টা বৰ্ণ)',
-  'supComm.noNotificationTypes': 'কোনো অধিসূচনাৰ প্ৰকাৰ পোৱা নগ’ল। যোগাযোগ প্ৰশাসক',
+  'supComm.noNotificationTypes':
+    'কোনো অধিসূচনাৰ প্ৰকাৰ পোৱা নগ’ল। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
   'supComm.noOffices': 'কোনো কামৰ স্থান পোৱা নগ’ল',
   'supComm.noOfficesForRole': 'নিৰ্বাচিত ভূমিকা কাৰ্যকৰী হোৱাৰ সৈতে কোনো কাৰ্যালয় পোৱা নগ’ল',
   'supComm.noRoles': 'কোনো ভূমিকা পোৱা নগ’ল',
   'supComm.locationMessageCreated': 'অৱস্থান বাৰ্তা সফলতাৰে সৃষ্টি কৰা হৈছে',
   'supComm.locationMessageCreateFailed':
-    'অৱস্থান বাৰ্তা সৃষ্টি ব্যৰ্থ হৈছে। বেকএণ্ড দলৰ সৈতে যোগাযোগ কৰক',
+    'অৱস্থান বাৰ্তা সৃষ্টি ব্যৰ্থ হৈছে। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
   'supComm.alertCreated': 'সফলতাৰে সৃষ্টি কৰা সতৰ্কবাণী',
   'supComm.notificationCreated': 'সফলতাৰে সৃষ্টি কৰা অধিসূচনা',
-  'supComm.createFailed': 'অধিসূচনা/সতৰ্কবাণী সৃষ্টি ব্যৰ্থ হৈছে। বেকএণ্ড দলৰ সৈতে যোগাযোগ কৰক',
+  'supComm.createFailed':
+    'অধিসূচনা/সতৰ্কবাণী সৃষ্টি ব্যৰ্থ হৈছে। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
   'supComm.editedSuccessfully': 'সফলতাৰে সম্পাদন কৰা হৈছে',
-  'supComm.editFailed': 'সম্পাদনা ব্যৰ্থ হৈছে। ডিবি দলৰ সৈতে যোগাযোগ কৰক',
+  'supComm.editFailed': 'সম্পাদনা ব্যৰ্থ হৈছে। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
   'supComm.endTimeBeforeStart': 'অন্তিম সময় আৰম্ভণিৰ সময়তকৈ কম হব নোৱাৰে',
   'supComm.startEndTimeSame': 'আৰম্ভৰ সময় আৰু সমাপ্তিৰ সময় একে হ’ব নোৱাৰে',
 
@@ -1165,7 +1169,7 @@ export const as: Record<TranslationKey, string> = {
   'supEmerg.edit': 'সম্পাদনা কৰক',
   'supEmerg.action': 'কাৰ্য্য',
   'supEmerg.activate': 'সক্ৰিয় কৰক',
-  'supEmerg.deactivate': 'নিষ্ক্ৰিয় কৰা হ’ব',
+  'supEmerg.deactivate': 'নিষ্ক্ৰিয় কৰক',
   'supEmerg.loading': 'ল’ড হৈ আছে…',
   'supEmerg.noRecords': 'কোনো ৰেকৰ্ড পোৱা নগ’ল',
   'supEmerg.minThreeChars': 'কমেও 3 টা বৰ্ণ প্ৰবিষ্ট কৰক',
