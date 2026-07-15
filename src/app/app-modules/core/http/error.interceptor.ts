@@ -36,9 +36,14 @@ const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please login again.';
 /**
  * Centralises session-expiry handling, replacing the legacy `onSuccess`/
  * `onError` callbacks. Force-logout triggers:
- *  - HTTP 401 / 403, and
+ *  - HTTP 401, and
  *  - HTTP 200 whose body carries `statusCode === 5002` (104's "logged in
  *    elsewhere" / invalid-session signal).
+ *
+ * HTTP 403 is NOT session expiry: it is a per-service authorization failure
+ * (e.g. mmu-api rejecting the common-api token) and force-logging the agent
+ * out — mid-call — over one forbidden endpoint is wrong. It propagates to the
+ * calling component like any other error.
  *
  * On expiry it delegates to `SessionService` and returns `EMPTY` so the failure
  * never reaches components. Any other successful authenticated response pings
@@ -80,7 +85,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
     }),
     catchError((error: HttpErrorResponse) => {
-      if (!isAuthFlowRequest && (error.status === 401 || error.status === 403)) {
+      if (!isAuthFlowRequest && error.status === 401) {
         session.handleSessionExpiry(SESSION_EXPIRED_MESSAGE);
         return EMPTY;
       }

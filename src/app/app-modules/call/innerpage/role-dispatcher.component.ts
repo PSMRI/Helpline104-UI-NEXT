@@ -32,7 +32,14 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
-import { roleWorkspacePath } from '../role-workspace/role-screens.util';
+import {
+  SERVICE_104,
+  collectServiceScreens,
+  roleWorkspacePath,
+} from '../role-workspace/role-screens.util';
+
+/** Screen whose presence marks a hybrid RO+HAO agent (see ngOnInit). */
+const SCREEN_HEALTH_ADVICE = 'Health_Advice';
 
 /**
  * Placeholder for the on-call role dispatcher.
@@ -87,12 +94,28 @@ export class RoleDispatcherComponent implements OnInit {
    * hand off to the agent's role workspace — e.g. `/innerpage/hao` for HAO. When
    * no beneficiary is resolved yet, or the role has no dedicated workspace (RO),
    * the "identify caller" placeholder is shown instead.
+   *
+   * Hybrid RO+HAO agents are remapped to the `RO` feature at role selection
+   * (legacy `checkROHAOPrivilege`), so their feature code alone yields no
+   * workspace — but once the caller is identified they serve the HAO tabs, as
+   * the legacy `<app-104>` switch did. Detect them by the Health_Advice screen
+   * on their 104 privileges and dispatch to the HAO workspace.
    */
   ngOnInit(): void {
     if (this.callStore.beneficiaryId() === null) {
       return;
     }
-    const path = roleWorkspacePath(this.authStore.currentRole()?.featureCode);
+    const featureCode = this.authStore.currentRole()?.featureCode;
+    let path = roleWorkspacePath(featureCode);
+    if (
+      path === null &&
+      featureCode === 'RO' &&
+      collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes(
+        SCREEN_HEALTH_ADVICE,
+      )
+    ) {
+      path = 'hao';
+    }
     if (path) {
       void this.router.navigate(['/innerpage', path]);
     }

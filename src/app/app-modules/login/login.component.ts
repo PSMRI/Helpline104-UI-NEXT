@@ -162,11 +162,12 @@ export class LoginComponent {
     }
 
     if (response.isAuthenticated && response.Status === 'Active') {
+      const agentID = resolveAgentID(response, privileges104);
       this.authStore.setSession({
         token: response.key,
         user: {
           userID: response.userID ?? null,
-          agentID: response.agentID ?? null,
+          agentID,
           userName: userID,
           status: response.Status,
         },
@@ -175,7 +176,6 @@ export class LoginComponent {
       // CTI handshake: getLoginKey -> getAgentIPAddress -> doAgentLogin. Fired
       // in the background (as the legacy app did) so a dark softphone never
       // blocks the portal login; the service stores the key/IP for later use.
-      const agentID = response.agentID ?? null;
       if (agentID !== null) {
         this.czentrix
           .startCtiSession(userID, this.lastEncryptedPassword, agentID)
@@ -254,4 +254,34 @@ export class LoginComponent {
           });
       });
   }
+}
+
+/**
+ * The agent's CZentrix dialer id. The backend does not return it at the top
+ * level of the login response: it rides on each 104 privilege (and its roles),
+ * sometimes as a string (e.g. `previlegeObj[0].agentID === "2145"` on UAT).
+ * Checks the top level first for backward compatibility, then the privilege
+ * tree; returns null when the user has no dialer id (CTI stays dark).
+ */
+function resolveAgentID(
+  response: LoginResponse,
+  privileges: Privilege[],
+): number | null {
+  const candidates: unknown[] = [
+    response.agentID,
+    ...privileges.flatMap((privilege) => [
+      privilege['agentID'],
+      ...(privilege.roles ?? []).map((role) => role.agentID),
+    ]),
+  ];
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined || candidate === '') {
+      continue;
+    }
+    const parsed = Number(candidate);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
 }
