@@ -184,12 +184,6 @@ export const routes: Routes = [
           ),
       },
       // Sidebar sections not yet migrated share the placeholder component
-<<<<<<< HEAD
-      // until their real screens land (the config screens and the real reports
-      // hub are on the feat/supervisor-config and feat/supervisor-reports
-      // branches). EVERY sidebar link must resolve here: a missing route makes
-      // the click throw NG04002 and silently do nothing.
-=======
       // until their real screens land. The config-owned sections (grievance,
       // upload-schemes, communication/*, force-logout, content-management,
       // blood-url) get their real routes in the stacked config branch and are
@@ -335,21 +329,11 @@ export const routes: Routes = [
             './app-modules/supervisor/config/communication/emergency-contacts-admin.component'
           ).then((m) => m.EmergencyContactsAdminComponent),
       },
->>>>>>> origin/main
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
-        ['grievance', 'supervisor.nav.grievance'],
-        ['upload-schemes', 'supervisor.nav.uploadSchemes'],
         ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
-        ['communication/alerts-notifications', 'supervisor.nav.alertsNotifications'],
-        ['communication/location-messages', 'supervisor.nav.locationMessages'],
-        ['communication/training-resources', 'supervisor.nav.trainingResources'],
-        ['communication/emergency-contacts', 'supervisor.nav.emergencyContacts'],
-        ['force-logout', 'supervisor.nav.forceLogout'],
-        ['content-management', 'supervisor.nav.contentManagement'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
-        ['blood-url', 'supervisor.nav.bloodUrl'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
       ].map(([path, titleKey]) => ({
         path,
