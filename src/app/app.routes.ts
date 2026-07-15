@@ -186,16 +186,155 @@ export const routes: Routes = [
       // Sidebar sections not yet migrated share the placeholder component
       // until their real screens land. The config-owned sections (grievance,
       // upload-schemes, communication/*, force-logout, content-management,
-      // blood-url) get their real routes in the stacked config branch. `reports`
-      // is a placeholder here so its sidebar link resolves on this branch alone;
-      // the stacked reports branch (PR #20) replaces it with the real hub.
+      // blood-url) get their real routes in the stacked config branch and are
+      // deliberately not placeholdered here.
+      {
+        // Grievance tracking: forward grievances to district authorities via
+        // email (edit) and record the responses received (update).
+        path: 'grievance',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/grievance/grievance.component').then(
+            (m) => m.SupervisorGrievanceComponent,
+          ),
+      },
+      {
+        // Reports hub: every supervisor report behind one tabbed container.
+        path: 'reports',
+        loadComponent: () =>
+          import('./app-modules/supervisor/reports/reports-hub.component').then(
+            (m) => m.SupervisorReportsHubComponent,
+          ),
+        children: [
+          { path: '', redirectTo: 'call-quality', pathMatch: 'full' },
+          {
+            path: 'call-quality',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/call-quality-report.component').then(
+                (m) => m.CallQualityReportComponent,
+              ),
+          },
+          {
+            path: 'qa-report',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/qa-report.component').then(
+                (m) => m.QaReportComponent,
+              ),
+          },
+          {
+            path: 'call-summary',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/call-summary-report.component').then(
+                (m) => m.CallSummaryReportComponent,
+              ),
+          },
+          {
+            path: 'call-type',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/call-type-reports.component').then(
+                (m) => m.CallTypeReportsComponent,
+              ),
+          },
+          {
+            path: 'complaint-detail',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/complaint-detail-report.component').then(
+                (m) => m.ComplaintDetailReportComponent,
+              ),
+          },
+          {
+            path: 'district-call-volume',
+            loadComponent: () =>
+              import(
+                './app-modules/supervisor/reports/district-call-volume-report.component'
+              ).then((m) => m.DistrictCallVolumeReportComponent),
+          },
+          {
+            path: 'diseases-summary',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/diseases-summary-report.component').then(
+                (m) => m.DiseasesSummaryReportComponent,
+              ),
+          },
+          {
+            path: 'unblock-user',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/unblock-user-report.component').then(
+                (m) => m.UnblockUserReportComponent,
+              ),
+          },
+        ],
+      },
+      {
+        // Upload health schemes with an attached document.
+        path: 'upload-schemes',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/upload-schemes/upload-schemes.component').then(
+            (m) => m.UploadSchemesComponent,
+          ),
+      },
+      {
+        // Blood bank URL configuration.
+        path: 'blood-url',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/blood-url/blood-url.component').then(
+            (m) => m.BloodUrlComponent,
+          ),
+      },
+      {
+        // Force-logout a logged-in agent by username.
+        path: 'force-logout',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/force-logout/force-logout.component').then(
+            (m) => m.ForceLogoutComponent,
+          ),
+      },
+      {
+        // Knowledge management (content management): upload KM documents
+        // against a service / category / sub-category.
+        path: 'content-management',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/knowledge-management/knowledge-management.component'
+          ).then((m) => m.KnowledgeManagementComponent),
+      },
+      {
+        // Communication: location-specific messages for offices.
+        path: 'communication/location-messages',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/communication/location-communication.component'
+          ).then((m) => m.LocationCommunicationComponent),
+      },
+      {
+        // Communication: Alert / Notification messages per role and office.
+        path: 'communication/alerts-notifications',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/communication/alerts-notifications.component'
+          ).then((m) => m.AlertsNotificationsComponent),
+      },
+      {
+        // Communication: training resources (KM notifications per role).
+        path: 'communication/training-resources',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/communication/training-resources.component'
+          ).then((m) => m.TrainingResourcesAdminComponent),
+      },
+      {
+        // Communication: emergency contacts admin.
+        path: 'communication/emergency-contacts',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/communication/emergency-contacts-admin.component'
+          ).then((m) => m.EmergencyContactsAdminComponent),
+      },
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
         ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
-        ['reports', 'supervisor.nav.reports'],
       ].map(([path, titleKey]) => ({
         path,
         data: { titleKey },
