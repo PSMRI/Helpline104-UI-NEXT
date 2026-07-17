@@ -197,8 +197,6 @@ export interface CloseCallRequest {
   requestedFor?: string | null;
   isEmergency: boolean;
   isSuicidal: boolean;
-  /** True once any service was saved during the call (marks the call valid). */
-  isServiceAvailed: boolean;
   /** Selected service id (legacy sent `current_service.serviceID` here). */
   providerServiceMapID: number | null;
   agentID: number | null;
