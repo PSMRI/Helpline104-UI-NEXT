@@ -42,7 +42,7 @@ const GENERIC_ERROR_MESSAGE =
 const SERVER_EXCEPTION_PATTERNS: readonly RegExp[] = [
   /jdbc/i,
   /\bsql\b/i,
-  /\bselect\b/i,
+  /\bselect\b.{0,50}\bfrom\b/i,
   /exception/i,
   /communications link failure/i,
 ];
