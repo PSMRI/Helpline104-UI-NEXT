@@ -28,6 +28,7 @@ import { routes } from './app.routes';
 import { provideZard } from '@/shared/core/provider/providezard';
 import { authInterceptor } from '@/app-modules/core/http/auth.interceptor';
 import { errorInterceptor } from '@/app-modules/core/http/error.interceptor';
+import { errorSanitizerInterceptor } from '@/app-modules/core/http/error-sanitizer.interceptor';
 import { loaderInterceptor } from '@/app-modules/core/http/loader.interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -37,9 +38,16 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideZard(),
     // Order matters: loader wraps everything (show/hide), auth adds credentials,
-    // error handles 401/403/5002 on the response.
+    // error handles 401/403/5002 on the response. The sanitizer sits closest to
+    // the backend so every earlier interceptor (and all services) only ever see
+    // errorMessage values with raw server exceptions already scrubbed.
     provideHttpClient(
-      withInterceptors([loaderInterceptor, authInterceptor, errorInterceptor]),
+      withInterceptors([
+        loaderInterceptor,
+        authInterceptor,
+        errorInterceptor,
+        errorSanitizerInterceptor,
+      ]),
     ),
   ],
 };
