@@ -454,6 +454,14 @@ export class ClosureStepComponent {
       return;
     }
 
+    // Legacy sends prefferedDateTime as a full ISO datetime: the picked date
+    // shifted by the timezone offset, then serialized with toJSON().
+    let prefferedDateTime: string | null = null;
+    if (value.isFollowupRequired && value.followUpDate) {
+      const d = new Date(value.followUpDate);
+      prefferedDateTime = new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000).toJSON();
+    }
+
     const request: CloseCallRequest = {
       benCallID,
       // Legacy mapping: callID carries the CTI session id; benCallID the AMRIT
@@ -464,11 +472,10 @@ export class ClosureStepComponent {
       callTypeID: subType.callTypeID,
       fitToBlock: subType.fitToBlock,
       isFollowupRequired: value.isFollowupRequired,
-      prefferedDateTime: value.isFollowupRequired ? value.followUpDate : null,
+      prefferedDateTime,
       requestedFor: value.remarks?.trim() || null,
       isEmergency: value.isEmergency,
       isSuicidal: value.isSuicidal,
-      isServiceAvailed: this.serviceAvailed(),
       providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
       agentID: this.authStore.user()?.agentID ?? null,
       endCall: !andContinue,
