@@ -25,9 +25,11 @@ import { RouterOutlet } from '@angular/router';
 
 import { ZardToastComponent } from '@common-ui/ui/toast';
 
+import { CtiPanelComponent } from '@/shared/components/layout/cti-panel.component';
+
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ZardToastComponent],
+  imports: [RouterOutlet, CtiPanelComponent, ZardToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

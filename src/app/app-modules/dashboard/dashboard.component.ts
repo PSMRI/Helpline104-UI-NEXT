@@ -34,8 +34,6 @@ import { environment } from '@env/environment';
 
 import { catchError, filter, of, switchMap, timer } from 'rxjs';
 
-import { ZardButtonComponent } from '@common-ui/ui/button';
-
 import { CallStore } from '../call/call.store';
 import { parseInboundCtiMessage } from '../call/cti-message';
 import { AuthStore } from '../core/auth/auth.store';
@@ -114,7 +112,6 @@ function safeOrigin(url: string): string {
     ReportsPanelComponent,
     ActivityPanelComponent,
     RatingPanelComponent,
-    ZardButtonComponent,
   ],
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
@@ -154,15 +151,12 @@ function safeOrigin(url: string): string {
         </main>
       </div>
 
-      <app-dashboard-footer [showCzentrix]="!isSupervisor()" [agentId]="agentId()" />
+      <app-dashboard-footer />
 
       @if (!isProduction) {
         <button
-          z-button
           type="button"
-          zSize="sm"
-          zType="outline"
-          class="fixed bottom-24 right-4 z-50 shadow-lg"
+          class="fixed bottom-12 left-4 z-40 rounded-md border border-muted-foreground/40 bg-background/80 px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           (click)="simulateInboundCall()"
         >
           ▶ Simulate inbound call (dev)
@@ -340,6 +334,4 @@ export class DashboardComponent {
     const code = this.featureCode();
     return code ? (ACTIVITY_BADGE_BY_FEATURE[code] ?? 0) : 0;
   });
-
-  readonly agentId = computed(() => this.authStore.user()?.agentID ?? null);
 }
