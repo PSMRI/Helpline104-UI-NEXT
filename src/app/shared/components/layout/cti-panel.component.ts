@@ -89,10 +89,12 @@ export class CtiPanelComponent {
 
   /**
    * Whether the CZentrix toggle is visible: an authenticated session with a
-   * selected role that is not the supervisor (who has no personal agent line).
+   * telephony agent id and a selected role that is not the supervisor (who has
+   * no personal agent line). Without an agent id the iframe has no CTI handler
+   * to load, so the toggle would only ever open an empty panel.
    */
   readonly showCzentrix = computed(() => {
-    if (!this.authStore.isAuthenticated()) {
+    if (!this.authStore.isAuthenticated() || this.agentId() === null) {
       return false;
     }
     const featureCode = this.authStore.currentRole()?.featureCode ?? null;

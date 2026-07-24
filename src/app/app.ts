@@ -20,11 +20,12 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { ZardToastComponent } from '@common-ui/ui/toast';
 
+import { InboundCtiService } from '@/app-modules/call/inbound-cti.service';
 import { CtiPanelComponent } from '@/shared/components/layout/cti-panel.component';
 
 @Component({
@@ -34,5 +35,9 @@ import { CtiPanelComponent } from '@/shared/components/layout/cti-panel.componen
   styleUrl: './app.css'
 })
 export class App {
+  // Instantiated here so the inbound-call postMessage listener is registered
+  // for the whole app lifetime, matching the root-level persistent CTI iframe.
+  private readonly inboundCti = inject(InboundCtiService);
+
   protected readonly title = signal('helpline104-next');
 }
