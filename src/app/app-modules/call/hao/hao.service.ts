@@ -159,7 +159,19 @@ export class HaoService {
         providerServiceMapID: serviceID,
         ...(isInbound ? { isInbound: true } : { isOutbound: true }),
       })
-      .pipe(map((res) => (Array.isArray(res.data) ? res.data : [])));
+      .pipe(
+        // Call types are mandatory for closure — a malformed payload must hit
+        // the caller's error path (visible to the agent), not render an empty
+        // dropdown that silently strands the call.
+        map((res) => {
+          if (!Array.isArray(res.data)) {
+            throw new Error(
+              'getCallTypes: expected array, got ' + typeof res.data,
+            );
+          }
+          return res.data;
+        }),
+      );
   }
 
   /** Record the call disposition and close the call. */
