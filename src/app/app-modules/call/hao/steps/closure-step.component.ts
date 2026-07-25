@@ -601,7 +601,10 @@ export class ClosureStepComponent {
       return;
     }
     this.haoService.getTransferCampaigns(agentID).subscribe({
-      next: (campaigns) => this.campaigns.set(campaigns),
+      // Belt-and-braces: the template's @for iterates this signal, so a
+      // non-array value (misbehaving backend, stale mock) must never land.
+      next: (campaigns) =>
+        this.campaigns.set(Array.isArray(campaigns) ? campaigns : []),
       error: () => this.campaigns.set([]),
     });
   }
