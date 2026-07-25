@@ -167,6 +167,9 @@ export const as: Record<TranslationKey, string> = {
   'registration.toast.selected': 'এই কলৰ বাবে হিতাধিকাৰী বাছনি কৰা হ’ল।',
   'registration.toast.registered': 'হিতাধিকাৰী পঞ্জীয়ন আৰু বাছনি কৰা হ’ল।',
   'registration.toast.error': 'কিবা ভুল হ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'registration.register.error':
+    "পঞ্জীয়ন বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।",
+  'registration.register.dismiss': 'বন্ধ কৰক',
   'registration.toast.noCli': 'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নহয়।',
   'registration.toast.masterError': 'কিছুমান ফৰ্ম বিকল্প ল’ড কৰিব পৰা নগ’ল।',
   'registration.notice.noCli':

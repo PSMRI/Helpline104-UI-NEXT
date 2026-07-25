@@ -981,6 +981,24 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             </div>
           </div>
         </form>
+
+        @if (registerError(); as msg) {
+          <div
+            class="mt-5 flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+            role="alert"
+          >
+            <span>{{ msg }}</span>
+            <button
+              z-button
+              type="button"
+              zType="ghost"
+              zSize="sm"
+              (click)="registerError.set(null)"
+            >
+              {{ 'registration.register.dismiss' | translate: lang() }}
+            </button>
+          </div>
+        }
       }
     </section>
 
@@ -1070,6 +1088,12 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   private searchRequestId = 0;
 
   readonly registerLoading = signal(false);
+  /**
+   * Persistent register-failure banner. The toast alone disappears before the
+   * agent can act on it, leaving a silent dead-end; this stays visible until
+   * the next submit attempt (or is dismissed).
+   */
+  readonly registerError = signal<string | null>(null);
 
   // --- Register-form view state -------------------------------------------
   readonly page = signal<1 | 2>(1);
@@ -1584,6 +1608,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   }
 
   doRegister(): void {
+    this.registerError.set(null);
     // Hard guard: a disabled form reports as valid, so this must run before the
     // invalid-check below to stop a submit with an empty phoneNo.
     if (this.cliMissing() || !this.callStore.cli()) {
@@ -1683,6 +1708,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         },
         error: (err: BeneficiaryError) => {
           this.registerLoading.set(false);
+          this.registerError.set(this.i18n.instant('registration.register.error'));
           toast.error(
             err?.errorMessage || this.i18n.instant('registration.toast.error'),
           );

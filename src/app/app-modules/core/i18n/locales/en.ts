@@ -165,6 +165,9 @@ export const en = {
   'registration.toast.selected': 'Beneficiary selected for this call.',
   'registration.toast.registered': 'Beneficiary registered and selected.',
   'registration.toast.error': 'Something went wrong. Please try again.',
+  'registration.register.error':
+    'Registration failed. Please try again or contact support.',
+  'registration.register.dismiss': 'Close',
   'registration.toast.noCli': 'No caller number is available for this call.',
   'registration.toast.masterError': 'Could not load some form options.',
   'registration.notice.noCli':
