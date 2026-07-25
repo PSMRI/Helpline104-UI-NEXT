@@ -159,7 +159,7 @@ export class HaoService {
         providerServiceMapID: serviceID,
         ...(isInbound ? { isInbound: true } : { isOutbound: true }),
       })
-      .pipe(map((res) => res.data ?? []));
+      .pipe(map((res) => (Array.isArray(res.data) ? res.data : [])));
   }
 
   /** Record the call disposition and close the call. */
@@ -193,7 +193,7 @@ export class HaoService {
       .post<ApiResponse<CampaignSkill[]>>(this.baseCommon + PATHS.campaignSkills, {
         campaign_name: campaignName,
       })
-      .pipe(map((res) => res.data ?? []));
+      .pipe(map((res) => (Array.isArray(res.data) ? res.data : [])));
   }
 
   /**
