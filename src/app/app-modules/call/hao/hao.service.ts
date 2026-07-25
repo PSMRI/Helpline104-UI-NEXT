@@ -160,10 +160,12 @@ export class HaoService {
         ...(isInbound ? { isInbound: true } : { isOutbound: true }),
       })
       .pipe(
-        // Call types are mandatory for closure — a malformed payload must hit
-        // the caller's error path (visible to the agent), not render an empty
-        // dropdown that silently strands the call.
+        // Call types are mandatory for closure: an absent payload (null /
+        // undefined) is a legitimate empty catalogue, but any other non-array
+        // shape is malformed and must hit the caller's error path (visible to
+        // the agent), not render an empty dropdown that strands the call.
         map((res) => {
+          if (res.data == null) return [];
           if (!Array.isArray(res.data)) {
             throw new Error(
               'getCallTypes: expected array, got ' + typeof res.data,
