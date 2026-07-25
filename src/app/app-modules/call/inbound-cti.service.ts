@@ -24,8 +24,13 @@ import { DestroyRef, Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '@env/environment';
 
+import { AuthStore } from '../core/auth/auth.store';
+
 import { CallStore } from './call.store';
 import { parseInboundCtiMessage } from './cti-message';
+
+/** Feature code of the supervising role, which has no personal agent line. */
+const SUPERVISOR_FEATURE_CODE = 'Supervisor';
 
 /**
  * Extract the origin from a configured base URL. Returns a token that can never
@@ -54,6 +59,7 @@ function safeOrigin(url: string): string {
  */
 @Injectable({ providedIn: 'root' })
 export class InboundCtiService {
+  private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
   private readonly router = inject(Router);
 
@@ -62,7 +68,7 @@ export class InboundCtiService {
 
   constructor() {
     const onMessage = (event: MessageEvent): void => {
-      if (!this.isTrustedCtiOrigin(event.origin)) {
+      if (!this.isTrustedCtiOrigin(event.origin) || !this.isCtiEligible()) {
         return;
       }
       this.handleCtiMessage(event.data);
@@ -83,6 +89,25 @@ export class InboundCtiService {
       return true;
     }
     return !environment.production && origin === window.location.origin;
+  }
+
+  /**
+   * Whether the current session may take inbound CTI calls — mirrors the
+   * CtiPanelComponent `showCzentrix` gate: an authenticated user with a
+   * telephony agent id and a selected non-supervisor role. The listener stays
+   * registered for the app's lifetime, so without this gate a message arriving
+   * on the login screen or in a supervisor session would seed call state and
+   * navigate into the on-call workspace.
+   */
+  private isCtiEligible(): boolean {
+    if (
+      !this.authStore.isAuthenticated() ||
+      (this.authStore.user()?.agentID ?? null) === null
+    ) {
+      return false;
+    }
+    const featureCode = this.authStore.currentRole()?.featureCode ?? null;
+    return featureCode !== null && featureCode !== SUPERVISOR_FEATURE_CODE;
   }
 
   /** Parse a CTI payload; on a fresh inbound call, seed state and navigate. */
