@@ -1298,4 +1298,7 @@ export const hi: Record<TranslationKey, string> = {
   'supKm.uploaded': 'सफलतापूर्वक अपलोड किया गया',
   'supKm.uploadFailed': 'फ़ाइल अपलोड करने में विफल',
   'supKm.noCategory': 'कोई श्रेणी नहीं मिली',
+
+  // Login
+  'login.captchaLabel': 'सुरक्षा जांच',
 };

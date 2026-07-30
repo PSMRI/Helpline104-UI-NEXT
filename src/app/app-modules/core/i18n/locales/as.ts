@@ -1301,4 +1301,7 @@ export const as: Record<TranslationKey, string> = {
   'supKm.uploaded': 'সফলতাৰে আপল’ড কৰা হৈছে',
   'supKm.uploadFailed': 'ফাইল আপল’ড কৰিবলৈ ব্যৰ্থ',
   'supKm.noCategory': 'কোনো শ্ৰেণী পোৱা নগ’ল',
+
+  // Login
+  'login.captchaLabel': 'সুৰক্ষা পৰীক্ষা',
 };

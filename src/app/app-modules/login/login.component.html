@@ -74,13 +74,19 @@
       <p class="login-error" role="alert">{{ errorMessage() }}</p>
     }
 
+    @if (captchaEnabled) {
+      <div role="group" [attr.aria-label]="'login.captchaLabel' | translate: lang()">
+        <app-captcha (tokenResolved)="onCaptchaToken($event)" />
+      </div>
+    }
+
     <button
       z-button
       type="submit"
       zType="default"
       zFull
       [zLoading]="loading()"
-      [zDisabled]="loading()"
+      [zDisabled]="loading() || (captchaEnabled && !captchaToken())"
     >
       Login
     </button>
