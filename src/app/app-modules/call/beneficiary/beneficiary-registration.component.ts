@@ -21,13 +21,7 @@
  */
 
 import { NgTemplateOutlet } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -147,9 +141,7 @@ function trimmedMinLength(min: number): ValidatorFn {
  */
 function noWhitespace(control: AbstractControl): ValidationErrors | null {
   const value = (control.value ?? '') as string;
-  return value.length > 0 && value.trim().length === 0
-    ? { whitespace: true }
-    : null;
+  return value.length > 0 && value.trim().length === 0 ? { whitespace: true } : null;
 }
 
 /** Validates an optional value against a pattern (empty passes). */
@@ -311,33 +303,25 @@ function validDob(control: AbstractControl): ValidationErrors | null {
         <form [formGroup]="searchForm" (ngSubmit)="doSearch()" autocomplete="off">
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <z-form-field>
-              <label z-form-label>{{
-                'registration.field.firstName' | translate: lang()
-              }}</label>
+              <label z-form-label>{{ 'registration.field.firstName' | translate: lang() }}</label>
               <z-form-control>
                 <input z-input formControlName="firstName" />
               </z-form-control>
             </z-form-field>
             <z-form-field>
-              <label z-form-label>{{
-                'registration.field.lastName' | translate: lang()
-              }}</label>
+              <label z-form-label>{{ 'registration.field.lastName' | translate: lang() }}</label>
               <z-form-control>
                 <input z-input formControlName="lastName" />
               </z-form-control>
             </z-form-field>
             <z-form-field>
-              <label z-form-label>{{
-                'registration.field.benId' | translate: lang()
-              }}</label>
+              <label z-form-label>{{ 'registration.field.benId' | translate: lang() }}</label>
               <z-form-control>
                 <input z-input formControlName="beneficiaryID" inputmode="numeric" />
               </z-form-control>
             </z-form-field>
             <z-form-field>
-              <label z-form-label>{{
-                'registration.field.gender' | translate: lang()
-              }}</label>
+              <label z-form-label>{{ 'registration.field.gender' | translate: lang() }}</label>
               <z-form-control>
                 <select formControlName="genderID" [class]="selectClass">
                   <option [ngValue]="null">
@@ -481,9 +465,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               @if (isHealthcareWorker()) {
                 <z-form-field>
-                  <label z-form-label>{{
-                    'registration.field.hcwType' | translate: lang()
-                  }}</label>
+                  <label z-form-label>{{ 'registration.field.hcwType' | translate: lang() }}</label>
                   <z-form-control>
                     <select formControlName="healthCareWorkerID" [class]="selectClass">
                       <option [ngValue]="null">
@@ -500,9 +482,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               }
 
               <z-form-field>
-                <label z-form-label>{{
-                  'registration.field.title' | translate: lang()
-                }}</label>
+                <label z-form-label>{{ 'registration.field.title' | translate: lang() }}</label>
                 <z-form-control>
                   <select
                     formControlName="titleId"
@@ -543,9 +523,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label>{{
-                  'registration.field.lastName' | translate: lang()
-                }}</label>
+                <label z-form-label>{{ 'registration.field.lastName' | translate: lang() }}</label>
                 <z-form-control>
                   <input
                     z-input
@@ -586,9 +564,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label>{{
-                  'registration.field.dob' | translate: lang()
-                }}</label>
+                <label z-form-label>{{ 'registration.field.dob' | translate: lang() }}</label>
                 <z-form-control>
                   <input
                     z-input
@@ -680,9 +656,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             @if (!isEmergency()) {
               <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <z-form-field>
-                  <label z-form-label>{{
-                    'registration.field.caste' | translate: lang()
-                  }}</label>
+                  <label z-form-label>{{ 'registration.field.caste' | translate: lang() }}</label>
                   <z-form-control>
                     <select formControlName="communityID" [class]="selectClass">
                       <option [ngValue]="null">
@@ -746,9 +720,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{
-                    'registration.field.idType' | translate: lang()
-                  }}</label>
+                  <label z-form-label>{{ 'registration.field.idType' | translate: lang() }}</label>
                   <z-form-control>
                     <select
                       formControlName="identityType"
@@ -921,16 +893,9 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label>{{
-                  'registration.field.pincode' | translate: lang()
-                }}</label>
+                <label z-form-label>{{ 'registration.field.pincode' | translate: lang() }}</label>
                 <z-form-control>
-                  <input
-                    z-input
-                    formControlName="pincode"
-                    inputmode="numeric"
-                    maxlength="6"
-                  />
+                  <input z-input formControlName="pincode" inputmode="numeric" maxlength="6" />
                 </z-form-control>
                 @if (showError('pincode', 'pattern')) {
                   <z-form-message>{{
@@ -956,7 +921,10 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                       maxlength="10"
                     />
                   </z-form-control>
-                  @if (registerForm.get(ctrl.name)?.touched && registerForm.get(ctrl.name)?.hasError('pattern')) {
+                  @if (
+                    registerForm.get(ctrl.name)?.touched &&
+                    registerForm.get(ctrl.name)?.hasError('pattern')
+                  ) {
                     <z-form-message>{{
                       'registration.validation.phone' | translate: lang()
                     }}</z-form-message>
@@ -1169,10 +1137,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     educationID: new FormControl<number | null>(null),
     identityType: new FormControl<number | null>(null),
     // Disabled until an ID type is chosen (legacy disables the field too).
-    govtIdentityNo: new FormControl(
-      { value: '', disabled: true },
-      { nonNullable: true },
-    ),
+    govtIdentityNo: new FormControl({ value: '', disabled: true }, { nonNullable: true }),
     // Page 2 (address) — required by default (non-emergency); cleared in emergency.
     stateID: new FormControl<number | null>(null, { validators: [Validators.required] }),
     districtID: new FormControl<number | null>(null, { validators: [Validators.required] }),
@@ -1208,8 +1173,9 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   });
 
   /** Alternate-number control names, for the template loop. */
-  readonly altPhoneControls: ReadonlyArray<{ name: AltPhoneName }> =
-    ALT_PHONE_NAMES.map((name) => ({ name }));
+  readonly altPhoneControls: ReadonlyArray<{ name: AltPhoneName }> = ALT_PHONE_NAMES.map(
+    (name) => ({ name }),
+  );
 
   /** Display the full name from the available name parts. */
   readonly fullName = (row: BeneficiaryRecord): string =>
@@ -1280,8 +1246,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   // --- Data loading -------------------------------------------------------
 
   private loadMasterData(): void {
-    const providerServiceMapID =
-      this.authStore.currentRole()?.providerServiceMapID ?? null;
+    const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
     this.beneficiary.getRegistrationData(providerServiceMapID).subscribe({
       next: (data) => {
         // A 200 with no payload leaves the form on its built-in fallbacks
@@ -1296,9 +1261,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         this.communities.set(data.m_communities ?? []);
         this.maritalStatuses.set(data.m_maritalStatuses ?? []);
         this.educations.set(data.i_BeneficiaryEducation ?? []);
-        this.govtIdTypes.set(
-          (data.govtIdentityTypes ?? []).filter((t) => t.isGovtID !== false),
-        );
+        this.govtIdTypes.set((data.govtIdentityTypes ?? []).filter((t) => t.isGovtID !== false));
         this.relationships.set(
           (data.benRelationshipTypes ?? []).filter(
             (r) => r.benRelationshipType?.toLowerCase() !== 'self',
@@ -1342,8 +1305,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   private detectParentBeneficiary(rows: BeneficiaryRecord[]): void {
     const self = rows.find(
       (r) =>
-        r.benPhoneMaps?.[0]?.benRelationshipType?.benRelationshipType?.toLowerCase() ===
-        'self',
+        r.benPhoneMaps?.[0]?.benRelationshipType?.benRelationshipType?.toLowerCase() === 'self',
     );
     if (self) {
       this.parentBenRegID = self.beneficiaryRegID;
@@ -1554,8 +1516,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     // Bump the request id first so any in-flight response (including one fired
     // before an empty-criteria reset) is treated as stale and dropped below.
     const requestId = ++this.searchRequestId;
-    const { firstName, lastName, beneficiaryID, genderID } =
-      this.searchForm.getRawValue();
+    const { firstName, lastName, beneficiaryID, genderID } = this.searchForm.getRawValue();
     const hasCriteria = !!(firstName.trim() || lastName.trim() || beneficiaryID.trim());
     if (!hasCriteria) {
       this.searchResults.set([]);
@@ -1600,9 +1561,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
           // a retryable error (e.g. a 504 timeout) instead of "no matches".
           this.searchAttempted.set(true);
           this.searchError.set(true);
-          toast.error(
-            err?.errorMessage || this.i18n.instant('registration.search.error'),
-          );
+          toast.error(err?.errorMessage || this.i18n.instant('registration.search.error'));
         },
       });
   }
@@ -1630,8 +1589,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     }
     const createdBy = this.authStore.user()?.userName ?? '';
     const role = this.authStore.currentRole();
-    const genderName =
-      this.genders().find((g) => g.genderID === v.genderID)?.genderName ?? '';
+    const genderName = this.genders().find((g) => g.genderID === v.genderID)?.genderName ?? '';
     const relationshipID = v.relationshipTypeID ?? RELATIONSHIP_SELF;
     const cli = this.callStore.cli() ?? '';
 
@@ -1709,9 +1667,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         error: (err: BeneficiaryError) => {
           this.registerLoading.set(false);
           this.registerError.set(this.i18n.instant('registration.register.error'));
-          toast.error(
-            err?.errorMessage || this.i18n.instant('registration.toast.error'),
-          );
+          toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
         },
       });
   }
@@ -1750,9 +1706,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     // Age is only meaningful in years for the clinical tools; a months/days
     // infant age is left null rather than mis-read as years.
     const ageInYears =
-      row.ageUnits === undefined || /year/i.test(row.ageUnits)
-        ? (row.actualAge ?? null)
-        : null;
+      row.ageUnits === undefined || /year/i.test(row.ageUnits) ? (row.actualAge ?? null) : null;
     this.resolveBeneficiary(
       row.beneficiaryRegID,
       'registration.toast.selected',
@@ -1786,7 +1740,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     const now = new Date();
     let years = now.getFullYear() - dob.getFullYear();
     let months = now.getMonth() - dob.getMonth();
-    let days = now.getDate() - dob.getDate();
+    const days = now.getDate() - dob.getDate();
     if (days < 0) {
       months -= 1;
     }
@@ -1800,10 +1754,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     if (months >= 1) {
       return { age: months, unit: 'months' };
     }
-    const dayDiff = Math.max(
-      1,
-      Math.floor((now.getTime() - dob.getTime()) / 86_400_000),
-    );
+    const dayDiff = Math.max(1, Math.floor((now.getTime() - dob.getTime()) / 86_400_000));
     return { age: dayDiff, unit: 'days' };
   }
 

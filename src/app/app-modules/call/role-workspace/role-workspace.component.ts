@@ -85,7 +85,7 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
         <p class="text-sm text-muted-foreground">{{ subtitleKey() | translate: lang() }}</p>
       </header>
 
-      <hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
+      <app-hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
         <cdk-step [label]="'roleWorkspace.stepService' | translate: lang()" [completed]="true">
           <app-hao-case-sheet
             [beneficiaryId]="beneficiaryId()"
@@ -102,7 +102,7 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
             (transferred)="onCallClosed()"
           />
         </cdk-step>
-      </hao-stepper>
+      </app-hao-stepper>
 
       <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
         @if (showSwitchRole() && switchRoleLabelKey(); as labelKey) {

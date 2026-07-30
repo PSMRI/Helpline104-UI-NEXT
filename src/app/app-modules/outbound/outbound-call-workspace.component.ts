@@ -127,7 +127,7 @@ function pad(value: number): string {
           </span>
         </header>
 
-        <hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
+        <app-hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
           <cdk-step
             [label]="'outbound.workspace.stepCaseSheet' | translate: lang()"
             [completed]="true"
@@ -147,7 +147,7 @@ function pad(value: number): string {
               (transferred)="onCallClosed()"
             />
           </cdk-step>
-        </hao-stepper>
+        </app-hao-stepper>
 
         <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
           <button z-button type="button" zType="ghost" (click)="endCall()">
