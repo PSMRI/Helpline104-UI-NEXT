@@ -20,11 +20,18 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpContextToken, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { finalize } from 'rxjs/operators';
 
 import { SpinnerService } from '../services/spinner.service';
+
+/**
+ * Per-request spinner opt-out for background calls whose URL also serves real
+ * screens (e.g. the session keepalive ping):
+ * `http.post(url, body, { context: new HttpContext().set(SKIP_SPINNER, true) })`.
+ */
+export const SKIP_SPINNER = new HttpContextToken<boolean>(() => false);
 
 /**
  * Endpoints that must not drive the global spinner — mirrors MMU's
@@ -43,7 +50,7 @@ const SPINNER_SKIP_URLS: readonly string[] = [
  * the legacy interceptor's inline `loaderService.show()/hide()`.
  */
 export const loaderInterceptor: HttpInterceptorFn = (req, next) => {
-  if (SPINNER_SKIP_URLS.some((url) => req.url.includes(url))) {
+  if (req.context.get(SKIP_SPINNER) || SPINNER_SKIP_URLS.some((url) => req.url.includes(url))) {
     return next(req);
   }
 
