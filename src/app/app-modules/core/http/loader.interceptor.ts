@@ -27,13 +27,26 @@ import { finalize } from 'rxjs/operators';
 import { SpinnerService } from '../services/spinner.service';
 
 /**
+ * Endpoints that must not drive the global spinner — mirrors MMU's
+ * `donotShowSpinnerUrl`. The CTI calls fire on login and on a background
+ * polling cadence; routing them through the spinner makes it flicker.
+ */
+const SPINNER_SKIP_URLS: readonly string[] = [
+  'cti/getAgentState',
+  'cti/getAgentIPAddress',
+  'cti/getLoginKey',
+  'cti/doAgentLogin',
+];
+
+/**
  * Drives the global loading indicator via a pending-request counter, replacing
  * the legacy interceptor's inline `loaderService.show()/hide()`.
- *
- * TODO(P1): add a skip-list (e.g. CTI agent-state polling) so background polls
- * don't flash the spinner — mirrors MMU's `donotShowSpinnerUrl`.
  */
 export const loaderInterceptor: HttpInterceptorFn = (req, next) => {
+  if (SPINNER_SKIP_URLS.some((url) => req.url.includes(url))) {
+    return next(req);
+  }
+
   const spinner = inject(SpinnerService);
 
   spinner.show();
