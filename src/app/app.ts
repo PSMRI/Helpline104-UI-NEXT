@@ -32,7 +32,7 @@ import { CtiPanelComponent } from '@/shared/components/layout/cti-panel.componen
   selector: 'app-root',
   imports: [RouterOutlet, CtiPanelComponent, ZardToastComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App {
   // Instantiated here so the inbound-call postMessage listener is registered

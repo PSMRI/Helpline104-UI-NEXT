@@ -76,9 +76,13 @@ import { FeedbackLogRow } from './feedback-log.models';
           <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
         }
         @if (loading()) {
-          <p class="py-6 text-center text-sm text-muted-foreground">{{ 'changeLog.loading' | translate: lang() }}</p>
+          <p class="py-6 text-center text-sm text-muted-foreground">
+            {{ 'changeLog.loading' | translate: lang() }}
+          </p>
         } @else if (rows().length === 0) {
-          <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+          <p
+            class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground"
+          >
             {{ 'changeLog.empty' | translate: lang() }}
           </p>
         } @else {
@@ -86,10 +90,18 @@ import { FeedbackLogRow } from './feedback-log.models';
             <table class="w-full text-left text-sm">
               <thead class="bg-muted/50 text-xs text-muted-foreground">
                 <tr>
-                  <th scope="col" class="px-3 py-2 font-medium">{{ 'changeLog.sno' | translate: lang() }}</th>
-                  <th scope="col" class="px-3 py-2 font-medium">{{ 'changeLog.log' | translate: lang() }}</th>
-                  <th scope="col" class="px-3 py-2 font-medium">{{ 'changeLog.modifiedBy' | translate: lang() }}</th>
-                  <th scope="col" class="px-3 py-2 font-medium">{{ 'changeLog.modifiedDate' | translate: lang() }}</th>
+                  <th scope="col" class="px-3 py-2 font-medium">
+                    {{ 'changeLog.sno' | translate: lang() }}
+                  </th>
+                  <th scope="col" class="px-3 py-2 font-medium">
+                    {{ 'changeLog.log' | translate: lang() }}
+                  </th>
+                  <th scope="col" class="px-3 py-2 font-medium">
+                    {{ 'changeLog.modifiedBy' | translate: lang() }}
+                  </th>
+                  <th scope="col" class="px-3 py-2 font-medium">
+                    {{ 'changeLog.modifiedDate' | translate: lang() }}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -98,7 +110,9 @@ import { FeedbackLogRow } from './feedback-log.models';
                     <td class="px-3 py-2">{{ i + 1 }}</td>
                     <td class="px-3 py-2">{{ row.feedbackLogs || '—' }}</td>
                     <td class="px-3 py-2">{{ row.createdBy || '—' }}</td>
-                    <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
+                    <td class="px-3 py-2">
+                      {{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}
+                    </td>
                   </tr>
                 }
               </tbody>

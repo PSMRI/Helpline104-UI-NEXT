@@ -70,10 +70,9 @@ export class SupervisorNotificationService {
   private readonly config = inject(ConfigService);
 
   getNotificationTypes(providerServiceMapID: number | null): Observable<NotificationType[]> {
-    return this.post<NotificationType[]>(
-      this.config.getCommonBaseURL() + NOTIFICATION_TYPES_PATH,
-      { providerServiceMapID },
-    ).pipe(map((data) => data ?? []));
+    return this.post<NotificationType[]>(this.config.getCommonBaseURL() + NOTIFICATION_TYPES_PATH, {
+      providerServiceMapID,
+    }).pipe(map((data) => data ?? []));
   }
 
   /** Provider/state/service ids for the service (admin base). */

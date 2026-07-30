@@ -21,13 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -40,14 +34,8 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
-import {
-  AlertsError,
-  UserNotification,
-} from '../../alerts-notifications.models';
-import {
-  AlertsIdentity,
-  AlertsNotificationsService,
-} from '../../alerts-notifications.service';
+import { AlertsError, UserNotification } from '../../alerts-notifications.models';
+import { AlertsIdentity, AlertsNotificationsService } from '../../alerts-notifications.service';
 
 /** What the dialog is opened with, passed via `zData`. */
 export interface AlertsNotificationsDialogData {
@@ -242,9 +230,7 @@ export class AlertsNotificationsDialogComponent {
       .subscribe({
         next: (messages) => {
           this.busy.set(false);
-          this.messages.set(
-            messages.filter((m) => m.notificationState !== 'future'),
-          );
+          this.messages.set(messages.filter((m) => m.notificationState !== 'future'));
           this.data.onChanged();
         },
         error: (err: AlertsError) => {

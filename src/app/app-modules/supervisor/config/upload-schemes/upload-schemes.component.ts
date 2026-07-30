@@ -197,13 +197,23 @@ const MAX_FILE_SIZE_MB = 5;
 
       <!-- Create / Modify form -->
       @if (!showTable()) {
-        <form [formGroup]="form" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <form
+          [formGroup]="form"
+          autocomplete="off"
+          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           <div>
             <label for="sch-name" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supScheme.name' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="sch-name" z-input class="w-full" maxlength="100" formControlName="schemeName" />
+            <input
+              id="sch-name"
+              z-input
+              class="w-full"
+              maxlength="100"
+              formControlName="schemeName"
+            />
             @if (form.controls.schemeName.invalid && form.controls.schemeName.touched) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supScheme.enterName' | translate: lang() }}
@@ -273,10 +283,19 @@ const MAX_FILE_SIZE_MB = 5;
           </div>
           @if (existingFileName()) {
             <div>
-              <label for="sch-existing" class="mb-1 block text-xs font-medium text-muted-foreground">
+              <label
+                for="sch-existing"
+                class="mb-1 block text-xs font-medium text-muted-foreground"
+              >
                 {{ 'supScheme.uploadedFile' | translate: lang() }}
               </label>
-              <input id="sch-existing" z-input class="w-full" [value]="existingFileName()" disabled />
+              <input
+                id="sch-existing"
+                z-input
+                class="w-full"
+                [value]="existingFileName()"
+                disabled
+              />
             </div>
           }
           <div class="sm:col-span-2 lg:col-span-3 flex justify-between">
@@ -291,9 +310,7 @@ const MAX_FILE_SIZE_MB = 5;
               [zDisabled]="form.invalid || fileInvalid() || reading() || saving()"
               (click)="save()"
             >
-              {{
-                (isCreate() ? 'supScheme.submit' : 'supScheme.modify') | translate: lang()
-              }}
+              {{ (isCreate() ? 'supScheme.submit' : 'supScheme.modify') | translate: lang() }}
             </button>
           </div>
         </form>

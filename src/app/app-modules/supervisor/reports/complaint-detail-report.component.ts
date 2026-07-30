@@ -44,11 +44,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
-import {
-  ComplaintDetailRequest,
-  FeedbackNatureOption,
-  FeedbackTypeOption,
-} from './reports.models';
+import { ComplaintDetailRequest, FeedbackNatureOption, FeedbackTypeOption } from './reports.models';
 import { SupervisorReportsService } from './reports.service';
 import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from './reports.util';
 
@@ -64,7 +60,13 @@ const FILE_NAME = 'Complaint_Details_Report';
   selector: 'app-complaint-detail-report',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ReportResultsComponent],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ReportResultsComponent,
+  ],
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">

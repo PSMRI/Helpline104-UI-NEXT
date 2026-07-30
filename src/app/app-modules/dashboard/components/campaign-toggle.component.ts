@@ -145,10 +145,7 @@ export class CampaignToggleComponent {
     this.confirmDialog
       .alert({
         title: this.i18n.instant('dashboard.dialog.error'),
-        message: readErrorMessage(
-          error,
-          this.i18n.instant('dashboard.campaign.switchError'),
-        ),
+        message: readErrorMessage(error, this.i18n.instant('dashboard.campaign.switchError')),
         okText: this.i18n.instant('dashboard.dialog.ok'),
       })
       .subscribe();

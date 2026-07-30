@@ -22,14 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -43,8 +36,7 @@ const FACILITY_MASTER_PATH = 'uptsu/get/facilityMaster/';
 const SAVE_APPOINTMENT_PATH = 'uptsu/save/appointment-details';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 const APPOINTMENT_TIMEOUT_MS = 20_000;
 
 /**
@@ -83,10 +75,7 @@ export class AppointmentService {
   /** Save an appointment; resolves to the backend payload (truthy on success). */
   saveAppointment(payload: SaveAppointmentRequest): Observable<unknown> {
     return this.http
-      .post<ApiResponse<unknown>>(
-        this.config.getCommonBaseURL() + SAVE_APPOINTMENT_PATH,
-        payload,
-      )
+      .post<ApiResponse<unknown>>(this.config.getCommonBaseURL() + SAVE_APPOINTMENT_PATH, payload)
       .pipe(
         timeout(APPOINTMENT_TIMEOUT_MS),
         map((res) => {

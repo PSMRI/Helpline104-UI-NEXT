@@ -81,11 +81,15 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
         <ng-icon name="lucideUtensils" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.food.title' | translate: lang() }}</h3>
+        <h3 class="text-sm font-semibold text-foreground">
+          {{ 'sio.food.title' | translate: lang() }}
+        </h3>
       </header>
 
       @if (!hasContext()) {
-        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
+        >
           {{ 'sio.common.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -96,16 +100,33 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
         <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label for="food-patient" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.food.patientName' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'sio.food.patientName' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
-            <input id="food-patient" z-input class="w-full" type="text" maxlength="25" formControlName="patientName" />
+            <input
+              id="food-patient"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="patientName"
+            />
           </div>
 
           <div>
             <label for="food-age" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.age' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="food-age" z-input class="w-full" type="number" inputmode="numeric" min="1" max="120" formControlName="patientAge" />
+            <input
+              id="food-age"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="120"
+              formControlName="patientAge"
+            />
           </div>
 
           <div>
@@ -113,7 +134,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
               {{ 'sio.common.gender' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="food-gender" [class]="selectClass" formControlName="patientGenderID">
-              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
+              <option [ngValue]="null" disabled>
+                {{ 'sio.common.select' | translate: lang() }}
+              </option>
               @for (g of genders(); track g.genderID) {
                 <option [ngValue]="g.genderID">{{ g.genderName }}</option>
               }
@@ -122,10 +145,13 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
 
           <div>
             <label for="food-type" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.food.complaintType' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'sio.food.complaintType' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
             <select id="food-type" [class]="selectClass" formControlName="complaintType">
-              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
+              <option [ngValue]="null" disabled>
+                {{ 'sio.common.select' | translate: lang() }}
+              </option>
               @for (t of complaintTypes; track t) {
                 <option [ngValue]="t">{{ t }}</option>
               }
@@ -134,41 +160,81 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
 
           <div>
             <label for="food-diet" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.food.historyOfDiet' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'sio.food.historyOfDiet' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
-            <input id="food-diet" z-input class="w-full" type="text" maxlength="150" formControlName="historyOfDiet" />
+            <input
+              id="food-diet"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="150"
+              formControlName="historyOfDiet"
+            />
           </div>
 
           <div>
             <label for="food-food" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.food.typeOfFood' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'sio.food.typeOfFood' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
-            <input id="food-food" z-input class="w-full" type="text" maxlength="150" formControlName="typeOfFood" />
+            <input
+              id="food-food"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="150"
+              formControlName="typeOfFood"
+            />
           </div>
 
           <div>
             <label for="food-source" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.food.foodConsumedFrom' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'sio.food.foodConsumedFrom' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
-            <input id="food-source" z-input class="w-full" type="text" maxlength="25" formControlName="foodConsumedFrom" />
+            <input
+              id="food-source"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="foodConsumedFrom"
+            />
           </div>
 
           <div>
             <label for="food-symptoms" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.food.associatedSymptoms' | translate: lang() }}
             </label>
-            <input id="food-symptoms" z-input class="w-full" type="text" maxlength="50" formControlName="associatedSymptoms" />
+            <input
+              id="food-symptoms"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="50"
+              formControlName="associatedSymptoms"
+            />
           </div>
 
           <div>
             <label for="food-incident" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.food.incidentDate' | translate: lang() }}
             </label>
-            <input id="food-incident" z-input class="w-full" type="date" [max]="today" formControlName="incidentDate" />
+            <input
+              id="food-incident"
+              z-input
+              class="w-full"
+              type="date"
+              [max]="today"
+              formControlName="incidentDate"
+            />
           </div>
 
           <fieldset class="sm:col-span-2 lg:col-span-3">
-            <legend class="mb-2 text-xs font-medium text-muted-foreground">{{ 'sio.food.symptoms' | translate: lang() }}</legend>
+            <legend class="mb-2 text-xs font-medium text-muted-foreground">
+              {{ 'sio.food.symptoms' | translate: lang() }}
+            </legend>
             <div class="flex flex-wrap gap-3">
               @for (s of symptomFields; track s.key) {
                 <label class="flex items-center gap-2 text-sm">
@@ -187,8 +253,15 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
             <label for="food-state" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.state' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="food-state" [class]="selectClass" formControlName="stateID" (change)="onStateChange()">
-              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
+            <select
+              id="food-state"
+              [class]="selectClass"
+              formControlName="stateID"
+              (change)="onStateChange()"
+            >
+              <option [ngValue]="null" disabled>
+                {{ 'sio.common.select' | translate: lang() }}
+              </option>
               @for (s of states(); track s.stateID) {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
@@ -197,10 +270,18 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
 
           <div>
             <label for="food-district" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.common.district' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'sio.common.district' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
-            <select id="food-district" [class]="selectClass" formControlName="districtID" (change)="onDistrictChange()">
-              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
+            <select
+              id="food-district"
+              [class]="selectClass"
+              formControlName="districtID"
+              (change)="onDistrictChange()"
+            >
+              <option [ngValue]="null" disabled>
+                {{ 'sio.common.select' | translate: lang() }}
+              </option>
               @for (d of districts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
@@ -208,10 +289,18 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
           </div>
 
           <div>
-            <label for="food-subdistrict" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="food-subdistrict"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'sio.common.subDistrict' | translate: lang() }}
             </label>
-            <select id="food-subdistrict" [class]="selectClass" formControlName="subDistrictID" (change)="onSubDistrictChange()">
+            <select
+              id="food-subdistrict"
+              [class]="selectClass"
+              formControlName="subDistrictID"
+              (change)="onSubDistrictChange()"
+            >
               <option [ngValue]="null">{{ 'sio.common.select' | translate: lang() }}</option>
               @for (b of subDistricts(); track b.blockID) {
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
@@ -235,32 +324,63 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
             <label for="food-remarks" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.remarks' | translate: lang() }}
             </label>
-            <textarea id="food-remarks" [class]="textareaClass" rows="2" maxlength="500" formControlName="remarks"></textarea>
+            <textarea
+              id="food-remarks"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="500"
+              formControlName="remarks"
+            ></textarea>
           </div>
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>
 
         <div class="mt-6">
-          <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.common.history' | translate: lang() }}</h4>
+          <h4 class="mb-2 text-sm font-medium text-foreground">
+            {{ 'sio.common.history' | translate: lang() }}
+          </h4>
           @if (history().length === 0) {
-            <p class="text-sm text-muted-foreground">{{ 'sio.common.noHistory' | translate: lang() }}</p>
+            <p class="text-sm text-muted-foreground">
+              {{ 'sio.common.noHistory' | translate: lang() }}
+            </p>
           } @else {
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.food.colComplaintId' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.food.colHistoryOfDiet' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.food.colConsumedFood' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.food.colTypeOfFood' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.food.colConsumedFrom' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.food.colNature' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.common.remarks' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.food.colComplaintId' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.food.colHistoryOfDiet' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.food.colConsumedFood' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.food.colTypeOfFood' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.food.colConsumedFrom' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.food.colNature' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.common.remarks' | translate: lang() }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -269,7 +389,10 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
                       <td class="px-3 py-2">{{ row.requestID ?? '—' }}</td>
                       <td class="px-3 py-2">{{ row.historyOfDiet || '—' }}</td>
                       <td class="px-3 py-2">
-                        {{ (row.isFoodConsumed === '1' ? 'sio.common.yes' : 'sio.common.no') | translate: lang() }}
+                        {{
+                          (row.isFoodConsumed === '1' ? 'sio.common.yes' : 'sio.common.no')
+                            | translate: lang()
+                        }}
                       </td>
                       <td class="px-3 py-2">{{ row.typeOfFood || '—' }}</td>
                       <td class="px-3 py-2">{{ row.foodConsumedFrom || '—' }}</td>
@@ -305,7 +428,10 @@ export class FoodSafetyComponent implements OnInit {
   /** Fixed complaint types (value = the string sent as `typeOfRequest`). */
   readonly complaintTypes = COMPLAINT_TYPES;
   /** Today's date (yyyy-MM-dd) used to cap the incident-date picker. */
-  readonly today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+  readonly today = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
 
   /** Symptom checkbox fields: form-control key → label key. */
   readonly symptomFields = [
@@ -426,7 +552,10 @@ export class FoodSafetyComponent implements OnInit {
     this.beneficiary
       .getSubDistricts(districtID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (b) => this.subDistricts.set(b), error: (e: SioError) => this.setError(e) });
+      .subscribe({
+        next: (b) => this.subDistricts.set(b),
+        error: (e: SioError) => this.setError(e),
+      });
   }
 
   onSubDistrictChange(): void {

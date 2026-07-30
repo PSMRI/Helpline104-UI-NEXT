@@ -520,8 +520,7 @@ export const hi: Record<TranslationKey, string> = {
   'supervisor.home.title': 'पर्यवेक्षक कंसोल',
   'supervisor.home.reportsHint': 'कॉल, गुणवत्ता और सीआरएम रिपोर्ट डाउनलोड करें।',
   'supervisor.home.blockUnblockHint': 'ब्लैकलिस्ट किए गए कॉलर नंबर प्रबंधित करें।',
-  'supervisor.home.outboundAllocationHint':
-    'अनासाइन की गई आउटबाउंड कॉल एजेंटों को आवंटित करें।',
+  'supervisor.home.outboundAllocationHint': 'अनासाइन की गई आउटबाउंड कॉल एजेंटों को आवंटित करें।',
   'supervisor.home.outboundReallocationHint':
     'आवंटित आउटबाउंड कॉल एजेंटों के बीच स्थानांतरित करें।',
   'supervisor.placeholder.title': 'जल्द आ रहा है',
@@ -731,8 +730,7 @@ export const hi: Record<TranslationKey, string> = {
   'hao.caseSheet.remarks': 'टिप्पणियां',
   'hao.caseSheet.save': 'केस शीट सहेजें',
   'hao.caseSheet.viewDiseaseSummary': 'रोग सारांश देखें',
-  'hao.caseSheet.diseaseSummaryError':
-    'रोग सारांश लोड नहीं हो सका। कृपया पुनः प्रयास करें।',
+  'hao.caseSheet.diseaseSummaryError': 'रोग सारांश लोड नहीं हो सका। कृपया पुनः प्रयास करें।',
   'hao.caseSheet.saveSuccess': 'केस शीट सफलतापूर्वक सहेजी गई।',
   'hao.caseSheet.saveError': 'केस शीट सहेजने में असमर्थ। कृपया पुनः प्रयास करें।',
 
@@ -991,8 +989,8 @@ export const hi: Record<TranslationKey, string> = {
   'sio.imrMmr.informerMobile': 'सूचना देने वाले का मोबाइल नंबर',
   'sio.imrMmr.informerAddress': 'सूचना देने वाले का पता',
   'sio.imrMmr.victimName': 'पीड़ित का नाम',
-  'sio.imrMmr.motherName': "माता का नाम",
-  'sio.imrMmr.fatherName': "पिता का नाम",
+  'sio.imrMmr.motherName': 'माता का नाम',
+  'sio.imrMmr.fatherName': 'पिता का नाम',
   'sio.imrMmr.reasonOfDeath': 'मृत्यु का कारण',
   'sio.imrMmr.deathId': 'मृत्यु आईडी',
   'sio.imrMmr.victim': 'पीड़ित',
@@ -1002,11 +1000,11 @@ export const hi: Record<TranslationKey, string> = {
   'sio.balVivah.title': 'बाल विवाह शिकायत',
   'sio.balVivah.subject': 'शिकायत का विषय',
   'sio.balVivah.childName': 'बच्चे का नाम',
-  'sio.balVivah.childFatherName': "पिता का नाम",
+  'sio.balVivah.childFatherName': 'पिता का नाम',
   'sio.balVivah.childAge': 'बच्चे की आयु',
   'sio.balVivah.marriageDate': 'विवाह की तारीख',
   'sio.balVivah.childLocation': 'बच्चे का स्थान',
-  'sio.balVivah.fatherLocation': "पिता का स्थान",
+  'sio.balVivah.fatherLocation': 'पिता का स्थान',
   'sio.balVivah.complaintDate': 'शिकायत की तारीख',
   'sio.balVivah.colComplaintId': 'शिकायत आईडी',
   // SIO services catalogue + history
@@ -1143,8 +1141,7 @@ export const hi: Record<TranslationKey, string> = {
     'स्थान संदेश बनाना विफल रहा। कृपया तकनीकी सहायता से संपर्क करें',
   'supComm.alertCreated': 'चेतावनी सफलतापूर्वक बनाया गया',
   'supComm.notificationCreated': 'अधिसूचना सफलतापूर्वक बनाई गई',
-  'supComm.createFailed':
-    'अधिसूचना/चेतावनी बनाना विफल रहा। कृपया तकनीकी सहायता से संपर्क करें',
+  'supComm.createFailed': 'अधिसूचना/चेतावनी बनाना विफल रहा। कृपया तकनीकी सहायता से संपर्क करें',
   'supComm.editedSuccessfully': 'सफलतापूर्वक संपादित किया गया',
   'supComm.editFailed': 'संपादन विफल। कृपया तकनीकी सहायता से संपर्क करें',
   'supComm.endTimeBeforeStart': 'समाप्ति समय प्रारंभ समय से कम नहीं हो सकता',

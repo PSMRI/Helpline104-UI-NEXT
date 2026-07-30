@@ -54,10 +54,9 @@ export class CallTypeReportService {
 
   /** Call-type groups for the service (to resolve the "valid" call type). */
   getCallTypes(providerServiceMapID: number | null): Observable<CallTypeGroup[]> {
-    return this.post<CallTypeGroup[]>(
-      this.config.getCommonBaseURL() + GET_CALL_TYPES_PATH,
-      { providerServiceMapID },
-    );
+    return this.post<CallTypeGroup[]>(this.config.getCommonBaseURL() + GET_CALL_TYPES_PATH, {
+      providerServiceMapID,
+    });
   }
 
   /** One page of the CDI worklist. */

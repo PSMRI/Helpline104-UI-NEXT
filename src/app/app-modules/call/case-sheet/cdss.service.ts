@@ -22,14 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -52,8 +45,7 @@ const RESULT_PATH = CDSS_PREFIX + 'getResult';
 const SAVE_SYMPTOM_PATH = CDSS_PREFIX + 'saveSymptom';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 
 /**
  * Max time to wait for any CDSS call before failing. Without this a hung
@@ -85,13 +77,11 @@ export class CdssService {
    * case-sheet complaint picker). Resolves to `[]` when none are returned.
    */
   getChiefComplaints(req: CdssChiefComplaintsRequest): Observable<string[]> {
-    return this.http
-      .post<ApiResponse<string[]>>(this.baseUrl + CHIEF_COMPLAINTS_PATH, req)
-      .pipe(
-        timeout(CDSS_TIMEOUT_MS),
-        map((res) => this.readData(res) ?? []),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<string[]>>(this.baseUrl + CHIEF_COMPLAINTS_PATH, req).pipe(
+      timeout(CDSS_TIMEOUT_MS),
+      map((res) => this.readData(res) ?? []),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /**
@@ -128,13 +118,11 @@ export class CdssService {
    * legacy service; resolves to the backend `data` payload.
    */
   saveSymptom(payload: unknown): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.baseUrl + SAVE_SYMPTOM_PATH, payload)
-      .pipe(
-        timeout(CDSS_TIMEOUT_MS),
-        map((res) => this.readData(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.baseUrl + SAVE_SYMPTOM_PATH, payload).pipe(
+      timeout(CDSS_TIMEOUT_MS),
+      map((res) => this.readData(res)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /** Normalise a raw questionnaire; drops questions without text. */

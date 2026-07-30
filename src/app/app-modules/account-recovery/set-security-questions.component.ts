@@ -72,8 +72,7 @@ import { noWhitespace } from './recovery-validators';
  * uppercase letter and one special character from `!@#$%^&*`, and only
  * alphanumerics plus those specials.
  */
-const PASSWORD_PATTERN =
-  /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,12}$/;
+const PASSWORD_PATTERN = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,12}$/;
 
 /** Group validator: the three chosen questions must all be different. */
 function distinctQuestions(group: AbstractControl): ValidationErrors | null {
@@ -141,11 +140,20 @@ export class SetSecurityQuestionsComponent implements OnInit {
   readonly form = new FormGroup(
     {
       question1: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      answer1: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespace] }),
+      answer1: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, noWhitespace],
+      }),
       question2: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      answer2: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespace] }),
+      answer2: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, noWhitespace],
+      }),
       question3: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      answer3: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespace] }),
+      answer3: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, noWhitespace],
+      }),
       newPassword: new FormControl('', {
         nonNullable: true,
         validators: [
@@ -168,9 +176,7 @@ export class SetSecurityQuestionsComponent implements OnInit {
   // control value. The distinctQuestions group validator is the backstop.
   /** Options for the second question, excluding the one chosen first. */
   readonly question2Options = computed(() =>
-    this.questions().filter(
-      (option) => String(option.QuestionID) !== this.question1Value(),
-    ),
+    this.questions().filter((option) => String(option.QuestionID) !== this.question1Value()),
   );
 
   /** Options for the third question, excluding the first two choices. */
@@ -183,20 +189,16 @@ export class SetSecurityQuestionsComponent implements OnInit {
   );
 
   constructor() {
-    this.form.controls.question1.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((value) => {
-        this.question1Value.set(value);
-        this.clearIfNowExcluded('question2', value);
-        this.clearIfNowExcluded('question3', value);
-      });
+    this.form.controls.question1.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
+      this.question1Value.set(value);
+      this.clearIfNowExcluded('question2', value);
+      this.clearIfNowExcluded('question3', value);
+    });
 
-    this.form.controls.question2.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((value) => {
-        this.question2Value.set(value);
-        this.clearIfNowExcluded('question3', value);
-      });
+    this.form.controls.question2.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
+      this.question2Value.set(value);
+      this.clearIfNowExcluded('question3', value);
+    });
 
     // If the user edits any question or answer after a save, drop the stored
     // transactionId so the next submit re-saves the updated answers rather than
@@ -216,10 +218,7 @@ export class SetSecurityQuestionsComponent implements OnInit {
   }
 
   /** Clear a later question control if it now matches an earlier (excluded) choice. */
-  private clearIfNowExcluded(
-    control: 'question2' | 'question3',
-    excluded: string,
-  ): void {
+  private clearIfNowExcluded(control: 'question2' | 'question3', excluded: string): void {
     if (excluded && this.form.controls[control].value === excluded) {
       this.form.controls[control].setValue('');
     }
@@ -248,8 +247,7 @@ export class SetSecurityQuestionsComponent implements OnInit {
         this.loading.set(false);
         this.dialog.alert({
           title: 'Error',
-          message:
-            error?.errorMessage || 'Unable to load security questions. Please try again.',
+          message: error?.errorMessage || 'Unable to load security questions. Please try again.',
         });
       },
     });
@@ -308,17 +306,15 @@ export class SetSecurityQuestionsComponent implements OnInit {
   private setPassword(userName: string, transactionId: string): void {
     const encryptedPassword = encryptPassword(this.form.controls.newPassword.value);
     this.loading.set(true);
-    this.recovery
-      .setForgetPassword(userName, encryptedPassword, transactionId)
-      .subscribe({
-        next: () => {
-          this.loading.set(false);
-          this.store.clear();
-          toast.success('Security questions saved and password set. Please sign in.');
-          void this.router.navigate([LOGIN_ROUTE]);
-        },
-        error: (error: RecoveryError) => this.showSetupError(error),
-      });
+    this.recovery.setForgetPassword(userName, encryptedPassword, transactionId).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.store.clear();
+        toast.success('Security questions saved and password set. Please sign in.');
+        void this.router.navigate([LOGIN_ROUTE]);
+      },
+      error: (error: RecoveryError) => this.showSetupError(error),
+    });
   }
 
   private showSetupError(error: RecoveryError): void {

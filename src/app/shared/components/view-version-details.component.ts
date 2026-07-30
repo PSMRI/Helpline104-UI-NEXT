@@ -20,13 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideX } from '@ng-icons/lucide';
@@ -75,18 +69,26 @@ export interface VersionInfo {
             <thead class="bg-muted/50 text-xs text-muted-foreground">
               <tr>
                 <th scope="col" class="px-3 py-2 font-medium"></th>
-                <th scope="col" class="px-3 py-2 font-medium">{{ 'versionDetails.api' | translate: lang() }}</th>
-                <th scope="col" class="px-3 py-2 font-medium">{{ 'versionDetails.ui' | translate: lang() }}</th>
+                <th scope="col" class="px-3 py-2 font-medium">
+                  {{ 'versionDetails.api' | translate: lang() }}
+                </th>
+                <th scope="col" class="px-3 py-2 font-medium">
+                  {{ 'versionDetails.ui' | translate: lang() }}
+                </th>
               </tr>
             </thead>
             <tbody>
               <tr class="border-t border-border">
-                <th scope="row" class="px-3 py-2 font-medium text-foreground">{{ 'versionDetails.version' | translate: lang() }}</th>
+                <th scope="row" class="px-3 py-2 font-medium text-foreground">
+                  {{ 'versionDetails.version' | translate: lang() }}
+                </th>
                 <td class="px-3 py-2">{{ api()?.Version || '—' }}</td>
                 <td class="px-3 py-2">{{ ui()?.Version || '—' }}</td>
               </tr>
               <tr class="border-t border-border">
-                <th scope="row" class="px-3 py-2 font-medium text-foreground">{{ 'versionDetails.commit' | translate: lang() }}</th>
+                <th scope="row" class="px-3 py-2 font-medium text-foreground">
+                  {{ 'versionDetails.commit' | translate: lang() }}
+                </th>
                 <td class="px-3 py-2">{{ api()?.Commit || '—' }}</td>
                 <td class="px-3 py-2">{{ ui()?.Commit || '—' }}</td>
               </tr>

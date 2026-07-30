@@ -20,13 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '@env/environment';
 
@@ -171,9 +165,7 @@ export class DashboardComponent {
     timer(0, AGENT_STATUS_POLL_MS)
       .pipe(
         takeUntilDestroyed(),
-        filter(
-          () => !this.isSupervisor() && this.authStore.user()?.agentID != null,
-        ),
+        filter(() => !this.isSupervisor() && this.authStore.user()?.agentID != null),
         switchMap(() =>
           this.agentStatusApi
             .getAgentStatus(this.authStore.user()?.agentID ?? 0)
@@ -196,9 +188,7 @@ export class DashboardComponent {
     if (stateName) {
       const stateType = state.stateObj?.stateType ?? '';
       const suppressType = ON_CALL_STATES.includes(stateName.toUpperCase());
-      this._agentStatus.set(
-        stateType && !suppressType ? `${stateName} (${stateType})` : stateName,
-      );
+      this._agentStatus.set(stateType && !suppressType ? `${stateName} (${stateType})` : stateName);
     } else {
       // A polled state with no stateName clears the line rather than leaving
       // the previous state showing.
@@ -224,9 +214,7 @@ export class DashboardComponent {
     window.postMessage(`Accept|${cli}|${sessionId}|INBOUND`, window.location.origin);
   }
 
-  private readonly featureCode = computed(
-    () => this.authStore.currentRole()?.featureCode ?? null,
-  );
+  private readonly featureCode = computed(() => this.authStore.currentRole()?.featureCode ?? null);
 
   private readonly hasHealthAdvicePrivilege = computed(() =>
     this.authStore
@@ -242,9 +230,7 @@ export class DashboardComponent {
       ),
   );
 
-  readonly isSupervisor = computed(
-    () => this.featureCode() === SUPERVISOR_FEATURE_CODE,
-  );
+  readonly isSupervisor = computed(() => this.featureCode() === SUPERVISOR_FEATURE_CODE);
 
   readonly showAgentId = computed(() => !this.isSupervisor());
 
@@ -256,8 +242,7 @@ export class DashboardComponent {
       return false;
     }
     return (
-      (code !== null && CAMPAIGN_FEATURE_CODES.includes(code)) ||
-      this.hasHealthAdvicePrivilege()
+      (code !== null && CAMPAIGN_FEATURE_CODES.includes(code)) || this.hasHealthAdvicePrivilege()
     );
   });
 

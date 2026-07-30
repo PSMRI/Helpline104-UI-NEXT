@@ -61,9 +61,7 @@ export class AlertsNotificationsService {
   private readonly config = inject(ConfigService);
 
   /** Notification types configured for the service. */
-  getNotificationTypes(
-    providerServiceMapID: number | null,
-  ): Observable<NotificationTypeOption[]> {
+  getNotificationTypes(providerServiceMapID: number | null): Observable<NotificationTypeOption[]> {
     return this.post<NotificationTypeOption[]>(NOTIFICATION_TYPES_PATH, {
       providerServiceMapID,
     });
@@ -108,17 +106,15 @@ export class AlertsNotificationsService {
   }
 
   private post<T>(path: string, body: unknown): Observable<T> {
-    return this.http
-      .post<ApiResponse<T>>(this.config.getCommonBaseURL() + path, body)
-      .pipe(
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw this.toError(res);
-          }
-          return res.data ?? ([] as unknown as T);
-        }),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<T>>(this.config.getCommonBaseURL() + path, body).pipe(
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw this.toError(res);
+        }
+        return res.data ?? ([] as unknown as T);
+      }),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   private toError(err: unknown): AlertsError {

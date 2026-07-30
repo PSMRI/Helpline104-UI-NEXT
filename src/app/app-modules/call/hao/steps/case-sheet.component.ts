@@ -31,11 +31,7 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
@@ -56,11 +52,7 @@ import { DiseaseSummaryDetail } from '../../case-sheet/disease-summary.models';
 import { SnomedSearchComponent } from '../../case-sheet/snomed-search.component';
 import type { SnomedTerm } from '../../case-sheet/snomed.models';
 import { ViewDiseaseSummaryDetailsComponent } from '../../case-sheet/view-disease-summary-details.component';
-import {
-  AvailableDisease,
-  CaseSheetRequest,
-  PresentCaseSheet,
-} from '../hao.models';
+import { AvailableDisease, CaseSheetRequest, PresentCaseSheet } from '../hao.models';
 import { HaoService } from '../hao.service';
 
 /** History tabs shown in the case-sheet history section. */
@@ -106,12 +98,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
     CdssComponent,
   ],
   template: `
-    <form
-      class="flex flex-col gap-5"
-      [formGroup]="form"
-      (ngSubmit)="save()"
-      novalidate
-    >
+    <form class="flex flex-col gap-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium" for="hao-cs-complaints">
           {{ 'hao.caseSheet.chiefComplaints' | translate: lang() }}
@@ -124,17 +111,11 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
           maxlength="2000"
           formControlName="chiefComplaints"
           [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
-          [attr.aria-describedby]="
-            isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null
-          "
+          [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
           [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
         ></textarea>
         @if (isInvalid('chiefComplaints')) {
-          <p
-            id="hao-cs-complaints-error"
-            class="text-xs font-medium text-destructive"
-            role="alert"
-          >
+          <p id="hao-cs-complaints-error" class="text-xs font-medium text-destructive" role="alert">
             @if (form.controls.chiefComplaints.hasError('maxlength')) {
               {{ 'hao.caseSheet.chiefComplaintsTooLong' | translate: lang() }}
             } @else {
@@ -205,12 +186,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
         <label class="text-sm font-medium" for="hao-cs-remarks">
           {{ 'hao.caseSheet.remarks' | translate: lang() }}
         </label>
-        <textarea
-          z-input
-          id="hao-cs-remarks"
-          rows="2"
-          formControlName="remarks"
-        ></textarea>
+        <textarea z-input id="hao-cs-remarks" rows="2" formControlName="remarks"></textarea>
       </div>
 
       <!-- Clinical decision support: fed the chief complaint above plus the
@@ -293,21 +269,33 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
                   <h3 class="font-semibold text-foreground">
                     {{ 'casesheetHistory.mmu.selectedVisit' | translate: lang() }}
                   </h3>
-                  <button z-button type="button" zType="ghost" zSize="sm" (click)="selectedVisit.set(null)">
+                  <button
+                    z-button
+                    type="button"
+                    zType="ghost"
+                    zSize="sm"
+                    (click)="selectedVisit.set(null)"
+                  >
                     {{ 'diseaseSummary.close' | translate: lang() }}
                   </button>
                 </div>
                 <dl class="grid gap-x-6 gap-y-1 sm:grid-cols-2">
                   <div class="flex justify-between gap-2">
-                    <dt class="text-muted-foreground">{{ 'casesheetHistory.mmu.visitCategory' | translate: lang() }}</dt>
+                    <dt class="text-muted-foreground">
+                      {{ 'casesheetHistory.mmu.visitCategory' | translate: lang() }}
+                    </dt>
                     <dd class="text-foreground">{{ visit.VisitCategory || '—' }}</dd>
                   </div>
                   <div class="flex justify-between gap-2">
-                    <dt class="text-muted-foreground">{{ 'casesheetHistory.mmu.visitReason' | translate: lang() }}</dt>
+                    <dt class="text-muted-foreground">
+                      {{ 'casesheetHistory.mmu.visitReason' | translate: lang() }}
+                    </dt>
                     <dd class="text-foreground">{{ visit.VisitReason || '—' }}</dd>
                   </div>
                   <div class="flex justify-between gap-2">
-                    <dt class="text-muted-foreground">{{ 'casesheetHistory.mmu.visitCode' | translate: lang() }}</dt>
+                    <dt class="text-muted-foreground">
+                      {{ 'casesheetHistory.mmu.visitCode' | translate: lang() }}
+                    </dt>
                     <dd class="text-foreground">{{ visit.visitCode || '—' }}</dd>
                   </div>
                 </dl>
@@ -464,9 +452,7 @@ export class CaseSheetComponent {
       },
       error: () => {
         this.loadingDisease.set(false);
-        this.diseaseError.set(
-          this.i18n.instant('hao.caseSheet.diseaseSummaryError'),
-        );
+        this.diseaseError.set(this.i18n.instant('hao.caseSheet.diseaseSummaryError'));
       },
     });
   }
@@ -506,8 +492,7 @@ export class CaseSheetComponent {
       provisionalDiagnosis: selectedDisease?.diseaseName ?? null,
       healthAdvice: value.healthAdvice?.trim() || null,
       remarks: value.remarks?.trim() || null,
-      providerServiceMapID:
-        this.authStore.currentRole()?.providerServiceMapID ?? null,
+      providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
       createdBy: this.authStore.user()?.userName ?? '',
     };
 

@@ -85,10 +85,7 @@ export class HaoService {
   /** Diagnosis catalogue for the provisional-diagnosis selector. */
   getAvailableDiseases(): Observable<AvailableDisease[]> {
     return this.http
-      .post<ApiResponse<AvailableDisease[]>>(
-        this.base104 + PATHS.availableDiseases,
-        {},
-      )
+      .post<ApiResponse<AvailableDisease[]>>(this.base104 + PATHS.availableDiseases, {})
       .pipe(map((res) => res.data ?? []));
   }
 
@@ -97,14 +94,9 @@ export class HaoService {
    * `diseaseController/getDiseasesByID`, keyed by the summary object). Feeds the
    * disease-summary detail modal opened from the case sheet.
    */
-  getDiseaseSummaryDetail(
-    disease: AvailableDisease,
-  ): Observable<DiseaseSummaryDetail> {
+  getDiseaseSummaryDetail(disease: AvailableDisease): Observable<DiseaseSummaryDetail> {
     return this.http
-      .post<ApiResponse<DiseaseSummaryDetail>>(
-        this.base104 + PATHS.diseaseByID,
-        disease,
-      )
+      .post<ApiResponse<DiseaseSummaryDetail>>(this.base104 + PATHS.diseaseByID, disease)
       .pipe(map((res) => res.data ?? {}));
   }
 
@@ -127,10 +119,7 @@ export class HaoService {
   /** Persist the Health Advisory case sheet for the active beneficiary. */
   saveCaseSheet(request: CaseSheetRequest): Observable<CaseSheetResponse> {
     return this.http
-      .post<ApiResponse<CaseSheetResponse>>(
-        this.base104 + PATHS.saveCaseSheet,
-        request,
-      )
+      .post<ApiResponse<CaseSheetResponse>>(this.base104 + PATHS.saveCaseSheet, request)
       .pipe(map((res) => res.data ?? {}));
   }
 
@@ -167,9 +156,7 @@ export class HaoService {
         map((res) => {
           if (res.data == null) return [];
           if (!Array.isArray(res.data)) {
-            throw new Error(
-              'getCallTypes: expected array, got ' + typeof res.data,
-            );
+            throw new Error('getCallTypes: expected array, got ' + typeof res.data);
           }
           return res.data;
         }),
@@ -194,10 +181,9 @@ export class HaoService {
    */
   getTransferCampaigns(agentID: number): Observable<TransferCampaign[]> {
     return this.http
-      .post<ApiResponse<TransferCampaign[]>>(
-        this.baseCommon + PATHS.transferCampaigns,
-        { agent_id: agentID },
-      )
+      .post<ApiResponse<TransferCampaign[]>>(this.baseCommon + PATHS.transferCampaigns, {
+        agent_id: agentID,
+      })
       .pipe(map((res) => (Array.isArray(res.data) ? res.data : [])));
   }
 
@@ -221,9 +207,7 @@ export class HaoService {
         transfer_from: request.transferFrom,
         transfer_campaign_info: request.transferCampaignInfo,
         skill_transfer_flag: request.skillTransferFlag,
-        ...(request.skillTransferFlag && request.skill
-          ? { skill: request.skill }
-          : {}),
+        ...(request.skillTransferFlag && request.skill ? { skill: request.skill } : {}),
         agentIPAddress: request.agentIPAddress ?? null,
         benCallID: request.benCallID,
       })

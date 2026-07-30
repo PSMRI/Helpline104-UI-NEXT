@@ -13,16 +13,18 @@
         />
       }
       @if (exportable()) {
-        <button z-button zType="outline" type="button" (click)="exportCsv()">
-          Export CSV
-        </button>
+        <button z-button zType="outline" type="button" (click)="exportCsv()">Export CSV</button>
       }
     </div>
   }
 
   <table z-table>
     @if (caption()) {
-      <caption z-table-caption>{{ caption() }}</caption>
+      <caption z-table-caption>
+        {{
+          caption()
+        }}
+      </caption>
     }
     <thead z-table-header>
       <tr z-table-row>

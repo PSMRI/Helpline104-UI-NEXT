@@ -137,7 +137,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.search.empty': 'আপোনাৰ সন্ধানৰ সৈতে কোনো হিতাধিকাৰী মিলা নাই।',
   'registration.search.prompt': 'নাম বা পঞ্জীয়ন আইডি দিয়ক, তাৰ পিছত সন্ধান কৰক।',
   'registration.search.error':
-    'সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ\'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+    "সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
   'registration.col.regId': 'পঞ্জী. আইডি',
   'registration.col.name': 'নাম',
   'registration.col.gender': 'লিংগ',
@@ -520,10 +520,8 @@ export const as: Record<TranslationKey, string> = {
   'supervisor.home.title': 'তত্ত্বাৱধায়ক কনচ’ল',
   'supervisor.home.reportsHint': 'কল, গুণগত মান আৰু চিআৰএম প্ৰতিবেদন ডাউনল’ড কৰক।',
   'supervisor.home.blockUnblockHint': 'ব্লেকলিষ্ট কৰা কলাৰ নম্বৰ পৰিচালনা কৰক।',
-  'supervisor.home.outboundAllocationHint':
-    'আবণ্টন নোহোৱা আউটবাউণ্ড কল এজেণ্টক আবণ্টন কৰক।',
-  'supervisor.home.outboundReallocationHint':
-    'আবণ্টিত আউটবাউণ্ড কল এজেণ্টৰ মাজত স্থানান্তৰ কৰক।',
+  'supervisor.home.outboundAllocationHint': 'আবণ্টন নোহোৱা আউটবাউণ্ড কল এজেণ্টক আবণ্টন কৰক।',
+  'supervisor.home.outboundReallocationHint': 'আবণ্টিত আউটবাউণ্ড কল এজেণ্টৰ মাজত স্থানান্তৰ কৰক।',
   'supervisor.placeholder.title': 'সোনকালে আহি আছে',
   'supervisor.placeholder.body':
     'এই তত্ত্বাৱধায়ক অংশটো এতিয়ালৈকে স্থানান্তৰ কৰা হোৱা নাই। অনুগ্ৰহ কৰি এতিয়াৰ বাবে লিগেচী এপ্লিকেচন ব্যৱহাৰ কৰক।',
@@ -1059,7 +1057,8 @@ export const as: Record<TranslationKey, string> = {
   'supGrievance.createdBy': 'দ্বাৰা সৃষ্টি কৰা হৈছে',
   'supGrievance.modifiedBy': 'দ্বাৰা পৰিবৰ্তন কৰা হৈছে',
   'supGrievance.grievance': 'অভিযোগ',
-  'supGrievance.commentsForEmail': 'মন্তব্যসমূহ (প্ৰবিষ্ট কৰা বিৱৰণসমূহ ই-মেইল হিচাপে প্ৰেৰণ কৰা হ’ব)',
+  'supGrievance.commentsForEmail':
+    'মন্তব্যসমূহ (প্ৰবিষ্ট কৰা বিৱৰণসমূহ ই-মেইল হিচাপে প্ৰেৰণ কৰা হ’ব)',
   'supGrievance.responseReceived': 'প্ৰাপ্ত সঁহাৰি',
   'supGrievance.uploadFile': 'ফাইল/ইমেইল আপল’ড কৰক',
   'supGrievance.sizeLimit': 'আকাৰৰ সীমা',

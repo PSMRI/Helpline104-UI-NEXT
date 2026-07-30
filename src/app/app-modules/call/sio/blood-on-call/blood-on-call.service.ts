@@ -52,7 +52,10 @@ export class BloodOnCallService {
 
   getComponentTypes(): Observable<BloodComponentType[]> {
     return this.http
-      .post<ApiResponse<BloodComponentType[]>>(this.config.get104BaseURL() + COMPONENT_TYPES_PATH, {})
+      .post<ApiResponse<BloodComponentType[]>>(
+        this.config.get104BaseURL() + COMPONENT_TYPES_PATH,
+        {},
+      )
       .pipe(
         timeout(SIO_TIMEOUT_MS),
         map((res) => readSioData(res) ?? []),

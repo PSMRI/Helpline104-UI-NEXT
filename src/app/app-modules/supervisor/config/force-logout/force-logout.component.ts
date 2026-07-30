@@ -131,9 +131,7 @@ export class ForceLogoutComponent {
           if ((res?.response ?? '').toLowerCase() === 'success') {
             toast.success(this.i18n.instant('supLogout.success'));
           } else {
-            this.errorMessage.set(
-              res?.errorMessage || this.i18n.instant('supLogout.failed'),
-            );
+            this.errorMessage.set(res?.errorMessage || this.i18n.instant('supLogout.failed'));
           }
           this.userName.reset('');
         },

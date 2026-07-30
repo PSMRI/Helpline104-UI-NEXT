@@ -129,9 +129,7 @@ export class CdiReportDialogComponent implements OnInit {
         },
         error: (err: ReportError) => {
           this.loading.set(false);
-          this.errorMessage.set(
-            err.errorMessage || this.i18n.instant('reports.cdi.error'),
-          );
+          this.errorMessage.set(err.errorMessage || this.i18n.instant('reports.cdi.error'));
         },
       });
   }

@@ -67,11 +67,15 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
       <div class="p-5">
         @if (items().length === 0) {
-          <p class="text-sm text-muted-foreground">{{ 'diseaseSummary.empty' | translate: lang() }}</p>
+          <p class="text-sm text-muted-foreground">
+            {{ 'diseaseSummary.empty' | translate: lang() }}
+          </p>
         } @else {
           <div class="flex flex-wrap gap-2">
             @for (item of items(); track $index; let i = $index) {
-              <span class="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-3 py-1 text-sm">
+              <span
+                class="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-3 py-1 text-sm"
+              >
                 {{ item }}
                 <button
                   type="button"

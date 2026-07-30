@@ -222,7 +222,9 @@ const MAX_FILE_SIZE_MB = 5;
                 {{ 'supTraining.selectRoles' | translate: lang() }}
                 <span class="text-destructive">*</span>
               </span>
-              <ul class="max-h-40 space-y-1 overflow-y-auto rounded-md border border-input px-3 py-2">
+              <ul
+                class="max-h-40 space-y-1 overflow-y-auto rounded-md border border-input px-3 py-2"
+              >
                 @for (role of roles(); track role.roleID) {
                   <li>
                     <label class="flex items-center gap-2 text-sm">
@@ -248,7 +250,13 @@ const MAX_FILE_SIZE_MB = 5;
               <label for="tr-existing" class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{ 'supTraining.existingFile' | translate: lang() }}
               </label>
-              <input id="tr-existing" z-input class="w-full" [value]="existingFileName()" disabled />
+              <input
+                id="tr-existing"
+                z-input
+                class="w-full"
+                [value]="existingFileName()"
+                disabled
+              />
             </div>
           }
           <div>
@@ -256,7 +264,13 @@ const MAX_FILE_SIZE_MB = 5;
               {{ 'supTraining.subject' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="tr-subject" z-input class="w-full" maxlength="200" formControlName="subject" />
+            <input
+              id="tr-subject"
+              z-input
+              class="w-full"
+              maxlength="200"
+              formControlName="subject"
+            />
             @if (form.controls.subject.invalid && form.controls.subject.touched) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supTraining.minFiveChars' | translate: lang() }}
@@ -329,7 +343,9 @@ const MAX_FILE_SIZE_MB = 5;
                 type="button"
                 zType="default"
                 [zLoading]="saving()"
-                [zDisabled]="form.invalid || selectedRoles().size === 0 || fileInvalid() || saving()"
+                [zDisabled]="
+                  form.invalid || selectedRoles().size === 0 || fileInvalid() || saving()
+                "
                 (click)="create()"
               >
                 {{ 'supTraining.submit' | translate: lang() }}

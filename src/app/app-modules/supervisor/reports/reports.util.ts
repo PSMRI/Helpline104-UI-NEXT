@@ -92,9 +92,7 @@ export function stateIDForRole(
   if (!role) {
     return null;
   }
-  const privilege = privileges.find(
-    (p) => p.providerServiceMapID === role.providerServiceMapID,
-  );
+  const privilege = privileges.find((p) => p.providerServiceMapID === role.providerServiceMapID);
   const roles = privilege?.roles ?? [];
   const selected = roles.find((r) => r.RoleName === role.roleName) ?? roles[0];
   const mapping = selected?.serviceRoleScreenMappings?.[0];

@@ -45,19 +45,11 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  DistrictOption,
-  Gender,
-  StateOption,
-} from '../../beneficiary/beneficiary.models';
+import { DistrictOption, Gender, StateOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { BloodOnCallService } from './blood-on-call.service';
-import {
-  BloodComponentType,
-  BloodGroup,
-  BloodRequestRow,
-} from './blood-on-call.models';
+import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call.models';
 
 /**
  * Blood-on-Call (blood request) service tab. The agent captures the recipient,
@@ -79,11 +71,15 @@ import {
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
         <ng-icon name="lucideDroplet" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.blood.title' | translate: lang() }}</h3>
+        <h3 class="text-sm font-semibold text-foreground">
+          {{ 'sio.blood.title' | translate: lang() }}
+        </h3>
       </header>
 
       @if (!hasContext()) {
-        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
+        >
           {{ 'sio.common.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -92,24 +88,49 @@ import {
         }
 
         @if (bankUrl(); as url) {
-          <a [href]="url" target="_blank" rel="noopener noreferrer" class="mb-4 inline-block text-sm font-medium text-primary underline">
+          <a
+            [href]="url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mb-4 inline-block text-sm font-medium text-primary underline"
+          >
             {{ 'sio.blood.bankLink' | translate: lang() }}
           </a>
         }
 
         <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <label for="blood-recipient" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.blood.recipientName' | translate: lang() }} <span class="text-destructive">*</span>
+            <label
+              for="blood-recipient"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
+              {{ 'sio.blood.recipientName' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
-            <input id="blood-recipient" z-input class="w-full" type="text" maxlength="25" formControlName="recipientName" />
+            <input
+              id="blood-recipient"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="recipientName"
+            />
           </div>
 
           <div>
             <label for="blood-age" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.age' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="blood-age" z-input class="w-full" type="number" inputmode="numeric" min="1" max="120" formControlName="recipientAge" />
+            <input
+              id="blood-age"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="120"
+              formControlName="recipientAge"
+            />
           </div>
 
           <div>
@@ -117,7 +138,9 @@ import {
               {{ 'sio.common.gender' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="blood-gender" [class]="selectClass" formControlName="recipientGenderID">
-              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
+              <option [ngValue]="null" disabled>
+                {{ 'sio.common.select' | translate: lang() }}
+              </option>
               @for (g of genders(); track g.genderID) {
                 <option [ngValue]="g.genderID">{{ g.genderName }}</option>
               }
@@ -126,10 +149,13 @@ import {
 
           <div>
             <label for="blood-group" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.blood.bloodGroup' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'sio.blood.bloodGroup' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
             <select id="blood-group" [class]="selectClass" formControlName="bloodGroupID">
-              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
+              <option [ngValue]="null" disabled>
+                {{ 'sio.common.select' | translate: lang() }}
+              </option>
               @for (b of bloodGroups(); track b.bloodGroupID) {
                 <option [ngValue]="b.bloodGroupID">{{ b.bloodGroup }}</option>
               }
@@ -137,7 +163,10 @@ import {
           </div>
 
           <div>
-            <label for="blood-component" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="blood-component"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'sio.blood.componentType' | translate: lang() }}
             </label>
             <select id="blood-component" [class]="selectClass" formControlName="componentTypeID">
@@ -150,24 +179,50 @@ import {
 
           <div>
             <label for="blood-units" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.blood.unitsRequired' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'sio.blood.unitsRequired' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
-            <input id="blood-units" z-input class="w-full" type="number" inputmode="numeric" min="1" formControlName="unitRequired" />
+            <input
+              id="blood-units"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              formControlName="unitRequired"
+            />
           </div>
 
           <div class="sm:col-span-2 lg:col-span-1">
-            <label for="blood-hospital" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="blood-hospital"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'sio.blood.hospital' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="blood-hospital" z-input class="w-full" type="text" maxlength="150" formControlName="hospitalAdmitted" />
+            <input
+              id="blood-hospital"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="150"
+              formControlName="hospitalAdmitted"
+            />
           </div>
 
           <div>
             <label for="blood-state" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.state' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="blood-state" [class]="selectClass" formControlName="stateID" (change)="onStateChange()">
-              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
+            <select
+              id="blood-state"
+              [class]="selectClass"
+              formControlName="stateID"
+              (change)="onStateChange()"
+            >
+              <option [ngValue]="null" disabled>
+                {{ 'sio.common.select' | translate: lang() }}
+              </option>
               @for (s of states(); track s.stateID) {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
@@ -175,11 +230,17 @@ import {
           </div>
 
           <div>
-            <label for="blood-district" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.common.district' | translate: lang() }} <span class="text-destructive">*</span>
+            <label
+              for="blood-district"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
+              {{ 'sio.common.district' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
             <select id="blood-district" [class]="selectClass" formControlName="districtID">
-              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
+              <option [ngValue]="null" disabled>
+                {{ 'sio.common.select' | translate: lang() }}
+              </option>
               @for (d of districts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
@@ -190,31 +251,60 @@ import {
             <label for="blood-remarks" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.remarks' | translate: lang() }}
             </label>
-            <textarea id="blood-remarks" [class]="textareaClass" rows="2" maxlength="500" formControlName="remarks"></textarea>
+            <textarea
+              id="blood-remarks"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="500"
+              formControlName="remarks"
+            ></textarea>
           </div>
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>
 
         <div class="mt-6">
-          <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.common.history' | translate: lang() }}</h4>
+          <h4 class="mb-2 text-sm font-medium text-foreground">
+            {{ 'sio.common.history' | translate: lang() }}
+          </h4>
           @if (history().length === 0) {
-            <p class="text-sm text-muted-foreground">{{ 'sio.common.noHistory' | translate: lang() }}</p>
+            <p class="text-sm text-muted-foreground">
+              {{ 'sio.common.noHistory' | translate: lang() }}
+            </p>
           } @else {
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.colRequestId' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.colRecipient' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.common.age' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.bloodGroup' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.componentType' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.hospital' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.blood.colRequestId' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.blood.colRecipient' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.common.age' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.blood.bloodGroup' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.blood.componentType' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.blood.hospital' | translate: lang() }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -297,18 +387,27 @@ export class BloodOnCallComponent implements OnInit {
     const role = this.authStore.currentRole();
     const providerServiceMapID = role?.providerServiceMapID ?? null;
 
-    this.blood.getComponentTypes().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (list) => this.componentTypes.set(list),
-      error: (err: SioError) => this.setError(err),
-    });
-    this.blood.getBloodGroups().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (list) => this.bloodGroups.set(list),
-      error: (err: SioError) => this.setError(err),
-    });
-    this.blood.getBloodBankUrl(providerServiceMapID).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (url) => this.bankUrl.set(url),
-      error: () => this.bankUrl.set(null),
-    });
+    this.blood
+      .getComponentTypes()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.componentTypes.set(list),
+        error: (err: SioError) => this.setError(err),
+      });
+    this.blood
+      .getBloodGroups()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.bloodGroups.set(list),
+        error: (err: SioError) => this.setError(err),
+      });
+    this.blood
+      .getBloodBankUrl(providerServiceMapID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (url) => this.bankUrl.set(url),
+        error: () => this.bankUrl.set(null),
+      });
     this.beneficiary
       .getRegistrationData(providerServiceMapID)
       .pipe(takeUntilDestroyed(this.destroyRef))

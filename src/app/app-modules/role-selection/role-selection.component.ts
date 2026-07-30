@@ -75,12 +75,7 @@ const SCREEN_HEALTH_ADVICE = 'Health_Advice';
   selector: 'app-role-selection',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    NgIcon,
-    ZardButtonComponent,
-    AppHeaderComponent,
-    AppFooterComponent,
-  ],
+  imports: [NgIcon, ZardButtonComponent, AppHeaderComponent, AppFooterComponent],
   viewProviders: [provideIcons({ lucidePhone, lucidePower })],
   templateUrl: './role-selection.component.html',
 })

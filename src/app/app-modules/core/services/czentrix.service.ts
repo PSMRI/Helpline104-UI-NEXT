@@ -125,9 +125,7 @@ export class CzentrixService {
   private readonly _loginKey = signal<string | null>(
     this.storage.getItem(CTI_STORAGE_KEYS.loginKey),
   );
-  private readonly _agentIP = signal<string | null>(
-    this.storage.getItem(CTI_STORAGE_KEYS.agentIP),
-  );
+  private readonly _agentIP = signal<string | null>(this.storage.getItem(CTI_STORAGE_KEYS.agentIP));
   private readonly _agentID = signal<number | null>(
     toNumberOrNull(this.storage.getItem(CTI_STORAGE_KEYS.agentID)),
   );
@@ -321,8 +319,7 @@ export class CzentrixService {
    * transfer with a non-empty skill, exactly as the legacy body was built.
    */
   transferCall(request: CtiTransferCallRequest): Observable<CtiPayload> {
-    const isSkillTransfer =
-      request.skillTransferFlag !== undefined && request.skill !== undefined;
+    const isSkillTransfer = request.skillTransferFlag !== undefined && request.skill !== undefined;
     const body: Record<string, unknown> = {
       transfer_from: request.transferFrom,
       transfer_campaign_info: request.transferCampaignInfo,
@@ -356,10 +353,7 @@ export class CzentrixService {
 
   private setAgentID(agentID: number | null): void {
     this._agentID.set(agentID);
-    this.persist(
-      CTI_STORAGE_KEYS.agentID,
-      agentID === null ? null : String(agentID),
-    );
+    this.persist(CTI_STORAGE_KEYS.agentID, agentID === null ? null : String(agentID));
   }
 
   private clearCtiSession(): void {

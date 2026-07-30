@@ -46,10 +46,7 @@ import {
   AlertCategory,
   UserNotification,
 } from '../alerts-notifications.models';
-import {
-  AlertsIdentity,
-  AlertsNotificationsService,
-} from '../alerts-notifications.service';
+import { AlertsIdentity, AlertsNotificationsService } from '../alerts-notifications.service';
 import { AlertsNotificationsDialogComponent } from './dialogs/alerts-notifications-dialog.component';
 
 /** One alert category row: its labels and which notification type it shows. */
@@ -94,9 +91,7 @@ const ALERT_ROWS: readonly AlertRow[] = [
     <section
       class="flex h-full flex-col rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
     >
-      <header
-        class="flex items-center justify-between border-b border-border px-4 py-3"
-      >
+      <header class="flex items-center justify-between border-b border-border px-4 py-3">
         <h2 class="text-lg font-semibold">
           {{ 'dashboard.alerts.title' | translate: lang() }}
         </h2>
@@ -181,8 +176,8 @@ export class AlertsPanelComponent implements OnInit {
         next: (count) => {
           const list = count.userNotificationTypeList ?? [];
           const unreadOf = (typeName: string): number =>
-            list.find((item) => item.notificationType === typeName)
-              ?.notificationTypeUnreadCount ?? 0;
+            list.find((item) => item.notificationType === typeName)?.notificationTypeUnreadCount ??
+            0;
           this.counts.set({
             alerts: unreadOf(ALERT_CATEGORY_TYPES.alerts),
             officeBulletin: unreadOf(ALERT_CATEGORY_TYPES.officeBulletin),
@@ -233,8 +228,7 @@ export class AlertsPanelComponent implements OnInit {
     return {
       userID: this.authStore.user()?.userID ?? null,
       roleID: this.authStore.currentRole()?.roleID ?? null,
-      providerServiceMapID:
-        this.authStore.currentRole()?.providerServiceMapID ?? null,
+      providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
     };
   }
 

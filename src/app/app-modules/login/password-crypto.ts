@@ -67,12 +67,8 @@ function encryptWithIvSalt(
  * the 104 backend expects.
  */
 export function encryptPassword(plainText: string): string {
-  const iv = CryptoJS.lib.WordArray.random(IV_SIZE / 8).toString(
-    CryptoJS.enc.Hex,
-  );
-  const salt = CryptoJS.lib.WordArray.random(KEY_SIZE / 8).toString(
-    CryptoJS.enc.Hex,
-  );
+  const iv = CryptoJS.lib.WordArray.random(IV_SIZE / 8).toString(CryptoJS.enc.Hex);
+  const salt = CryptoJS.lib.WordArray.random(KEY_SIZE / 8).toString(CryptoJS.enc.Hex);
   const ciphertext = encryptWithIvSalt(salt, iv, PASSPHRASE, plainText);
   return salt + iv + ciphertext;
 }

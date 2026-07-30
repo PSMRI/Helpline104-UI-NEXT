@@ -74,19 +74,71 @@ interface SupervisorNavGroup {
  * outbound allocation/re-allocation reuse the existing `/outbound` screens.
  */
 const ACTIVITIES_NAV: readonly SupervisorNavItem[] = [
-  { labelKey: 'supervisor.nav.agentStatus', icon: 'lucideActivity', link: '/supervisor/agent-status' },
-  { labelKey: 'supervisor.nav.blockUnblock', icon: 'lucidePhoneOff', link: '/supervisor/block-unblock' },
-  { labelKey: 'supervisor.nav.outboundAllocation', icon: 'lucidePhoneForwarded', link: '/outbound/search' },
-  { labelKey: 'supervisor.nav.outboundReallocation', icon: 'lucideRefreshCw', link: '/outbound/reallocate' },
-  { labelKey: 'supervisor.nav.qualityAudit', icon: 'lucideHeadphones', link: '/supervisor/quality-audit' },
-  { labelKey: 'supervisor.nav.grievance', icon: 'lucideMessageSquare', link: '/supervisor/grievance' },
-  { labelKey: 'supervisor.nav.uploadSchemes', icon: 'lucideUpload', link: '/supervisor/upload-schemes' },
-  { labelKey: 'supervisor.nav.uploadSymptoms', icon: 'lucideFilePlus2', link: '/supervisor/upload-symptoms' },
-  { labelKey: 'supervisor.nav.alertsNotifications', icon: 'lucideMegaphone', link: '/supervisor/communication/alerts-notifications' },
-  { labelKey: 'supervisor.nav.locationMessages', icon: 'lucideMapPin', link: '/supervisor/communication/location-messages' },
-  { labelKey: 'supervisor.nav.trainingResources', icon: 'lucideBookOpen', link: '/supervisor/communication/training-resources' },
-  { labelKey: 'supervisor.nav.emergencyContacts', icon: 'lucidePhoneCall', link: '/supervisor/communication/emergency-contacts' },
-  { labelKey: 'supervisor.nav.forceLogout', icon: 'lucideLogOut', link: '/supervisor/force-logout' },
+  {
+    labelKey: 'supervisor.nav.agentStatus',
+    icon: 'lucideActivity',
+    link: '/supervisor/agent-status',
+  },
+  {
+    labelKey: 'supervisor.nav.blockUnblock',
+    icon: 'lucidePhoneOff',
+    link: '/supervisor/block-unblock',
+  },
+  {
+    labelKey: 'supervisor.nav.outboundAllocation',
+    icon: 'lucidePhoneForwarded',
+    link: '/outbound/search',
+  },
+  {
+    labelKey: 'supervisor.nav.outboundReallocation',
+    icon: 'lucideRefreshCw',
+    link: '/outbound/reallocate',
+  },
+  {
+    labelKey: 'supervisor.nav.qualityAudit',
+    icon: 'lucideHeadphones',
+    link: '/supervisor/quality-audit',
+  },
+  {
+    labelKey: 'supervisor.nav.grievance',
+    icon: 'lucideMessageSquare',
+    link: '/supervisor/grievance',
+  },
+  {
+    labelKey: 'supervisor.nav.uploadSchemes',
+    icon: 'lucideUpload',
+    link: '/supervisor/upload-schemes',
+  },
+  {
+    labelKey: 'supervisor.nav.uploadSymptoms',
+    icon: 'lucideFilePlus2',
+    link: '/supervisor/upload-symptoms',
+  },
+  {
+    labelKey: 'supervisor.nav.alertsNotifications',
+    icon: 'lucideMegaphone',
+    link: '/supervisor/communication/alerts-notifications',
+  },
+  {
+    labelKey: 'supervisor.nav.locationMessages',
+    icon: 'lucideMapPin',
+    link: '/supervisor/communication/location-messages',
+  },
+  {
+    labelKey: 'supervisor.nav.trainingResources',
+    icon: 'lucideBookOpen',
+    link: '/supervisor/communication/training-resources',
+  },
+  {
+    labelKey: 'supervisor.nav.emergencyContacts',
+    icon: 'lucidePhoneCall',
+    link: '/supervisor/communication/emergency-contacts',
+  },
+  {
+    labelKey: 'supervisor.nav.forceLogout',
+    icon: 'lucideLogOut',
+    link: '/supervisor/force-logout',
+  },
 ];
 
 const REPORTS_NAV: readonly SupervisorNavItem[] = [
@@ -94,10 +146,22 @@ const REPORTS_NAV: readonly SupervisorNavItem[] = [
 ];
 
 const CONFIG_NAV: readonly SupervisorNavItem[] = [
-  { labelKey: 'supervisor.nav.contentManagement', icon: 'lucideFileText', link: '/supervisor/content-management' },
-  { labelKey: 'supervisor.nav.smsTemplates', icon: 'lucideMessageSquare', link: '/supervisor/sms-templates' },
+  {
+    labelKey: 'supervisor.nav.contentManagement',
+    icon: 'lucideFileText',
+    link: '/supervisor/content-management',
+  },
+  {
+    labelKey: 'supervisor.nav.smsTemplates',
+    icon: 'lucideMessageSquare',
+    link: '/supervisor/sms-templates',
+  },
   { labelKey: 'supervisor.nav.bloodUrl', icon: 'lucideDroplets', link: '/supervisor/blood-url' },
-  { labelKey: 'supervisor.nav.diseasesSummary', icon: 'lucideStethoscope', link: '/supervisor/diseases-summary' },
+  {
+    labelKey: 'supervisor.nav.diseasesSummary',
+    icon: 'lucideStethoscope',
+    link: '/supervisor/diseases-summary',
+  },
 ];
 
 const NAV_GROUPS: readonly SupervisorNavGroup[] = [

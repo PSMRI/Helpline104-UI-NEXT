@@ -44,12 +44,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
   template: `
     @if (user(); as u) {
       <h4 class="flex items-center gap-2 text-lg font-semibold">
-        <ng-icon
-          name="lucideHeadset"
-          size="20"
-          class="text-primary"
-          aria-hidden="true"
-        />
+        <ng-icon name="lucideHeadset" size="20" class="text-primary" aria-hidden="true" />
         <span>{{ 'dashboard.agentId.label' | translate: lang() }} {{ u.agentID }}</span>
         @if (status()) {
           <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">

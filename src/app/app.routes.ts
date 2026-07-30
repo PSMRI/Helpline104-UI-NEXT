@@ -244,9 +244,9 @@ export const routes: Routes = [
           {
             path: 'district-call-volume',
             loadComponent: () =>
-              import(
-                './app-modules/supervisor/reports/district-call-volume-report.component'
-              ).then((m) => m.DistrictCallVolumeReportComponent),
+              import('./app-modules/supervisor/reports/district-call-volume-report.component').then(
+                (m) => m.DistrictCallVolumeReportComponent,
+              ),
           },
           {
             path: 'diseases-summary',
@@ -293,41 +293,41 @@ export const routes: Routes = [
         // against a service / category / sub-category.
         path: 'content-management',
         loadComponent: () =>
-          import(
-            './app-modules/supervisor/config/knowledge-management/knowledge-management.component'
-          ).then((m) => m.KnowledgeManagementComponent),
+          import('./app-modules/supervisor/config/knowledge-management/knowledge-management.component').then(
+            (m) => m.KnowledgeManagementComponent,
+          ),
       },
       {
         // Communication: location-specific messages for offices.
         path: 'communication/location-messages',
         loadComponent: () =>
-          import(
-            './app-modules/supervisor/config/communication/location-communication.component'
-          ).then((m) => m.LocationCommunicationComponent),
+          import('./app-modules/supervisor/config/communication/location-communication.component').then(
+            (m) => m.LocationCommunicationComponent,
+          ),
       },
       {
         // Communication: Alert / Notification messages per role and office.
         path: 'communication/alerts-notifications',
         loadComponent: () =>
-          import(
-            './app-modules/supervisor/config/communication/alerts-notifications.component'
-          ).then((m) => m.AlertsNotificationsComponent),
+          import('./app-modules/supervisor/config/communication/alerts-notifications.component').then(
+            (m) => m.AlertsNotificationsComponent,
+          ),
       },
       {
         // Communication: training resources (KM notifications per role).
         path: 'communication/training-resources',
         loadComponent: () =>
-          import(
-            './app-modules/supervisor/config/communication/training-resources.component'
-          ).then((m) => m.TrainingResourcesAdminComponent),
+          import('./app-modules/supervisor/config/communication/training-resources.component').then(
+            (m) => m.TrainingResourcesAdminComponent,
+          ),
       },
       {
         // Communication: emergency contacts admin.
         path: 'communication/emergency-contacts',
         loadComponent: () =>
-          import(
-            './app-modules/supervisor/config/communication/emergency-contacts-admin.component'
-          ).then((m) => m.EmergencyContactsAdminComponent),
+          import('./app-modules/supervisor/config/communication/emergency-contacts-admin.component').then(
+            (m) => m.EmergencyContactsAdminComponent,
+          ),
       },
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],

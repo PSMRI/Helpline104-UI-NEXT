@@ -45,12 +45,7 @@ import { SupervisorError } from '../shared/supervisor-api';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
-import {
-  AgentOption,
-  CallTypeOption,
-  RoleOption,
-  WorkLocationOption,
-} from './reports.models';
+import { AgentOption, CallTypeOption, RoleOption, WorkLocationOption } from './reports.models';
 import { SupervisorReportsService } from './reports.service';
 import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from './reports.util';
 

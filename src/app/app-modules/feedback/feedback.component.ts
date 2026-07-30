@@ -21,13 +21,7 @@
  */
 
 import { NgClass } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -132,10 +126,7 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
         </div>
 
         <div class="mb-4">
-          <label
-            class="mb-1 block text-sm font-medium"
-            for="feedback-category"
-          >
+          <label class="mb-1 block text-sm font-medium" for="feedback-category">
             {{ 'feedback.category' | translate: lang() }}
           </label>
           <select
@@ -175,12 +166,7 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
           <button z-button type="button" zType="outline" (click)="close()">
             {{ 'feedback.close' | translate: lang() }}
           </button>
-          <button
-            z-button
-            type="button"
-            [zDisabled]="!canSubmit()"
-            (click)="submit()"
-          >
+          <button z-button type="button" [zDisabled]="!canSubmit()" (click)="submit()">
             {{ 'feedback.okay' | translate: lang() }}
           </button>
         </div>

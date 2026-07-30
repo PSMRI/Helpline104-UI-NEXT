@@ -77,7 +77,9 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
       </header>
 
       @if (!hasContext()) {
-        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
+        >
           {{ 'sms.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -90,7 +92,12 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
             <label for="sms-type" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sms.type' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="sms-type" [class]="selectClass" formControlName="smsTypeID" (change)="onTypeChange()">
+            <select
+              id="sms-type"
+              [class]="selectClass"
+              formControlName="smsTypeID"
+              (change)="onTypeChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'sms.selectType' | translate: lang() }}</option>
               @for (t of types(); track t.smsTypeID) {
                 <option [ngValue]="t.smsTypeID">{{ t.smsType }}</option>
@@ -103,7 +110,9 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
               {{ 'sms.template' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="sms-template" [class]="selectClass" formControlName="smsTemplateID">
-              <option [ngValue]="null" disabled>{{ 'sms.selectTemplate' | translate: lang() }}</option>
+              <option [ngValue]="null" disabled>
+                {{ 'sms.selectTemplate' | translate: lang() }}
+              </option>
               @for (tpl of templates(); track tpl.smsTemplateID) {
                 <option [ngValue]="tpl.smsTemplateID">{{ tpl.smsTemplateName }}</option>
               }
@@ -131,7 +140,9 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
                   [placeholder]="'sms.enterMobile' | translate: lang()"
                 />
                 @if (!altNumberValid()) {
-                  <p class="mt-0.5 text-xs text-destructive">{{ 'sms.mobileError' | translate: lang() }}</p>
+                  <p class="mt-0.5 text-xs text-destructive">
+                    {{ 'sms.mobileError' | translate: lang() }}
+                  </p>
                 }
               </div>
             }
@@ -139,7 +150,14 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="sending()" [zDisabled]="!canSend()" (click)="send()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="sending()"
+            [zDisabled]="!canSend()"
+            (click)="send()"
+          >
             <ng-icon name="lucideSend" size="16" aria-hidden="true" />
             {{ 'sms.send' | translate: lang() }}
           </button>
@@ -208,7 +226,8 @@ export class SmsTemplateComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (types) => this.types.set(types),
-        error: (err: SmsError) => this.errorMessage.set(err.errorMessage || this.i18n.instant('sms.loadError')),
+        error: (err: SmsError) =>
+          this.errorMessage.set(err.errorMessage || this.i18n.instant('sms.loadError')),
       });
   }
 
@@ -265,7 +284,12 @@ export class SmsTemplateComponent implements OnInit {
         next: () => {
           this.sending.set(false);
           toast.success(this.i18n.instant('sms.sent'));
-          this.form.reset({ smsTypeID: null, smsTemplateID: null, useAlternate: false, alternateNumber: '' });
+          this.form.reset({
+            smsTypeID: null,
+            smsTemplateID: null,
+            useAlternate: false,
+            alternateNumber: '',
+          });
           this.templates.set([]);
           this.sent.emit();
         },

@@ -71,9 +71,7 @@ function formatDuration(totalSeconds: number): string {
     <section
       class="rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
     >
-      <header
-        class="flex items-center justify-between border-b border-border px-4 py-3"
-      >
+      <header class="flex items-center justify-between border-b border-border px-4 py-3">
         <h2 class="text-lg font-semibold">
           {{ 'dashboard.callStatistics.title' | translate: lang() }}
         </h2>
@@ -149,10 +147,7 @@ export class CallStatisticsComponent {
   readonly totalCalls = computed(() => this.store.callStatistics().totalCalls);
 
   constructor() {
-    const intervalId = setInterval(
-      () => this._today.set(new Date()),
-      DATE_REFRESH_MS,
-    );
+    const intervalId = setInterval(() => this._today.set(new Date()), DATE_REFRESH_MS);
     inject(DestroyRef).onDestroy(() => clearInterval(intervalId));
   }
 }

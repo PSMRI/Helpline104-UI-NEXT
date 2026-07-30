@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -130,15 +123,24 @@ export class ViewDiseaseSummaryDetailsComponent {
     // drop a leading marker char (substring(1)); `couldbedangerous` does not.
     return [
       { labelKey: 'diseaseSummary.summary', value: this.format(d.summary, ', ', true) },
-      { labelKey: 'diseaseSummary.couldBeDangerous', value: this.format(d.couldbedangerous, '\n', false) },
+      {
+        labelKey: 'diseaseSummary.couldBeDangerous',
+        value: this.format(d.couldbedangerous, '\n', false),
+      },
       { labelKey: 'diseaseSummary.causes', value: this.format(d.causes, '\n', true) },
       { labelKey: 'diseaseSummary.dosDonts', value: this.format(d.dos_donts, '\n', true) },
-      { labelKey: 'diseaseSummary.signsSymptoms', value: this.format(d.symptoms_Signs, '\n', true) },
+      {
+        labelKey: 'diseaseSummary.signsSymptoms',
+        value: this.format(d.symptoms_Signs, '\n', true),
+      },
       { labelKey: 'diseaseSummary.medicalAdvice', value: this.format(d.medicaladvice, '\n', true) },
       { labelKey: 'diseaseSummary.riskFactors', value: this.format(d.riskfactors, '\n', true) },
       { labelKey: 'diseaseSummary.treatment', value: this.format(d.treatment, '\n', true) },
       { labelKey: 'diseaseSummary.selfCare', value: this.format(d.self_care, '\n', true) },
-      { labelKey: 'diseaseSummary.investigations', value: this.format(d.investigations, '\n', true) },
+      {
+        labelKey: 'diseaseSummary.investigations',
+        value: this.format(d.investigations, '\n', true),
+      },
     ];
   });
 

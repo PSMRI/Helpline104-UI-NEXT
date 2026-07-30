@@ -79,7 +79,11 @@ const SERVICE_TABS: readonly ServiceTab[] = [
   { id: 'bpScreening', labelKey: 'hao.service.bpScreening', requiresScreen: null },
   { id: 'sms', labelKey: 'hao.service.sms', requiresScreen: null },
   { id: 'bloodOnCall', labelKey: 'hao.service.bloodOnCall', requiresScreen: 'Blood Request' },
-  { id: 'directory', labelKey: 'hao.service.directory', requiresScreen: 'Directory Information Service' },
+  {
+    id: 'directory',
+    labelKey: 'hao.service.directory',
+    requiresScreen: 'Directory Information Service',
+  },
   { id: 'epidemic', labelKey: 'hao.service.epidemic', requiresScreen: 'Epidemic Outbreak Service' },
   { id: 'foodSafety', labelKey: 'hao.service.foodSafety', requiresScreen: 'Food safety' },
   { id: 'grievance', labelKey: 'hao.service.grievance', requiresScreen: 'Grievance' },
@@ -293,10 +297,7 @@ export class ServiceDeliveryStepComponent {
   /** Label key of the active tab, for the placeholder heading. */
   readonly activeTabLabelKey = computed<TranslationKey>(() => {
     const active = this.activeTabId();
-    return (
-      SERVICE_TABS.find((tab) => tab.id === active)?.labelKey ??
-      'hao.service.healthAdvisory'
-    );
+    return SERVICE_TABS.find((tab) => tab.id === active)?.labelKey ?? 'hao.service.healthAdvisory';
   });
 
   selectTab(id: HaoServiceId): void {
