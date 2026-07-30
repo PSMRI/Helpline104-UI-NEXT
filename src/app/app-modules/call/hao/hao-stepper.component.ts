@@ -51,14 +51,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
  *
  * Used declaratively:
  * ```html
- * <hao-stepper [linear]="true" (selectionChange)="onStep($event)">
+ * <app-hao-stepper [linear]="true" (selectionChange)="onStep($event)">
  *   <cdk-step [label]="..."> ...content... </cdk-step>
  *   <cdk-step [label]="..." [completed]="..."> ...content... </cdk-step>
- * </hao-stepper>
+ * </app-hao-stepper>
  * ```
  */
 @Component({
-  selector: 'hao-stepper',
+  selector: 'app-hao-stepper',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgTemplateOutlet],
@@ -114,8 +114,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   `,
 })
 export class HaoStepperComponent extends CdkStepper {
-  private readonly headerButtons =
-    viewChildren<ElementRef<HTMLButtonElement>>('header');
+  private readonly headerButtons = viewChildren<ElementRef<HTMLButtonElement>>('header');
 
   /** Header that currently holds the roving tabindex (focus target). */
   readonly focusedIndex = signal(0);
@@ -141,7 +140,7 @@ export class HaoStepperComponent extends CdkStepper {
 
   /** WAI-ARIA roving-focus keyboard navigation across the step headers. */
   onHeaderKeydown(event: KeyboardEvent, index: number): void {
-    let target: number | null = null;
+    let target: number | null;
     switch (event.key) {
       case 'ArrowRight':
       case 'ArrowDown':

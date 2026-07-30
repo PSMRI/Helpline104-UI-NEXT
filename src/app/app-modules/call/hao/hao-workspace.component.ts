@@ -86,11 +86,8 @@ const SCREEN_REGISTRATION = 'Registration';
         </p>
       </header>
 
-      <hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
-        <cdk-step
-          [label]="'hao.workspace.stepService' | translate: lang()"
-          [completed]="true"
-        >
+      <app-hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
+        <cdk-step [label]="'hao.workspace.stepService' | translate: lang()" [completed]="true">
           <app-hao-service-delivery-step
             [beneficiaryId]="beneficiaryId()"
             [callId]="callId()"
@@ -107,7 +104,7 @@ const SCREEN_REGISTRATION = 'Registration';
             (transferred)="onCallClosed()"
           />
         </cdk-step>
-      </hao-stepper>
+      </app-hao-stepper>
 
       <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
         @if (showBackToRo()) {
