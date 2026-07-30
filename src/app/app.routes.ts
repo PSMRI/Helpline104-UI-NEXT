@@ -273,6 +273,14 @@ export const routes: Routes = [
           ),
       },
       {
+        // Upload a CDSS symptom algorithm as plain text.
+        path: 'upload-symptoms',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/upload-symptoms/upload-symptoms.component').then(
+            (m) => m.UploadSymptomsComponent,
+          ),
+      },
+      {
         // Blood bank URL configuration.
         path: 'blood-url',
         loadComponent: () =>
@@ -332,7 +340,6 @@ export const routes: Routes = [
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
-        ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
       ].map(([path, titleKey]) => ({

@@ -1260,6 +1260,16 @@ export const as: Record<TranslationKey, string> = {
   'supScheme.activated': 'আঁচনি সফলতাৰে সক্ৰিয় কৰা হৈছে',
   'supScheme.deactivated': 'আঁচনি সফলতাৰে নিষ্ক্ৰিয় কৰা হৈছে',
 
+  // Upload symptoms (CDSS algorithm)
+  'supSymptom.title': 'লক্ষণসমূহ আপল’ড কৰক',
+  'supSymptom.prompt': 'লক্ষণসমূহ আপল’ড কৰিবলৈ অনুগ্ৰহ কৰি এলগৰিথম প্ৰবিষ্ট কৰক',
+  'supSymptom.algorithmLabel': 'চিডিএছএছ',
+  'supSymptom.enterAlgorithm': 'অনুগ্ৰহ কৰি লক্ষণৰ এলগৰিথম প্ৰবিষ্ট কৰক',
+  'supSymptom.submit': 'দাখিল কৰক',
+  'supSymptom.uploaded': 'সফলতাৰে আপল’ড কৰা হৈছে',
+  'supSymptom.alreadyExists': 'তথ্য ইতিমধ্যে বিদ্যমান',
+  'supSymptom.uploadFailed': 'আপল’ড বিফল হ’ল, অনুগ্ৰহ কৰি পিছত পুনৰ চেষ্টা কৰক।',
+
   // Blood bank URL
   'supBlood.title': 'ৰক্তৰ ইউআৰএল (URL) আপডেট কৰক',
   'supBlood.currentUrl': 'বৰ্তমান ইউআৰএল',

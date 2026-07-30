@@ -1251,6 +1251,16 @@ export const en = {
   'supScheme.activated': 'Scheme Activated Successfully',
   'supScheme.deactivated': 'Scheme Deactivated Successfully',
 
+  // Upload symptoms (CDSS algorithm)
+  'supSymptom.title': 'Upload Symptoms',
+  'supSymptom.prompt': 'Please enter algorithm to upload symptoms',
+  'supSymptom.algorithmLabel': 'CDSS',
+  'supSymptom.enterAlgorithm': 'Please enter the symptom algorithm',
+  'supSymptom.submit': 'Submit',
+  'supSymptom.uploaded': 'Uploaded successfully',
+  'supSymptom.alreadyExists': 'Data already exists',
+  'supSymptom.uploadFailed': 'Upload failed, please try again later.',
+
   // Blood bank URL
   'supBlood.title': 'Update Blood URL',
   'supBlood.currentUrl': 'Current URL',

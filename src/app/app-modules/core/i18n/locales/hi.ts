@@ -1257,6 +1257,16 @@ export const hi: Record<TranslationKey, string> = {
   'supScheme.activated': 'योजना सफलतापूर्वक सक्रिय',
   'supScheme.deactivated': 'योजना सफलतापूर्वक निष्क्रिय कर दी गई',
 
+  // Upload symptoms (CDSS algorithm)
+  'supSymptom.title': 'लक्षण अपलोड करें',
+  'supSymptom.prompt': 'कृपया लक्षण अपलोड करने के लिए एल्गोरिथ्म दर्ज करें',
+  'supSymptom.algorithmLabel': 'सीडीएसएस',
+  'supSymptom.enterAlgorithm': 'कृपया लक्षण एल्गोरिथ्म दर्ज करें',
+  'supSymptom.submit': 'प्रस्तुत',
+  'supSymptom.uploaded': 'सफलतापूर्वक अपलोड किया गया',
+  'supSymptom.alreadyExists': 'डेटा पहले से मौजूद है',
+  'supSymptom.uploadFailed': 'अपलोड विफल रहा, कृपया बाद में पुनः प्रयास करें।',
+
   // Blood bank URL
   'supBlood.title': 'रक्त URL अपडेट करें',
   'supBlood.currentUrl': 'वर्तमान यूआरएल',
