@@ -329,8 +329,15 @@ export const routes: Routes = [
             './app-modules/supervisor/config/communication/emergency-contacts-admin.component'
           ).then((m) => m.EmergencyContactsAdminComponent),
       },
+      {
+        // Live CZentrix agent status (online agents, auto-refreshing).
+        path: 'agent-status',
+        loadComponent: () =>
+          import('./app-modules/supervisor/agent-status/agent-status.component').then(
+            (m) => m.AgentStatusComponent,
+          ),
+      },
       ...[
-        ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
         ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
