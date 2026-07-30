@@ -37,11 +37,7 @@ import { ZardButtonComponent } from '@common-ui/ui/button';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { OtherHelplineService } from './other-helpline.service';
-import {
-  MctsCallRow,
-  MctsQaRow,
-  OtherHelplineError,
-} from './other-helpline.models';
+import { MctsCallRow, MctsQaRow, OtherHelplineError } from './other-helpline.models';
 
 /**
  * MCTS call-history tab: lists the beneficiary's prior MCTS outbound calls and,
@@ -70,7 +66,9 @@ import {
           {{ 'casesheetHistory.loading' | translate: lang() }}
         </p>
       } @else if (rows().length === 0) {
-        <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground"
+        >
           {{ 'casesheetHistory.empty' | translate: lang() }}
         </p>
       } @else {
@@ -78,25 +76,47 @@ import {
           <table class="w-full text-left text-sm">
             <thead class="bg-muted/50 text-xs text-muted-foreground">
               <tr>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.callType' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.callDate' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.status' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.smsAdvice' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.remarks' | translate: lang() }}</th>
-                <th class="px-3 py-2 text-right font-medium">{{ 'casesheetHistory.action' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.mcts.callType' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.mcts.callDate' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.mcts.status' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.mcts.smsAdvice' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.mcts.remarks' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 text-right font-medium">
+                  {{ 'casesheetHistory.action' | translate: lang() }}
+                </th>
               </tr>
             </thead>
             <tbody>
               @for (row of rows(); track $index; let i = $index) {
                 <tr class="border-t border-border align-top">
-                  <td class="px-3 py-2">{{ row.mctsOutboundCall?.displayOBCallType || row.callType?.callType || '—' }}</td>
-                  <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
+                  <td class="px-3 py-2">
+                    {{ row.mctsOutboundCall?.displayOBCallType || row.callType?.callType || '—' }}
+                  </td>
+                  <td class="px-3 py-2">
+                    {{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}
+                  </td>
                   <td class="px-3 py-2">{{ row.callType?.callGroupType || '—' }}</td>
                   <td class="px-3 py-2">{{ row.smsAdvice || '—' }}</td>
                   <td class="px-3 py-2">{{ row.remark || '—' }}</td>
                   <td class="px-3 py-2 text-right">
                     @if (row.callDetailID != null) {
-                      <button z-button type="button" zType="outline" zSize="sm" (click)="toggleQa(row.callDetailID)">
+                      <button
+                        z-button
+                        type="button"
+                        zType="outline"
+                        zSize="sm"
+                        (click)="toggleQa(row.callDetailID)"
+                      >
                         {{
                           (qaOpenFor() === row.callDetailID
                             ? 'casesheetHistory.mcts.hideQa'
@@ -111,11 +131,17 @@ import {
                   <tr class="border-t border-border bg-muted/30">
                     <td colspan="6" class="px-3 py-3">
                       @if (qaLoading()) {
-                        <p class="text-sm text-muted-foreground">{{ 'casesheetHistory.loading' | translate: lang() }}</p>
+                        <p class="text-sm text-muted-foreground">
+                          {{ 'casesheetHistory.loading' | translate: lang() }}
+                        </p>
                       } @else if (qaError()) {
-                        <p class="text-sm font-medium text-destructive" role="alert">{{ qaError() }}</p>
+                        <p class="text-sm font-medium text-destructive" role="alert">
+                          {{ qaError() }}
+                        </p>
                       } @else if (qaRows().length === 0) {
-                        <p class="text-sm text-muted-foreground">{{ 'casesheetHistory.mcts.noQa' | translate: lang() }}</p>
+                        <p class="text-sm text-muted-foreground">
+                          {{ 'casesheetHistory.mcts.noQa' | translate: lang() }}
+                        </p>
                       } @else {
                         <p class="mb-2 text-xs font-medium text-muted-foreground">
                           {{ 'casesheetHistory.mcts.qaTitle' | translate: lang() }}
@@ -123,7 +149,9 @@ import {
                         <ul class="flex flex-col gap-2">
                           @for (qa of qaRows(); track $index) {
                             <li class="text-sm">
-                              <span class="font-medium text-foreground">{{ qa.questionnaireDetail?.question || '—' }}</span>
+                              <span class="font-medium text-foreground">{{
+                                qa.questionnaireDetail?.question || '—'
+                              }}</span>
                               <span class="text-muted-foreground"> — {{ qa.answer || '—' }}</span>
                             </li>
                           }
@@ -194,7 +222,9 @@ export class CasesheetHistoryMctsComponent {
           }
           this.loading.set(false);
           this.rows.set([]);
-          this.errorMessage.set(err.errorMessage || this.i18n.instant('casesheetHistory.loadError'));
+          this.errorMessage.set(
+            err.errorMessage || this.i18n.instant('casesheetHistory.loadError'),
+          );
         },
       });
   }

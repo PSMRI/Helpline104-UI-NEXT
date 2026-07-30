@@ -101,8 +101,15 @@ const SLOT_MAX_MINUTES = 13 * 60;
             <label for="appt-block" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'appointment.block' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="appt-block" [class]="selectClass" formControlName="subDistrict" (change)="onBlockChange()">
-              <option [ngValue]="null" disabled>{{ 'appointment.selectBlock' | translate: lang() }}</option>
+            <select
+              id="appt-block"
+              [class]="selectClass"
+              formControlName="subDistrict"
+              (change)="onBlockChange()"
+            >
+              <option [ngValue]="null" disabled>
+                {{ 'appointment.selectBlock' | translate: lang() }}
+              </option>
               @for (b of blocks(); track b.blockID) {
                 <option [ngValue]="b.blockName">{{ b.blockName }}</option>
               }
@@ -111,10 +118,18 @@ const SLOT_MAX_MINUTES = 13 * 60;
 
           <div>
             <label for="appt-facility" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'appointment.facility' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'appointment.facility' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
-            <select id="appt-facility" [class]="selectClass" formControlName="facilityName" (change)="onFacilityChange()">
-              <option [ngValue]="null" disabled>{{ 'appointment.selectFacility' | translate: lang() }}</option>
+            <select
+              id="appt-facility"
+              [class]="selectClass"
+              formControlName="facilityName"
+              (change)="onFacilityChange()"
+            >
+              <option [ngValue]="null" disabled>
+                {{ 'appointment.selectFacility' | translate: lang() }}
+              </option>
               @for (f of facilities(); track $index) {
                 <option [ngValue]="f.facilityName">{{ f.facilityName }}</option>
               }
@@ -137,7 +152,8 @@ const SLOT_MAX_MINUTES = 13 * 60;
 
           <div class="sm:col-span-2">
             <label for="appt-datetime" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'appointment.dateTime' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'appointment.dateTime' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
             <input
               id="appt-datetime"
@@ -150,7 +166,9 @@ const SLOT_MAX_MINUTES = 13 * 60;
               (change)="onDateChange()"
             />
             @if (timeInvalid()) {
-              <p class="mt-0.5 text-xs text-destructive">{{ 'appointment.slotHint' | translate: lang() }}</p>
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'appointment.slotHint' | translate: lang() }}
+              </p>
             }
           </div>
 
@@ -175,7 +193,9 @@ const SLOT_MAX_MINUTES = 13 * 60;
                   [placeholder]="'appointment.enterMobile' | translate: lang()"
                 />
                 @if (form.controls.altMobile.value && !isAltMobileValid()) {
-                  <p class="mt-0.5 text-xs text-destructive">{{ 'appointment.mobileError' | translate: lang() }}</p>
+                  <p class="mt-0.5 text-xs text-destructive">
+                    {{ 'appointment.mobileError' | translate: lang() }}
+                  </p>
                 }
               </div>
             }
@@ -186,7 +206,14 @@ const SLOT_MAX_MINUTES = 13 * 60;
           <button z-button type="button" zType="outline" (click)="cancelled.emit()">
             {{ 'appointment.cancel' | translate: lang() }}
           </button>
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="!canSubmit()" (click)="submit()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="!canSubmit()"
+            (click)="submit()"
+          >
             {{ 'appointment.submit' | translate: lang() }}
           </button>
         </div>
@@ -226,7 +253,10 @@ export class ScheduleAppointmentComponent implements OnInit {
     employeeCode: this.fb.control('', { nonNullable: true }),
     hfrId: this.fb.control('', { nonNullable: true }),
     facilityPhoneNo: this.fb.control('', { nonNullable: true }),
-    appointmentDateTime: this.fb.control('', { nonNullable: true, validators: [Validators.required] }),
+    appointmentDateTime: this.fb.control('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     altMobile: this.fb.control(false, { nonNullable: true }),
     altMobileNumber: this.fb.control('', { nonNullable: true }),
   });

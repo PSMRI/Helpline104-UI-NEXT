@@ -65,11 +65,15 @@ import {
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
         <ng-icon name="lucideHistory" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.services.historyTitle' | translate: lang() }}</h3>
+        <h3 class="text-sm font-semibold text-foreground">
+          {{ 'sio.services.historyTitle' | translate: lang() }}
+        </h3>
       </header>
 
       @if (!hasContext()) {
-        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
+        >
           {{ 'sio.common.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -78,21 +82,33 @@ import {
         }
 
         @if (isEmpty()) {
-          <p class="text-sm text-muted-foreground">{{ 'sio.common.noHistory' | translate: lang() }}</p>
+          <p class="text-sm text-muted-foreground">
+            {{ 'sio.common.noHistory' | translate: lang() }}
+          </p>
         }
 
         <!-- Blood requests -->
         @if (bloodRequests().length > 0) {
           <div class="mb-6">
-            <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.services.bloodRequests' | translate: lang() }}</h4>
+            <h4 class="mb-2 text-sm font-medium text-foreground">
+              {{ 'sio.services.bloodRequests' | translate: lang() }}
+            </h4>
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.common.name' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.common.age' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.services.request' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.services.hospital' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.common.name' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.common.age' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.services.request' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.services.hospital' | translate: lang() }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -113,16 +129,28 @@ import {
         <!-- Epidemic outbreak -->
         @if (epidemicComplaints().length > 0) {
           <div class="mb-6">
-            <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.services.epidemicComplaints' | translate: lang() }}</h4>
+            <h4 class="mb-2 text-sm font-medium text-foreground">
+              {{ 'sio.services.epidemicComplaints' | translate: lang() }}
+            </h4>
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.epidemic.nature' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.epidemic.peopleAffected' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.common.district' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.common.subDistrict' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.common.remarks' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.epidemic.nature' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.epidemic.peopleAffected' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.common.district' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.common.subDistrict' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.common.remarks' | translate: lang() }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -144,15 +172,25 @@ import {
         <!-- Food safety -->
         @if (foodComplaints().length > 0) {
           <div class="mb-6">
-            <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.services.foodComplaints' | translate: lang() }}</h4>
+            <h4 class="mb-2 text-sm font-medium text-foreground">
+              {{ 'sio.services.foodComplaints' | translate: lang() }}
+            </h4>
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.services.request' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.food.historyOfDiet' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.food.typeOfFood' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.food.foodConsumedFrom' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.services.request' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.food.historyOfDiet' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.food.typeOfFood' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.food.foodConsumedFrom' | translate: lang() }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -173,14 +211,22 @@ import {
         <!-- Organ donation -->
         @if (organRequests().length > 0) {
           <div>
-            <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.services.organRequests' | translate: lang() }}</h4>
+            <h4 class="mb-2 text-sm font-medium text-foreground">
+              {{ 'sio.services.organRequests' | translate: lang() }}
+            </h4>
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.organ.donationType' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.organ.organ' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.common.remarks' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.organ.donationType' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.organ.organ' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.common.remarks' | translate: lang() }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -211,10 +257,18 @@ export class SioServicesHistoryComponent implements OnInit {
   private readonly data = signal<SioHistoryData>({});
   readonly errorMessage = signal('');
 
-  readonly bloodRequests = computed<BloodRequestHistoryRow[]>(() => this.data().t_bloodRequest ?? []);
-  readonly epidemicComplaints = computed<EpidemicHistoryRow[]>(() => this.data().t_epidemicOutbreak ?? []);
-  readonly foodComplaints = computed<FoodSafetyHistoryRow[]>(() => this.data().t_foodSafetyCopmlaint ?? []);
-  readonly organRequests = computed<OrganDonationHistoryRow[]>(() => this.data().t_organDonation ?? []);
+  readonly bloodRequests = computed<BloodRequestHistoryRow[]>(
+    () => this.data().t_bloodRequest ?? [],
+  );
+  readonly epidemicComplaints = computed<EpidemicHistoryRow[]>(
+    () => this.data().t_epidemicOutbreak ?? [],
+  );
+  readonly foodComplaints = computed<FoodSafetyHistoryRow[]>(
+    () => this.data().t_foodSafetyCopmlaint ?? [],
+  );
+  readonly organRequests = computed<OrganDonationHistoryRow[]>(
+    () => this.data().t_organDonation ?? [],
+  );
 
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);
   readonly isEmpty = computed(

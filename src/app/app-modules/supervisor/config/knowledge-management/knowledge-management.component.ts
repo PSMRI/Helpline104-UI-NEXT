@@ -99,7 +99,12 @@ const MAX_FILE_SIZE_MB = 5;
             {{ 'supKm.selectService' | translate: lang() }}
             <span class="text-destructive">*</span>
           </label>
-          <select id="km-service" [class]="selectClass" formControlName="subServiceID" (change)="onServiceChange()">
+          <select
+            id="km-service"
+            [class]="selectClass"
+            formControlName="subServiceID"
+            (change)="onServiceChange()"
+          >
             <option [ngValue]="null" disabled>{{ 'supKm.select' | translate: lang() }}</option>
             @for (s of services(); track s.subServiceID) {
               <option [ngValue]="s.subServiceID">{{ s.subServiceName }}</option>
@@ -111,7 +116,12 @@ const MAX_FILE_SIZE_MB = 5;
             {{ 'supKm.selectCategory' | translate: lang() }}
             <span class="text-destructive">*</span>
           </label>
-          <select id="km-category" [class]="selectClass" formControlName="categoryID" (change)="onCategoryChange()">
+          <select
+            id="km-category"
+            [class]="selectClass"
+            formControlName="categoryID"
+            (change)="onCategoryChange()"
+          >
             <option [ngValue]="null" disabled>{{ 'supKm.select' | translate: lang() }}</option>
             @for (c of categories(); track c.categoryID) {
               <option [ngValue]="c.categoryID">{{ c.categoryName }}</option>
@@ -123,7 +133,12 @@ const MAX_FILE_SIZE_MB = 5;
             {{ 'supKm.selectSubCategory' | translate: lang() }}
             <span class="text-destructive">*</span>
           </label>
-          <select id="km-subcategory" [class]="selectClass" formControlName="subCategoryID" (change)="onSubCategoryChange()">
+          <select
+            id="km-subcategory"
+            [class]="selectClass"
+            formControlName="subCategoryID"
+            (change)="onSubCategoryChange()"
+          >
             <option [ngValue]="null" disabled>{{ 'supKm.select' | translate: lang() }}</option>
             @for (s of subCategories(); track s.subCategoryID) {
               <option [ngValue]="s.subCategoryID">{{ s.subCategoryName }}</option>

@@ -22,14 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -54,8 +47,7 @@ const GET_HISTORY_PATH = 'beneficiary/getdirectorySearchHistory';
 const SAVE_HISTORY_PATH = 'beneficiary/save/directorySearchHistory';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 const DIRECTORY_TIMEOUT_MS = 20_000;
 
 /**
@@ -86,10 +78,9 @@ export class DirectoryService {
   /** Sub-directories for a directory type. */
   getSubDirectory(instituteDirectoryID: number): Observable<SubDirectoryItem[]> {
     return this.http
-      .post<ApiResponse<SubDirectoryData>>(
-        this.config.getCommonBaseURL() + SUB_DIRECTORY_PATH,
-        { instituteDirectoryID },
-      )
+      .post<ApiResponse<SubDirectoryData>>(this.config.getCommonBaseURL() + SUB_DIRECTORY_PATH, {
+        instituteDirectoryID,
+      })
       .pipe(
         timeout(DIRECTORY_TIMEOUT_MS),
         map((res) => this.readData(res)?.subDirectory ?? []),

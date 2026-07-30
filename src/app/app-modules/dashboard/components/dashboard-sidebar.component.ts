@@ -41,9 +41,7 @@ const SUPERVISOR_ROUTE = '/supervisor';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgIcon, TranslatePipe],
-  viewProviders: [
-    provideIcons({ lucideArrowLeftRight, lucideLayoutDashboard }),
-  ],
+  viewProviders: [provideIcons({ lucideArrowLeftRight, lucideLayoutDashboard })],
   template: `
     <nav
       class="flex h-full w-14 flex-col items-center gap-2 border-r border-border bg-slate-50 py-3 text-muted-foreground"

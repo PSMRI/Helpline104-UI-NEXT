@@ -55,9 +55,7 @@ const SCREEN_HEALTH_ADVICE = 'Health_Advice';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, NgIcon, TranslatePipe, ZardButtonComponent],
-  viewProviders: [
-    provideIcons({ lucideLayoutDashboard, lucideUserSearch }),
-  ],
+  viewProviders: [provideIcons({ lucideLayoutDashboard, lucideUserSearch })],
   template: `
     <section
       class="flex min-h-[16rem] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center"
@@ -110,9 +108,7 @@ export class RoleDispatcherComponent implements OnInit {
     if (
       path === null &&
       featureCode === 'RO' &&
-      collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes(
-        SCREEN_HEALTH_ADVICE,
-      )
+      collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes(SCREEN_HEALTH_ADVICE)
     ) {
       path = 'hao';
     }

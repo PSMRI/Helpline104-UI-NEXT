@@ -20,11 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  HttpErrorResponse,
-  HttpInterceptorFn,
-  HttpResponse,
-} from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { EMPTY, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';

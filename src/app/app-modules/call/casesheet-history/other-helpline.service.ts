@@ -22,14 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -45,8 +38,7 @@ const MCTS_RESPONSE_PATH = 'mctsOutboundHistoryController/getMctsCallResponse';
 const MMU_CASESHEET_PATH = 'common/getBeneficiaryCaseSheetHistory';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 const HISTORY_TIMEOUT_MS = 20_000;
 
 /**
@@ -63,10 +55,9 @@ export class OtherHelplineService {
   /** MCTS outbound-call history for a beneficiary (common API). */
   getMctsCallHistory(beneficiaryRegID: number | null): Observable<MctsCallRow[]> {
     return this.http
-      .post<ApiResponse<MctsCallRow[]>>(
-        this.config.getCommonBaseURL() + MCTS_HISTORY_PATH,
-        { beneficiaryRegID },
-      )
+      .post<ApiResponse<MctsCallRow[]>>(this.config.getCommonBaseURL() + MCTS_HISTORY_PATH, {
+        beneficiaryRegID,
+      })
       .pipe(
         timeout(HISTORY_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
@@ -77,10 +68,9 @@ export class OtherHelplineService {
   /** Question/answer detail for one MCTS call (common API). */
   getMctsCallResponse(callDetailID: number): Observable<MctsQaRow[]> {
     return this.http
-      .post<ApiResponse<MctsQaRow[]>>(
-        this.config.getCommonBaseURL() + MCTS_RESPONSE_PATH,
-        { callDetailID },
-      )
+      .post<ApiResponse<MctsQaRow[]>>(this.config.getCommonBaseURL() + MCTS_RESPONSE_PATH, {
+        callDetailID,
+      })
       .pipe(
         timeout(HISTORY_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
@@ -92,10 +82,7 @@ export class OtherHelplineService {
    * MMU (or TM, when `isTm`) beneficiary case-sheet visit history. Resolves to
    * `[]` when none are found.
    */
-  getMmuBenCasesheet(
-    beneficiaryRegID: number | null,
-    isTm: boolean,
-  ): Observable<MmuVisitRow[]> {
+  getMmuBenCasesheet(beneficiaryRegID: number | null, isTm: boolean): Observable<MmuVisitRow[]> {
     const base = isTm ? this.config.getTMBaseURL() : this.config.getMMUBaseURL();
     return this.http
       .post<ApiResponse<MmuVisitRow[]>>(base + MMU_CASESHEET_PATH, {

@@ -198,7 +198,10 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
             }
           </div>
           <div>
-            <label for="ec-designation" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="ec-designation"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'supEmerg.designation' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
@@ -216,7 +219,13 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
               {{ 'supEmerg.location' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="ec-location" z-input class="w-full" maxlength="90" formControlName="location" />
+            <input
+              id="ec-location"
+              z-input
+              class="w-full"
+              maxlength="90"
+              formControlName="location"
+            />
             @if (contactForm.controls.location.invalid && contactForm.controls.location.touched) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supEmerg.minThreeChars' | translate: lang() }}
@@ -347,7 +356,10 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
             }
           </div>
           <div>
-            <label for="ec-e-designation" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="ec-e-designation"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'supEmerg.designation' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
@@ -365,7 +377,13 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
               {{ 'supEmerg.location' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="ec-e-location" z-input class="w-full" maxlength="90" formControlName="location" />
+            <input
+              id="ec-e-location"
+              z-input
+              class="w-full"
+              maxlength="90"
+              formControlName="location"
+            />
           </div>
           <div>
             <label for="ec-e-number" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -645,9 +663,7 @@ export class EmergencyContactsAdminComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          toast.success(
-            this.i18n.instant(deleted ? 'supEmerg.deactivated' : 'supEmerg.activated'),
-          );
+          toast.success(this.i18n.instant(deleted ? 'supEmerg.deactivated' : 'supEmerg.activated'));
           this.loadContacts();
         },
         error: () => {

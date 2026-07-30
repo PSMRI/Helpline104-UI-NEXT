@@ -64,11 +64,15 @@ import { Scheme, SchemeSearchRow } from './scheme.models';
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
         <ng-icon name="lucideFileText" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.scheme.title' | translate: lang() }}</h3>
+        <h3 class="text-sm font-semibold text-foreground">
+          {{ 'sio.scheme.title' | translate: lang() }}
+        </h3>
       </header>
 
       @if (!hasContext()) {
-        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
+        >
           {{ 'sio.common.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -77,15 +81,21 @@ import { Scheme, SchemeSearchRow } from './scheme.models';
         }
 
         @if (schemes().length === 0) {
-          <p class="text-sm text-muted-foreground">{{ 'sio.scheme.noSchemes' | translate: lang() }}</p>
+          <p class="text-sm text-muted-foreground">
+            {{ 'sio.scheme.noSchemes' | translate: lang() }}
+          </p>
         } @else {
           <div class="overflow-x-auto rounded-md border border-border">
             <table class="w-full text-left text-sm">
               <thead class="bg-muted/50 text-xs text-muted-foreground">
                 <tr>
                   <th class="px-3 py-2 font-medium">{{ 'sio.scheme.name' | translate: lang() }}</th>
-                  <th class="px-3 py-2 font-medium">{{ 'sio.common.description' | translate: lang() }}</th>
-                  <th class="px-3 py-2 font-medium">{{ 'sio.scheme.document' | translate: lang() }}</th>
+                  <th class="px-3 py-2 font-medium">
+                    {{ 'sio.common.description' | translate: lang() }}
+                  </th>
+                  <th class="px-3 py-2 font-medium">
+                    {{ 'sio.scheme.document' | translate: lang() }}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -102,7 +112,10 @@ import { Scheme, SchemeSearchRow } from './scheme.models';
                           class="font-medium text-primary underline"
                           (click)="markAvailed(scheme)"
                         >
-                          {{ scheme.kmFileManager?.fileName || ('sio.scheme.view' | translate: lang()) }}
+                          {{
+                            scheme.kmFileManager?.fileName ||
+                              ('sio.scheme.view' | translate: lang())
+                          }}
                         </a>
                       } @else {
                         —
@@ -116,16 +129,24 @@ import { Scheme, SchemeSearchRow } from './scheme.models';
         }
 
         <div class="mt-6">
-          <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.common.history' | translate: lang() }}</h4>
+          <h4 class="mb-2 text-sm font-medium text-foreground">
+            {{ 'sio.common.history' | translate: lang() }}
+          </h4>
           @if (history().length === 0) {
-            <p class="text-sm text-muted-foreground">{{ 'sio.common.noHistory' | translate: lang() }}</p>
+            <p class="text-sm text-muted-foreground">
+              {{ 'sio.common.noHistory' | translate: lang() }}
+            </p>
           } @else {
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.scheme.name' | translate: lang() }}</th>
-                    <th class="px-3 py-2 font-medium">{{ 'sio.scheme.availedDate' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.scheme.name' | translate: lang() }}
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      {{ 'sio.scheme.availedDate' | translate: lang() }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

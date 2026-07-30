@@ -47,11 +47,7 @@ import { CallStore } from '../call.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ScreeningService } from './screening.service';
-import {
-  QUESTION_TYPE,
-  ScreeningError,
-  ScreeningQuestion,
-} from './screening.models';
+import { QUESTION_TYPE, ScreeningError, ScreeningQuestion } from './screening.models';
 import {
   SCREENING_SELECT_CLASS,
   calculateObesity,
@@ -91,7 +87,9 @@ const GENDER_FEMALE = 2;
       </header>
 
       @if (!hasContext()) {
-        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
+        >
           {{ 'screening.noContext' | translate: lang() }}
         </p>
       } @else if (loading()) {
@@ -109,16 +107,36 @@ const GENDER_FEMALE = 2;
             <label for="bp-weight" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'screening.weight' | translate: lang() }}
             </label>
-            <input id="bp-weight" z-input class="w-full" type="number" inputmode="numeric" [formControl]="weight" />
+            <input
+              id="bp-weight"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              [formControl]="weight"
+            />
           </div>
           <div>
             <label for="bp-height" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'screening.height' | translate: lang() }}
             </label>
-            <input id="bp-height" z-input class="w-full" type="number" inputmode="numeric" [formControl]="height" />
+            <input
+              id="bp-height"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              [formControl]="height"
+            />
           </div>
           <div>
-            <button z-button type="button" zType="outline" [zDisabled]="weight.value == null && height.value == null" (click)="calculateBmi()">
+            <button
+              z-button
+              type="button"
+              zType="outline"
+              [zDisabled]="weight.value == null && height.value == null"
+              (click)="calculateBmi()"
+            >
               {{ 'screening.calculateBmi' | translate: lang() }}
             </button>
           </div>
@@ -126,7 +144,9 @@ const GENDER_FEMALE = 2;
             <span class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'screening.obesity' | translate: lang() }}
             </span>
-            <p class="flex h-9 items-center rounded-md border border-border bg-muted/40 px-3 text-sm">
+            <p
+              class="flex h-9 items-center rounded-md border border-border bg-muted/40 px-3 text-sm"
+            >
               {{ obesity() || '—' }}
             </p>
           </div>
@@ -137,11 +157,20 @@ const GENDER_FEMALE = 2;
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @for (q of questions(); track q.questionID) {
               <div>
-                <label [attr.for]="'bp-' + q.questionID" class="mb-1 block text-xs font-medium text-muted-foreground">
+                <label
+                  [attr.for]="'bp-' + q.questionID"
+                  class="mb-1 block text-xs font-medium text-muted-foreground"
+                >
                   {{ q.question }}
                 </label>
-                <select [id]="'bp-' + q.questionID" [class]="selectClass" [formControlName]="q.questionID.toString()">
-                  <option [ngValue]="''" disabled>{{ 'screening.select' | translate: lang() }}</option>
+                <select
+                  [id]="'bp-' + q.questionID"
+                  [class]="selectClass"
+                  [formControlName]="q.questionID.toString()"
+                >
+                  <option [ngValue]="''" disabled>
+                    {{ 'screening.select' | translate: lang() }}
+                  </option>
                   @for (a of q.m_104QuestionScore; track $index) {
                     <option [ngValue]="a.answer">{{ a.answer }}</option>
                   }
@@ -154,22 +183,49 @@ const GENDER_FEMALE = 2;
         <!-- Reference guideline (transfer to MO) -->
         <div class="mt-5">
           <h4 class="mb-2 text-sm font-medium text-foreground">
-            {{ 'screening.guidelines' | translate: lang() }} — {{ 'screening.transferToMo' | translate: lang() }}
+            {{ 'screening.guidelines' | translate: lang() }} —
+            {{ 'screening.transferToMo' | translate: lang() }}
           </h4>
           <div class="overflow-x-auto rounded-md border border-border">
             <table class="w-full text-left text-xs">
               <thead class="bg-muted/50 text-muted-foreground">
                 <tr>
-                  <th class="px-2 py-1 font-medium">{{ 'screening.bp.category' | translate: lang() }}</th>
-                  <th class="px-2 py-1 font-medium">{{ 'screening.bp.systolic' | translate: lang() }}</th>
-                  <th class="px-2 py-1 font-medium">{{ 'screening.bp.diastolic' | translate: lang() }}</th>
+                  <th class="px-2 py-1 font-medium">
+                    {{ 'screening.bp.category' | translate: lang() }}
+                  </th>
+                  <th class="px-2 py-1 font-medium">
+                    {{ 'screening.bp.systolic' | translate: lang() }}
+                  </th>
+                  <th class="px-2 py-1 font-medium">
+                    {{ 'screening.bp.diastolic' | translate: lang() }}
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <tr class="border-t border-border"><td class="px-2 py-1">{{ 'screening.normal' | translate: lang() }}</td><td class="px-2 py-1">90–119</td><td class="px-2 py-1">60–79</td></tr>
-                <tr class="border-t border-border"><td class="px-2 py-1">{{ 'screening.bp.prehypertension' | translate: lang() }}</td><td class="px-2 py-1">120–139</td><td class="px-2 py-1">80–89</td></tr>
-                <tr class="border-t border-border"><td class="px-2 py-1">{{ 'screening.bp.stage1' | translate: lang() }}</td><td class="px-2 py-1">140–159</td><td class="px-2 py-1">90–99</td></tr>
-                <tr class="border-t border-border"><td class="px-2 py-1">{{ 'screening.bp.isolatedSystolic' | translate: lang() }}</td><td class="px-2 py-1">≥140</td><td class="px-2 py-1">&lt;90</td></tr>
+                <tr class="border-t border-border">
+                  <td class="px-2 py-1">{{ 'screening.normal' | translate: lang() }}</td>
+                  <td class="px-2 py-1">90–119</td>
+                  <td class="px-2 py-1">60–79</td>
+                </tr>
+                <tr class="border-t border-border">
+                  <td class="px-2 py-1">
+                    {{ 'screening.bp.prehypertension' | translate: lang() }}
+                  </td>
+                  <td class="px-2 py-1">120–139</td>
+                  <td class="px-2 py-1">80–89</td>
+                </tr>
+                <tr class="border-t border-border">
+                  <td class="px-2 py-1">{{ 'screening.bp.stage1' | translate: lang() }}</td>
+                  <td class="px-2 py-1">140–159</td>
+                  <td class="px-2 py-1">90–99</td>
+                </tr>
+                <tr class="border-t border-border">
+                  <td class="px-2 py-1">
+                    {{ 'screening.bp.isolatedSystolic' | translate: lang() }}
+                  </td>
+                  <td class="px-2 py-1">≥140</td>
+                  <td class="px-2 py-1">&lt;90</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -178,16 +234,33 @@ const GENDER_FEMALE = 2;
         <!-- Remarks + save -->
         <div class="mt-4">
           <label for="bp-remarks" class="mb-1 block text-sm font-medium text-foreground">
-            {{ 'screening.remarksByHao' | translate: lang() }} <span class="text-destructive">*</span>
+            {{ 'screening.remarksByHao' | translate: lang() }}
+            <span class="text-destructive">*</span>
           </label>
-          <textarea id="bp-remarks" z-input rows="2" class="w-full" [maxlength]="remarksMax" [formControl]="remarks"></textarea>
+          <textarea
+            id="bp-remarks"
+            z-input
+            rows="2"
+            class="w-full"
+            [maxlength]="remarksMax"
+            [formControl]="remarks"
+          ></textarea>
           @if (remarks.invalid && remarks.touched) {
-            <p class="mt-0.5 text-xs text-destructive">{{ 'screening.remarksRequired' | translate: lang() }}</p>
+            <p class="mt-0.5 text-xs text-destructive">
+              {{ 'screening.remarksRequired' | translate: lang() }}
+            </p>
           }
         </div>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="remarks.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="remarks.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'screening.save' | translate: lang() }}
           </button>
         </div>

@@ -22,14 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -52,8 +45,7 @@ const PRESCRIPTION_LIST_PATH = 'beneficiary/get/prescriptionList';
 const SAVE_PRESCRIPTION_PATH = 'beneficiary/save/prescription';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 /** Max wait for any call before failing gracefully (matches CDSS). */
 const PRESCRIPTION_TIMEOUT_MS = 20_000;
 
@@ -124,14 +116,11 @@ export class PrescriptionService {
   }
 
   /** Prior prescriptions for a beneficiary (history). Resolves to `[]`. */
-  getPrescriptionList(
-    beneficiaryRegID: number | null,
-  ): Observable<PrescriptionRecord[]> {
+  getPrescriptionList(beneficiaryRegID: number | null): Observable<PrescriptionRecord[]> {
     return this.http
-      .post<ApiResponse<PrescriptionRecord[]>>(
-        this.baseUrl + PRESCRIPTION_LIST_PATH,
-        { beneficiaryRegID },
-      )
+      .post<ApiResponse<PrescriptionRecord[]>>(this.baseUrl + PRESCRIPTION_LIST_PATH, {
+        beneficiaryRegID,
+      })
       .pipe(
         timeout(PRESCRIPTION_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
@@ -140,14 +129,9 @@ export class PrescriptionService {
   }
 
   /** Save a prescription; resolves to the created prescription (with its id). */
-  savePrescription(
-    payload: SavePrescriptionRequest,
-  ): Observable<SavePrescriptionResponse> {
+  savePrescription(payload: SavePrescriptionRequest): Observable<SavePrescriptionResponse> {
     return this.http
-      .post<ApiResponse<SavePrescriptionResponse>>(
-        this.baseUrl + SAVE_PRESCRIPTION_PATH,
-        payload,
-      )
+      .post<ApiResponse<SavePrescriptionResponse>>(this.baseUrl + SAVE_PRESCRIPTION_PATH, payload)
       .pipe(
         timeout(PRESCRIPTION_TIMEOUT_MS),
         map((res) => {
@@ -164,10 +148,7 @@ export class PrescriptionService {
   }
 
   /** Extract, trim and de-dupe a string field from a possibly-absent list. */
-  private cleanStrings<T>(
-    rows: T[] | undefined,
-    pick: (row: T) => string | undefined,
-  ): string[] {
+  private cleanStrings<T>(rows: T[] | undefined, pick: (row: T) => string | undefined): string[] {
     const seen = new Set<string>();
     const out: string[] = [];
     for (const row of rows ?? []) {

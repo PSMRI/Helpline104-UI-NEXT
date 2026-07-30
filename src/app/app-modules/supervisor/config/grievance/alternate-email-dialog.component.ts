@@ -29,13 +29,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePlus, lucideTrash2 } from '@ng-icons/lucide';
@@ -84,7 +78,9 @@ export interface AlternateEmailDialogData {
         {{ 'supGrievance.loading' | translate: lang() }}
       </p>
     } @else if (emails().length === 0) {
-      <p class="rounded-md border border-dashed border-border py-4 text-center text-sm text-muted-foreground">
+      <p
+        class="rounded-md border border-dashed border-border py-4 text-center text-sm text-muted-foreground"
+      >
         {{ 'supGrievance.email.noEmails' | translate: lang() }}
       </p>
     } @else {

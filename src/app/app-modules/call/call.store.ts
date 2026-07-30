@@ -75,18 +75,12 @@ export interface CallerDemographics {
 export class CallStore {
   private readonly storage = inject(SessionStorageService);
 
-  private readonly _onCall = signal(
-    this.storage.getItem(CALL_STORAGE_KEYS.onCall) === ON_CALL_YES,
-  );
-  private readonly _cli = signal<string | null>(
-    this.storage.getItem(CALL_STORAGE_KEYS.cli),
-  );
+  private readonly _onCall = signal(this.storage.getItem(CALL_STORAGE_KEYS.onCall) === ON_CALL_YES);
+  private readonly _cli = signal<string | null>(this.storage.getItem(CALL_STORAGE_KEYS.cli));
   private readonly _sessionId = signal<string | null>(
     this.storage.getItem(CALL_STORAGE_KEYS.sessionId),
   );
-  private readonly _callId = signal<string | null>(
-    this.storage.getItem(CALL_STORAGE_KEYS.callId),
-  );
+  private readonly _callId = signal<string | null>(this.storage.getItem(CALL_STORAGE_KEYS.callId));
   private readonly _startedAt = signal<number | null>(
     readStoredTimestamp(this.storage.getItem(CALL_STORAGE_KEYS.startedAt)),
   );

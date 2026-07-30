@@ -22,29 +22,16 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
-import {
-  ApiResponse,
-  CovidError,
-  CovidMasterData,
-  SaveCovidRequest,
-} from './covid.models';
+import { ApiResponse, CovidError, CovidMasterData, SaveCovidRequest } from './covid.models';
 
 const MASTER_PATH = 'master/patient/covidDetails/';
 const SAVE_PATH = 'master/save/covidScreeningData';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 const COVID_TIMEOUT_MS = 20_000;
 
 /**

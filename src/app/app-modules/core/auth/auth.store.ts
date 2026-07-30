@@ -23,12 +23,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { SessionStorageService } from '../services/session-storage.service';
-import {
-  AUTH_STORAGE_KEYS,
-  AuthUser,
-  CurrentRole,
-  Privilege,
-} from './auth.models';
+import { AUTH_STORAGE_KEYS, AuthUser, CurrentRole, Privilege } from './auth.models';
 
 /**
  * Signal-based store for the authenticated session: token, user, current role
@@ -44,9 +39,7 @@ import {
 export class AuthStore {
   private readonly storage = inject(SessionStorageService);
 
-  private readonly _token = signal<string | null>(
-    this.storage.getItem(AUTH_STORAGE_KEYS.token),
-  );
+  private readonly _token = signal<string | null>(this.storage.getItem(AUTH_STORAGE_KEYS.token));
   private readonly _apimanKey = signal<string | null>(
     this.storage.getItem(AUTH_STORAGE_KEYS.apimanKey),
   );
@@ -75,21 +68,14 @@ export class AuthStore {
    * Establish the session from a successful login.
    * `token` is the login response `key`.
    */
-  setSession(params: {
-    token: string;
-    user: AuthUser;
-    privileges?: Privilege[];
-  }): void {
+  setSession(params: { token: string; user: AuthUser; privileges?: Privilege[] }): void {
     this._token.set(params.token);
     this._user.set(params.user);
     this._privileges.set(params.privileges ?? []);
 
     this.storage.setItem(AUTH_STORAGE_KEYS.token, params.token);
     this.storage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(params.user));
-    this.storage.setItem(
-      AUTH_STORAGE_KEYS.privileges,
-      JSON.stringify(params.privileges ?? []),
-    );
+    this.storage.setItem(AUTH_STORAGE_KEYS.privileges, JSON.stringify(params.privileges ?? []));
     // A fresh login clears any previously selected role and must not inherit a
     // previous session's APIMAN key; both are re-captured at role selection.
     this._currentRole.set(null);

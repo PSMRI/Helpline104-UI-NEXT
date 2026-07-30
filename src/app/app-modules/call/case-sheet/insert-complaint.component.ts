@@ -20,13 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -77,10 +71,19 @@ interface SaveSymptomResult {
       ></textarea>
 
       <div class="mt-4 flex items-center gap-3">
-        <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="algorithm.invalid || saving()" (click)="submit()">
+        <button
+          z-button
+          type="button"
+          zType="default"
+          [zLoading]="saving()"
+          [zDisabled]="algorithm.invalid || saving()"
+          (click)="submit()"
+        >
           {{ 'insertComplaint.submit' | translate: lang() }}
         </button>
-        <span class="text-xs text-muted-foreground">{{ 'insertComplaint.hint' | translate: lang() }}</span>
+        <span class="text-xs text-muted-foreground">{{
+          'insertComplaint.hint' | translate: lang()
+        }}</span>
       </div>
     </section>
   `,

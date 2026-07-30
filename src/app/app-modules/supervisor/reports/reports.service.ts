@@ -150,9 +150,9 @@ export class SupervisorReportsService {
   /** QA report types for the service (`crmReports/getReportTypes/{psmID}`). */
   getQaReportTypes(providerServiceMapID: number | null): Observable<QaReportType[]> {
     return this.http
-      .get<
-        ApiResponse<{ qaReportTypes?: QaReportType[] }>
-      >(this.config.getCommonBaseURL() + REPORT_TYPES_PATH + providerServiceMapID)
+      .get<ApiResponse<{ qaReportTypes?: QaReportType[] }>>(
+        this.config.getCommonBaseURL() + REPORT_TYPES_PATH + providerServiceMapID,
+      )
       .pipe(
         timeout(LOOKUP_TIMEOUT_MS),
         map((res) => readSupervisorData(res)?.qaReportTypes ?? []),
@@ -162,10 +162,9 @@ export class SupervisorReportsService {
 
   /** Feedback (complaint) types for the service. */
   getFeedbackTypes(providerServiceMapID: number | null): Observable<FeedbackTypeOption[]> {
-    return this.lookup<FeedbackTypeOption[]>(
-      this.config.getCommonBaseURL() + FEEDBACK_TYPES_PATH,
-      { providerServiceMapID },
-    ).pipe(map((data) => data ?? []));
+    return this.lookup<FeedbackTypeOption[]>(this.config.getCommonBaseURL() + FEEDBACK_TYPES_PATH, {
+      providerServiceMapID,
+    }).pipe(map((data) => data ?? []));
   }
 
   /** Nature-of-complaint types for a feedback type (104 API). */
@@ -173,10 +172,10 @@ export class SupervisorReportsService {
     providerServiceMapID: number | null,
     feedbackTypeID: number | null | undefined,
   ): Observable<FeedbackNatureOption[]> {
-    return this.lookup<FeedbackNatureOption[]>(
-      this.config.get104BaseURL() + FEEDBACK_NATURE_PATH,
-      { providerServiceMapID, feedbackTypeID },
-    ).pipe(map((data) => data ?? []));
+    return this.lookup<FeedbackNatureOption[]>(this.config.get104BaseURL() + FEEDBACK_NATURE_PATH, {
+      providerServiceMapID,
+      feedbackTypeID,
+    }).pipe(map((data) => data ?? []));
   }
 
   /** Flat call types for the service (`call/getCallTypes`). */
@@ -202,10 +201,9 @@ export class SupervisorReportsService {
 
   /** Work locations of the provider (`user/getLocationsByProviderID`). */
   getWorkLocations(providerServiceMapID: number | null): Observable<WorkLocationOption[]> {
-    return this.lookup<WorkLocationOption[]>(
-      this.config.getCommonBaseURL() + WORK_LOCATIONS_PATH,
-      { providerServiceMapID },
-    ).pipe(map((data) => data ?? []));
+    return this.lookup<WorkLocationOption[]>(this.config.getCommonBaseURL() + WORK_LOCATIONS_PATH, {
+      providerServiceMapID,
+    }).pipe(map((data) => data ?? []));
   }
 
   /** Skillsets/roles of the provider (`user/getRolesByProviderID`). */
@@ -229,9 +227,9 @@ export class SupervisorReportsService {
   /** Sub-districts / taluks of a district (`location/taluks/{districtID}`). */
   getSubDistricts(districtID: number): Observable<SubDistrictOption[]> {
     return this.http
-      .get<
-        ApiResponse<SubDistrictOption[]>
-      >(this.config.getCommonBaseURL() + SUB_DISTRICTS_PATH + districtID)
+      .get<ApiResponse<SubDistrictOption[]>>(
+        this.config.getCommonBaseURL() + SUB_DISTRICTS_PATH + districtID,
+      )
       .pipe(
         timeout(LOOKUP_TIMEOUT_MS),
         map((res) => readSupervisorData(res) ?? []),
@@ -257,9 +255,10 @@ export class SupervisorReportsService {
    */
   getServices(providerServiceMapID: number | null): Observable<SubServiceOption[]> {
     return this.http
-      .post<
-        ApiResponse<SubServiceOption[]> | SubServiceOption[]
-      >(this.config.get104BaseURL() + SERVICES_PATH, { providerServiceMapID })
+      .post<ApiResponse<SubServiceOption[]> | SubServiceOption[]>(
+        this.config.get104BaseURL() + SERVICES_PATH,
+        { providerServiceMapID },
+      )
       .pipe(
         timeout(LOOKUP_TIMEOUT_MS),
         map((res) => (Array.isArray(res) ? res : (readSupervisorData(res) ?? []))),

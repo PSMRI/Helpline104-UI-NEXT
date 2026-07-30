@@ -67,9 +67,7 @@ export class PdWorkspaceComponent {
     this.authStore
       .privileges()
       .some(
-        (p) =>
-          p.serviceName === SERVICE_104 &&
-          (p.roles ?? []).some((r) => r.RoleName === ROLE_MO),
+        (p) => p.serviceName === SERVICE_104 && (p.roles ?? []).some((r) => r.RoleName === ROLE_MO),
       ),
   );
 

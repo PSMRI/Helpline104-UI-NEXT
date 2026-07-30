@@ -51,11 +51,7 @@ import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { FEATURE_SCREEN_NAMES } from '../outbound/outbound.models';
 import { OutboundService } from '../outbound/outbound.service';
-import {
-  CDI_CALL_STATUSES,
-  CdiCallRecord,
-  ReportError,
-} from './call-type-report.models';
+import { CDI_CALL_STATUSES, CdiCallRecord, ReportError } from './call-type-report.models';
 import { CallTypeReportService } from './call-type-report.service';
 import { CdiReportDialogComponent } from './cdi-report-dialog.component';
 
@@ -149,9 +145,7 @@ function toDateInput(date: Date): string {
           </z-form-field>
 
           <z-form-field>
-            <label z-form-label>{{
-              'reports.callType.rowsPerPage' | translate: lang()
-            }}</label>
+            <label z-form-label>{{ 'reports.callType.rowsPerPage' | translate: lang() }}</label>
             <z-form-control>
               <select formControlName="pageSize" [class]="selectClass">
                 @for (size of pageSizes; track size) {
@@ -337,9 +331,7 @@ export class CallTypeReportComponent implements OnInit {
 
   readonly filterForm = new FormGroup({
     startDate: new FormControl(
-      toDateInput(
-        new Date(new Date().setDate(new Date().getDate() - DEFAULT_RANGE_DAYS)),
-      ),
+      toDateInput(new Date(new Date().setDate(new Date().getDate() - DEFAULT_RANGE_DAYS))),
       { nonNullable: true, validators: [Validators.required] },
     ),
     endDate: new FormControl(toDateInput(new Date()), {
@@ -351,8 +343,7 @@ export class CallTypeReportComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const providerServiceMapID =
-      this.authStore.currentRole()?.providerServiceMapID ?? null;
+    const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
 
     // Resolve the "valid" call type (legacy getCallTypesV1 → callGroupType
     // "valid" → callType containing "valid").
@@ -361,13 +352,10 @@ export class CallTypeReportComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (groups) => {
-          const validGroup = groups.find(
-            (g) => g.callGroupType?.toLowerCase() === 'valid',
-          );
+          const validGroup = groups.find((g) => g.callGroupType?.toLowerCase() === 'valid');
           this.callTypeID =
-            validGroup?.callTypes?.find((t) =>
-              t.callType?.toLowerCase().includes('valid'),
-            )?.callTypeID ?? null;
+            validGroup?.callTypes?.find((t) => t.callType?.toLowerCase().includes('valid'))
+              ?.callTypeID ?? null;
         },
         error: () => undefined,
       });
@@ -390,8 +378,7 @@ export class CallTypeReportComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: (roles) => {
-                this.receivedRoleName =
-                  roles.find((r) => r.roleID === roleID)?.roleName ?? null;
+                this.receivedRoleName = roles.find((r) => r.roleID === roleID)?.roleName ?? null;
               },
               error: () => undefined,
             });

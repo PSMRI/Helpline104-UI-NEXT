@@ -122,14 +122,28 @@ type GrievanceAction = 'view' | 'edit' | 'update';
               {{ 'supGrievance.startDate' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="grv-start" z-input class="w-full" type="date" [max]="today" formControlName="startDate" />
+            <input
+              id="grv-start"
+              z-input
+              class="w-full"
+              type="date"
+              [max]="today"
+              formControlName="startDate"
+            />
           </div>
           <div>
             <label for="grv-end" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.endDate' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="grv-end" z-input class="w-full" type="date" [max]="today" formControlName="endDate" />
+            <input
+              id="grv-end"
+              z-input
+              class="w-full"
+              type="date"
+              [max]="today"
+              formControlName="endDate"
+            />
             @if (dateRangeInvalid()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supGrievance.endBeforeStart' | translate: lang() }}
@@ -260,7 +274,11 @@ type GrievanceAction = 'view' | 'edit' | 'update';
 
       <!-- Edit (forward) / Update (record response) form -->
       @if (action() !== 'view') {
-        <form [formGroup]="detailForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <form
+          [formGroup]="detailForm"
+          autocomplete="off"
+          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           <div>
             <label for="grv-fid" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.grievanceId' | translate: lang() }}
@@ -283,7 +301,12 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             <label for="grv-dtype" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.grievanceType' | translate: lang() }}
             </label>
-            <select id="grv-dtype" [class]="selectClass" formControlName="feedbackTypeID" (change)="onTypeChange()">
+            <select
+              id="grv-dtype"
+              [class]="selectClass"
+              formControlName="feedbackTypeID"
+              (change)="onTypeChange()"
+            >
               @for (t of feedbackTypes(); track t.feedbackTypeID) {
                 <option [ngValue]="t.feedbackTypeID">{{ t.feedbackTypeName }}</option>
               }
@@ -293,23 +316,43 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             <label for="grv-status-ro" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.grievanceStatus' | translate: lang() }}
             </label>
-            <input id="grv-status-ro" z-input class="w-full" formControlName="feedbackStatus" readonly />
+            <input
+              id="grv-status-ro"
+              z-input
+              class="w-full"
+              formControlName="feedbackStatus"
+              readonly
+            />
           </div>
           <div>
             <label for="grv-insttype" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.institutionType' | translate: lang() }}
             </label>
-            <select id="grv-insttype" [class]="selectClass" formControlName="instituteTypeID" (change)="onInstituteTypeChange()">
+            <select
+              id="grv-insttype"
+              [class]="selectClass"
+              formControlName="instituteTypeID"
+              (change)="onInstituteTypeChange()"
+            >
               @for (t of instituteTypes(); track t.institutionTypeID) {
                 <option [ngValue]="t.institutionTypeID">{{ t.institutionType }}</option>
               }
             </select>
           </div>
           <div>
-            <label for="grv-emailstatus-ro" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="grv-emailstatus-ro"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'supGrievance.emailStatus' | translate: lang() }}
             </label>
-            <input id="grv-emailstatus-ro" z-input class="w-full" formControlName="emailStatus" readonly />
+            <input
+              id="grv-emailstatus-ro"
+              z-input
+              class="w-full"
+              formControlName="emailStatus"
+              readonly
+            />
           </div>
           <div>
             <label for="grv-instname" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -322,7 +365,10 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             </select>
           </div>
           <div>
-            <label for="grv-designation" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="grv-designation"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'supGrievance.designation' | translate: lang() }}
             </label>
             <select id="grv-designation" [class]="selectClass" formControlName="designationID">
@@ -345,7 +391,13 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             <label for="grv-against" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.complaintAgainst' | translate: lang() }}
             </label>
-            <input id="grv-against" z-input class="w-full" maxlength="25" formControlName="feedbackAgainst" />
+            <input
+              id="grv-against"
+              z-input
+              class="w-full"
+              maxlength="25"
+              formControlName="feedbackAgainst"
+            />
           </div>
           <div>
             <label for="grv-nature" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -364,10 +416,19 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             <input id="grv-createdby" z-input class="w-full" formControlName="createdBy" readonly />
           </div>
           <div>
-            <label for="grv-modifiedby" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="grv-modifiedby"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'supGrievance.modifiedBy' | translate: lang() }}
             </label>
-            <input id="grv-modifiedby" z-input class="w-full" formControlName="modifiedBy" readonly />
+            <input
+              id="grv-modifiedby"
+              z-input
+              class="w-full"
+              formControlName="modifiedBy"
+              readonly
+            />
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3 grid gap-4 lg:grid-cols-2">
@@ -386,7 +447,10 @@ type GrievanceAction = 'view' | 'edit' | 'update';
               <p class="mt-1 text-right text-xs text-muted-foreground">{{ summaryLength() }}/500</p>
             </div>
             <div>
-              <label for="grv-comments" class="mb-1 block text-xs font-medium text-muted-foreground">
+              <label
+                for="grv-comments"
+                class="mb-1 block text-xs font-medium text-muted-foreground"
+              >
                 {{
                   (action() === 'edit'
                     ? 'supGrievance.commentsForEmail'
@@ -402,7 +466,9 @@ type GrievanceAction = 'view' | 'edit' | 'update';
                 maxlength="500"
                 formControlName="comments"
               ></textarea>
-              <p class="mt-1 text-right text-xs text-muted-foreground">{{ commentsLength() }}/500</p>
+              <p class="mt-1 text-right text-xs text-muted-foreground">
+                {{ commentsLength() }}/500
+              </p>
             </div>
           </div>
 
@@ -417,7 +483,10 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             </select>
           </div>
           <div>
-            <label for="grv-emailstatusid" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="grv-emailstatusid"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'supGrievance.emailStatus' | translate: lang() }}
             </label>
             <select id="grv-emailstatusid" [class]="selectClass" formControlName="emailStatusID">

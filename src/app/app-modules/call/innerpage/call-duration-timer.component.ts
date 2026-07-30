@@ -64,9 +64,7 @@ function pad(value: number): string {
       class="inline-flex items-center gap-2 font-mono text-lg tabular-nums"
       role="timer"
       aria-live="off"
-      [attr.aria-label]="
-        ('innerpage.timer.ariaLabel' | translate: lang()) + ' ' + elapsed()
-      "
+      [attr.aria-label]="('innerpage.timer.ariaLabel' | translate: lang()) + ' ' + elapsed()"
     >
       <ng-icon name="lucideClock" size="18" aria-hidden="true" />
       {{ elapsed() }}

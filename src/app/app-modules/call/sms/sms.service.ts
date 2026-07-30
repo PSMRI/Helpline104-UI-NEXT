@@ -22,31 +22,17 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
-import {
-  ApiResponse,
-  SendSmsRequest,
-  SmsError,
-  SmsTemplate,
-  SmsType,
-} from './sms.models';
+import { ApiResponse, SendSmsRequest, SmsError, SmsTemplate, SmsType } from './sms.models';
 
 const SMS_TYPES_PATH = 'sms/getSMSTypes';
 const SMS_TEMPLATES_PATH = 'sms/getSMSTemplates';
 const SEND_SMS_PATH = 'sms/sendSMS';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 const SMS_TIMEOUT_MS = 20_000;
 
 /**

@@ -37,8 +37,7 @@ import {
 } from './account-recovery.models';
 
 /** Neutral, non-revealing fallback shown when the backend sends no message. */
-const NEUTRAL_MESSAGE =
-  'If the username is registered, you will be asked a security question.';
+const NEUTRAL_MESSAGE = 'If the username is registered, you will be asked a security question.';
 const GENERIC_ERROR = 'Internal issue, please try again later.';
 
 /**
@@ -86,9 +85,7 @@ export class AccountRecoveryService {
         }),
         // A transport failure must also stay neutral — never leak existence via
         // a distinct error path. Only the message differs (generic).
-        catchError(() =>
-          throwError(() => this.toRecoveryError(undefined, NEUTRAL_MESSAGE)),
-        ),
+        catchError(() => throwError(() => this.toRecoveryError(undefined, NEUTRAL_MESSAGE))),
       );
   }
 
@@ -96,10 +93,7 @@ export class AccountRecoveryService {
    * Validate the user's answers. Resolves to the `transactionId` required by
    * {@link setForgetPassword}, or errors with the backend message.
    */
-  validateSecurityAnswers(
-    userName: string,
-    answers: SecurityAnswer[],
-  ): Observable<string> {
+  validateSecurityAnswers(userName: string, answers: SecurityAnswer[]): Observable<string> {
     return this.http
       .post<ApiResponse<ValidateAnswersData>>(
         this.baseUrl + 'user/validateSecurityQuestionAndAnswer',
@@ -145,9 +139,7 @@ export class AccountRecoveryService {
   /** Fetch the catalogue of selectable security questions (first-login setup). */
   getSecurityQuestionOptions(): Observable<SecurityQuestionOption[]> {
     return this.http
-      .get<ApiResponse<SecurityQuestionOption[]>>(
-        this.baseUrl + 'user/getsecurityquetions',
-      )
+      .get<ApiResponse<SecurityQuestionOption[]>>(this.baseUrl + 'user/getsecurityquetions')
       .pipe(
         map((res) => {
           // A bad envelope (non-200) or a missing `data` payload is a hard

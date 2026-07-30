@@ -58,8 +58,7 @@ import { RecoveryError } from './account-recovery.models';
  * uppercase letter and one special character from `!@#$%^&*`, and only
  * alphanumerics plus those specials.
  */
-const PASSWORD_PATTERN =
-  /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,12}$/;
+const PASSWORD_PATTERN = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,12}$/;
 
 /** Group validator: confirm must equal the new password. */
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {

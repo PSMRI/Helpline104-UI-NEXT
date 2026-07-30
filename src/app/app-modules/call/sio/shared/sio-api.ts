@@ -46,8 +46,7 @@ export interface SioError {
 }
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 
 /** Default per-request timeout for SIO calls (20s, matching the other tabs). */
 export const SIO_TIMEOUT_MS = 20_000;

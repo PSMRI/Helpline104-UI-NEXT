@@ -102,7 +102,9 @@ interface CheckItem {
       </header>
 
       @if (!hasContext()) {
-        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
+        >
           {{ 'covid.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -112,10 +114,18 @@ interface CheckItem {
 
         <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <label for="covid-category" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="covid-category"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'covid.category' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="covid-category" [class]="selectClass" formControlName="category" (change)="onCategoryChange()">
+            <select
+              id="covid-category"
+              [class]="selectClass"
+              formControlName="category"
+              (change)="onCategoryChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'covid.select' | translate: lang() }}</option>
               @for (c of categories(); track $index) {
                 <option [ngValue]="c">{{ c.Value }}</option>
@@ -124,7 +134,10 @@ interface CheckItem {
           </div>
 
           <div>
-            <label for="covid-subcategory" class="mb-1 block text-xs font-medium text-muted-foreground">
+            <label
+              for="covid-subcategory"
+              class="mb-1 block text-xs font-medium text-muted-foreground"
+            >
               {{ 'covid.subCategory' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="covid-subcategory" [class]="selectClass" formControlName="subCategory">
@@ -151,14 +164,26 @@ interface CheckItem {
             <label for="covid-age" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'covid.age' | translate: lang() }}
             </label>
-            <input id="covid-age" z-input class="w-full" type="number" inputmode="numeric" formControlName="age" />
+            <input
+              id="covid-age"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              formControlName="age"
+            />
           </div>
 
           <div>
             <label for="covid-gender" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'covid.gender' | translate: lang() }}
             </label>
-            <select id="covid-gender" [class]="selectClass" formControlName="gender" (change)="onGenderChange()">
+            <select
+              id="covid-gender"
+              [class]="selectClass"
+              formControlName="gender"
+              (change)="onGenderChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'covid.select' | translate: lang() }}</option>
               <option [ngValue]="1">{{ 'covid.male' | translate: lang() }}</option>
               <option [ngValue]="2">{{ 'covid.female' | translate: lang() }}</option>
@@ -168,7 +193,10 @@ interface CheckItem {
 
           @if (form.controls.gender.value === 2) {
             <div>
-              <label for="covid-pregnant" class="mb-1 block text-xs font-medium text-muted-foreground">
+              <label
+                for="covid-pregnant"
+                class="mb-1 block text-xs font-medium text-muted-foreground"
+              >
                 {{ 'covid.pregnant' | translate: lang() }}
               </label>
               <select id="covid-pregnant" [class]="selectClass" formControlName="isPregnant">
@@ -181,10 +209,17 @@ interface CheckItem {
 
           @for (q of riskQuestions; track q.control) {
             <div>
-              <label [attr.for]="'covid-' + q.control" class="mb-1 block text-xs font-medium text-muted-foreground">
+              <label
+                [attr.for]="'covid-' + q.control"
+                class="mb-1 block text-xs font-medium text-muted-foreground"
+              >
                 {{ q.labelKey | translate: lang() }}
               </label>
-              <select [id]="'covid-' + q.control" [class]="selectClass" [formControlName]="q.control">
+              <select
+                [id]="'covid-' + q.control"
+                [class]="selectClass"
+                [formControlName]="q.control"
+              >
                 <option [ngValue]="null" disabled>{{ 'covid.select' | translate: lang() }}</option>
                 <option [ngValue]="yes">{{ 'covid.yes' | translate: lang() }}</option>
                 <option [ngValue]="no">{{ 'covid.no' | translate: lang() }}</option>
@@ -195,7 +230,9 @@ interface CheckItem {
 
         <!-- Symptoms -->
         <fieldset class="mt-5">
-          <legend class="mb-2 text-sm font-medium text-foreground">{{ 'covid.symptoms' | translate: lang() }}</legend>
+          <legend class="mb-2 text-sm font-medium text-foreground">
+            {{ 'covid.symptoms' | translate: lang() }}
+          </legend>
           <div class="flex flex-wrap gap-3">
             @for (s of symptoms(); track s.value; let i = $index) {
               <label class="flex items-center gap-2 text-sm" [class.opacity-50]="s.disabled">
@@ -214,7 +251,9 @@ interface CheckItem {
 
         <!-- Health conditions -->
         <fieldset class="mt-4">
-          <legend class="mb-2 text-sm font-medium text-foreground">{{ 'covid.healthConditions' | translate: lang() }}</legend>
+          <legend class="mb-2 text-sm font-medium text-foreground">
+            {{ 'covid.healthConditions' | translate: lang() }}
+          </legend>
           <div class="flex flex-wrap gap-3">
             @for (h of healthConditions(); track h.value; let i = $index) {
               <label class="flex items-center gap-2 text-sm" [class.opacity-50]="h.disabled">
@@ -247,7 +286,14 @@ interface CheckItem {
         }
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="!canSave()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="!canSave()"
+            (click)="save()"
+          >
             {{ 'covid.save' | translate: lang() }}
           </button>
         </div>
@@ -310,10 +356,14 @@ export class CovidServiceComponent implements OnInit {
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);
 
   private readonly selectedSymptoms = computed(() =>
-    this.symptoms().filter((s) => s.checked).map((s) => s.value),
+    this.symptoms()
+      .filter((s) => s.checked)
+      .map((s) => s.value),
   );
   private readonly selectedConditions = computed(() =>
-    this.healthConditions().filter((h) => h.checked).map((h) => h.value),
+    this.healthConditions()
+      .filter((h) => h.checked)
+      .map((h) => h.value),
   );
 
   constructor() {

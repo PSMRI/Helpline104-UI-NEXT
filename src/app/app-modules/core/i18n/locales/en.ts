@@ -165,8 +165,7 @@ export const en = {
   'registration.toast.selected': 'Beneficiary selected for this call.',
   'registration.toast.registered': 'Beneficiary registered and selected.',
   'registration.toast.error': 'Something went wrong. Please try again.',
-  'registration.register.error':
-    'Registration failed. Please try again or contact support.',
+  'registration.register.error': 'Registration failed. Please try again or contact support.',
   'registration.register.dismiss': 'Close',
   'registration.toast.noCli': 'No caller number is available for this call.',
   'registration.toast.masterError': 'Could not load some form options.',
@@ -726,8 +725,7 @@ export const en = {
   'hao.caseSheet.remarks': 'Remarks',
   'hao.caseSheet.save': 'Save Case Sheet',
   'hao.caseSheet.viewDiseaseSummary': 'View disease summary',
-  'hao.caseSheet.diseaseSummaryError':
-    'Unable to load the disease summary. Please try again.',
+  'hao.caseSheet.diseaseSummaryError': 'Unable to load the disease summary. Please try again.',
   'hao.caseSheet.saveSuccess': 'Case sheet saved successfully.',
   'hao.caseSheet.saveError': 'Unable to save the case sheet. Please try again.',
 

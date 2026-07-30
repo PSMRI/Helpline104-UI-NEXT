@@ -210,7 +210,11 @@ type ViewMode = 'search' | 'create' | 'edit';
 
       <!-- Create -->
       @if (mode() === 'create') {
-        <form [formGroup]="createForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <form
+          [formGroup]="createForm"
+          autocomplete="off"
+          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           <div>
             <span class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supComm.selectOffice' | translate: lang() }}
@@ -274,12 +278,16 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.subject' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="lc-c-subject" z-input class="w-full" maxlength="100" formControlName="subject" />
+            <input
+              id="lc-c-subject"
+              z-input
+              class="w-full"
+              maxlength="100"
+              formControlName="subject"
+            />
             <div class="mt-1 flex justify-between text-xs">
               <span class="font-medium text-destructive">
-                @if (
-                  createForm.controls.subject.invalid && createForm.controls.subject.touched
-                ) {
+                @if (createForm.controls.subject.invalid && createForm.controls.subject.touched) {
                   {{ 'supComm.subjectMin' | translate: lang() }}
                 }
               </span>
@@ -300,9 +308,7 @@ type ViewMode = 'search' | 'create' | 'edit';
             ></textarea>
             <div class="mt-1 flex justify-between text-xs">
               <span class="font-medium text-destructive">
-                @if (
-                  createForm.controls.message.invalid && createForm.controls.message.touched
-                ) {
+                @if (createForm.controls.message.invalid && createForm.controls.message.touched) {
                   {{ 'supComm.messageMin' | translate: lang() }}
                 }
               </span>
@@ -319,7 +325,10 @@ type ViewMode = 'search' | 'create' | 'edit';
               zType="default"
               [zLoading]="saving()"
               [zDisabled]="
-                createForm.invalid || selectedOffices().size === 0 || createRangeInvalid() || saving()
+                createForm.invalid ||
+                selectedOffices().size === 0 ||
+                createRangeInvalid() ||
+                saving()
               "
               (click)="create()"
             >
@@ -331,7 +340,11 @@ type ViewMode = 'search' | 'create' | 'edit';
 
       <!-- Edit -->
       @if (mode() === 'edit') {
-        <form [formGroup]="editForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <form
+          [formGroup]="editForm"
+          autocomplete="off"
+          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           <div>
             <label for="lc-e-start" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supComm.validFrom' | translate: lang() }}
@@ -370,7 +383,13 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.subject' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="lc-e-subject" z-input class="w-full" maxlength="100" formControlName="subject" />
+            <input
+              id="lc-e-subject"
+              z-input
+              class="w-full"
+              maxlength="100"
+              formControlName="subject"
+            />
             <div class="mt-1 flex justify-between text-xs">
               <span class="font-medium text-destructive">
                 @if (editForm.controls.subject.invalid && editForm.controls.subject.touched) {
@@ -508,9 +527,7 @@ export class LocationCommunicationComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (types) => {
-          const match = types.find(
-            (t) => t.notificationType.toUpperCase() === 'LOCATION MESSAGE',
-          );
+          const match = types.find((t) => t.notificationType.toUpperCase() === 'LOCATION MESSAGE');
           if (!match) {
             this.errorMessage.set(this.i18n.instant('supComm.noNotificationTypes'));
             return;
@@ -725,7 +742,9 @@ export class LocationCommunicationComponent implements OnInit {
       .subscribe({
         next: () => {
           this.saving.set(false);
-          toast.success(`${this.editTypeName()} ${this.i18n.instant('supComm.editedSuccessfully')}`);
+          toast.success(
+            `${this.editTypeName()} ${this.i18n.instant('supComm.editedSuccessfully')}`,
+          );
           this.backToTable();
           const { startDate: s, endDate: e } = this.searchForm.getRawValue();
           if (s && e) {

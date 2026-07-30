@@ -241,7 +241,11 @@ type ViewMode = 'search' | 'create' | 'edit';
 
       <!-- Create -->
       @if (mode() === 'create') {
-        <form [formGroup]="createForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <form
+          [formGroup]="createForm"
+          autocomplete="off"
+          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           <div>
             <label for="an-c-type" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supComm.communicationType' | translate: lang() }}
@@ -260,7 +264,12 @@ type ViewMode = 'search' | 'create' | 'edit';
             <label for="an-c-role" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supComm.selectRole' | translate: lang() }}
             </label>
-            <select id="an-c-role" [class]="selectClass" formControlName="roleID" (change)="onRoleChange()">
+            <select
+              id="an-c-role"
+              [class]="selectClass"
+              formControlName="roleID"
+              (change)="onRoleChange()"
+            >
               <option [ngValue]="'All'">{{ 'supComm.all' | translate: lang() }}</option>
               @for (r of roles(); track r.roleID) {
                 <option [ngValue]="r.roleID">{{ r.roleName }}</option>
@@ -356,7 +365,13 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.subject' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="an-c-subject" z-input class="w-full" maxlength="100" formControlName="subject" />
+            <input
+              id="an-c-subject"
+              z-input
+              class="w-full"
+              maxlength="100"
+              formControlName="subject"
+            />
             <div class="mt-1 flex justify-between text-xs">
               <span class="font-medium text-destructive">
                 @if (createForm.controls.subject.invalid && createForm.controls.subject.touched) {
@@ -407,7 +422,11 @@ type ViewMode = 'search' | 'create' | 'edit';
 
       <!-- Edit -->
       @if (mode() === 'edit') {
-        <form [formGroup]="editForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <form
+          [formGroup]="editForm"
+          autocomplete="off"
+          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           <div>
             <label for="an-e-start" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supComm.validFrom' | translate: lang() }}
@@ -446,7 +465,13 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.subject' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input id="an-e-subject" z-input class="w-full" maxlength="100" formControlName="subject" />
+            <input
+              id="an-e-subject"
+              z-input
+              class="w-full"
+              maxlength="100"
+              formControlName="subject"
+            />
             <div class="mt-1 flex justify-between text-xs">
               <span class="font-medium text-destructive">
                 @if (editForm.controls.subject.invalid && editForm.controls.subject.touched) {
@@ -831,9 +856,7 @@ export class AlertsNotificationsComponent implements OnInit {
             );
             const isAlert = createdType?.notificationType.toUpperCase() === 'ALERT';
             toast.success(
-              this.i18n.instant(
-                isAlert ? 'supComm.alertCreated' : 'supComm.notificationCreated',
-              ),
+              this.i18n.instant(isAlert ? 'supComm.alertCreated' : 'supComm.notificationCreated'),
             );
             this.createForm.reset({ roleID: 'All' });
             this.selectedOffices.set(new Set());
@@ -886,7 +909,9 @@ export class AlertsNotificationsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.saving.set(false);
-          toast.success(`${this.editTypeName()} ${this.i18n.instant('supComm.editedSuccessfully')}`);
+          toast.success(
+            `${this.editTypeName()} ${this.i18n.instant('supComm.editedSuccessfully')}`,
+          );
           this.backToTable();
           if (this.searchForm.valid) {
             this.load();

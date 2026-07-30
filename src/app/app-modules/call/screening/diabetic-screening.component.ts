@@ -49,16 +49,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TranslationKey } from '../../core/i18n/locales';
 import { ScreeningService } from './screening.service';
-import {
-  QUESTION_TYPE,
-  ScreeningError,
-  ScreeningQuestion,
-} from './screening.models';
-import {
-  SCREENING_SELECT_CLASS,
-  calculateObesity,
-  isObesityQuestion,
-} from './screening.util';
+import { QUESTION_TYPE, ScreeningError, ScreeningQuestion } from './screening.models';
+import { SCREENING_SELECT_CLASS, calculateObesity, isObesityQuestion } from './screening.util';
 
 const REMARKS_MAX = 500;
 
@@ -85,7 +77,14 @@ type RiskLevel = 'low' | 'medium' | 'high';
   selector: 'app-diabetic-screening',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    NgClass,
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardInputDirective,
+  ],
   viewProviders: [provideIcons({ lucideActivity, lucideChevronLeft })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -97,7 +96,9 @@ type RiskLevel = 'low' | 'medium' | 'high';
       </header>
 
       @if (!hasContext()) {
-        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
+        >
           {{ 'screening.noContext' | translate: lang() }}
         </p>
       } @else if (loading()) {
@@ -118,7 +119,10 @@ type RiskLevel = 'low' | 'medium' | 'high';
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               @for (q of criteriaQuestions(); track q.questionID) {
                 <div>
-                  <label [attr.for]="'crit-' + q.questionID" class="mb-1 block text-xs font-medium text-muted-foreground">
+                  <label
+                    [attr.for]="'crit-' + q.questionID"
+                    class="mb-1 block text-xs font-medium text-muted-foreground"
+                  >
                     {{ q.question }} <span class="text-destructive">*</span>
                   </label>
                   <select
@@ -126,7 +130,9 @@ type RiskLevel = 'low' | 'medium' | 'high';
                     [class]="selectClass"
                     [formControlName]="q.questionID.toString()"
                   >
-                    <option [ngValue]="''" disabled>{{ 'screening.select' | translate: lang() }}</option>
+                    <option [ngValue]="''" disabled>
+                      {{ 'screening.select' | translate: lang() }}
+                    </option>
                     @for (a of q.m_104QuestionScore; track $index) {
                       <option [ngValue]="a.score">{{ a.answer }}</option>
                     }
@@ -151,7 +157,13 @@ type RiskLevel = 'low' | 'medium' | 'high';
             }
 
             <div class="mt-4 flex flex-wrap gap-2">
-              <button z-button type="button" zType="default" [zDisabled]="criteriaForm.invalid" (click)="checkStatus()">
+              <button
+                z-button
+                type="button"
+                zType="default"
+                [zDisabled]="criteriaForm.invalid"
+                (click)="checkStatus()"
+              >
                 {{ 'screening.diabetic.check' | translate: lang() }}
               </button>
               <button z-button type="button" zType="outline" (click)="view.set('risk')">
@@ -173,16 +185,36 @@ type RiskLevel = 'low' | 'medium' | 'high';
               <label for="diab-weight" class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{ 'screening.weight' | translate: lang() }}
               </label>
-              <input id="diab-weight" z-input class="w-full" type="number" inputmode="numeric" [formControl]="weight" />
+              <input
+                id="diab-weight"
+                z-input
+                class="w-full"
+                type="number"
+                inputmode="numeric"
+                [formControl]="weight"
+              />
             </div>
             <div>
               <label for="diab-height" class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{ 'screening.height' | translate: lang() }}
               </label>
-              <input id="diab-height" z-input class="w-full" type="number" inputmode="numeric" [formControl]="height" />
+              <input
+                id="diab-height"
+                z-input
+                class="w-full"
+                type="number"
+                inputmode="numeric"
+                [formControl]="height"
+              />
             </div>
             <div>
-              <button z-button type="button" zType="outline" [zDisabled]="weight.value == null && height.value == null" (click)="calculateBmi()">
+              <button
+                z-button
+                type="button"
+                zType="outline"
+                [zDisabled]="weight.value == null && height.value == null"
+                (click)="calculateBmi()"
+              >
                 {{ 'screening.calculateBmi' | translate: lang() }}
               </button>
             </div>
@@ -190,7 +222,9 @@ type RiskLevel = 'low' | 'medium' | 'high';
               <span class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{ 'screening.obesity' | translate: lang() }}
               </span>
-              <p class="flex h-9 items-center rounded-md border border-border bg-muted/40 px-3 text-sm">
+              <p
+                class="flex h-9 items-center rounded-md border border-border bg-muted/40 px-3 text-sm"
+              >
                 {{ obesity() || '—' }}
               </p>
             </div>
@@ -201,11 +235,20 @@ type RiskLevel = 'low' | 'medium' | 'high';
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               @for (q of riskQuestions(); track q.questionID) {
                 <div>
-                  <label [attr.for]="'risk-' + q.questionID" class="mb-1 block text-xs font-medium text-muted-foreground">
+                  <label
+                    [attr.for]="'risk-' + q.questionID"
+                    class="mb-1 block text-xs font-medium text-muted-foreground"
+                  >
                     {{ q.question }}
                   </label>
-                  <select [id]="'risk-' + q.questionID" [class]="selectClass" [formControlName]="q.questionID.toString()">
-                    <option [ngValue]="''" disabled>{{ 'screening.select' | translate: lang() }}</option>
+                  <select
+                    [id]="'risk-' + q.questionID"
+                    [class]="selectClass"
+                    [formControlName]="q.questionID.toString()"
+                  >
+                    <option [ngValue]="''" disabled>
+                      {{ 'screening.select' | translate: lang() }}
+                    </option>
                     @for (a of q.m_104QuestionScore; track $index) {
                       <option [ngValue]="a.answer">{{ a.answer }}</option>
                     }
@@ -221,16 +264,39 @@ type RiskLevel = 'low' | 'medium' | 'high';
               <table class="w-full text-left text-xs">
                 <thead class="bg-muted/50 text-muted-foreground">
                   <tr>
-                    <th class="px-2 py-1 font-medium">{{ 'screening.diabetic.parameter' | translate: lang() }}</th>
-                    <th class="px-2 py-1 font-medium">{{ 'screening.normal' | translate: lang() }}</th>
-                    <th class="px-2 py-1 font-medium">{{ 'screening.diabetic.prediabetic' | translate: lang() }}</th>
-                    <th class="px-2 py-1 font-medium">{{ 'screening.diabetic.diabetic' | translate: lang() }}</th>
+                    <th class="px-2 py-1 font-medium">
+                      {{ 'screening.diabetic.parameter' | translate: lang() }}
+                    </th>
+                    <th class="px-2 py-1 font-medium">
+                      {{ 'screening.normal' | translate: lang() }}
+                    </th>
+                    <th class="px-2 py-1 font-medium">
+                      {{ 'screening.diabetic.prediabetic' | translate: lang() }}
+                    </th>
+                    <th class="px-2 py-1 font-medium">
+                      {{ 'screening.diabetic.diabetic' | translate: lang() }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr class="border-t border-border"><td class="px-2 py-1">HbA1c</td><td class="px-2 py-1">&lt;5.7%</td><td class="px-2 py-1">5.7–6.4%</td><td class="px-2 py-1">≥6.5%</td></tr>
-                  <tr class="border-t border-border"><td class="px-2 py-1">Fasting plasma glucose</td><td class="px-2 py-1">&lt;100 mg/dl</td><td class="px-2 py-1">100–125 mg/dl</td><td class="px-2 py-1">≥126 mg/dl</td></tr>
-                  <tr class="border-t border-border"><td class="px-2 py-1">OGTT (75 g)</td><td class="px-2 py-1">&lt;140 mg/dl</td><td class="px-2 py-1">140–199 mg/dl</td><td class="px-2 py-1">≥200 mg/dl</td></tr>
+                  <tr class="border-t border-border">
+                    <td class="px-2 py-1">HbA1c</td>
+                    <td class="px-2 py-1">&lt;5.7%</td>
+                    <td class="px-2 py-1">5.7–6.4%</td>
+                    <td class="px-2 py-1">≥6.5%</td>
+                  </tr>
+                  <tr class="border-t border-border">
+                    <td class="px-2 py-1">Fasting plasma glucose</td>
+                    <td class="px-2 py-1">&lt;100 mg/dl</td>
+                    <td class="px-2 py-1">100–125 mg/dl</td>
+                    <td class="px-2 py-1">≥126 mg/dl</td>
+                  </tr>
+                  <tr class="border-t border-border">
+                    <td class="px-2 py-1">OGTT (75 g)</td>
+                    <td class="px-2 py-1">&lt;140 mg/dl</td>
+                    <td class="px-2 py-1">140–199 mg/dl</td>
+                    <td class="px-2 py-1">≥200 mg/dl</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -238,14 +304,27 @@ type RiskLevel = 'low' | 'medium' | 'high';
               <table class="w-full text-left text-xs">
                 <thead class="bg-muted/50 text-muted-foreground">
                   <tr>
-                    <th class="px-2 py-1 font-medium">{{ 'screening.diabetic.condition' | translate: lang() }}</th>
-                    <th class="px-2 py-1 font-medium">{{ 'screening.action' | translate: lang() }}</th>
+                    <th class="px-2 py-1 font-medium">
+                      {{ 'screening.diabetic.condition' | translate: lang() }}
+                    </th>
+                    <th class="px-2 py-1 font-medium">
+                      {{ 'screening.action' | translate: lang() }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr class="border-t border-border"><td class="px-2 py-1">No risk factor, glucose normal</td><td class="px-2 py-1">Retest in 1–2 years; healthy lifestyle</td></tr>
-                  <tr class="border-t border-border"><td class="px-2 py-1">Risk factor present, glucose normal/unknown</td><td class="px-2 py-1">Lifestyle advice; if unknown, get tested</td></tr>
-                  <tr class="border-t border-border"><td class="px-2 py-1">Risk factor present &amp; glucose high</td><td class="px-2 py-1">{{ 'screening.transferToMo' | translate: lang() }}</td></tr>
+                  <tr class="border-t border-border">
+                    <td class="px-2 py-1">No risk factor, glucose normal</td>
+                    <td class="px-2 py-1">Retest in 1–2 years; healthy lifestyle</td>
+                  </tr>
+                  <tr class="border-t border-border">
+                    <td class="px-2 py-1">Risk factor present, glucose normal/unknown</td>
+                    <td class="px-2 py-1">Lifestyle advice; if unknown, get tested</td>
+                  </tr>
+                  <tr class="border-t border-border">
+                    <td class="px-2 py-1">Risk factor present &amp; glucose high</td>
+                    <td class="px-2 py-1">{{ 'screening.transferToMo' | translate: lang() }}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -254,16 +333,33 @@ type RiskLevel = 'low' | 'medium' | 'high';
           <!-- Remarks + actions -->
           <div class="mt-4">
             <label for="diab-remarks" class="mb-1 block text-sm font-medium text-foreground">
-              {{ 'screening.remarksByHao' | translate: lang() }} <span class="text-destructive">*</span>
+              {{ 'screening.remarksByHao' | translate: lang() }}
+              <span class="text-destructive">*</span>
             </label>
-            <textarea id="diab-remarks" z-input rows="2" class="w-full" [maxlength]="remarksMax" [formControl]="remarks"></textarea>
+            <textarea
+              id="diab-remarks"
+              z-input
+              rows="2"
+              class="w-full"
+              [maxlength]="remarksMax"
+              [formControl]="remarks"
+            ></textarea>
             @if (remarks.invalid && remarks.touched) {
-              <p class="mt-0.5 text-xs text-destructive">{{ 'screening.remarksRequired' | translate: lang() }}</p>
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'screening.remarksRequired' | translate: lang() }}
+              </p>
             }
           </div>
 
           <div class="mt-4 flex flex-wrap gap-2">
-            <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="remarks.invalid || saving()" (click)="save()">
+            <button
+              z-button
+              type="button"
+              zType="default"
+              [zLoading]="saving()"
+              [zDisabled]="remarks.invalid || saving()"
+              (click)="save()"
+            >
               {{ 'screening.save' | translate: lang() }}
             </button>
             <button z-button type="button" zType="outline" (click)="view.set('criteria')">
@@ -332,8 +428,12 @@ export class DiabeticScreeningComponent implements OnInit {
       .getQuestionTypes()
       .pipe(
         switchMap((types) => {
-          const diabeticId = types.find((t) => t.questionType === QUESTION_TYPE.diabetic)?.questionTypeID;
-          const riskId = types.find((t) => t.questionType === QUESTION_TYPE.diabeticRiskFactors)?.questionTypeID;
+          const diabeticId = types.find(
+            (t) => t.questionType === QUESTION_TYPE.diabetic,
+          )?.questionTypeID;
+          const riskId = types.find(
+            (t) => t.questionType === QUESTION_TYPE.diabeticRiskFactors,
+          )?.questionTypeID;
           return forkJoin({
             criteria:
               diabeticId != null

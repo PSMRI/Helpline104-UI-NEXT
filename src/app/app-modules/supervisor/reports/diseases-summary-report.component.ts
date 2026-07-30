@@ -111,7 +111,11 @@ export class DiseasesSummaryReportComponent implements OnInit {
   readonly columns = computed<DataTableColumn[]>(() => {
     this.lang();
     return [
-      { key: 'diseaseName', header: this.i18n.instant('supReports.diseases.colName'), sortable: true },
+      {
+        key: 'diseaseName',
+        header: this.i18n.instant('supReports.diseases.colName'),
+        sortable: true,
+      },
       { key: 'summary', header: this.i18n.instant('supReports.diseases.colSummary') },
       { key: 'symptoms', header: this.i18n.instant('supReports.diseases.colSymptoms') },
       { key: 'medicalAdvice', header: this.i18n.instant('supReports.diseases.colAdvice') },

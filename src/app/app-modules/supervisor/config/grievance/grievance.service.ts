@@ -99,9 +99,10 @@ export class SupervisorGrievanceService {
   }
 
   getFeedbackStatuses(): Observable<FeedbackStatus[]> {
-    return this.post<FeedbackStatus[]>(this.config.getCommonBaseURL() + FEEDBACK_STATUS_PATH, {}).pipe(
-      map((data) => data ?? []),
-    );
+    return this.post<FeedbackStatus[]>(
+      this.config.getCommonBaseURL() + FEEDBACK_STATUS_PATH,
+      {},
+    ).pipe(map((data) => data ?? []));
   }
 
   getEmailStatuses(): Observable<EmailStatus[]> {
@@ -135,9 +136,10 @@ export class SupervisorGrievanceService {
 
   /** Change log for a grievance. The API takes the raw feedbackID as the body. */
   getFeedbackLogs(feedbackID: number): Observable<FeedbackLog[]> {
-    return this.post<FeedbackLog[]>(this.config.getCommonBaseURL() + FEEDBACK_LOGS_PATH, feedbackID).pipe(
-      map((data) => data ?? []),
-    );
+    return this.post<FeedbackLog[]>(
+      this.config.getCommonBaseURL() + FEEDBACK_LOGS_PATH,
+      feedbackID,
+    ).pipe(map((data) => data ?? []));
   }
 
   getInstituteTypes(providerServiceMapID: number | null): Observable<InstituteType[]> {

@@ -115,11 +115,8 @@ export class AppHeaderComponent {
       return;
     }
     // Not yet translated: notify and revert the selection to the active language.
-    const label =
-      this.languages.find((option) => option.code === code)?.label ?? code;
-    window.alert(
-      `${this.i18n.instant('dashboard.header.languageComingSoon')} ${label}`,
-    );
+    const label = this.languages.find((option) => option.code === code)?.label ?? code;
+    window.alert(`${this.i18n.instant('dashboard.header.languageComingSoon')} ${label}`);
     select.value = this.lang();
   }
 }

@@ -22,14 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -48,8 +41,7 @@ const QUESTIONS_PATH = 'beneficiary/get/questions';
 const SAVE_PATH = 'beneficiary/save/benCaseSheet';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 const SCREENING_TIMEOUT_MS = 20_000;
 
 /**
@@ -68,10 +60,7 @@ export class ScreeningService {
   /** Question-type list (common API). Resolves to `[]` when none returned. */
   getQuestionTypes(): Observable<QuestionType[]> {
     return this.http
-      .post<ApiResponse<QuestionType[]>>(
-        this.config.getCommonBaseURL() + QUESTION_TYPES_PATH,
-        {},
-      )
+      .post<ApiResponse<QuestionType[]>>(this.config.getCommonBaseURL() + QUESTION_TYPES_PATH, {})
       .pipe(
         timeout(SCREENING_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
@@ -89,10 +78,7 @@ export class ScreeningService {
   ): Observable<ScreeningQuestion[]> {
     const body: QuestionsRequest = { questionTypeID, providerServiceMapID };
     return this.http
-      .post<ApiResponse<ScreeningQuestion[]>>(
-        this.config.get104BaseURL() + QUESTIONS_PATH,
-        body,
-      )
+      .post<ApiResponse<ScreeningQuestion[]>>(this.config.get104BaseURL() + QUESTIONS_PATH, body)
       .pipe(
         timeout(SCREENING_TIMEOUT_MS),
         map((res) =>
@@ -110,10 +96,7 @@ export class ScreeningService {
   /** Save a screening result as a case-sheet row (104 API). */
   saveScreening(payload: SaveScreeningRequest): Observable<SaveScreeningResponse> {
     return this.http
-      .post<ApiResponse<SaveScreeningResponse>>(
-        this.config.get104BaseURL() + SAVE_PATH,
-        payload,
-      )
+      .post<ApiResponse<SaveScreeningResponse>>(this.config.get104BaseURL() + SAVE_PATH, payload)
       .pipe(
         timeout(SCREENING_TIMEOUT_MS),
         map((res) => {

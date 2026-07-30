@@ -71,7 +71,9 @@ import { MmuVisitRow, OtherHelplineError } from './other-helpline.models';
           {{ 'casesheetHistory.loading' | translate: lang() }}
         </p>
       } @else if (rows().length === 0) {
-        <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+        <p
+          class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground"
+        >
           {{ 'casesheetHistory.empty' | translate: lang() }}
         </p>
       } @else {
@@ -79,22 +81,40 @@ import { MmuVisitRow, OtherHelplineError } from './other-helpline.models';
           <table class="w-full text-left text-sm">
             <thead class="bg-muted/50 text-xs text-muted-foreground">
               <tr>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mmu.date' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mmu.visitReason' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mmu.visitCategory' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mmu.visitCode' | translate: lang() }}</th>
-                <th class="px-3 py-2 text-right font-medium">{{ 'casesheetHistory.action' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.mmu.date' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.mmu.visitReason' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.mmu.visitCategory' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.mmu.visitCode' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 text-right font-medium">
+                  {{ 'casesheetHistory.action' | translate: lang() }}
+                </th>
               </tr>
             </thead>
             <tbody>
               @for (visit of rows(); track $index) {
                 <tr class="border-t border-border align-top">
-                  <td class="px-3 py-2">{{ (visit.benVisitDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
+                  <td class="px-3 py-2">
+                    {{ (visit.benVisitDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}
+                  </td>
                   <td class="px-3 py-2">{{ visit.VisitReason || '—' }}</td>
                   <td class="px-3 py-2">{{ visit.VisitCategory || '—' }}</td>
                   <td class="px-3 py-2">{{ visit.visitCode || '—' }}</td>
                   <td class="px-3 py-2 text-right">
-                    <button z-button type="button" zType="outline" zSize="sm" (click)="selectVisit.emit(visit)">
+                    <button
+                      z-button
+                      type="button"
+                      zType="outline"
+                      zSize="sm"
+                      (click)="selectVisit.emit(visit)"
+                    >
                       {{ 'casesheetHistory.mmu.view' | translate: lang() }}
                     </button>
                   </td>
@@ -159,7 +179,9 @@ export class CasesheetHistoryMmuComponent {
           }
           this.loading.set(false);
           this.rows.set([]);
-          this.errorMessage.set(err.errorMessage || this.i18n.instant('casesheetHistory.loadError'));
+          this.errorMessage.set(
+            err.errorMessage || this.i18n.instant('casesheetHistory.loadError'),
+          );
         },
       });
   }

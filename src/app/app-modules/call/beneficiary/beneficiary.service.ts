@@ -87,10 +87,7 @@ export class BeneficiaryService {
       rowsPerPage: HISTORY_PAGE_SIZE,
     };
     return this.http
-      .post<ApiResponse<BeneficiaryRecord[]>>(
-        this.baseUrl + SEARCH_BY_PHONE_PATH,
-        body,
-      )
+      .post<ApiResponse<BeneficiaryRecord[]>>(this.baseUrl + SEARCH_BY_PHONE_PATH, body)
       .pipe(
         map((res) => this.readList(res)),
         catchError((err: unknown) => throwError(() => this.toError(err))),
@@ -98,14 +95,9 @@ export class BeneficiaryService {
   }
 
   /** Search beneficiaries by name and/or registration ID and gender. */
-  searchBeneficiary(
-    criteria: BeneficiarySearchRequest,
-  ): Observable<BeneficiaryRecord[]> {
+  searchBeneficiary(criteria: BeneficiarySearchRequest): Observable<BeneficiaryRecord[]> {
     return this.http
-      .post<ApiResponse<BeneficiaryRecord[]>>(
-        this.baseUrl + SEARCH_BENEFICIARY_PATH,
-        criteria,
-      )
+      .post<ApiResponse<BeneficiaryRecord[]>>(this.baseUrl + SEARCH_BENEFICIARY_PATH, criteria)
       .pipe(
         map((res) => this.readList(res)),
         catchError((err: unknown) => throwError(() => this.toError(err))),
@@ -113,9 +105,7 @@ export class BeneficiaryService {
   }
 
   /** Register a new beneficiary; resolves to the created record. */
-  create(
-    payload: RegisterBeneficiaryRequest,
-  ): Observable<RegisterBeneficiaryResponse> {
+  create(payload: RegisterBeneficiaryRequest): Observable<RegisterBeneficiaryResponse> {
     return this.http
       .post<ApiResponse<RegisterBeneficiaryResponse>>(
         this.baseUrl + CREATE_BENEFICIARY_PATH,
@@ -141,10 +131,9 @@ export class BeneficiaryService {
     providerServiceMapID: number | null,
   ): Observable<RegistrationMasterData | undefined> {
     return this.http
-      .post<ApiResponse<RegistrationMasterData>>(
-        this.baseUrl + REGISTRATION_DATA_PATH,
-        { providerServiceMapID },
-      )
+      .post<ApiResponse<RegistrationMasterData>>(this.baseUrl + REGISTRATION_DATA_PATH, {
+        providerServiceMapID,
+      })
       .pipe(
         map((res) => this.readData(res)),
         catchError((err: unknown) => throwError(() => this.toError(err))),
@@ -154,10 +143,7 @@ export class BeneficiaryService {
   /** Healthcare-worker types (104 API), loaded when registering a HCW. */
   getHealthCareWorkerTypes(): Observable<HealthCareWorkerType[]> {
     return this.http
-      .post<ApiResponse<HealthCareWorkerType[]>>(
-        this.config.get104BaseURL() + HCW_TYPES_PATH,
-        {},
-      )
+      .post<ApiResponse<HealthCareWorkerType[]>>(this.config.get104BaseURL() + HCW_TYPES_PATH, {})
       .pipe(
         map((res) => this.readData(res) ?? []),
         catchError((err: unknown) => throwError(() => this.toError(err))),
@@ -167,10 +153,9 @@ export class BeneficiaryService {
   /** Provider states for the location cascade (admin API). */
   getProviderStates(serviceProviderID: number | null): Observable<StateOption[]> {
     return this.http
-      .post<ApiResponse<StateOption[]>>(
-        this.config.getAdminBaseURL() + PROVIDER_STATES_PATH,
-        { serviceProviderID },
-      )
+      .post<ApiResponse<StateOption[]>>(this.config.getAdminBaseURL() + PROVIDER_STATES_PATH, {
+        serviceProviderID,
+      })
       .pipe(
         map((res) => this.readData(res) ?? []),
         catchError((err: unknown) => throwError(() => this.toError(err))),
