@@ -1292,6 +1292,13 @@ export const en = {
   'supKm.uploaded': 'Uploaded successfully',
   'supKm.uploadFailed': 'Failed to upload file',
   'supKm.noCategory': 'No category found',
+
+  // Shared alert/confirm dialog titles (ConfirmationService)
+  'dialog.confirmTitle': 'Confirm',
+  'dialog.infoTitle': 'Information',
+  'dialog.successTitle': 'Success',
+  'dialog.warningTitle': 'Warning',
+  'dialog.errorTitle': 'Error',
 } as const;
 
 /** Every translatable key in the app, derived from the English dictionary. */
