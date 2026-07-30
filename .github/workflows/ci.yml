@@ -17,6 +17,9 @@ jobs:
         with:
           # Common-UI submodule is required to build.
           submodules: recursive
+          # No later step needs the token; don't leave it in git config where
+          # repository-controlled npm/build scripts could read it.
+          persist-credentials: false
 
       - name: Set up Node 20
         uses: actions/setup-node@v4
