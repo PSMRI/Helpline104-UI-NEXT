@@ -100,7 +100,7 @@ export const en = {
 
   // Rating panel
   'dashboard.rating.title': 'Rating',
-  'dashboard.rating.panelContent': 'Panel Content',
+  'dashboard.rating.empty': 'No rating data available',
 
   // Emergency contacts modal
   'dashboard.contacts.name': 'Name',
