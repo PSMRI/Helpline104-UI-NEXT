@@ -48,7 +48,6 @@ export class SessionService {
   private readonly storage = inject(SessionStorageService);
   private readonly spinner = inject(SpinnerService);
 
-  // TODO(P0-routing): register LOGIN_ROUTE in app.routes; this is the target.
   private readonly loginRoute = LOGIN_ROUTE;
 
   private timeoutRef: ReturnType<typeof setTimeout> | null = null;
