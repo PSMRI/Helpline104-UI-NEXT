@@ -159,7 +159,21 @@ export class HaoService {
         providerServiceMapID: serviceID,
         ...(isInbound ? { isInbound: true } : { isOutbound: true }),
       })
-      .pipe(map((res) => res.data ?? []));
+      .pipe(
+        // Call types are mandatory for closure: an absent payload (null /
+        // undefined) is a legitimate empty catalogue, but any other non-array
+        // shape is malformed and must hit the caller's error path (visible to
+        // the agent), not render an empty dropdown that strands the call.
+        map((res) => {
+          if (res.data == null) return [];
+          if (!Array.isArray(res.data)) {
+            throw new Error(
+              'getCallTypes: expected array, got ' + typeof res.data,
+            );
+          }
+          return res.data;
+        }),
+      );
   }
 
   /** Record the call disposition and close the call. */
@@ -171,14 +185,20 @@ export class HaoService {
 
   // --- Transfer (CTI) -----------------------------------------------------
 
-  /** Campaigns the active call may be transferred to. */
+  /**
+   * Campaigns the active call may be transferred to.
+   *
+   * UAT returns 200 with a non-array `data` payload for this endpoint, which
+   * the `@for` over the campaign list cannot iterate — anything that is not an
+   * array is treated as "no campaigns".
+   */
   getTransferCampaigns(agentID: number): Observable<TransferCampaign[]> {
     return this.http
       .post<ApiResponse<TransferCampaign[]>>(
         this.baseCommon + PATHS.transferCampaigns,
         { agent_id: agentID },
       )
-      .pipe(map((res) => res.data ?? []));
+      .pipe(map((res) => (Array.isArray(res.data) ? res.data : [])));
   }
 
   /** Skills available within a chosen transfer campaign (keyed by name). */
@@ -187,7 +207,7 @@ export class HaoService {
       .post<ApiResponse<CampaignSkill[]>>(this.baseCommon + PATHS.campaignSkills, {
         campaign_name: campaignName,
       })
-      .pipe(map((res) => res.data ?? []));
+      .pipe(map((res) => (Array.isArray(res.data) ? res.data : [])));
   }
 
   /**

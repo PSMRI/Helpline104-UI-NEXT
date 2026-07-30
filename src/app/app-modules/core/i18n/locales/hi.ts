@@ -167,6 +167,9 @@ export const hi: Record<TranslationKey, string> = {
   'registration.toast.selected': 'इस कॉल के लिए लाभार्थी चुना गया।',
   'registration.toast.registered': 'लाभार्थी पंजीकृत और चयनित किया गया।',
   'registration.toast.error': 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।',
+  'registration.register.error':
+    'पंजीकरण विफल हुआ। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।',
+  'registration.register.dismiss': 'बंद करें',
   'registration.toast.noCli': 'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध नहीं है।',
   'registration.toast.masterError': 'कुछ फ़ॉर्म विकल्प लोड नहीं हो सके।',
   'registration.notice.noCli':

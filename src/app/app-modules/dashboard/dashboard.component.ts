@@ -23,21 +23,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   computed,
   inject,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
 import { environment } from '@env/environment';
 
 import { catchError, filter, of, switchMap, timer } from 'rxjs';
 
-import { ZardButtonComponent } from '@common-ui/ui/button';
-
-import { CallStore } from '../call/call.store';
-import { parseInboundCtiMessage } from '../call/cti-message';
 import { AuthStore } from '../core/auth/auth.store';
 import { AgentState, AgentStatusService } from './agent-status.service';
 import { AgentIdComponent } from './components/agent-id.component';
@@ -76,19 +70,6 @@ const AGENT_STATUS_POLL_MS = 15_000;
 const ON_CALL_STATES: readonly string[] = ['INCALL', 'CLOSURE'];
 
 /**
- * Extract the origin from a configured base URL. Returns a token that can never
- * equal a real `MessageEvent.origin` when the URL is empty/malformed, so an
- * unconfigured telephony server trusts nothing rather than everything.
- */
-function safeOrigin(url: string): string {
-  try {
-    return new URL(url).origin;
-  } catch {
-    return 'invalid:no-telephony-origin';
-  }
-}
-
-/**
  * Dashboard shell for the 104 agent desktop: navigation header, left rail, the
  * agent line / campaign selector, call statistics, the alerts, reports,
  * activity and rating panels, and the footer.
@@ -114,7 +95,6 @@ function safeOrigin(url: string): string {
     ReportsPanelComponent,
     ActivityPanelComponent,
     RatingPanelComponent,
-    ZardButtonComponent,
   ],
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
@@ -154,15 +134,12 @@ function safeOrigin(url: string): string {
         </main>
       </div>
 
-      <app-dashboard-footer [showCzentrix]="!isSupervisor()" [agentId]="agentId()" />
+      <app-dashboard-footer />
 
       @if (!isProduction) {
         <button
-          z-button
           type="button"
-          zSize="sm"
-          zType="outline"
-          class="fixed bottom-24 right-4 z-50 shadow-lg"
+          class="fixed bottom-12 left-4 z-40 rounded-md border border-muted-foreground/40 bg-background/80 px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           (click)="simulateInboundCall()"
         >
           ▶ Simulate inbound call (dev)
@@ -173,44 +150,24 @@ function safeOrigin(url: string): string {
 })
 export class DashboardComponent {
   private readonly authStore = inject(AuthStore);
-  private readonly callStore = inject(CallStore);
-  private readonly router = inject(Router);
   private readonly agentStatusApi = inject(AgentStatusService);
   private readonly dashboardStore = inject(DashboardStore);
 
   /** Hides the dev-only inbound-call simulator from production builds. */
   readonly isProduction = environment.production;
 
-  /** Origin of the CZentrix telephony server, the only trusted CTI sender. */
-  private readonly telephonyOrigin = safeOrigin(environment.telephoneServer);
-
   /** The agent's live telephony state ("READY (IDLE)"), polled every 15 s. */
   private readonly _agentStatus = signal('');
   readonly agentStatus = this._agentStatus.asReadonly();
 
   constructor() {
-    // The CZentrix CTI soft-phone iframe announces inbound calls to the host
-    // window via postMessage ("Accept|<CLI>|<sessionId>|INBOUND"). The dashboard
-    // is the agent's call-ready landing page, so it listens here, seeds the
-    // CallStore and routes into the guarded on-call workspace.
-    const onMessage = (event: MessageEvent): void => {
-      if (!this.isTrustedCtiOrigin(event.origin)) {
-        return;
-      }
-      this.handleCtiMessage(event.data);
-    };
-    window.addEventListener('message', onMessage);
-    inject(DestroyRef).onDestroy(() =>
-      window.removeEventListener('message', onMessage),
-    );
-
     // Poll the agent's telephony state (legacy DashboardUserIdComponent:
     // immediate call + every 15 s) to refresh the "My ID" status line and keep
     // the campaign selector in sync with the dialer mode. Supervisors have no
     // personal agent line, so they are never polled. A failed poll falls back
     // to the inbound campaign, as in the legacy error handler; the next tick
-    // retries. Inbound-call routing itself stays with the CTI postMessage flow
-    // above — the poller never navigates.
+    // retries. Inbound-call routing itself lives in the app-scoped
+    // InboundCtiService — the poller never navigates.
     timer(0, AGENT_STATUS_POLL_MS)
       .pipe(
         takeUntilDestroyed(),
@@ -256,42 +213,10 @@ export class DashboardComponent {
   }
 
   /**
-   * Only accept CTI events from the CZentrix telephony origin — never from an
-   * arbitrary page/iframe that could forge an "inbound call". The dev simulator
-   * posts from this app's own origin, which is trusted in non-production builds.
-   */
-  private isTrustedCtiOrigin(origin: string): boolean {
-    if (origin === this.telephonyOrigin) {
-      return true;
-    }
-    return !environment.production && origin === window.location.origin;
-  }
-
-  /** Parse a CTI payload; on a fresh inbound call, seed state and navigate. */
-  private handleCtiMessage(data: unknown): void {
-    const inbound = parseInboundCtiMessage(data);
-    if (!inbound) {
-      return;
-    }
-    // De-dupe: the iframe may re-post the same event for one connected call.
-    if (
-      this.callStore.onCall() &&
-      this.callStore.sessionId() === inbound.sessionId
-    ) {
-      return;
-    }
-
-    this.callStore.startCall({
-      cli: inbound.cli,
-      sessionId: inbound.sessionId,
-    });
-    void this.router.navigate(['/innerpage']);
-  }
-
-  /**
    * Dev-only: post a fake inbound CTI event to this window so the inbound flow
-   * can be exercised locally without a live CZentrix soft-phone. Excluded from
-   * production builds via the {@link isProduction} template guard.
+   * (handled by the app-scoped InboundCtiService) can be exercised locally
+   * without a live CZentrix soft-phone. Excluded from production builds via
+   * the {@link isProduction} template guard.
    */
   simulateInboundCall(): void {
     const cli = '9876543210';
@@ -340,6 +265,4 @@ export class DashboardComponent {
     const code = this.featureCode();
     return code ? (ACTIVITY_BADGE_BY_FEATURE[code] ?? 0) : 0;
   });
-
-  readonly agentId = computed(() => this.authStore.user()?.agentID ?? null);
 }
