@@ -329,11 +329,19 @@ export const routes: Routes = [
             './app-modules/supervisor/config/communication/emergency-contacts-admin.component'
           ).then((m) => m.EmergencyContactsAdminComponent),
       },
+      {
+        // SMS templates: list/view the service's SMS templates and create new
+        // ones with $$PARAMETER$$ placeholders mapped to backend values.
+        path: 'sms-templates',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/sms-templates/sms-templates.component').then(
+            (m) => m.SmsTemplatesComponent,
+          ),
+      },
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
         ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
-        ['sms-templates', 'supervisor.nav.smsTemplates'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
       ].map(([path, titleKey]) => ({
         path,
