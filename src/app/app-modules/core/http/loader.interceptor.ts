@@ -50,7 +50,15 @@ const SPINNER_SKIP_URLS: readonly string[] = [
  * the legacy interceptor's inline `loaderService.show()/hide()`.
  */
 export const loaderInterceptor: HttpInterceptorFn = (req, next) => {
-  if (req.context.get(SKIP_SPINNER) || SPINNER_SKIP_URLS.some((url) => req.url.includes(url))) {
+  // Match on path-segment boundaries, not substrings, so unrelated routes that
+  // merely contain a skip entry (e.g. /other/cti/getAgentState/details) still
+  // drive the spinner. req.url may be relative; the base only anchors parsing.
+  const pathname = new URL(req.url, 'http://localhost').pathname.replace(/\/+$/, '');
+  const shouldSkip =
+    req.context.get(SKIP_SPINNER) ||
+    SPINNER_SKIP_URLS.some((url) => pathname === `/${url}` || pathname.endsWith(`/${url}`));
+
+  if (shouldSkip) {
     return next(req);
   }
 
