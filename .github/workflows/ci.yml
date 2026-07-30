@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with Common-UI submodule)
+        uses: actions/checkout@v4
+        with:
+          # Common-UI submodule is required to build.
+          submodules: recursive
+          # No later step needs the token; don't leave it in git config where
+          # repository-controlled npm/build scripts could read it.
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Provide build environment file
+        # The development build reads src/environments/environment.ts
+        # (git-ignored). Use the committed CI template as a stand-in.
+        # The template's string tokens ('<%= ... %>') compile fine as
+        # literal strings, but ENABLE_CAPTCHA is a bare token that is
+        # not valid TypeScript, so substitute a boolean for it.
+        run: |
+          cp src/environments/environment.ci.ts.template src/environments/environment.ts
+          sed -i 's/<%= ENABLE_CAPTCHA %>/false/' src/environments/environment.ts
+
+      - name: Build (development)
+        run: npx ng build --configuration=development
+
+      # The lint script lands in a separate open PR; --if-present keeps
+      # CI green on branches cut before it merges.
+      - name: Lint
+        run: npm run lint --if-present
