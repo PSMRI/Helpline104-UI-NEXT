@@ -23,7 +23,7 @@
 import { Injectable } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
 import { environment } from '@env/environment';
-import { generateKey } from '../../login/password-crypto';
+import { generateKey } from '../crypto/pbkdf2.util';
 
 /**
  * Thin wrapper over the browser `sessionStorage` that transparently encrypts
@@ -34,11 +34,13 @@ import { generateKey } from '../../login/password-crypto';
  * Common-UI so call sites stay portable; callers are unaware of the
  * encryption.
  *
- * Stored format: `104enc.v1:` + ivHex(32) + ':' + ciphertextBase64. The
- * plaintext is prefixed with the same marker before encryption so a decrypt
- * can be verified — any value that fails the marker check (legacy plaintext
- * written before this change, tampered data, wrong key) yields `null`, which
- * callers already treat as "absent / re-login".
+ * Stored format: `104enc.v1:` + ivHex(32) + ':' + ciphertextBase64 + ':' +
+ * hmacHex(64). Encrypt-then-MAC: the HMAC-SHA256 (separate derived key) is
+ * verified BEFORE decryption, so any bit-flipped or truncated payload yields
+ * `null` — CBC alone is malleable, a plaintext marker check cannot catch all
+ * tampering. Legacy plaintext written before this change, foreign data, or a
+ * wrong key likewise yield `null`, which callers already treat as
+ * "absent / re-login".
  *
  * HONEST LIMITATION: the key is derived from constants bundled in the JS (and
  * `environment.encKey` when set). Anyone who can read this code can decrypt
@@ -66,6 +68,7 @@ const ENC_FALLBACK_PASSPHRASE = 'Helpline104UI@SessionStore';
  * rehydration on every reload.
  */
 let cachedKey: CryptoJS.lib.WordArray | null = null;
+let cachedMacKey: CryptoJS.lib.WordArray | null = null;
 
 function storageKey(): CryptoJS.lib.WordArray {
   if (cachedKey === null) {
@@ -77,41 +80,56 @@ function storageKey(): CryptoJS.lib.WordArray {
   return cachedKey;
 }
 
-/** Encrypt a plaintext value into the `104enc.v1:ivHex:cipherB64` format. */
+/** Separate derived key for the HMAC — encryption keys are never reused for authentication. */
+function macKey(): CryptoJS.lib.WordArray {
+  if (cachedMacKey === null) {
+    cachedMacKey = generateKey(
+      ENC_SALT_HEX,
+      (environment.encKey || ENC_FALLBACK_PASSPHRASE) + ':mac',
+    );
+  }
+  return cachedMacKey;
+}
+
+function computeMac(ivHex: string, cipherB64: string): string {
+  return CryptoJS.HmacSHA256(ivHex + ':' + cipherB64, macKey()).toString(CryptoJS.enc.Hex);
+}
+
+/** Encrypt a plaintext value into the `104enc.v1:ivHex:cipherB64:macHex` format. */
 function encryptValue(plainText: string): string {
   const iv = CryptoJS.lib.WordArray.random(16);
   const encrypted = CryptoJS.AES.encrypt(ENC_MARKER + plainText, storageKey(), {
     iv,
   });
-  return (
-    ENC_MARKER +
-    iv.toString(CryptoJS.enc.Hex) +
-    ':' +
-    encrypted.ciphertext.toString(CryptoJS.enc.Base64)
-  );
+  const ivHex = iv.toString(CryptoJS.enc.Hex);
+  const cipherB64 = encrypted.ciphertext.toString(CryptoJS.enc.Base64);
+  return ENC_MARKER + ivHex + ':' + cipherB64 + ':' + computeMac(ivHex, cipherB64);
 }
 
 /**
  * Decrypt a stored value; returns `null` (never throws) for anything that is
- * not a valid ciphertext produced by {@link encryptValue}.
+ * not a valid, MAC-verified ciphertext produced by {@link encryptValue}.
  */
 function decryptValue(stored: string): string | null {
   if (!stored.startsWith(ENC_MARKER)) {
     // Legacy plaintext from before encryption, or foreign data.
     return null;
   }
-  const separator = stored.indexOf(':', ENC_MARKER.length);
-  if (separator === -1) {
+  const parts = stored.slice(ENC_MARKER.length).split(':');
+  if (parts.length !== 3) {
     return null;
   }
+  const [ivHex, cipherB64, macHex] = parts;
   try {
-    const ivHex = stored.slice(ENC_MARKER.length, separator);
-    const cipherB64 = stored.slice(separator + 1);
+    // Encrypt-then-MAC: verify authenticity BEFORE touching the ciphertext.
+    // CBC is malleable, so a marker check alone cannot detect all tampering.
+    if (computeMac(ivHex, cipherB64) !== macHex) {
+      return null;
+    }
     const decrypted = CryptoJS.AES.decrypt(cipherB64, storageKey(), {
       iv: CryptoJS.enc.Hex.parse(ivHex),
     }).toString(CryptoJS.enc.Utf8);
-    // The inner marker proves the decrypt round-tripped; garbage from a
-    // tampered payload or wrong key fails this check instead of leaking out.
+    // The inner marker proves the decrypt round-tripped with the right key.
     if (!decrypted.startsWith(ENC_MARKER)) {
       return null;
     }

@@ -22,40 +22,22 @@
 
 import * as CryptoJS from 'crypto-js';
 
+import { generateKey } from '../core/crypto/pbkdf2.util';
+
 /**
  * Password encryption for the 104 login, ported byte-for-byte from the Angular
  * 4 app (login.component.ts). The backend expects the exact wire format
  * `salt + iv + ciphertext` produced here — DO NOT change the algorithm,
- * constants, or concatenation order.
- *
- *  - PBKDF2 (SHA-512, 1989 iterations) derives the AES key from a fixed
- *    passphrase and a per-call random salt.
- *  - AES encrypts the password with a per-call random IV.
- *  - Output = saltHex(64) + ivHex(32) + ciphertextBase64.
+ * constants, or concatenation order. The PBKDF2 primitive itself lives in
+ * core (`core/crypto/pbkdf2.util`) so core services can share it without
+ * importing from this lazy feature module.
  */
 
 const KEY_SIZE = 256;
 const IV_SIZE = 128;
-const ITERATION_COUNT = 1989;
 
 /** Fixed passphrase (legacy `Key_IV`), used as the PBKDF2 passphrase. */
 const PASSPHRASE = 'Piramal12Piramal';
-
-/**
- * PBKDF2 key derivation (SHA-512, 1989 iterations, 256-bit key). Exported so
- * other modules (e.g. `SessionStorageService`) can reuse the exact same
- * primitive instead of rolling their own. `salt` is a hex string.
- */
-export function generateKey(
-  salt: string,
-  passPhrase: string,
-): CryptoJS.lib.WordArray {
-  return CryptoJS.PBKDF2(passPhrase, CryptoJS.enc.Hex.parse(salt), {
-    hasher: CryptoJS.algo.SHA512,
-    keySize: KEY_SIZE / 32,
-    iterations: ITERATION_COUNT,
-  });
-}
 
 function encryptWithIvSalt(
   salt: string,
