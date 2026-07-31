@@ -22,6 +22,7 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable, OnDestroy, effect, inject } from '@angular/core';
+import { timeout } from 'rxjs/operators';
 
 import { CallStore } from '../../call/call.store';
 import { AuthStore } from '../auth/auth.store';
@@ -29,6 +30,9 @@ import { ConfigService } from './config.service';
 
 /** How often to ping the backend while a call is connected. */
 const KEEPALIVE_INTERVAL_MS = 10 * 60 * 1000;
+
+/** Cap on a single ping — matches the 20s the supervisor services use. */
+const KEEPALIVE_REQUEST_TIMEOUT_MS = 20_000;
 
 /**
  * The endpoint pinged to keep the backend session alive.
@@ -129,6 +133,9 @@ export class KeepaliveService implements OnDestroy {
       .post(this.config.getCommonBaseURL() + KEEPALIVE_PATH, {
         providerServiceMapID,
       })
+      // Bound the request so a stalled ping errors into the ignored-log path
+      // instead of hanging while the next intervals stack more requests.
+      .pipe(timeout(KEEPALIVE_REQUEST_TIMEOUT_MS))
       .subscribe({
         error: (err: unknown) => {
           // Silently ignored by design — a failed keepalive must never
