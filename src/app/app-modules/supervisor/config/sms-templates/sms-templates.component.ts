@@ -553,7 +553,7 @@ export class SmsTemplatesComponent implements OnInit {
     // Legacy `getSMStypes`: hide types already used by an active template.
     const usedTypeIDs = new Set(
       this.templates()
-        .filter((t) => t.deleted === false)
+        .filter((t) => !t.deleted)
         .map((t) => t.smsType?.smsTypeID)
         .filter((id): id is number => id != null),
     );
