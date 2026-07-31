@@ -1304,4 +1304,7 @@ export const as: Record<TranslationKey, string> = {
 
   // Login
   'login.captchaLabel': 'সুৰক্ষা পৰীক্ষা',
+  'login.captchaFailed':
+    'সুৰক্ষা পৰীক্ষা ল’ড কৰিব পৰা নগ’ল। আপোনাৰ সংযোগ পৰীক্ষা কৰি পুনৰ চেষ্টা কৰক।',
+  'login.captchaRetry': 'সুৰক্ষা পৰীক্ষা পুনৰ চেষ্টা কৰক',
 };

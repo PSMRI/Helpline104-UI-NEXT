@@ -43,6 +43,21 @@ export interface TurnstileApi {
   remove(widgetId: string): void;
 }
 
+/** Give the challenge script this long to load before treating it as failed. */
+const SCRIPT_LOAD_TIMEOUT_MS = 15_000;
+
+/**
+ * Whether captcha is fully configured for this deployment. All three values
+ * must be present together: the flag, the site key the widget renders with,
+ * and the challenge-script URL {@link CaptchaService.loadScript} injects —
+ * guarding on only a subset could enable the widget with nothing to load.
+ */
+export function isCaptchaConfigured(): boolean {
+  return (
+    environment.enableCaptcha && !!environment.siteKey && !!environment.captchaChallengeURL
+  );
+}
+
 /**
  * Lazy loader for the Cloudflare Turnstile challenge script — the captcha
  * system the legacy 104 login used (`turnstile.render` against
@@ -65,18 +80,30 @@ export class CaptchaService {
     }
     this.scriptPromise = new Promise<void>((resolve, reject) => {
       const script = document.createElement('script');
+      // Failure clears the cached promise so a later call can retry, and
+      // removes the dead tag so retries never accumulate <script> elements.
+      const fail = (message: string) => {
+        clearTimeout(timer);
+        script.remove();
+        this.scriptPromise = null;
+        reject(new Error(message));
+      };
+      // Some load failures (blocked challenge host, privacy extensions) fire
+      // no event at all, so a hang has to count as a failure too.
+      const timer = setTimeout(
+        () =>
+          fail(`Timed out loading CAPTCHA script from ${environment.captchaChallengeURL}`),
+        SCRIPT_LOAD_TIMEOUT_MS,
+      );
       script.src = environment.captchaChallengeURL;
       script.async = true;
       script.defer = true;
-      script.onload = () => resolve();
-      script.onerror = () => {
-        this.scriptPromise = null;
-        reject(
-          new Error(
-            `Failed to load CAPTCHA script from ${environment.captchaChallengeURL}`,
-          ),
-        );
+      script.onload = () => {
+        clearTimeout(timer);
+        resolve();
       };
+      script.onerror = () =>
+        fail(`Failed to load CAPTCHA script from ${environment.captchaChallengeURL}`);
       document.head.appendChild(script);
     });
     return this.scriptPromise;

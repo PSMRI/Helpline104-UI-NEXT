@@ -47,8 +47,6 @@ import {
 } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
-import { environment } from '@env/environment';
-
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { AuthStore } from '../core/auth/auth.store';
@@ -58,6 +56,7 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { CzentrixService } from '../core/services/czentrix.service';
 import { AccountRecoveryStore } from '../account-recovery/account-recovery.store';
 import { CaptchaComponent } from './captcha.component';
+import { isCaptchaConfigured } from './captcha.service';
 import { LoginError, LoginService } from './login.service';
 import { encryptPassword } from './password-crypto';
 
@@ -79,9 +78,10 @@ const CONCURRENT_SESSION_CODE = 5002;
  *
  * Captcha (Cloudflare Turnstile, as in the legacy login) is wired but inert:
  * it renders — and lazily loads the challenge script — only when
- * `environment.enableCaptcha` is true AND a `siteKey` is configured. With the
- * current empty prod placeholders nothing loads; filling the two environment
- * values activates it with no code change.
+ * `environment.enableCaptcha` is true AND a `siteKey` AND a
+ * `captchaChallengeURL` are configured. With the current empty prod
+ * placeholders nothing loads; filling the environment values activates it
+ * with no code change.
  */
 @Component({
   selector: 'app-login',
@@ -138,15 +138,19 @@ export class LoginComponent {
   readonly lang = this.i18n.language;
 
   /**
-   * Whether the Turnstile captcha is active. Both halves are deploy-time
+   * Whether the Turnstile captcha is active. All parts are deploy-time
    * constants, so this is fixed for the lifetime of the app: the flag must be
-   * on AND a site key must exist (prod currently ships an empty placeholder,
-   * so the widget renders nothing and the challenge script is never loaded).
+   * on AND a site key AND a challenge URL must exist (prod currently ships
+   * empty placeholders, so the widget renders nothing and the challenge
+   * script is never loaded).
    */
-  readonly captchaEnabled = environment.enableCaptcha && !!environment.siteKey;
+  readonly captchaEnabled = isCaptchaConfigured();
 
   /** Latest solved Turnstile token; empty while unsolved/expired/reset. */
   readonly captchaToken = signal('');
+
+  /** True when the widget failed to initialise; shows the error + retry UI. */
+  readonly captchaFailed = signal(false);
 
   private readonly captchaCmp = viewChild(CaptchaComponent);
 
@@ -156,6 +160,20 @@ export class LoginComponent {
 
   onCaptchaToken(token: string): void {
     this.captchaToken.set(token);
+  }
+
+  onCaptchaFailed(): void {
+    this.captchaFailed.set(true);
+  }
+
+  /**
+   * Re-mounts the captcha widget after an init failure (the @if in the
+   * template destroys and recreates the component, which re-runs the load —
+   * the service clears its cached promise on failure, so this is a real
+   * retry, not a replay of the rejection).
+   */
+  retryCaptcha(): void {
+    this.captchaFailed.set(false);
   }
 
   submit(): void {

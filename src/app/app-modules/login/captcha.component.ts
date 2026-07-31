@@ -56,6 +56,13 @@ export class CaptchaComponent implements AfterViewInit, OnDestroy {
   /** Emits the solved challenge token; empty string when it expires/resets. */
   readonly tokenResolved = output<string>();
 
+  /**
+   * Emits when the widget could not be initialised (script load failure,
+   * timeout, or a render throw), so the host can show an error and offer a
+   * retry instead of leaving submission silently disabled forever.
+   */
+  readonly initFailed = output<void>();
+
   private readonly captchaRef =
     viewChild.required<ElementRef<HTMLElement>>('captchaContainer');
 
@@ -65,9 +72,12 @@ export class CaptchaComponent implements AfterViewInit, OnDestroy {
   async ngAfterViewInit(): Promise<void> {
     try {
       await this.captchaService.loadScript();
-      const turnstile = this.captchaService.api();
-      if (!turnstile || this.destroyed || this.widgetId !== null) {
+      if (this.destroyed || this.widgetId !== null) {
         return;
+      }
+      const turnstile = this.captchaService.api();
+      if (!turnstile) {
+        throw new Error('Turnstile API not available after script load');
       }
       this.widgetId =
         turnstile.render(this.captchaRef().nativeElement, {
@@ -79,6 +89,9 @@ export class CaptchaComponent implements AfterViewInit, OnDestroy {
         }) ?? null;
     } catch (error) {
       console.error('Failed to initialize CAPTCHA:', error);
+      if (!this.destroyed) {
+        this.initFailed.emit();
+      }
     }
   }
 
