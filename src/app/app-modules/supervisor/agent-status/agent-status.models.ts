@@ -73,6 +73,9 @@ const STATUS_KEYS = [
   'stateName',
 ];
 
+// Checked before the positive lists: substring matching would otherwise read
+// UNAVAILABLE as AVAILABLE and NOT_READY as READY.
+const OFFLINE_STATES = ['OFFLINE', 'UNAVAILABLE', 'NOT_AVAILABLE', 'NOT AVAILABLE', 'NOT_READY', 'NOT READY', 'LOGOUT', 'LOGGED OUT', 'LOGGED_OUT'];
 const AVAILABLE_STATES = ['READY', 'AVAILABLE', 'FREE', 'IDLE', 'ONLINE'];
 const BUSY_STATES = [
   'BUSY',
@@ -99,6 +102,9 @@ const BREAK_STATES = ['BREAK', 'PAUSE', 'PAUSED', 'LUNCH', 'TEA', 'MEETING', 'AW
 export function classifyAgentStatus(status: string): AgentStatusKind {
   const value = status.trim().toUpperCase();
   if (!value) {
+    return 'offline';
+  }
+  if (OFFLINE_STATES.some((s) => value.includes(s))) {
     return 'offline';
   }
   if (AVAILABLE_STATES.some((s) => value.includes(s))) {

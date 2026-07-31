@@ -102,7 +102,7 @@ interface PollResult {
         <p class="py-8 text-center text-sm text-muted-foreground">
           {{ 'supervisor.agentStatus.loading' | translate: lang() }}
         </p>
-      } @else {
+      } @else if (loaded()) {
         <div class="overflow-x-auto rounded-md border border-border">
           <table class="w-full text-left text-sm">
             <thead class="bg-muted/50 text-xs text-muted-foreground">
@@ -159,6 +159,12 @@ export class AgentStatusComponent {
   readonly agents = signal<OnlineAgent[]>([]);
   /** True only until the first poll settles; later polls refresh in place. */
   readonly loading = signal(true);
+  /**
+   * True once a poll has succeeded. Until then the table (and its "no agents"
+   * empty state) stays hidden — after a failed first poll only the error
+   * banner shows, since no response has established that the list is empty.
+   */
+  readonly loaded = signal(false);
   readonly errorMessage = signal('');
   readonly lastUpdated = signal<Date | null>(null);
 
@@ -196,6 +202,7 @@ export class AgentStatusComponent {
     this.loading.set(false);
     if (result.agents !== null) {
       this.agents.set(result.agents);
+      this.loaded.set(true);
       this.errorMessage.set('');
       this.lastUpdated.set(new Date());
       return;
