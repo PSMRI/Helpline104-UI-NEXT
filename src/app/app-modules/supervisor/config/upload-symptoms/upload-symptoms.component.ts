@@ -85,6 +85,7 @@ const ALREADY_EXISTS_MESSAGE = 'data already exist in database';
         </label>
         <textarea
           id="sym-algorithm"
+          aria-required="true"
           [class]="textareaClass"
           rows="15"
           [formControl]="algorithm"
