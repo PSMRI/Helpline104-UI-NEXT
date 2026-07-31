@@ -42,6 +42,7 @@ import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideSearch, lucideUserPlus } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
+import { TimeoutError, catchError, throwError, timeout } from 'rxjs';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import {
@@ -92,6 +93,12 @@ const RELATIONSHIP_OTHER = 11;
 const MAX_AGE = 120;
 const MIN_AGE_GENERAL = 1;
 const MIN_AGE_HCW = 16;
+/**
+ * Client-side cap on a beneficiary search: no interceptor adds an HTTP-level
+ * timeout, so without this a stalled request never errors and the search
+ * spinner (and Retry state) would never appear.
+ */
+const SEARCH_TIMEOUT_MS = 30_000;
 /** Alternate phone control names (legacy alternateNumber1..5). */
 const ALT_PHONE_NAMES = [
   'alternateNumber1',
@@ -1623,7 +1630,21 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     this.searchTimedOut.set(false);
     this.searchLoading.set(true);
 
-    this.beneficiary.searchBeneficiary(criteria).subscribe({
+    this.beneficiary
+      .searchBeneficiary(criteria)
+      .pipe(
+        timeout(SEARCH_TIMEOUT_MS),
+        // A TimeoutError has no `status`, which the handler below would read
+        // as non-retryable — normalise it to a retryable BeneficiaryError.
+        catchError((err: unknown) =>
+          throwError(() =>
+            err instanceof TimeoutError
+              ? ({ status: 0, errorMessage: '' } satisfies BeneficiaryError)
+              : err,
+          ),
+        ),
+      )
+      .subscribe({
       // Guard against out-of-order responses: ignore if a newer search (or a
       // reset) has since been issued.
       next: (rows) => {
@@ -1649,9 +1670,13 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         const retryable = !err || err.status === 0 || err.status >= 500;
         this.searchTimedOut.set(retryable);
         this.searchError.set(!retryable);
-        toast.error(
-          err?.errorMessage || this.i18n.instant('registration.search.error'),
-        );
+        // Retryable failures already surface the inline Retry panel; a toast
+        // on top of it is redundant, so only non-retryable errors toast.
+        if (!retryable) {
+          toast.error(
+            err?.errorMessage || this.i18n.instant('registration.search.error'),
+          );
+        }
       },
     });
   }
