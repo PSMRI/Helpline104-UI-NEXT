@@ -41,8 +41,10 @@ export interface SaveSymptomRequest {
 }
 
 /**
- * The envelope `data` carries a status text rather than a record, e.g.
- * `"sucess"` (legacy backend spelling) or `"Data already exist in database"`.
+ * The envelope `data` is `{ message: <status text> }` rather than a record —
+ * e.g. `"sucess"` (legacy backend spelling) or `"Data already exist in
+ * database"` — as read by the legacy `InsertComplaintComponent.result()`
+ * (`data.message`).
  */
 export interface SaveSymptomResult {
   message?: string | null;
