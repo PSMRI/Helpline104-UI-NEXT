@@ -107,8 +107,10 @@ export class SessionService {
       'Your session is about to expire. Do you need more time?',
     );
     if (wantsMoreTime) {
-      // Keepalive. TODO(P1): POST to a backend extend-session endpoint once
-      // the 104 API exposes one; for now, restarting the timer suffices.
+      // Keepalive: restart the client idle timer. The backend session is
+      // extended separately by KeepaliveService, which pings an authenticated
+      // endpoint every 10 minutes during active calls (the 104 API exposes no
+      // dedicated extend-session endpoint — see keepalive.service.ts).
       this.resetTimer();
     } else {
       this.handleSessionExpiry('Your session has expired. Please login again.');
