@@ -251,7 +251,7 @@ function recordingKey(row: CallRecordingRow): string {
           z-button
           type="button"
           zType="outline"
-          [zDisabled]="rows().length === 0"
+          [zDisabled]="rows().length === 0 || loading()"
           (click)="export()"
         >
           <ng-icon name="lucideDownload" size="16" aria-hidden="true" />
