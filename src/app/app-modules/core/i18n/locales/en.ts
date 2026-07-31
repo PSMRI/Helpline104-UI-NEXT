@@ -1292,6 +1292,12 @@ export const en = {
   'supKm.uploaded': 'Uploaded successfully',
   'supKm.uploadFailed': 'Failed to upload file',
   'supKm.noCategory': 'No category found',
+
+  // Login
+  'login.captchaLabel': 'Security check',
+  'login.captchaFailed':
+    'The security check could not be loaded. Check your connection and try again.',
+  'login.captchaRetry': 'Retry security check',
 } as const;
 
 /** Every translatable key in the app, derived from the English dictionary. */

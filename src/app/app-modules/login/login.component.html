@@ -74,13 +74,33 @@
       <p class="login-error" role="alert">{{ errorMessage() }}</p>
     }
 
+    @if (captchaEnabled) {
+      <div role="group" [attr.aria-label]="'login.captchaLabel' | translate: lang()">
+        @if (captchaFailed()) {
+          <p class="login-error" role="alert">
+            {{ 'login.captchaFailed' | translate: lang() }}
+          </p>
+          <div class="flex justify-center">
+            <button z-button type="button" zType="outline" zSize="sm" (click)="retryCaptcha()">
+              {{ 'login.captchaRetry' | translate: lang() }}
+            </button>
+          </div>
+        } @else {
+          <app-captcha
+            (tokenResolved)="onCaptchaToken($event)"
+            (initFailed)="onCaptchaFailed()"
+          />
+        }
+      </div>
+    }
+
     <button
       z-button
       type="submit"
       zType="default"
       zFull
       [zLoading]="loading()"
-      [zDisabled]="loading()"
+      [zDisabled]="loading() || (captchaEnabled && !captchaToken())"
     >
       Login
     </button>
