@@ -113,7 +113,17 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
         {{ 'supReports.callTypeReports.title' | translate: lang() }}
       </h3>
 
-      @if (runner.errorMessage()) {
+      @if (runner.serverError()) {
+        <div
+          class="mb-3 flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+          role="alert"
+        >
+          <span>{{ runner.errorMessage() }}</span>
+          <button z-button type="button" zType="ghost" zSize="sm" (click)="runner.dismissError()">
+            {{ 'supReports.dismiss' | translate: lang() }}
+          </button>
+        </div>
+      } @else if (runner.errorMessage()) {
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">
           {{ runner.errorMessage() }}
         </p>

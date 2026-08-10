@@ -548,6 +548,9 @@ export const as: Record<TranslationKey, string> = {
   'supReports.search': 'সন্ধান কৰক…',
   'supReports.noData': 'নিৰ্বাচিত ফিল্টাৰৰ বাবে কোনো তথ্য পোৱা নগ’ল।',
   'supReports.fetchError': 'প্ৰতিবেদন আনিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'supReports.serverError':
+    'প্ৰতিবেদন উপলব্ধ নহয় — চাৰ্ভাৰ ত্ৰুটি। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।',
+  'supReports.dismiss': 'বন্ধ কৰক',
   'supReports.lookupError': 'প্ৰতিবেদনৰ বিকল্পসমূহ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'supReports.unsupportedReport':
     'এই প্ৰতিবেদন উপলব্ধ নহয়। অনুগ্ৰহ কৰি আন এখন প্ৰতিবেদন বাছনি কৰক।',

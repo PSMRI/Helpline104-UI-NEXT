@@ -544,6 +544,9 @@ export const en = {
   'supReports.search': 'Search…',
   'supReports.noData': 'No data found for the selected filters.',
   'supReports.fetchError': 'Could not fetch the report. Please try again.',
+  'supReports.serverError':
+    'Report unavailable — server error. Please try again or contact support.',
+  'supReports.dismiss': 'Dismiss',
   'supReports.lookupError': 'Could not load report options. Please try again.',
   'supReports.unsupportedReport': 'This report is not available. Please select another report.',
   'supReports.parseError': 'The report could not be previewed. Use Export to download it.',
