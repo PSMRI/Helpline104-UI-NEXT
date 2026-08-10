@@ -37,6 +37,7 @@ import {
   PresentCaseSheet,
   TransferCallRequest,
   TransferCampaign,
+  TransferCampaignsPayload,
 } from './hao.models';
 
 /** Endpoint paths used by the HAO workspace (see audit §4.4–4.6). */
@@ -188,17 +189,36 @@ export class HaoService {
   /**
    * Campaigns the active call may be transferred to.
    *
-   * UAT returns 200 with a non-array `data` payload for this endpoint, which
-   * the `@for` over the campaign list cannot iterate — anything that is not an
-   * array is treated as "no campaigns".
+   * The list is nested one level below `data`, under `campaign`, and its
+   * entries carry the CTI snake_case `campaign_name` — so the name the
+   * dropdown binds to is normalised here. Anything that is not an array
+   * (absent key, misbehaving backend, stale mock) is treated as "no
+   * campaigns", since the `@for` over the campaign list cannot iterate it.
    */
   getTransferCampaigns(agentID: number): Observable<TransferCampaign[]> {
     return this.http
-      .post<ApiResponse<TransferCampaign[]>>(
+      .post<ApiResponse<TransferCampaignsPayload>>(
         this.baseCommon + PATHS.transferCampaigns,
         { agent_id: agentID },
       )
-      .pipe(map((res) => (Array.isArray(res.data) ? res.data : [])));
+      .pipe(
+        map((res) => {
+          const raw = res.data?.campaign;
+          if (!Array.isArray(raw)) {
+            return [];
+          }
+          const campaigns: TransferCampaign[] = [];
+          for (const entry of raw) {
+            const name = entry?.campaign_name ?? entry?.campaignName;
+            // The dropdown selects — and the transfer payload sends — the
+            // campaign by name, so a nameless entry is not transferable.
+            if (typeof name === 'string' && name.trim() !== '') {
+              campaigns.push({ ...entry, campaignName: name });
+            }
+          }
+          return campaigns;
+        }),
+      );
   }
 
   /** Skills available within a chosen transfer campaign (keyed by name). */

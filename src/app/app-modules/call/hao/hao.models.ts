@@ -217,6 +217,26 @@ export interface TransferCampaign {
   [key: string]: unknown;
 }
 
+/**
+ * Raw `cti/getTransferCampaigns` payload: the campaign list is nested one level
+ * below `data`, under `campaign` (UAT also duplicates it at `data.response
+ * .campaign`). {@link HaoService.getTransferCampaigns} normalises the entries
+ * into {@link TransferCampaign}.
+ */
+export interface TransferCampaignsPayload {
+  campaign?: RawTransferCampaign[];
+  [key: string]: unknown;
+}
+
+/** A campaign as CTI sends it — identified by snake_case `campaign_name`. */
+export interface RawTransferCampaign {
+  campaign_name?: string;
+  /** Some responses use the legacy camelCase key instead. */
+  campaignName?: string;
+  campaign_id?: number;
+  [key: string]: unknown;
+}
+
 /** A skill within a transfer campaign (`cti/getCampaignSkills`). */
 export interface CampaignSkill {
   skillName: string;
