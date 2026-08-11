@@ -136,6 +136,8 @@ export const en = {
   'registration.search.prompt': 'Enter a name or registration ID, then search.',
   'registration.search.error':
     'The search could not be completed — it may have timed out. Please try again.',
+  'registration.search.timeout':
+    'Search timed out. Please try again or search by phone number instead.',
   'registration.col.regId': 'Reg. ID',
   'registration.col.name': 'Name',
   'registration.col.gender': 'Gender',
@@ -155,6 +157,7 @@ export const en = {
   'registration.gender.female': 'Female',
   'registration.gender.transgender': 'Transgender',
   'registration.action.search': 'Search',
+  'registration.action.retry': 'Retry',
   'registration.action.register': 'Register beneficiary',
   'registration.validation.required': 'This field is required.',
   'registration.validation.firstNameMin': 'Enter at least 3 characters.',
