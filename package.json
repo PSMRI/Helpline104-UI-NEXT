@@ -10,18 +10,6 @@
     "lint": "eslint src",
     "format": "prettier --write src"
   },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
   "private": true,
   "dependencies": {
     "@angular/cdk": "^20.2.14",
