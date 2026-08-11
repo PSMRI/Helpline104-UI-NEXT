@@ -340,11 +340,20 @@ export const routes: Routes = [
             './app-modules/supervisor/config/communication/emergency-contacts-admin.component'
           ).then((m) => m.EmergencyContactsAdminComponent),
       },
+      {
+        // Diseases Summary master configuration (create / edit /
+        // activate-deactivate disease summaries). Distinct from the read-only
+        // `reports/diseases-summary` child above.
+        path: 'diseases-summary',
+        loadComponent: () =>
+          import(
+            './app-modules/supervisor/config/diseases-summary/diseases-summary-config.component'
+          ).then((m) => m.DiseasesSummaryConfigComponent),
+      },
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
-        ['diseases-summary', 'supervisor.nav.diseasesSummary'],
       ].map(([path, titleKey]) => ({
         path,
         data: { titleKey },
