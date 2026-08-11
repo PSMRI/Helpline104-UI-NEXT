@@ -34,6 +34,7 @@ import { lucideCircleDot, lucidePhoneIncoming } from '@ng-icons/lucide';
 
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { KeepaliveService } from '../../core/services/keepalive.service';
 import { CallStore } from '../call.store';
 import { CallDurationTimerComponent } from './call-duration-timer.component';
 
@@ -98,6 +99,9 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
 export class InnerpageComponent {
   private readonly i18n = inject(I18nService);
   private readonly callStore = inject(CallStore);
+  // Instantiate the backend-session keepalive with the on-call shell; the
+  // service then reacts to CallStore.onCall() on its own (see its docs).
+  protected readonly keepalive = inject(KeepaliveService);
 
   readonly lang = this.i18n.language;
 

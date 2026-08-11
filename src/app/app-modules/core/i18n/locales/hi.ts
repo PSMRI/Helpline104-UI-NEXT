@@ -138,6 +138,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.search.prompt': 'नाम या पंजीकरण आईडी दर्ज करें, फिर खोजें।',
   'registration.search.error':
     'खोज पूरी नहीं हो सकी — शायद समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
+  'registration.search.timeout':
+    'खोज का समय समाप्त हो गया। कृपया पुनः प्रयास करें या इसके बजाय फ़ोन नंबर से खोजें।',
   'registration.col.regId': 'पंजी. आईडी',
   'registration.col.name': 'नाम',
   'registration.col.gender': 'लिंग',
@@ -157,6 +159,7 @@ export const hi: Record<TranslationKey, string> = {
   'registration.gender.female': 'महिला',
   'registration.gender.transgender': 'ट्रांसजेंडर',
   'registration.action.search': 'खोजें',
+  'registration.action.retry': 'पुनः प्रयास करें',
   'registration.action.register': 'लाभार्थी पंजीकृत करें',
   'registration.validation.required': 'यह फ़ील्ड आवश्यक है।',
   'registration.validation.firstNameMin': 'कम से कम 3 अक्षर दर्ज करें।',
@@ -548,6 +551,9 @@ export const hi: Record<TranslationKey, string> = {
   'supReports.search': 'खोजें…',
   'supReports.noData': 'चयनित फ़िल्टर के लिए कोई डेटा नहीं मिला।',
   'supReports.fetchError': 'रिपोर्ट प्राप्त नहीं हो सकी। कृपया पुनः प्रयास करें।',
+  'supReports.serverError':
+    'रिपोर्ट उपलब्ध नहीं — सर्वर त्रुटि। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।',
+  'supReports.dismiss': 'बंद करें',
   'supReports.lookupError': 'रिपोर्ट विकल्प लोड नहीं हो सके। कृपया पुनः प्रयास करें।',
   'supReports.unsupportedReport': 'यह रिपोर्ट उपलब्ध नहीं है। कृपया कोई अन्य रिपोर्ट चुनें।',
   'supReports.parseError':
@@ -1257,6 +1263,16 @@ export const hi: Record<TranslationKey, string> = {
   'supScheme.activated': 'योजना सफलतापूर्वक सक्रिय',
   'supScheme.deactivated': 'योजना सफलतापूर्वक निष्क्रिय कर दी गई',
 
+  // Upload symptoms (CDSS algorithm)
+  'supSymptom.title': 'लक्षण अपलोड करें',
+  'supSymptom.prompt': 'कृपया लक्षण अपलोड करने के लिए एल्गोरिथ्म दर्ज करें',
+  'supSymptom.algorithmLabel': 'सीडीएसएस',
+  'supSymptom.enterAlgorithm': 'कृपया लक्षण एल्गोरिथ्म दर्ज करें',
+  'supSymptom.submit': 'प्रस्तुत',
+  'supSymptom.uploaded': 'सफलतापूर्वक अपलोड किया गया',
+  'supSymptom.alreadyExists': 'डेटा पहले से मौजूद है',
+  'supSymptom.uploadFailed': 'अपलोड विफल रहा, कृपया बाद में पुनः प्रयास करें।',
+
   // Blood bank URL
   'supBlood.title': 'रक्त URL अपडेट करें',
   'supBlood.currentUrl': 'वर्तमान यूआरएल',
@@ -1343,4 +1359,11 @@ export const hi: Record<TranslationKey, string> = {
   'supDisease.statusUpdated': 'स्थिति सफलतापूर्वक अपडेट की गई',
   'supDisease.statusFailed': 'स्थिति अपडेट करने में विफल',
   'supDisease.loadError': 'रोग सारांश लोड करने में विफल',
+
+  // Shared alert/confirm dialog titles (ConfirmationService)
+  'dialog.confirmTitle': 'पुष्टि करें',
+  'dialog.infoTitle': 'जानकारी',
+  'dialog.successTitle': 'सफलता',
+  'dialog.warningTitle': 'चेतावनी',
+  'dialog.errorTitle': 'त्रुटि',
 };

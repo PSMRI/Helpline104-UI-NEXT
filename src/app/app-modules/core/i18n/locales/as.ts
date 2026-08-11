@@ -138,6 +138,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.search.prompt': 'নাম বা পঞ্জীয়ন আইডি দিয়ক, তাৰ পিছত সন্ধান কৰক।',
   'registration.search.error':
     'সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ\'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'registration.search.timeout':
+    'সন্ধানৰ সময়সীমা উকলি গ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক অথবা তাৰ পৰিৱৰ্তে ফোন নম্বৰেৰে সন্ধান কৰক।',
   'registration.col.regId': 'পঞ্জী. আইডি',
   'registration.col.name': 'নাম',
   'registration.col.gender': 'লিংগ',
@@ -157,6 +159,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.gender.female': 'মহিলা',
   'registration.gender.transgender': 'ৰূপান্তৰকামী',
   'registration.action.search': 'সন্ধান কৰক',
+  'registration.action.retry': 'পুনৰ চেষ্টা কৰক',
   'registration.action.register': 'হিতাধিকাৰী পঞ্জীয়ন কৰক',
   'registration.validation.required': 'এই ক্ষেত্ৰটো আৱশ্যক।',
   'registration.validation.firstNameMin': 'কমেও ৩টা আখৰ দিয়ক।',
@@ -548,6 +551,9 @@ export const as: Record<TranslationKey, string> = {
   'supReports.search': 'সন্ধান কৰক…',
   'supReports.noData': 'নিৰ্বাচিত ফিল্টাৰৰ বাবে কোনো তথ্য পোৱা নগ’ল।',
   'supReports.fetchError': 'প্ৰতিবেদন আনিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'supReports.serverError':
+    'প্ৰতিবেদন উপলব্ধ নহয় — চাৰ্ভাৰ ত্ৰুটি। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।',
+  'supReports.dismiss': 'বন্ধ কৰক',
   'supReports.lookupError': 'প্ৰতিবেদনৰ বিকল্পসমূহ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'supReports.unsupportedReport':
     'এই প্ৰতিবেদন উপলব্ধ নহয়। অনুগ্ৰহ কৰি আন এখন প্ৰতিবেদন বাছনি কৰক।',
@@ -1260,6 +1266,16 @@ export const as: Record<TranslationKey, string> = {
   'supScheme.activated': 'আঁচনি সফলতাৰে সক্ৰিয় কৰা হৈছে',
   'supScheme.deactivated': 'আঁচনি সফলতাৰে নিষ্ক্ৰিয় কৰা হৈছে',
 
+  // Upload symptoms (CDSS algorithm)
+  'supSymptom.title': 'লক্ষণসমূহ আপল’ড কৰক',
+  'supSymptom.prompt': 'লক্ষণসমূহ আপল’ড কৰিবলৈ অনুগ্ৰহ কৰি এলগৰিথম প্ৰবিষ্ট কৰক',
+  'supSymptom.algorithmLabel': 'চিডিএছএছ',
+  'supSymptom.enterAlgorithm': 'অনুগ্ৰহ কৰি লক্ষণৰ এলগৰিথম প্ৰবিষ্ট কৰক',
+  'supSymptom.submit': 'দাখিল কৰক',
+  'supSymptom.uploaded': 'সফলতাৰে আপল’ড কৰা হৈছে',
+  'supSymptom.alreadyExists': 'তথ্য ইতিমধ্যে বিদ্যমান',
+  'supSymptom.uploadFailed': 'আপল’ড বিফল হ’ল, অনুগ্ৰহ কৰি পিছত পুনৰ চেষ্টা কৰক।',
+
   // Blood bank URL
   'supBlood.title': 'ৰক্তৰ ইউআৰএল (URL) আপডেট কৰক',
   'supBlood.currentUrl': 'বৰ্তমান ইউআৰএল',
@@ -1346,4 +1362,11 @@ export const as: Record<TranslationKey, string> = {
   'supDisease.statusUpdated': 'অৱস্থা সফলতাৰে আপডেট কৰা হ’ল',
   'supDisease.statusFailed': 'অৱস্থা আপডেট কৰিবলৈ ব্যৰ্থ',
   'supDisease.loadError': 'ৰোগৰ সাৰাংশ ল’ড কৰিবলৈ ব্যৰ্থ',
+
+  // Shared alert/confirm dialog titles (ConfirmationService)
+  'dialog.confirmTitle': 'নিশ্চিত কৰক',
+  'dialog.infoTitle': 'তথ্য',
+  'dialog.successTitle': 'সফলতা',
+  'dialog.warningTitle': 'সতৰ্কবাণী',
+  'dialog.errorTitle': 'ত্ৰুটি',
 };
