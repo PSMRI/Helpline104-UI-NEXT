@@ -91,11 +91,17 @@ export class CallStore {
   private readonly _beneficiaryId = signal<number | null>(
     readStoredId(this.storage.getItem(CALL_STORAGE_KEYS.beneficiaryId)),
   );
+  // District and demographics are beneficiary-scoped: they are restored only
+  // when the beneficiary itself survived. Rehydrating them on their own would
+  // leave one patient's details in the store under no owner — and the next
+  // caller identified in this call would inherit them.
   private readonly _districtID = signal<number | null>(
-    readStoredId(this.storage.getItem(CALL_STORAGE_KEYS.districtId)),
+    this._beneficiaryId() === null ? null : readStoredId(this.storage.getItem(CALL_STORAGE_KEYS.districtId)),
   );
   private readonly _demographics = signal<CallerDemographics | null>(
-    readStoredDemographics(this.storage.getItem(CALL_STORAGE_KEYS.demographics)),
+    this._beneficiaryId() === null
+      ? null
+      : readStoredDemographics(this.storage.getItem(CALL_STORAGE_KEYS.demographics)),
   );
 
   /** True while an inbound call is connected; gates the on-call workspace. */
@@ -118,6 +124,16 @@ export class CallStore {
   readonly demographics = this._demographics.asReadonly();
   /** Epoch ms when the active call connected, or null when not on a call. */
   readonly startedAt = this._startedAt.asReadonly();
+
+  constructor() {
+    // A beneficiary that did not survive rehydration (key absent, or corrupt and
+    // rejected by readStoredId) leaves its district and demographics orphaned in
+    // storage. Purge them now so a later reload cannot resurrect one patient's
+    // details alongside a different beneficiary.
+    if (this._beneficiaryId() === null) {
+      this.clearBeneficiaryStorage();
+    }
+  }
 
   /**
    * Seed the store from an inbound CTI event and mark the agent on-call.
@@ -161,6 +177,7 @@ export class CallStore {
    * beneficiary-scoped, so clearing the beneficiary (passing null) also clears it.
    */
   setBeneficiaryId(beneficiaryId: number | null, districtID: number | null = null): void {
+    const previous = this._beneficiaryId();
     this._beneficiaryId.set(beneficiaryId);
     this._districtID.set(beneficiaryId === null ? null : districtID);
     // Demographics only make sense while a beneficiary is set; clearing the id
@@ -169,6 +186,14 @@ export class CallStore {
       this._demographics.set(null);
       this.clearBeneficiaryStorage();
       return;
+    }
+
+    // Switching to a different beneficiary invalidates the previous patient's
+    // demographics. Drop them here rather than trusting every caller to follow
+    // up with setDemographics(): a name/age/gender left over from the previous
+    // patient would otherwise be shown as this one's.
+    if (previous !== beneficiaryId) {
+      this.setDemographics(null);
     }
 
     this.storage.setItem(CALL_STORAGE_KEYS.beneficiaryId, String(beneficiaryId));

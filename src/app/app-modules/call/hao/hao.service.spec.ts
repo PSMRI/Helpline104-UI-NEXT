@@ -154,28 +154,37 @@ describe('HaoService call-lifecycle envelope handling', () => {
     });
   });
 
-  // A body-less answer (HTTP 204, or a JSON `null`) must not be read through: it
-  // carries no failure, and a TypeError here would be surfaced to the agent as a
-  // failed transfer/close — the mis-report the envelope check exists to prevent.
+  // A body-less answer must not be read through: it carries no failure, and a
+  // TypeError here would be surfaced to the agent as a failed transfer/close —
+  // the mis-report the envelope check exists to prevent. Both shapes are covered:
+  // HTTP 204 No Content, and a 200 whose JSON body is literally `null`.
   describe('null response body', () => {
-    it('closeCall completes', () => {
-      const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
-      service.closeCall(closeRequest()).subscribe(outcome);
+    const noContent = { status: 204, statusText: 'No Content' };
+    const okWithNullBody = { status: 200, statusText: 'OK' };
 
-      expectOne('call/closeCall').flush(null, { status: 204, statusText: 'No Content' });
+    for (const [label, options] of [
+      ['204 No Content', noContent],
+      ['200 with a JSON null body', okWithNullBody],
+    ] as const) {
+      it(`closeCall completes on ${label}`, () => {
+        const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
+        service.closeCall(closeRequest()).subscribe(outcome);
 
-      expect(outcome.error).not.toHaveBeenCalled();
-      expect(outcome.next).toHaveBeenCalled();
-    });
+        expectOne('call/closeCall').flush(null, options);
 
-    it('transferCall completes', () => {
-      const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
-      service.transferCall(transferRequest()).subscribe(outcome);
+        expect(outcome.error).not.toHaveBeenCalled();
+        expect(outcome.next).toHaveBeenCalled();
+      });
 
-      expectOne('cti/transferCall').flush(null, { status: 204, statusText: 'No Content' });
+      it(`transferCall completes on ${label}`, () => {
+        const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
+        service.transferCall(transferRequest()).subscribe(outcome);
 
-      expect(outcome.error).not.toHaveBeenCalled();
-      expect(outcome.next).toHaveBeenCalled();
-    });
+        expectOne('cti/transferCall').flush(null, options);
+
+        expect(outcome.error).not.toHaveBeenCalled();
+        expect(outcome.next).toHaveBeenCalled();
+      });
+    }
   });
 });

@@ -57,14 +57,17 @@ describe('App', () => {
     expect(render().querySelector('router-outlet')).not.toBeNull();
   });
 
-  it('renders the CTI panel outside the outlet so the softphone survives navigation', () => {
+  it('renders the CTI panel as a direct sibling of the outlet so the softphone survives navigation', () => {
     const compiled = render();
+    const outlet = compiled.querySelector('router-outlet');
     const panel = compiled.querySelector('app-cti-panel');
 
+    expect(outlet).not.toBeNull();
     expect(panel).not.toBeNull();
-    // A sibling of the outlet, not a descendant — nesting it inside would tear the
-    // iframe down on every route change and drop the connected call.
-    expect(panel?.closest('router-outlet')).toBeNull();
+    // Nesting the panel inside the outlet — or inside any wrapper the outlet does
+    // not share — would tear the CZentrix iframe down on every route change and
+    // drop the connected call, so same-parent placement is the actual invariant.
+    expect(panel?.parentElement).toBe(outlet?.parentElement);
   });
 
   it('renders the toaster', () => {

@@ -72,10 +72,19 @@ describe('CallStore beneficiary persistence', () => {
     });
   });
 
+  const demographicsOf = (firstName: string): Parameters<CallStore['setDemographics']>[0] => ({
+    firstName,
+    lastName: null,
+    age: 36,
+    genderId: 1,
+    genderName: 'Male',
+  });
+
   it('clears the persisted beneficiary when it is released ("Back to RO")', () => {
     const seeding = freshStore();
     seeding.startCall({ cli: '9876543210', sessionId: '1' });
     seeding.setBeneficiaryId(5006622, 54);
+    seeding.setDemographics(demographicsOf('Test'));
     seeding.setBeneficiaryId(null);
 
     const reloaded = freshStore();
@@ -89,6 +98,7 @@ describe('CallStore beneficiary persistence', () => {
     const first = freshStore();
     first.startCall({ cli: '9876543210', sessionId: '1' });
     first.setBeneficiaryId(5006622, 54);
+    first.setDemographics(demographicsOf('Test'));
 
     // A second inbound call arrives without an intervening endCall().
     first.startCall({ cli: '9998887777', sessionId: '2' });
@@ -97,6 +107,7 @@ describe('CallStore beneficiary persistence', () => {
 
     expect(reloaded.cli()).toBe('9998887777');
     expect(reloaded.beneficiaryId()).toBeNull();
+    expect(reloaded.districtID()).toBeNull();
     expect(reloaded.demographics()).toBeNull();
   });
 
@@ -104,12 +115,75 @@ describe('CallStore beneficiary persistence', () => {
     const seeding = freshStore();
     seeding.startCall({ cli: '9876543210', sessionId: '1' });
     seeding.setBeneficiaryId(5006622, 54);
+    seeding.setDemographics(demographicsOf('Test'));
     seeding.endCall();
 
     const reloaded = freshStore();
 
     expect(reloaded.onCall()).toBeFalse();
+    expect(reloaded.cli()).toBeNull();
     expect(reloaded.beneficiaryId()).toBeNull();
+    expect(reloaded.districtID()).toBeNull();
+    expect(reloaded.demographics()).toBeNull();
+  });
+
+  describe('keeps demographics coupled to the beneficiary they belong to', () => {
+    it("drops the previous patient's demographics when the beneficiary changes", () => {
+      const store = freshStore();
+      store.startCall({ cli: '9876543210', sessionId: '1' });
+      store.setBeneficiaryId(5006622, 54);
+      store.setDemographics(demographicsOf('Patient A'));
+
+      // Re-identified as someone else — e.g. the caller was passed to a relative.
+      store.setBeneficiaryId(433069, 12);
+
+      expect(store.demographics()).toBeNull();
+      expect(freshStore().demographics()).toBeNull();
+    });
+
+    it('keeps demographics when the same beneficiary is re-set', () => {
+      const store = freshStore();
+      store.startCall({ cli: '9876543210', sessionId: '1' });
+      store.setBeneficiaryId(5006622, 54);
+      store.setDemographics(demographicsOf('Patient A'));
+
+      store.setBeneficiaryId(5006622, 54);
+
+      expect(store.demographics()?.firstName).toBe('Patient A');
+    });
+
+    it('does not restore demographics or district when the beneficiary id is missing', () => {
+      persist('callDemographics', JSON.stringify(demographicsOf('Orphan')));
+      persist('callDistrictId', '54');
+
+      const store = freshStore();
+
+      expect(store.beneficiaryId()).toBeNull();
+      expect(store.districtID()).toBeNull();
+      expect(store.demographics()).toBeNull();
+    });
+
+    it('does not restore demographics when the beneficiary id is corrupt', () => {
+      persist('callBeneficiaryId', '-1');
+      persist('callDemographics', JSON.stringify(demographicsOf('Orphan')));
+
+      expect(freshStore().demographics()).toBeNull();
+    });
+
+    it('purges the orphaned keys so a later reload cannot resurrect them', () => {
+      persist('callDemographics', JSON.stringify(demographicsOf('Orphan')));
+      persist('callDistrictId', '54');
+
+      // First construction finds no beneficiary and clears the orphans...
+      freshStore();
+      // ...so even a beneficiary appearing afterwards gets no inherited details.
+      persist('callBeneficiaryId', '5006622');
+      const reloaded = freshStore();
+
+      expect(reloaded.beneficiaryId()).toBe(5006622);
+      expect(reloaded.districtID()).toBeNull();
+      expect(reloaded.demographics()).toBeNull();
+    });
   });
 
   describe('rejects a corrupt persisted id rather than admitting a bogus patient', () => {
@@ -122,11 +196,18 @@ describe('CallStore beneficiary persistence', () => {
   });
 
   describe('re-validates every restored demographic field', () => {
+    /**
+     * Seed demographics against a valid owner. Demographics are beneficiary-scoped,
+     * so without a restorable beneficiary id they are dropped wholesale — which
+     * would exercise that coupling rule instead of the per-field validation here.
+     */
+    function persistDemographics(payload: string): void {
+      persist('callBeneficiaryId', '5006622');
+      persist('callDemographics', payload);
+    }
+
     it('discards wrong-typed names and out-of-contract numbers', () => {
-      persist(
-        'callDemographics',
-        JSON.stringify({ firstName: 42, lastName: {}, age: -3, genderId: 0, genderName: [] }),
-      );
+      persistDemographics(JSON.stringify({ firstName: 42, lastName: {}, age: -3, genderId: 0, genderName: [] }));
 
       expect(freshStore().demographics()).toEqual({
         firstName: null,
@@ -138,17 +219,17 @@ describe('CallStore beneficiary persistence', () => {
     });
 
     it('keeps age 0 — an infant registered in months reports 0 years', () => {
-      persist('callDemographics', JSON.stringify({ age: 0 }));
+      persistDemographics(JSON.stringify({ age: 0 }));
       expect(freshStore().demographics()?.age).toBe(0);
     });
 
     it('discards a fractional age', () => {
-      persist('callDemographics', JSON.stringify({ age: 1.5 }));
+      persistDemographics(JSON.stringify({ age: 1.5 }));
       expect(freshStore().demographics()?.age).toBeNull();
     });
 
     it('survives a malformed payload without throwing during bootstrap', () => {
-      persist('callDemographics', '{not json');
+      persistDemographics('{not json');
       expect(() => freshStore()).not.toThrow();
       expect(freshStore().demographics()).toBeNull();
     });
