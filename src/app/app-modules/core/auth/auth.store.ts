@@ -40,9 +40,7 @@ export class AuthStore {
   private readonly storage = inject(SessionStorageService);
 
   private readonly _token = signal<string | null>(this.storage.getItem(AUTH_STORAGE_KEYS.token));
-  private readonly _apimanKey = signal<string | null>(
-    this.storage.getItem(AUTH_STORAGE_KEYS.apimanKey),
-  );
+  private readonly _apimanKey = signal<string | null>(this.storage.getItem(AUTH_STORAGE_KEYS.apimanKey));
   private readonly _user = signal<AuthUser | null>(
     readStoredJson<AuthUser>(this.storage.getItem(AUTH_STORAGE_KEYS.user)),
   );

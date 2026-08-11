@@ -67,13 +67,7 @@ import { ForceLogoutService } from './force-logout.service';
           </label>
           <input id="fl-username" z-input class="w-full" [formControl]="userName" />
         </div>
-        <button
-          z-button
-          type="submit"
-          zType="default"
-          [zLoading]="saving()"
-          [zDisabled]="userName.invalid || saving()"
-        >
+        <button z-button type="submit" zType="default" [zLoading]="saving()" [zDisabled]="userName.invalid || saving()">
           {{ 'supLogout.kickout' | translate: lang() }}
         </button>
       </form>

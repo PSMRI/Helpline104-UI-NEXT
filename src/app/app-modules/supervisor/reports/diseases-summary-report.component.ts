@@ -20,20 +20,13 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { DataTableColumn, DataTableComponent } from '@/shared/components/data-table';
+import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { SupervisorError } from '../shared/supervisor-api';
 import { DiseaseSummaryItem } from './reports.models';
@@ -62,14 +55,24 @@ function decodeLines(value: string | undefined): string {
   selector: 'app-diseases-summary-report',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DataTableComponent, TranslatePipe],
+  imports: [DataTableComponent, TranslatePipe, ZardButtonComponent],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <h3 class="mb-4 text-base font-semibold text-foreground">
         {{ 'supReports.diseases.title' | translate: lang() }}
       </h3>
 
-      @if (errorMessage()) {
+      @if (serverError()) {
+        <div
+          class="mb-3 flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+          role="alert"
+        >
+          <span>{{ errorMessage() }}</span>
+          <button z-button type="button" zType="ghost" zSize="sm" (click)="dismissError()">
+            {{ 'supReports.dismiss' | translate: lang() }}
+          </button>
+        </div>
+      } @else if (errorMessage()) {
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
       }
 
@@ -105,17 +108,21 @@ export class DiseasesSummaryReportComponent implements OnInit {
 
   readonly loading = signal(false);
   readonly errorMessage = signal('');
+  /** True when the last load failed with an HTTP 5xx (see the error handler). */
+  readonly serverError = signal(false);
   readonly rows = signal<Record<string, unknown>[]>([]);
+
+  /** Dismiss the server-error banner. */
+  dismissError(): void {
+    this.errorMessage.set('');
+    this.serverError.set(false);
+  }
 
   /** Column headers re-resolve when the UI language changes. */
   readonly columns = computed<DataTableColumn[]>(() => {
     this.lang();
     return [
-      {
-        key: 'diseaseName',
-        header: this.i18n.instant('supReports.diseases.colName'),
-        sortable: true,
-      },
+      { key: 'diseaseName', header: this.i18n.instant('supReports.diseases.colName'), sortable: true },
       { key: 'summary', header: this.i18n.instant('supReports.diseases.colSummary') },
       { key: 'symptoms', header: this.i18n.instant('supReports.diseases.colSymptoms') },
       { key: 'medicalAdvice', header: this.i18n.instant('supReports.diseases.colAdvice') },
@@ -142,8 +149,12 @@ export class DiseasesSummaryReportComponent implements OnInit {
         error: (err: SupervisorError) => {
           this.loading.set(false);
           this.rows.set([]);
+          // A 5xx is a server fault, not an empty catalogue, and the raw message
+          // is never shown — see ReportRunner.messageFor for the same reasoning.
+          const isServerError = err.status >= 500;
+          this.serverError.set(isServerError);
           this.errorMessage.set(
-            err.errorMessage || this.i18n.instant('supReports.diseases.loadError'),
+            this.i18n.instant(isServerError ? 'supReports.serverError' : 'supReports.diseases.loadError'),
           );
         },
       });

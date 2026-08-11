@@ -131,11 +131,7 @@ export class LoginService {
    */
   private toLoginError(err: unknown): LoginError {
     // Already normalised (thrown from the map above).
-    if (
-      err &&
-      typeof (err as LoginError).status === 'number' &&
-      typeof (err as LoginError).errorMessage === 'string'
-    ) {
+    if (err && typeof (err as LoginError).status === 'number' && typeof (err as LoginError).errorMessage === 'string') {
       return err as LoginError;
     }
 

@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -48,19 +40,7 @@ import { SaveSchemeRequest, SchemeRow } from './upload-schemes.models';
 import { UploadSchemesService } from './upload-schemes.service';
 
 /** Allowed attachment extensions (legacy `valid_file_extensions`). */
-const VALID_FILE_EXTENSIONS = [
-  'msg',
-  'pdf',
-  'png',
-  'jpeg',
-  'jpg',
-  'doc',
-  'docx',
-  'xlsx',
-  'xls',
-  'csv',
-  'txt',
-];
+const VALID_FILE_EXTENSIONS = ['msg', 'pdf', 'png', 'jpeg', 'jpg', 'doc', 'docx', 'xlsx', 'xls', 'csv', 'txt'];
 /** Max attachment size in MB (legacy `maxFileSize`). */
 const MAX_FILE_SIZE_MB = 5;
 
@@ -197,23 +177,13 @@ const MAX_FILE_SIZE_MB = 5;
 
       <!-- Create / Modify form -->
       @if (!showTable()) {
-        <form
-          [formGroup]="form"
-          autocomplete="off"
-          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
+        <form [formGroup]="form" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label for="sch-name" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supScheme.name' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="sch-name"
-              z-input
-              class="w-full"
-              maxlength="100"
-              formControlName="schemeName"
-            />
+            <input id="sch-name" z-input class="w-full" maxlength="100" formControlName="schemeName" />
             @if (form.controls.schemeName.invalid && form.controls.schemeName.touched) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supScheme.enterName' | translate: lang() }}
@@ -245,8 +215,7 @@ const MAX_FILE_SIZE_MB = 5;
             <label for="sch-file" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supScheme.uploadFile' | translate: lang() }}
               ({{ 'supScheme.sizeLimit' | translate: lang() }}: {{ maxFileSize }}
-              {{ 'supScheme.mb' | translate: lang() }},
-              {{ 'supScheme.supportedFormats' | translate: lang() }})
+              {{ 'supScheme.mb' | translate: lang() }}, {{ 'supScheme.supportedFormats' | translate: lang() }})
             </label>
             <input
               id="sch-file"
@@ -283,19 +252,10 @@ const MAX_FILE_SIZE_MB = 5;
           </div>
           @if (existingFileName()) {
             <div>
-              <label
-                for="sch-existing"
-                class="mb-1 block text-xs font-medium text-muted-foreground"
-              >
+              <label for="sch-existing" class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{ 'supScheme.uploadedFile' | translate: lang() }}
               </label>
-              <input
-                id="sch-existing"
-                z-input
-                class="w-full"
-                [value]="existingFileName()"
-                disabled
-              />
+              <input id="sch-existing" z-input class="w-full" [value]="existingFileName()" disabled />
             </div>
           }
           <div class="sm:col-span-2 lg:col-span-3 flex justify-between">
@@ -348,11 +308,7 @@ export class UploadSchemesComponent implements OnInit {
   /** The FileReader failed (onerror); the attachment could not be read. */
   readonly fileReadError = signal(false);
   readonly fileInvalid = computed(
-    () =>
-      this.fileTooLarge() ||
-      this.invalidFileType() ||
-      this.invalidFileName() ||
-      this.fileReadError(),
+    () => this.fileTooLarge() || this.invalidFileType() || this.invalidFileName() || this.fileReadError(),
   );
 
   private editingSchemeID: number | null = null;
@@ -551,11 +507,7 @@ export class UploadSchemesComponent implements OnInit {
       .subscribe({
         next: () => {
           this.saving.set(false);
-          toast.success(
-            this.i18n.instant(
-              this.editingSchemeID != null ? 'supScheme.modified' : 'supScheme.stored',
-            ),
-          );
+          toast.success(this.i18n.instant(this.editingSchemeID != null ? 'supScheme.modified' : 'supScheme.stored'));
           this.editingSchemeID = null;
           this.editingKmFileManagerID = null;
           this.backToTable();
@@ -575,9 +527,7 @@ export class UploadSchemesComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          toast.success(
-            this.i18n.instant(deleted ? 'supScheme.deactivated' : 'supScheme.activated'),
-          );
+          toast.success(this.i18n.instant(deleted ? 'supScheme.deactivated' : 'supScheme.activated'));
           this.loadSchemes();
         },
         error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),

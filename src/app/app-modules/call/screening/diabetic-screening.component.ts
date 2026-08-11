@@ -77,14 +77,7 @@ type RiskLevel = 'low' | 'medium' | 'high';
   selector: 'app-diabetic-screening',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    NgClass,
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ZardInputDirective,
-  ],
+  imports: [NgClass, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
   viewProviders: [provideIcons({ lucideActivity, lucideChevronLeft })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -96,9 +89,7 @@ type RiskLevel = 'low' | 'medium' | 'high';
       </header>
 
       @if (!hasContext()) {
-        <p
-          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-        >
+        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
           {{ 'screening.noContext' | translate: lang() }}
         </p>
       } @else if (loading()) {
@@ -130,9 +121,7 @@ type RiskLevel = 'low' | 'medium' | 'high';
                     [class]="selectClass"
                     [formControlName]="q.questionID.toString()"
                   >
-                    <option [ngValue]="''" disabled>
-                      {{ 'screening.select' | translate: lang() }}
-                    </option>
+                    <option [ngValue]="''" disabled>{{ 'screening.select' | translate: lang() }}</option>
                     @for (a of q.m_104QuestionScore; track $index) {
                       <option [ngValue]="a.score">{{ a.answer }}</option>
                     }
@@ -157,13 +146,7 @@ type RiskLevel = 'low' | 'medium' | 'high';
             }
 
             <div class="mt-4 flex flex-wrap gap-2">
-              <button
-                z-button
-                type="button"
-                zType="default"
-                [zDisabled]="criteriaForm.invalid"
-                (click)="checkStatus()"
-              >
+              <button z-button type="button" zType="default" [zDisabled]="criteriaForm.invalid" (click)="checkStatus()">
                 {{ 'screening.diabetic.check' | translate: lang() }}
               </button>
               <button z-button type="button" zType="outline" (click)="view.set('risk')">
@@ -185,27 +168,13 @@ type RiskLevel = 'low' | 'medium' | 'high';
               <label for="diab-weight" class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{ 'screening.weight' | translate: lang() }}
               </label>
-              <input
-                id="diab-weight"
-                z-input
-                class="w-full"
-                type="number"
-                inputmode="numeric"
-                [formControl]="weight"
-              />
+              <input id="diab-weight" z-input class="w-full" type="number" inputmode="numeric" [formControl]="weight" />
             </div>
             <div>
               <label for="diab-height" class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{ 'screening.height' | translate: lang() }}
               </label>
-              <input
-                id="diab-height"
-                z-input
-                class="w-full"
-                type="number"
-                inputmode="numeric"
-                [formControl]="height"
-              />
+              <input id="diab-height" z-input class="w-full" type="number" inputmode="numeric" [formControl]="height" />
             </div>
             <div>
               <button
@@ -222,9 +191,7 @@ type RiskLevel = 'low' | 'medium' | 'high';
               <span class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{ 'screening.obesity' | translate: lang() }}
               </span>
-              <p
-                class="flex h-9 items-center rounded-md border border-border bg-muted/40 px-3 text-sm"
-              >
+              <p class="flex h-9 items-center rounded-md border border-border bg-muted/40 px-3 text-sm">
                 {{ obesity() || '—' }}
               </p>
             </div>
@@ -246,9 +213,7 @@ type RiskLevel = 'low' | 'medium' | 'high';
                     [class]="selectClass"
                     [formControlName]="q.questionID.toString()"
                   >
-                    <option [ngValue]="''" disabled>
-                      {{ 'screening.select' | translate: lang() }}
-                    </option>
+                    <option [ngValue]="''" disabled>{{ 'screening.select' | translate: lang() }}</option>
                     @for (a of q.m_104QuestionScore; track $index) {
                       <option [ngValue]="a.answer">{{ a.answer }}</option>
                     }
@@ -264,18 +229,10 @@ type RiskLevel = 'low' | 'medium' | 'high';
               <table class="w-full text-left text-xs">
                 <thead class="bg-muted/50 text-muted-foreground">
                   <tr>
-                    <th class="px-2 py-1 font-medium">
-                      {{ 'screening.diabetic.parameter' | translate: lang() }}
-                    </th>
-                    <th class="px-2 py-1 font-medium">
-                      {{ 'screening.normal' | translate: lang() }}
-                    </th>
-                    <th class="px-2 py-1 font-medium">
-                      {{ 'screening.diabetic.prediabetic' | translate: lang() }}
-                    </th>
-                    <th class="px-2 py-1 font-medium">
-                      {{ 'screening.diabetic.diabetic' | translate: lang() }}
-                    </th>
+                    <th class="px-2 py-1 font-medium">{{ 'screening.diabetic.parameter' | translate: lang() }}</th>
+                    <th class="px-2 py-1 font-medium">{{ 'screening.normal' | translate: lang() }}</th>
+                    <th class="px-2 py-1 font-medium">{{ 'screening.diabetic.prediabetic' | translate: lang() }}</th>
+                    <th class="px-2 py-1 font-medium">{{ 'screening.diabetic.diabetic' | translate: lang() }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -304,12 +261,8 @@ type RiskLevel = 'low' | 'medium' | 'high';
               <table class="w-full text-left text-xs">
                 <thead class="bg-muted/50 text-muted-foreground">
                   <tr>
-                    <th class="px-2 py-1 font-medium">
-                      {{ 'screening.diabetic.condition' | translate: lang() }}
-                    </th>
-                    <th class="px-2 py-1 font-medium">
-                      {{ 'screening.action' | translate: lang() }}
-                    </th>
+                    <th class="px-2 py-1 font-medium">{{ 'screening.diabetic.condition' | translate: lang() }}</th>
+                    <th class="px-2 py-1 font-medium">{{ 'screening.action' | translate: lang() }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -333,8 +286,7 @@ type RiskLevel = 'low' | 'medium' | 'high';
           <!-- Remarks + actions -->
           <div class="mt-4">
             <label for="diab-remarks" class="mb-1 block text-sm font-medium text-foreground">
-              {{ 'screening.remarksByHao' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'screening.remarksByHao' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <textarea
               id="diab-remarks"
@@ -345,9 +297,7 @@ type RiskLevel = 'low' | 'medium' | 'high';
               [formControl]="remarks"
             ></textarea>
             @if (remarks.invalid && remarks.touched) {
-              <p class="mt-0.5 text-xs text-destructive">
-                {{ 'screening.remarksRequired' | translate: lang() }}
-              </p>
+              <p class="mt-0.5 text-xs text-destructive">{{ 'screening.remarksRequired' | translate: lang() }}</p>
             }
           </div>
 
@@ -428,21 +378,15 @@ export class DiabeticScreeningComponent implements OnInit {
       .getQuestionTypes()
       .pipe(
         switchMap((types) => {
-          const diabeticId = types.find(
-            (t) => t.questionType === QUESTION_TYPE.diabetic,
-          )?.questionTypeID;
-          const riskId = types.find(
-            (t) => t.questionType === QUESTION_TYPE.diabeticRiskFactors,
-          )?.questionTypeID;
+          const diabeticId = types.find((t) => t.questionType === QUESTION_TYPE.diabetic)?.questionTypeID;
+          const riskId = types.find((t) => t.questionType === QUESTION_TYPE.diabeticRiskFactors)?.questionTypeID;
           return forkJoin({
             criteria:
               diabeticId != null
                 ? this.screening.getQuestions(diabeticId, providerServiceMapID)
                 : of<ScreeningQuestion[]>([]),
             risk:
-              riskId != null
-                ? this.screening.getQuestions(riskId, providerServiceMapID)
-                : of<ScreeningQuestion[]>([]),
+              riskId != null ? this.screening.getQuestions(riskId, providerServiceMapID) : of<ScreeningQuestion[]>([]),
           });
         }),
         takeUntilDestroyed(this.destroyRef),

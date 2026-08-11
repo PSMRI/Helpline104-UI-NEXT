@@ -72,9 +72,7 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
   imports: [NgClass, NgIcon, ZardButtonComponent, ZardInputDirective, TranslatePipe],
   viewProviders: [provideIcons({ lucideStar, lucideX })],
   template: `
-    <div
-      class="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground"
-    >
+    <div class="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
       <section
         class="relative w-full max-w-md rounded-lg border border-border bg-card p-6 text-card-foreground shadow-lg"
       >
@@ -114,12 +112,7 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
               [ngClass]="option.value <= rating() ? 'text-warning' : 'text-muted-foreground'"
               (click)="selectRating(option.value)"
             >
-              <ng-icon
-                name="lucideStar"
-                size="28"
-                [class.fill-current]="option.value <= rating()"
-                aria-hidden="true"
-              />
+              <ng-icon name="lucideStar" size="28" [class.fill-current]="option.value <= rating()" aria-hidden="true" />
               <span class="text-xs">{{ option.labelKey | translate: lang() }}</span>
             </button>
           }
@@ -153,9 +146,7 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
             [placeholder]="'feedback.commentPlaceholder' | translate: lang()"
             (input)="onCommentInput($event)"
           ></textarea>
-          <p class="mt-1 text-right text-xs text-muted-foreground">
-            {{ comment().length }} / {{ maxCommentLength }}
-          </p>
+          <p class="mt-1 text-right text-xs text-muted-foreground">{{ comment().length }} / {{ maxCommentLength }}</p>
         </div>
 
         <p class="mb-4 text-xs text-muted-foreground">

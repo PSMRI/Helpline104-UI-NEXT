@@ -25,13 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
-import {
-  ApiResponse,
-  MctsCallRow,
-  MctsQaRow,
-  MmuVisitRow,
-  OtherHelplineError,
-} from './other-helpline.models';
+import { ApiResponse, MctsCallRow, MctsQaRow, MmuVisitRow, OtherHelplineError } from './other-helpline.models';
 
 const MCTS_HISTORY_PATH = 'mctsOutboundHistoryController/getMctsCallHistory';
 const MCTS_RESPONSE_PATH = 'mctsOutboundHistoryController/getMctsCallResponse';
@@ -55,9 +49,7 @@ export class OtherHelplineService {
   /** MCTS outbound-call history for a beneficiary (common API). */
   getMctsCallHistory(beneficiaryRegID: number | null): Observable<MctsCallRow[]> {
     return this.http
-      .post<ApiResponse<MctsCallRow[]>>(this.config.getCommonBaseURL() + MCTS_HISTORY_PATH, {
-        beneficiaryRegID,
-      })
+      .post<ApiResponse<MctsCallRow[]>>(this.config.getCommonBaseURL() + MCTS_HISTORY_PATH, { beneficiaryRegID })
       .pipe(
         timeout(HISTORY_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
@@ -68,9 +60,7 @@ export class OtherHelplineService {
   /** Question/answer detail for one MCTS call (common API). */
   getMctsCallResponse(callDetailID: number): Observable<MctsQaRow[]> {
     return this.http
-      .post<ApiResponse<MctsQaRow[]>>(this.config.getCommonBaseURL() + MCTS_RESPONSE_PATH, {
-        callDetailID,
-      })
+      .post<ApiResponse<MctsQaRow[]>>(this.config.getCommonBaseURL() + MCTS_RESPONSE_PATH, { callDetailID })
       .pipe(
         timeout(HISTORY_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),

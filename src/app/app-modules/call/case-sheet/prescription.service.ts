@@ -106,21 +106,17 @@ export class PrescriptionService {
 
   /** Drug frequencies. Resolves to `[]`. */
   getFrequencies(): Observable<string[]> {
-    return this.http
-      .post<ApiResponse<RawDrugFrequency[]>>(this.baseUrl + DRUG_FREQUENCY_PATH, {})
-      .pipe(
-        timeout(PRESCRIPTION_TIMEOUT_MS),
-        map((res) => this.cleanStrings(this.readData(res), (r) => r.frequency)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<RawDrugFrequency[]>>(this.baseUrl + DRUG_FREQUENCY_PATH, {}).pipe(
+      timeout(PRESCRIPTION_TIMEOUT_MS),
+      map((res) => this.cleanStrings(this.readData(res), (r) => r.frequency)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /** Prior prescriptions for a beneficiary (history). Resolves to `[]`. */
   getPrescriptionList(beneficiaryRegID: number | null): Observable<PrescriptionRecord[]> {
     return this.http
-      .post<ApiResponse<PrescriptionRecord[]>>(this.baseUrl + PRESCRIPTION_LIST_PATH, {
-        beneficiaryRegID,
-      })
+      .post<ApiResponse<PrescriptionRecord[]>>(this.baseUrl + PRESCRIPTION_LIST_PATH, { beneficiaryRegID })
       .pipe(
         timeout(PRESCRIPTION_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
@@ -130,21 +126,19 @@ export class PrescriptionService {
 
   /** Save a prescription; resolves to the created prescription (with its id). */
   savePrescription(payload: SavePrescriptionRequest): Observable<SavePrescriptionResponse> {
-    return this.http
-      .post<ApiResponse<SavePrescriptionResponse>>(this.baseUrl + SAVE_PRESCRIPTION_PATH, payload)
-      .pipe(
-        timeout(PRESCRIPTION_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw this.toError(res);
-          }
-          // Legacy `extractData` returned the whole body when there was no
-          // `data` envelope, and read `prescriptionID` off it — mirror that so
-          // the created id is never dropped.
-          return res.data ?? (res as unknown as SavePrescriptionResponse) ?? {};
-        }),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<SavePrescriptionResponse>>(this.baseUrl + SAVE_PRESCRIPTION_PATH, payload).pipe(
+      timeout(PRESCRIPTION_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw this.toError(res);
+        }
+        // Legacy `extractData` returned the whole body when there was no
+        // `data` envelope, and read `prescriptionID` off it — mirror that so
+        // the created id is never dropped.
+        return res.data ?? (res as unknown as SavePrescriptionResponse) ?? {};
+      }),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /** Extract, trim and de-dupe a string field from a possibly-absent list. */

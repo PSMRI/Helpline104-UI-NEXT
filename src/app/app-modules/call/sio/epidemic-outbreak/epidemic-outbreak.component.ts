@@ -45,12 +45,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  BlockOption,
-  DistrictOption,
-  StateOption,
-  VillageOption,
-} from '../../beneficiary/beneficiary.models';
+import { BlockOption, DistrictOption, StateOption, VillageOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { EpidemicOutbreakService } from './epidemic-outbreak.service';
@@ -77,15 +72,11 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
         <ng-icon name="lucideActivity" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">
-          {{ 'sio.epidemic.title' | translate: lang() }}
-        </h3>
+        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.epidemic.title' | translate: lang() }}</h3>
       </header>
 
       @if (!hasContext()) {
-        <p
-          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-        >
+        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
           {{ 'sio.common.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -96,13 +87,10 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
         <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label for="epi-nature" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.epidemic.nature' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.epidemic.nature' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="epi-nature" [class]="selectClass" formControlName="natureOfComplaint">
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (n of natures(); track n.feedbackNatureID) {
                 <option [ngValue]="n.feedbackNature">{{ n.feedbackNature }}</option>
               }
@@ -111,8 +99,7 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
 
           <div>
             <label for="epi-affected" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.epidemic.peopleAffected' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.epidemic.peopleAffected' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
               id="epi-affected"
@@ -130,15 +117,8 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
             <label for="epi-state" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.state' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select
-              id="epi-state"
-              [class]="selectClass"
-              formControlName="stateID"
-              (change)="onStateChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+            <select id="epi-state" [class]="selectClass" formControlName="stateID" (change)="onStateChange()">
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (s of states(); track s.stateID) {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
@@ -147,18 +127,10 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
 
           <div>
             <label for="epi-district" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.common.district' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.common.district' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select
-              id="epi-district"
-              [class]="selectClass"
-              formControlName="districtID"
-              (change)="onDistrictChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+            <select id="epi-district" [class]="selectClass" formControlName="districtID" (change)="onDistrictChange()">
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (d of districts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
@@ -166,12 +138,8 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
           </div>
 
           <div>
-            <label
-              for="epi-subdistrict"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              {{ 'sio.common.subDistrict' | translate: lang() }}
-              <span class="text-destructive">*</span>
+            <label for="epi-subdistrict" class="mb-1 block text-xs font-medium text-muted-foreground">
+              {{ 'sio.common.subDistrict' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select
               id="epi-subdistrict"
@@ -179,9 +147,7 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
               formControlName="subDistrictID"
               (change)="onSubDistrictChange()"
             >
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (b of subDistricts(); track b.blockID) {
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
               }
@@ -228,36 +194,20 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
         </div>
 
         <div class="mt-6">
-          <h4 class="mb-2 text-sm font-medium text-foreground">
-            {{ 'sio.common.history' | translate: lang() }}
-          </h4>
+          <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.common.history' | translate: lang() }}</h4>
           @if (history().length === 0) {
-            <p class="text-sm text-muted-foreground">
-              {{ 'sio.common.noHistory' | translate: lang() }}
-            </p>
+            <p class="text-sm text-muted-foreground">{{ 'sio.common.noHistory' | translate: lang() }}</p>
           } @else {
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.epidemic.colComplaintId' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.epidemic.nature' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.epidemic.peopleAffected' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.district' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.subDistrict' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.remarks' | translate: lang() }}
-                    </th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.epidemic.colComplaintId' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.epidemic.nature' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.epidemic.peopleAffected' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.district' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.subDistrict' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.remarks' | translate: lang() }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -372,10 +322,7 @@ export class EpidemicOutbreakComponent implements OnInit {
     this.beneficiary
       .getSubDistricts(districtID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (b) => this.subDistricts.set(b),
-        error: (e: SioError) => this.setError(e),
-      });
+      .subscribe({ next: (b) => this.subDistricts.set(b), error: (e: SioError) => this.setError(e) });
   }
 
   onSubDistrictChange(): void {

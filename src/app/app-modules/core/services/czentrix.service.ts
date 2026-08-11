@@ -122,13 +122,9 @@ export class CzentrixService {
     return this.config.getOpenCommonBaseURL();
   }
 
-  private readonly _loginKey = signal<string | null>(
-    this.storage.getItem(CTI_STORAGE_KEYS.loginKey),
-  );
+  private readonly _loginKey = signal<string | null>(this.storage.getItem(CTI_STORAGE_KEYS.loginKey));
   private readonly _agentIP = signal<string | null>(this.storage.getItem(CTI_STORAGE_KEYS.agentIP));
-  private readonly _agentID = signal<number | null>(
-    toNumberOrNull(this.storage.getItem(CTI_STORAGE_KEYS.agentID)),
-  );
+  private readonly _agentID = signal<number | null>(toNumberOrNull(this.storage.getItem(CTI_STORAGE_KEYS.agentID)));
 
   /** CZentrix bar login key from `cti/getLoginKey` (legacy `loginKey`). */
   readonly loginKey = this._loginKey.asReadonly();
@@ -192,11 +188,7 @@ export class CzentrixService {
    * it never errors, because the legacy app also let the portal login proceed
    * when CTI was unreachable (the softphone simply stays dark).
    */
-  startCtiSession(
-    username: string,
-    encryptedPassword: string,
-    agentID: number,
-  ): Observable<boolean> {
+  startCtiSession(username: string, encryptedPassword: string, agentID: number): Observable<boolean> {
     return this.getLoginKey(username, encryptedPassword).pipe(
       tap((key) => this.setLoginKey(key.login_key ?? null)),
       switchMap(() => this.getAgentIPAddress(agentID)),

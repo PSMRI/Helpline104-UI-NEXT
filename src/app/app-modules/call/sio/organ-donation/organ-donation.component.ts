@@ -71,15 +71,11 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
         <ng-icon name="lucideHeartPulse" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">
-          {{ 'sio.organ.title' | translate: lang() }}
-        </h3>
+        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.organ.title' | translate: lang() }}</h3>
       </header>
 
       @if (!hasContext()) {
-        <p
-          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-        >
+        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
           {{ 'sio.common.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -90,17 +86,9 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
         <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label for="organ-donor" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.organ.donorName' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.organ.donorName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input
-              id="organ-donor"
-              z-input
-              class="w-full"
-              type="text"
-              maxlength="25"
-              formControlName="donorName"
-            />
+            <input id="organ-donor" z-input class="w-full" type="text" maxlength="25" formControlName="donorName" />
           </div>
 
           <div>
@@ -124,9 +112,7 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
               {{ 'sio.common.gender' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="organ-gender" [class]="selectClass" formControlName="donorGenderID">
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (g of genders(); track g.genderID) {
                 <option [ngValue]="g.genderID">{{ g.genderName }}</option>
               }
@@ -135,13 +121,10 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
 
           <div>
             <label for="organ-type" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.organ.donationType' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.organ.donationType' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="organ-type" [class]="selectClass" formControlName="donationTypeID">
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (t of donationTypes(); track t.donationTypeID) {
                 <option [ngValue]="t.donationTypeID">{{ t.donationType }}</option>
               }
@@ -153,9 +136,7 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
               {{ 'sio.organ.organ' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="organ-organ" [class]="selectClass" formControlName="donatableOrganID">
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (o of donatableOrgans(); track o.donatableOrganID) {
                 <option [ngValue]="o.donatableOrganID">{{ o.donatableOrgan }}</option>
               }
@@ -190,36 +171,20 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
         </div>
 
         <div class="mt-6">
-          <h4 class="mb-2 text-sm font-medium text-foreground">
-            {{ 'sio.common.history' | translate: lang() }}
-          </h4>
+          <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.common.history' | translate: lang() }}</h4>
           @if (history().length === 0) {
-            <p class="text-sm text-muted-foreground">
-              {{ 'sio.common.noHistory' | translate: lang() }}
-            </p>
+            <p class="text-sm text-muted-foreground">{{ 'sio.common.noHistory' | translate: lang() }}</p>
           } @else {
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.organ.colRequestId' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.organ.colDonor' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.gender' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.age' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.organ.donationType' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.organ.organ' | translate: lang() }}
-                    </th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.organ.colRequestId' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.organ.colDonor' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.gender' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.age' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.organ.donationType' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.organ.organ' | translate: lang() }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -271,11 +236,7 @@ export class OrganDonationComponent implements OnInit {
       Validators.minLength(3),
       Validators.maxLength(25),
     ]),
-    donorAge: this.fb.control<number | null>(null, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(120),
-    ]),
+    donorAge: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(120)]),
     donorGenderID: this.fb.control<number | null>(null, Validators.required),
     donationTypeID: this.fb.control<number | null>(null, Validators.required),
     donatableOrganID: this.fb.control<number | null>(null, Validators.required),

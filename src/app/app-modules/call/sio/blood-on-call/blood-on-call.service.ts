@@ -52,10 +52,7 @@ export class BloodOnCallService {
 
   getComponentTypes(): Observable<BloodComponentType[]> {
     return this.http
-      .post<ApiResponse<BloodComponentType[]>>(
-        this.config.get104BaseURL() + COMPONENT_TYPES_PATH,
-        {},
-      )
+      .post<ApiResponse<BloodComponentType[]>>(this.config.get104BaseURL() + COMPONENT_TYPES_PATH, {})
       .pipe(
         timeout(SIO_TIMEOUT_MS),
         map((res) => readSioData(res) ?? []),
@@ -64,13 +61,11 @@ export class BloodOnCallService {
   }
 
   getBloodGroups(): Observable<BloodGroup[]> {
-    return this.http
-      .post<ApiResponse<BloodGroup[]>>(this.config.get104BaseURL() + BLOOD_GROUPS_PATH, {})
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => readSioData(res) ?? []),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<BloodGroup[]>>(this.config.get104BaseURL() + BLOOD_GROUPS_PATH, {}).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => readSioData(res) ?? []),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 
   /** Blood-bank reference link for the service, if one is configured. */
@@ -103,17 +98,15 @@ export class BloodOnCallService {
   }
 
   saveRequest(payload: SaveBloodRequest): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload)
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw toSioError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw toSioError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 }

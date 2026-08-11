@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -41,11 +34,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TranslationKey } from '../../core/i18n/locales';
-import {
-  ALERT_CATEGORY_TYPES,
-  AlertCategory,
-  UserNotification,
-} from '../alerts-notifications.models';
+import { ALERT_CATEGORY_TYPES, AlertCategory, UserNotification } from '../alerts-notifications.models';
 import { AlertsIdentity, AlertsNotificationsService } from '../alerts-notifications.service';
 import { AlertsNotificationsDialogComponent } from './dialogs/alerts-notifications-dialog.component';
 
@@ -176,8 +165,7 @@ export class AlertsPanelComponent implements OnInit {
         next: (count) => {
           const list = count.userNotificationTypeList ?? [];
           const unreadOf = (typeName: string): number =>
-            list.find((item) => item.notificationType === typeName)?.notificationTypeUnreadCount ??
-            0;
+            list.find((item) => item.notificationType === typeName)?.notificationTypeUnreadCount ?? 0;
           this.counts.set({
             alerts: unreadOf(ALERT_CATEGORY_TYPES.alerts),
             officeBulletin: unreadOf(ALERT_CATEGORY_TYPES.officeBulletin),
@@ -200,9 +188,7 @@ export class AlertsPanelComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (messages) => {
-          const current = messages.filter(
-            (m: UserNotification) => m.notificationState !== 'future',
-          );
+          const current = messages.filter((m: UserNotification) => m.notificationState !== 'future');
           if (current.length === 0) {
             this.showEmpty(row.emptyKey);
             return;

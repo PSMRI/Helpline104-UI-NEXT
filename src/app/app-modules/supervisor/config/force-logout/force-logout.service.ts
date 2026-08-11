@@ -25,12 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../../core/services/config.service';
-import {
-  ApiResponse,
-  SUPERVISOR_TIMEOUT_MS,
-  readSupervisorData,
-  toSupervisorError,
-} from '../../shared/supervisor-api';
+import { ApiResponse, SUPERVISOR_TIMEOUT_MS, readSupervisorData, toSupervisorError } from '../../shared/supervisor-api';
 
 const FORCE_LOGOUT_PATH = 'user/forceLogout';
 
@@ -49,10 +44,7 @@ export class ForceLogoutService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(ConfigService);
 
-  forceLogout(
-    userName: string,
-    providerServiceMapID: number | null,
-  ): Observable<ForceLogoutResult | undefined> {
+  forceLogout(userName: string, providerServiceMapID: number | null): Observable<ForceLogoutResult | undefined> {
     return this.http
       .post<ApiResponse<ForceLogoutResult>>(this.config.getCommonBaseURL() + FORCE_LOGOUT_PATH, {
         userName,

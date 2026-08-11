@@ -21,15 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  input,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslationKey } from '../../core/i18n/locales';
@@ -68,9 +60,7 @@ function formatDuration(totalSeconds: number): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, TranslatePipe],
   template: `
-    <section
-      class="rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
-    >
+    <section class="rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md">
       <header class="flex items-center justify-between border-b border-border px-4 py-3">
         <h2 class="text-lg font-semibold">
           {{ 'dashboard.callStatistics.title' | translate: lang() }}

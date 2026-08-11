@@ -95,10 +95,10 @@ export class AccountRecoveryService {
    */
   validateSecurityAnswers(userName: string, answers: SecurityAnswer[]): Observable<string> {
     return this.http
-      .post<ApiResponse<ValidateAnswersData>>(
-        this.baseUrl + 'user/validateSecurityQuestionAndAnswer',
-        { SecurityQuesAns: answers, userName },
-      )
+      .post<ApiResponse<ValidateAnswersData>>(this.baseUrl + 'user/validateSecurityQuestionAndAnswer', {
+        SecurityQuesAns: answers,
+        userName,
+      })
       .pipe(
         map((res) => {
           const transactionId = res.data?.transactionId;
@@ -115,11 +115,7 @@ export class AccountRecoveryService {
    * Set a new password using the transaction id obtained from answer
    * validation. `encryptedPassword` is the legacy `salt+iv+ciphertext` string.
    */
-  setForgetPassword(
-    userName: string,
-    encryptedPassword: string,
-    transactionId: string,
-  ): Observable<void> {
+  setForgetPassword(userName: string, encryptedPassword: string, transactionId: string): Observable<void> {
     return this.http
       .post<ApiResponse<unknown>>(this.baseUrl + 'user/setForgetPassword', {
         userName,
@@ -138,21 +134,19 @@ export class AccountRecoveryService {
 
   /** Fetch the catalogue of selectable security questions (first-login setup). */
   getSecurityQuestionOptions(): Observable<SecurityQuestionOption[]> {
-    return this.http
-      .get<ApiResponse<SecurityQuestionOption[]>>(this.baseUrl + 'user/getsecurityquetions')
-      .pipe(
-        map((res) => {
-          // A bad envelope (non-200) or a missing `data` payload is a hard
-          // failure, not "zero questions" — returning [] here would silently
-          // strand the user on an empty dropdown. Surface it as an error so the
-          // component shows the retry dialog instead.
-          if (res.statusCode !== 200 || !res.data) {
-            throw this.toRecoveryError(res);
-          }
-          return res.data;
-        }),
-        catchError((err: unknown) => throwError(() => this.toRecoveryError(err))),
-      );
+    return this.http.get<ApiResponse<SecurityQuestionOption[]>>(this.baseUrl + 'user/getsecurityquetions').pipe(
+      map((res) => {
+        // A bad envelope (non-200) or a missing `data` payload is a hard
+        // failure, not "zero questions" — returning [] here would silently
+        // strand the user on an empty dropdown. Surface it as an error so the
+        // component shows the retry dialog instead.
+        if (res.statusCode !== 200 || !res.data) {
+          throw this.toRecoveryError(res);
+        }
+        return res.data;
+      }),
+      catchError((err: unknown) => throwError(() => this.toRecoveryError(err))),
+    );
   }
 
   /**
@@ -162,10 +156,7 @@ export class AccountRecoveryService {
    */
   saveSecurityQuestions(payload: SaveSecurityQuesAns[]): Observable<string> {
     return this.http
-      .post<ApiResponse<ValidateAnswersData>>(
-        this.baseUrl + 'user/saveUserSecurityQuesAns',
-        payload,
-      )
+      .post<ApiResponse<ValidateAnswersData>>(this.baseUrl + 'user/saveUserSecurityQuesAns', payload)
       .pipe(
         map((res) => {
           const transactionId = res.data?.transactionId;

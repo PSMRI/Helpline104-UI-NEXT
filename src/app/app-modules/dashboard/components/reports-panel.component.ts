@@ -40,9 +40,7 @@ interface ReportLink {
 }
 
 /** The reports available to an agent (legacy: the surveyor CDI report). */
-const AGENT_REPORTS: readonly ReportLink[] = [
-  { nameKey: 'reports.callType.title', route: '/reports/call-type' },
-];
+const AGENT_REPORTS: readonly ReportLink[] = [{ nameKey: 'reports.callType.title', route: '/reports/call-type' }];
 
 /**
  * Reports panel: the reports the signed-in agent can open. Each row (and

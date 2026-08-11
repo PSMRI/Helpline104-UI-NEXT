@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -60,13 +52,7 @@ const FILE_NAME = 'Complaint_Details_Report';
   selector: 'app-complaint-detail-report',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ReportResultsComponent,
-  ],
+  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ReportResultsComponent],
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -74,7 +60,17 @@ const FILE_NAME = 'Complaint_Details_Report';
         {{ 'supReports.complaint.title' | translate: lang() }}
       </h3>
 
-      @if (runner.errorMessage()) {
+      @if (runner.serverError()) {
+        <div
+          class="mb-3 flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+          role="alert"
+        >
+          <span>{{ runner.errorMessage() }}</span>
+          <button z-button type="button" zType="ghost" zSize="sm" (click)="runner.dismissError()">
+            {{ 'supReports.dismiss' | translate: lang() }}
+          </button>
+        </div>
+      } @else if (runner.errorMessage()) {
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">
           {{ runner.errorMessage() }}
         </p>
@@ -111,12 +107,7 @@ const FILE_NAME = 'Complaint_Details_Report';
           <label for="cd-fbtype" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supReports.filter.feedbackType' | translate: lang() }}
           </label>
-          <select
-            id="cd-fbtype"
-            [class]="selectClass"
-            formControlName="feedbackType"
-            (change)="onFeedbackTypeChange()"
-          >
+          <select id="cd-fbtype" [class]="selectClass" formControlName="feedbackType" (change)="onFeedbackTypeChange()">
             <option [ngValue]="null">{{ 'supReports.all' | translate: lang() }}</option>
             @for (type of feedbackTypes(); track type.feedbackTypeID) {
               <option [ngValue]="type">{{ type.feedbackTypeName }}</option>
@@ -141,13 +132,7 @@ const FILE_NAME = 'Complaint_Details_Report';
       </form>
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
+        <button z-button type="button" [zLoading]="runner.loading()" [zDisabled]="form.invalid" (click)="view()">
           <ng-icon name="lucideEye" size="16" aria-hidden="true" />
           {{ 'supReports.view' | translate: lang() }}
         </button>
@@ -194,9 +179,7 @@ export class ComplaintDetailReportComponent implements OnInit {
   readonly feedbackTypes = signal<FeedbackTypeOption[]>([]);
   readonly feedbackNatures = signal<FeedbackNatureOption[]>([]);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
+  private readonly providerServiceMapID = computed(() => this.authStore.currentRole()?.providerServiceMapID ?? null);
 
   ngOnInit(): void {
     this.service

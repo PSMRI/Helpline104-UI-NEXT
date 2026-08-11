@@ -90,13 +90,11 @@ export class CdssService {
    * with an empty `questions` array when the backend has none.
    */
   getQuestions(patient: CdssPatientContext): Observable<CdssQuestionnaire> {
-    return this.http
-      .post<ApiResponse<RawCdssQuestionSet>>(this.baseUrl + QUESTIONS_PATH, patient)
-      .pipe(
-        timeout(CDSS_TIMEOUT_MS),
-        map((res) => this.normaliseQuestionnaire(this.readData(res))),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<RawCdssQuestionSet>>(this.baseUrl + QUESTIONS_PATH, patient).pipe(
+      timeout(CDSS_TIMEOUT_MS),
+      map((res) => this.normaliseQuestionnaire(this.readData(res))),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /**
@@ -104,13 +102,11 @@ export class CdssService {
    * when the backend returns no diagnoses.
    */
   getResult(selection: CdssQuestionSelection): Observable<CdssDiagnosis[]> {
-    return this.http
-      .post<ApiResponse<RawCdssDiagnosis[]>>(this.baseUrl + RESULT_PATH, selection)
-      .pipe(
-        timeout(CDSS_TIMEOUT_MS),
-        map((res) => (this.readData(res) ?? []).map((d) => this.normaliseDiagnosis(d))),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<RawCdssDiagnosis[]>>(this.baseUrl + RESULT_PATH, selection).pipe(
+      timeout(CDSS_TIMEOUT_MS),
+      map((res) => (this.readData(res) ?? []).map((d) => this.normaliseDiagnosis(d))),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /**
@@ -153,9 +149,7 @@ export class CdssService {
 
   /** Trim entries and drop empty/blank ones from a possibly-absent string list. */
   private cleanList(list: (string | null | undefined)[] | undefined): string[] {
-    return (list ?? [])
-      .map((item) => (item ?? '').toString().trim())
-      .filter((item) => item.length > 0);
+    return (list ?? []).map((item) => (item ?? '').toString().trim()).filter((item) => item.length > 0);
   }
 
   /**
@@ -179,11 +173,7 @@ export class CdssService {
       return { status: 0, errorMessage: TIMEOUT_ERROR };
     }
 
-    if (
-      err &&
-      typeof (err as CdssError).status === 'number' &&
-      typeof (err as CdssError).errorMessage === 'string'
-    ) {
+    if (err && typeof (err as CdssError).status === 'number' && typeof (err as CdssError).errorMessage === 'string') {
       return err as CdssError;
     }
 

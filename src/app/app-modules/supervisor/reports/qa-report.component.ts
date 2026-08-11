@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -78,7 +70,17 @@ const CALL_ANALYSIS_REPORT_TYPE_ID = 8;
         {{ 'supReports.qa.title' | translate: lang() }}
       </h3>
 
-      @if (runner.errorMessage()) {
+      @if (runner.serverError()) {
+        <div
+          class="mb-3 flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+          role="alert"
+        >
+          <span>{{ runner.errorMessage() }}</span>
+          <button z-button type="button" zType="ghost" zSize="sm" (click)="runner.dismissError()">
+            {{ 'supReports.dismiss' | translate: lang() }}
+          </button>
+        </div>
+      } @else if (runner.errorMessage()) {
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">
           {{ runner.errorMessage() }}
         </p>
@@ -115,12 +117,7 @@ const CALL_ANALYSIS_REPORT_TYPE_ID = 8;
           <label for="qa-report" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supReports.filter.reportType' | translate: lang() }}
           </label>
-          <select
-            id="qa-report"
-            [class]="selectClass"
-            formControlName="report"
-            (change)="onReportTypeChange()"
-          >
+          <select id="qa-report" [class]="selectClass" formControlName="report" (change)="onReportTypeChange()">
             <option [ngValue]="null" disabled>
               {{ 'supReports.filter.select' | translate: lang() }}
             </option>
@@ -159,13 +156,7 @@ const CALL_ANALYSIS_REPORT_TYPE_ID = 8;
       </form>
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
+        <button z-button type="button" [zLoading]="runner.loading()" [zDisabled]="form.invalid" (click)="view()">
           <ng-icon name="lucideEye" size="16" aria-hidden="true" />
           {{ 'supReports.view' | translate: lang() }}
         </button>
@@ -214,9 +205,7 @@ export class QaReportComponent implements OnInit {
   readonly roles = signal<RoleOption[]>([]);
   readonly showAgentFilters = signal(false);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
+  private readonly providerServiceMapID = computed(() => this.authStore.currentRole()?.providerServiceMapID ?? null);
 
   ngOnInit(): void {
     const psmID = this.providerServiceMapID();

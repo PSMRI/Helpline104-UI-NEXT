@@ -20,16 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, of, switchMap, tap } from 'rxjs';
@@ -70,15 +61,11 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
         <ng-icon name="lucideBuilding2" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">
-          {{ 'sio.outbound.title' | translate: lang() }}
-        </h3>
+        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.outbound.title' | translate: lang() }}</h3>
       </header>
 
       @if (!hasContext()) {
-        <p
-          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-        >
+        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
           {{ 'sio.outbound.noRequest' | translate: lang() }}
         </p>
       } @else {
@@ -102,17 +89,11 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
             <dt class="text-xs font-medium text-muted-foreground">
               {{ 'sio.blood.componentType' | translate: lang() }}
             </dt>
-            <dd class="font-medium text-foreground">
-              {{ detail()?.m_componentType?.componentType || '—' }}
-            </dd>
+            <dd class="font-medium text-foreground">{{ detail()?.m_componentType?.componentType || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium text-muted-foreground">
-              {{ 'sio.blood.bloodGroup' | translate: lang() }}
-            </dt>
-            <dd class="font-medium text-foreground">
-              {{ detail()?.m_bloodGroup?.bloodGroup || '—' }}
-            </dd>
+            <dt class="text-xs font-medium text-muted-foreground">{{ 'sio.blood.bloodGroup' | translate: lang() }}</dt>
+            <dd class="font-medium text-foreground">{{ detail()?.m_bloodGroup?.bloodGroup || '—' }}</dd>
           </div>
           <div>
             <dt class="text-xs font-medium text-muted-foreground">
@@ -125,26 +106,14 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
         <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label for="ob-person" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.outbound.contactPerson' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.outbound.contactPerson' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input
-              id="ob-person"
-              z-input
-              class="w-full"
-              type="text"
-              maxlength="25"
-              formControlName="contactPerson"
-            />
+            <input id="ob-person" z-input class="w-full" type="text" maxlength="25" formControlName="contactPerson" />
           </div>
 
           <div>
-            <label
-              for="ob-designation"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              {{ 'sio.outbound.designation' | translate: lang() }}
-              <span class="text-destructive">*</span>
+            <label for="ob-designation" class="mb-1 block text-xs font-medium text-muted-foreground">
+              {{ 'sio.outbound.designation' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
               id="ob-designation"
@@ -158,8 +127,7 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
 
           <div>
             <label for="ob-mobile" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.common.mobileNumber' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.common.mobileNumber' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
               id="ob-mobile"
@@ -268,10 +236,7 @@ export class SioOutboundProviderComponent {
       Validators.minLength(3),
       Validators.maxLength(25),
     ]),
-    mobileNo: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.pattern(/^[0-9]{10}$/),
-    ]),
+    mobileNo: this.fb.control<string | null>(null, [Validators.required, Validators.pattern(/^[0-9]{10}$/)]),
     address: this.fb.control<string | null>(null, [
       Validators.required,
       Validators.minLength(10),

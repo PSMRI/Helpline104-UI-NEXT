@@ -64,10 +64,9 @@ export class DirectoryService {
   /** Directory types (read from the registration master's `directory` list). */
   getDirectoryList(providerServiceMapID: number | null): Observable<DirectoryItem[]> {
     return this.http
-      .post<ApiResponse<RegistrationDirectoryData>>(
-        this.config.getCommonBaseURL() + REGISTRATION_DATA_PATH,
-        { providerServiceMapID },
-      )
+      .post<ApiResponse<RegistrationDirectoryData>>(this.config.getCommonBaseURL() + REGISTRATION_DATA_PATH, {
+        providerServiceMapID,
+      })
       .pipe(
         timeout(DIRECTORY_TIMEOUT_MS),
         map((res) => this.readData(res)?.directory ?? []),
@@ -104,10 +103,7 @@ export class DirectoryService {
   /** Search institutes matching the selected directory + location. */
   searchInstitutes(req: SearchInstitutesRequest): Observable<InstituteResult[]> {
     return this.http
-      .post<ApiResponse<InstituteResult[]>>(
-        this.config.getCommonBaseURL() + SEARCH_INSTITUTES_PATH,
-        req,
-      )
+      .post<ApiResponse<InstituteResult[]>>(this.config.getCommonBaseURL() + SEARCH_INSTITUTES_PATH, req)
       .pipe(
         timeout(DIRECTORY_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
@@ -130,13 +126,11 @@ export class DirectoryService {
 
   /** Persist directory search history (fire-and-forget on the caller side). */
   saveSearchHistory(rows: SaveDirectoryHistoryItem[]): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_HISTORY_PATH, rows)
-      .pipe(
-        timeout(DIRECTORY_TIMEOUT_MS),
-        map((res) => this.readData(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_HISTORY_PATH, rows).pipe(
+      timeout(DIRECTORY_TIMEOUT_MS),
+      map((res) => this.readData(res)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   private readData<T>(res: ApiResponse<T>): T | undefined {

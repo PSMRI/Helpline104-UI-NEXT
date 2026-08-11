@@ -50,9 +50,7 @@ export class CovidService {
       return throwError(() => ({ status: 0, errorMessage: GENERIC_ERROR }) as CovidError);
     }
     return this.http
-      .get<ApiResponse<CovidMasterData>>(
-        this.config.get104BaseURL() + MASTER_PATH + providerServiceMapID,
-      )
+      .get<ApiResponse<CovidMasterData>>(this.config.get104BaseURL() + MASTER_PATH + providerServiceMapID)
       .pipe(
         timeout(COVID_TIMEOUT_MS),
         map((res) => this.readData(res) ?? {}),
@@ -62,18 +60,16 @@ export class CovidService {
 
   /** Save a COVID screening; resolves to the backend payload (truthy on success). */
   saveCovidData(payload: SaveCovidRequest): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload)
-      .pipe(
-        timeout(COVID_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw this.toError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload).pipe(
+      timeout(COVID_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw this.toError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   private readData<T>(res: ApiResponse<T>): T | undefined {
@@ -88,11 +84,7 @@ export class CovidService {
       return { status: 0, errorMessage: TIMEOUT_ERROR };
     }
 
-    if (
-      err &&
-      typeof (err as CovidError).status === 'number' &&
-      typeof (err as CovidError).errorMessage === 'string'
-    ) {
+    if (err && typeof (err as CovidError).status === 'number' && typeof (err as CovidError).errorMessage === 'string') {
       return err as CovidError;
     }
 

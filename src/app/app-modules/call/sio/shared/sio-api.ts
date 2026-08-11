@@ -68,11 +68,7 @@ export function toSioError(err: unknown): SioError {
     return { status: 0, errorMessage: TIMEOUT_ERROR };
   }
 
-  if (
-    err &&
-    typeof (err as SioError).status === 'number' &&
-    typeof (err as SioError).errorMessage === 'string'
-  ) {
+  if (err && typeof (err as SioError).status === 'number' && typeof (err as SioError).errorMessage === 'string') {
     return err as SioError;
   }
 

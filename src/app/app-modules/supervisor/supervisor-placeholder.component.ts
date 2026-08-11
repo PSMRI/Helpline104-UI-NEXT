@@ -49,12 +49,7 @@ import { TranslationKey } from '../core/i18n/locales';
       <div
         class="flex min-h-[16rem] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center"
       >
-        <ng-icon
-          name="lucideConstruction"
-          size="40"
-          class="text-muted-foreground"
-          aria-hidden="true"
-        />
+        <ng-icon name="lucideConstruction" size="40" class="text-muted-foreground" aria-hidden="true" />
         <p class="text-base font-medium text-foreground">
           {{ 'supervisor.placeholder.title' | translate: lang() }}
         </p>

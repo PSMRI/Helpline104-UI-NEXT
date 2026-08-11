@@ -68,10 +68,9 @@ export class AgentStatusService {
   /** The agent's current telephony state. */
   getAgentStatus(agentId: number): Observable<AgentState | null> {
     return this.http
-      .post<ApiResponse<AgentState>>(
-        `${this.config.getOpenCommonBaseURL()}${GET_AGENT_STATE_PATH}`,
-        { agent_id: agentId },
-      )
+      .post<ApiResponse<AgentState>>(`${this.config.getOpenCommonBaseURL()}${GET_AGENT_STATE_PATH}`, {
+        agent_id: agentId,
+      })
       .pipe(map((res) => res.data ?? null));
   }
 }

@@ -20,16 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -201,12 +192,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
       />
 
       <div class="flex justify-end">
-        <button
-          z-button
-          type="submit"
-          [zLoading]="saving()"
-          [zDisabled]="saving() || beneficiaryId() === null"
-        >
+        <button z-button type="submit" [zLoading]="saving()" [zDisabled]="saving() || beneficiaryId() === null">
           {{ 'hao.caseSheet.save' | translate: lang() }}
         </button>
       </div>
@@ -219,10 +205,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
             {{ 'casesheetHistory.sectionTitle' | translate: lang() }}
           </h2>
           <button z-button type="button" zType="ghost" zSize="sm" (click)="toggleHistory()">
-            {{
-              (historyOpen() ? 'casesheetHistory.hide' : 'casesheetHistory.show')
-                | translate: lang()
-            }}
+            {{ (historyOpen() ? 'casesheetHistory.hide' : 'casesheetHistory.show') | translate: lang() }}
           </button>
         </div>
 
@@ -249,10 +232,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
                 <app-casesheet-history-mcts [benRegID]="beneficiaryId()" />
               }
               @case ('mmu') {
-                <app-casesheet-history-mmu
-                  [benRegID]="beneficiaryId()"
-                  (selectVisit)="onSelectVisit($event)"
-                />
+                <app-casesheet-history-mmu [benRegID]="beneficiaryId()" (selectVisit)="onSelectVisit($event)" />
               }
               @case ('tm') {
                 <app-casesheet-history-mmu
@@ -269,13 +249,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
                   <h3 class="font-semibold text-foreground">
                     {{ 'casesheetHistory.mmu.selectedVisit' | translate: lang() }}
                   </h3>
-                  <button
-                    z-button
-                    type="button"
-                    zType="ghost"
-                    zSize="sm"
-                    (click)="selectedVisit.set(null)"
-                  >
+                  <button z-button type="button" zType="ghost" zSize="sm" (click)="selectedVisit.set(null)">
                     {{ 'diseaseSummary.close' | translate: lang() }}
                   </button>
                 </div>
@@ -287,15 +261,11 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
                     <dd class="text-foreground">{{ visit.VisitCategory || '—' }}</dd>
                   </div>
                   <div class="flex justify-between gap-2">
-                    <dt class="text-muted-foreground">
-                      {{ 'casesheetHistory.mmu.visitReason' | translate: lang() }}
-                    </dt>
+                    <dt class="text-muted-foreground">{{ 'casesheetHistory.mmu.visitReason' | translate: lang() }}</dt>
                     <dd class="text-foreground">{{ visit.VisitReason || '—' }}</dd>
                   </div>
                   <div class="flex justify-between gap-2">
-                    <dt class="text-muted-foreground">
-                      {{ 'casesheetHistory.mmu.visitCode' | translate: lang() }}
-                    </dt>
+                    <dt class="text-muted-foreground">{{ 'casesheetHistory.mmu.visitCode' | translate: lang() }}</dt>
                     <dd class="text-foreground">{{ visit.visitCode || '—' }}</dd>
                   </div>
                 </dl>
@@ -365,9 +335,7 @@ export class CaseSheetComponent {
 
   /** Patient context for the embedded clinical tools (from the CallStore). */
   readonly patientAge = computed(() => this.callStore.demographics()?.age ?? null);
-  readonly patientGender = computed<CdssGender | null>(() =>
-    toCdssGender(this.callStore.demographics()?.genderName),
-  );
+  readonly patientGender = computed<CdssGender | null>(() => toCdssGender(this.callStore.demographics()?.genderName));
   /** Current role's feature code (CDSS warns non-MO roles to transfer). */
   readonly roleCode = computed(() => this.authStore.currentRole()?.featureCode ?? '');
 

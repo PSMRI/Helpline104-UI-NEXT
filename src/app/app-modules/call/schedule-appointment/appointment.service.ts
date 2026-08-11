@@ -25,12 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
-import {
-  ApiResponse,
-  AppointmentError,
-  FacilityOption,
-  SaveAppointmentRequest,
-} from './appointment.models';
+import { ApiResponse, AppointmentError, FacilityOption, SaveAppointmentRequest } from './appointment.models';
 
 const FACILITY_MASTER_PATH = 'uptsu/get/facilityMaster/';
 const SAVE_APPOINTMENT_PATH = 'uptsu/save/appointment-details';
@@ -51,10 +46,7 @@ export class AppointmentService {
   private readonly config = inject(ConfigService);
 
   /** Facilities for a service + block (path params; block is URL-encoded). */
-  getFacilityMaster(
-    providerServiceMapID: number | null,
-    blockName: string,
-  ): Observable<FacilityOption[]> {
+  getFacilityMaster(providerServiceMapID: number | null, blockName: string): Observable<FacilityOption[]> {
     if (providerServiceMapID == null) {
       // No service context — fail rather than requesting `.../facilityMaster/null/...`.
       return throwError(() => ({ status: 0, errorMessage: GENERIC_ERROR }) as AppointmentError);
@@ -74,18 +66,16 @@ export class AppointmentService {
 
   /** Save an appointment; resolves to the backend payload (truthy on success). */
   saveAppointment(payload: SaveAppointmentRequest): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.getCommonBaseURL() + SAVE_APPOINTMENT_PATH, payload)
-      .pipe(
-        timeout(APPOINTMENT_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw this.toError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.getCommonBaseURL() + SAVE_APPOINTMENT_PATH, payload).pipe(
+      timeout(APPOINTMENT_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw this.toError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   private readData<T>(res: ApiResponse<T>): T | undefined {

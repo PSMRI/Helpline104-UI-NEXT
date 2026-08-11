@@ -69,12 +69,8 @@ export interface VersionInfo {
             <thead class="bg-muted/50 text-xs text-muted-foreground">
               <tr>
                 <th scope="col" class="px-3 py-2 font-medium"></th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'versionDetails.api' | translate: lang() }}
-                </th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'versionDetails.ui' | translate: lang() }}
-                </th>
+                <th scope="col" class="px-3 py-2 font-medium">{{ 'versionDetails.api' | translate: lang() }}</th>
+                <th scope="col" class="px-3 py-2 font-medium">{{ 'versionDetails.ui' | translate: lang() }}</th>
               </tr>
             </thead>
             <tbody>

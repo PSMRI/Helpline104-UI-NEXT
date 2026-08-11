@@ -21,15 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  effect,
-  inject,
-  input,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -66,9 +58,7 @@ import { MctsCallRow, MctsQaRow, OtherHelplineError } from './other-helpline.mod
           {{ 'casesheetHistory.loading' | translate: lang() }}
         </p>
       } @else if (rows().length === 0) {
-        <p
-          class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground"
-        >
+        <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
           {{ 'casesheetHistory.empty' | translate: lang() }}
         </p>
       } @else {
@@ -76,24 +66,12 @@ import { MctsCallRow, MctsQaRow, OtherHelplineError } from './other-helpline.mod
           <table class="w-full text-left text-sm">
             <thead class="bg-muted/50 text-xs text-muted-foreground">
               <tr>
-                <th class="px-3 py-2 font-medium">
-                  {{ 'casesheetHistory.mcts.callType' | translate: lang() }}
-                </th>
-                <th class="px-3 py-2 font-medium">
-                  {{ 'casesheetHistory.mcts.callDate' | translate: lang() }}
-                </th>
-                <th class="px-3 py-2 font-medium">
-                  {{ 'casesheetHistory.mcts.status' | translate: lang() }}
-                </th>
-                <th class="px-3 py-2 font-medium">
-                  {{ 'casesheetHistory.mcts.smsAdvice' | translate: lang() }}
-                </th>
-                <th class="px-3 py-2 font-medium">
-                  {{ 'casesheetHistory.mcts.remarks' | translate: lang() }}
-                </th>
-                <th class="px-3 py-2 text-right font-medium">
-                  {{ 'casesheetHistory.action' | translate: lang() }}
-                </th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.callType' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.callDate' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.status' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.smsAdvice' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.mcts.remarks' | translate: lang() }}</th>
+                <th class="px-3 py-2 text-right font-medium">{{ 'casesheetHistory.action' | translate: lang() }}</th>
               </tr>
             </thead>
             <tbody>
@@ -102,21 +80,13 @@ import { MctsCallRow, MctsQaRow, OtherHelplineError } from './other-helpline.mod
                   <td class="px-3 py-2">
                     {{ row.mctsOutboundCall?.displayOBCallType || row.callType?.callType || '—' }}
                   </td>
-                  <td class="px-3 py-2">
-                    {{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}
-                  </td>
+                  <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
                   <td class="px-3 py-2">{{ row.callType?.callGroupType || '—' }}</td>
                   <td class="px-3 py-2">{{ row.smsAdvice || '—' }}</td>
                   <td class="px-3 py-2">{{ row.remark || '—' }}</td>
                   <td class="px-3 py-2 text-right">
                     @if (row.callDetailID != null) {
-                      <button
-                        z-button
-                        type="button"
-                        zType="outline"
-                        zSize="sm"
-                        (click)="toggleQa(row.callDetailID)"
-                      >
+                      <button z-button type="button" zType="outline" zSize="sm" (click)="toggleQa(row.callDetailID)">
                         {{
                           (qaOpenFor() === row.callDetailID
                             ? 'casesheetHistory.mcts.hideQa'
@@ -135,9 +105,7 @@ import { MctsCallRow, MctsQaRow, OtherHelplineError } from './other-helpline.mod
                           {{ 'casesheetHistory.loading' | translate: lang() }}
                         </p>
                       } @else if (qaError()) {
-                        <p class="text-sm font-medium text-destructive" role="alert">
-                          {{ qaError() }}
-                        </p>
+                        <p class="text-sm font-medium text-destructive" role="alert">{{ qaError() }}</p>
                       } @else if (qaRows().length === 0) {
                         <p class="text-sm text-muted-foreground">
                           {{ 'casesheetHistory.mcts.noQa' | translate: lang() }}
@@ -222,9 +190,7 @@ export class CasesheetHistoryMctsComponent {
           }
           this.loading.set(false);
           this.rows.set([]);
-          this.errorMessage.set(
-            err.errorMessage || this.i18n.instant('casesheetHistory.loadError'),
-          );
+          this.errorMessage.set(err.errorMessage || this.i18n.instant('casesheetHistory.loadError'));
         },
       });
   }

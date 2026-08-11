@@ -24,9 +24,7 @@
             <select
               id="securityQuestion1"
               formControlName="question1"
-              [attr.aria-invalid]="
-                form.controls.question1.touched && form.controls.question1.invalid ? true : null
-              "
+              [attr.aria-invalid]="form.controls.question1.touched && form.controls.question1.invalid ? true : null"
               class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
             >
               <option value="" disabled>Select a question</option>
@@ -41,13 +39,7 @@
           <z-form-field>
             <label z-form-label zRequired>Answer 1</label>
             <z-form-control>
-              <input
-                z-input
-                type="text"
-                formControlName="answer1"
-                placeholder="Enter your answer"
-                autocomplete="off"
-              />
+              <input z-input type="text" formControlName="answer1" placeholder="Enter your answer" autocomplete="off" />
             </z-form-control>
           </z-form-field>
         </div>
@@ -60,9 +52,7 @@
               <select
                 id="securityQuestion2"
                 formControlName="question2"
-                [attr.aria-invalid]="
-                  form.controls.question2.touched && form.controls.question2.invalid ? true : null
-                "
+                [attr.aria-invalid]="form.controls.question2.touched && form.controls.question2.invalid ? true : null"
                 class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
               >
                 <option value="" disabled>Select a question</option>
@@ -78,13 +68,7 @@
           <z-form-field>
             <label z-form-label zRequired>Answer 2</label>
             <z-form-control>
-              <input
-                z-input
-                type="text"
-                formControlName="answer2"
-                placeholder="Enter your answer"
-                autocomplete="off"
-              />
+              <input z-input type="text" formControlName="answer2" placeholder="Enter your answer" autocomplete="off" />
             </z-form-control>
           </z-form-field>
         </div>
@@ -97,9 +81,7 @@
               <select
                 id="securityQuestion3"
                 formControlName="question3"
-                [attr.aria-invalid]="
-                  form.controls.question3.touched && form.controls.question3.invalid ? true : null
-                "
+                [attr.aria-invalid]="form.controls.question3.touched && form.controls.question3.invalid ? true : null"
                 class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
               >
                 <option value="" disabled>Select a question</option>
@@ -115,21 +97,13 @@
           <z-form-field>
             <label z-form-label zRequired>Answer 3</label>
             <z-form-control>
-              <input
-                z-input
-                type="text"
-                formControlName="answer3"
-                placeholder="Enter your answer"
-                autocomplete="off"
-              />
+              <input z-input type="text" formControlName="answer3" placeholder="Enter your answer" autocomplete="off" />
             </z-form-control>
           </z-form-field>
         </div>
 
         @if (form.hasError('duplicateQuestion')) {
-          <p class="mt-4 text-sm font-medium text-destructive" role="alert">
-            Please choose three different questions.
-          </p>
+          <p class="mt-4 text-sm font-medium text-destructive" role="alert">Please choose three different questions.</p>
         }
 
         <hr class="my-6 border-border" />
@@ -170,8 +144,8 @@
           </z-form-control>
           @if (form.controls.newPassword.touched && form.controls.newPassword.invalid) {
             <z-form-message>
-              Password must be 8–12 characters with at least 1 digit, 1 uppercase letter and 1
-              special character (!&#64;#$%^&amp;*).
+              Password must be 8–12 characters with at least 1 digit, 1 uppercase letter and 1 special character
+              (!&#64;#$%^&amp;*).
             </z-form-message>
           }
         </z-form-field>
@@ -207,10 +181,7 @@
             ) {
               <z-form-message>Passwords do not match.</z-form-message>
             }
-            @if (
-              form.controls.confirmPassword.touched &&
-              form.controls.confirmPassword.hasError('required')
-            ) {
+            @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.hasError('required')) {
               <z-form-message>Please confirm your password.</z-form-message>
             }
           </z-form-field>

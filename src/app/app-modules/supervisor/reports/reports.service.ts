@@ -215,21 +215,17 @@ export class SupervisorReportsService {
 
   /** Districts of a state (`location/districts/{stateID}`). */
   getDistricts(stateID: number): Observable<DistrictOption[]> {
-    return this.http
-      .get<ApiResponse<DistrictOption[]>>(this.config.getCommonBaseURL() + DISTRICTS_PATH + stateID)
-      .pipe(
-        timeout(LOOKUP_TIMEOUT_MS),
-        map((res) => readSupervisorData(res) ?? []),
-        catchError((err: unknown) => throwError(() => toSupervisorError(err))),
-      );
+    return this.http.get<ApiResponse<DistrictOption[]>>(this.config.getCommonBaseURL() + DISTRICTS_PATH + stateID).pipe(
+      timeout(LOOKUP_TIMEOUT_MS),
+      map((res) => readSupervisorData(res) ?? []),
+      catchError((err: unknown) => throwError(() => toSupervisorError(err))),
+    );
   }
 
   /** Sub-districts / taluks of a district (`location/taluks/{districtID}`). */
   getSubDistricts(districtID: number): Observable<SubDistrictOption[]> {
     return this.http
-      .get<ApiResponse<SubDistrictOption[]>>(
-        this.config.getCommonBaseURL() + SUB_DISTRICTS_PATH + districtID,
-      )
+      .get<ApiResponse<SubDistrictOption[]>>(this.config.getCommonBaseURL() + SUB_DISTRICTS_PATH + districtID)
       .pipe(
         timeout(LOOKUP_TIMEOUT_MS),
         map((res) => readSupervisorData(res) ?? []),
@@ -239,13 +235,11 @@ export class SupervisorReportsService {
 
   /** Villages of a sub-district (`location/village/{blockID}`). */
   getVillages(blockID: number): Observable<VillageOption[]> {
-    return this.http
-      .get<ApiResponse<VillageOption[]>>(this.config.getCommonBaseURL() + VILLAGES_PATH + blockID)
-      .pipe(
-        timeout(LOOKUP_TIMEOUT_MS),
-        map((res) => readSupervisorData(res) ?? []),
-        catchError((err: unknown) => throwError(() => toSupervisorError(err))),
-      );
+    return this.http.get<ApiResponse<VillageOption[]>>(this.config.getCommonBaseURL() + VILLAGES_PATH + blockID).pipe(
+      timeout(LOOKUP_TIMEOUT_MS),
+      map((res) => readSupervisorData(res) ?? []),
+      catchError((err: unknown) => throwError(() => toSupervisorError(err))),
+    );
   }
 
   /**
@@ -255,10 +249,9 @@ export class SupervisorReportsService {
    */
   getServices(providerServiceMapID: number | null): Observable<SubServiceOption[]> {
     return this.http
-      .post<ApiResponse<SubServiceOption[]> | SubServiceOption[]>(
-        this.config.get104BaseURL() + SERVICES_PATH,
-        { providerServiceMapID },
-      )
+      .post<ApiResponse<SubServiceOption[]> | SubServiceOption[]>(this.config.get104BaseURL() + SERVICES_PATH, {
+        providerServiceMapID,
+      })
       .pipe(
         timeout(LOOKUP_TIMEOUT_MS),
         map((res) => (Array.isArray(res) ? res : (readSupervisorData(res) ?? []))),

@@ -20,30 +20,68 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+
+import { firstValueFrom } from 'rxjs';
+
+import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+
+import { TranslationKey } from '../i18n/locales';
+import { I18nService } from '../i18n/i18n.service';
 
 export type AlertType = 'success' | 'error' | 'info' | 'warning';
 
+/** Localised dialog title per alert flavour. */
+const ALERT_TITLE_KEYS: Record<AlertType, TranslationKey> = {
+  success: 'dialog.successTitle',
+  error: 'dialog.errorTitle',
+  info: 'dialog.infoTitle',
+  warning: 'dialog.warningTitle',
+};
+
 /**
- * Minimal alert/confirm dialog service.
+ * Message-first alert/confirm facade over the ZardUI dialog.
  *
- * STUB: currently backed by native `window.alert`/`window.confirm` so the
- * foundation (interceptors + session timeout) is functional now.
- *
- * TODO(P1): replace with a ZardUI-based dialog (@common-ui/ui/dialog) mirroring
- * MMU's `ConfirmationService` + `CommonDialogComponent`, keeping this method
- * surface so call sites don't change.
+ * Formerly a stub backed by native `window.alert`/`window.confirm`; it now
+ * delegates to {@link ConfirmDialogService} (the app-wide ZardUI dialog
+ * wrapper) so foundation flows such as the session-idle prompt render the
+ * same styled dialog as the rest of the app. Because a rendered dialog cannot
+ * block the thread the way `window.confirm` did, both methods are async:
+ * `confirm()` resolves to the user's choice and `alert()` resolves once the
+ * notice is acknowledged.
  */
 @Injectable({ providedIn: 'root' })
 export class ConfirmationService {
-  alert(message: string, _type: AlertType = 'info'): void {
-    if (typeof window !== 'undefined') {
-      window.alert(message);
+  private readonly dialog = inject(ConfirmDialogService);
+  private readonly i18n = inject(I18nService);
+  private readonly platformId = inject(PLATFORM_ID);
+
+  /** Shows a single-button notice; resolves once the user acknowledges it. */
+  async alert(message: string, type: AlertType = 'info'): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
     }
+    await firstValueFrom(
+      this.dialog.alert({
+        title: this.i18n.instant(ALERT_TITLE_KEYS[type]),
+        message,
+      }),
+      { defaultValue: undefined },
+    );
   }
 
-  /** Returns the user's choice. Resolves to `false` outside a browser. */
-  confirm(message: string): boolean {
-    return typeof window !== 'undefined' ? window.confirm(message) : false;
+  /** Resolves to the user's choice. Resolves to `false` outside a browser. */
+  async confirm(message: string): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+    return firstValueFrom(
+      this.dialog.confirm({
+        title: this.i18n.instant('dialog.confirmTitle'),
+        message,
+      }),
+      { defaultValue: false },
+    );
   }
 }

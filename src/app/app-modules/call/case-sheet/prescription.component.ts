@@ -32,13 +32,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePencil, lucidePlus, lucidePill, lucideTrash2 } from '@ng-icons/lucide';
@@ -128,9 +122,7 @@ function optionalMinLength(min: number) {
       </dl>
 
       @if (!hasContext()) {
-        <p
-          class="mb-4 rounded-md border border-dashed border-border py-3 text-center text-sm text-muted-foreground"
-        >
+        <p class="mb-4 rounded-md border border-dashed border-border py-3 text-center text-sm text-muted-foreground">
           {{ 'prescription.noContext' | translate: lang() }}
         </p>
       }
@@ -143,10 +135,8 @@ function optionalMinLength(min: number) {
       <div class="mb-4">
         <label for="rx-diagnosis" class="mb-1 block text-sm font-medium text-foreground">
           {{
-            (provisionalDiagnosis()
-              ? 'prescription.diagnosisProvisional'
-              : 'prescription.diagnosisInformation'
-            ) | translate: lang()
+            (provisionalDiagnosis() ? 'prescription.diagnosisProvisional' : 'prescription.diagnosisInformation')
+              | translate: lang()
           }}
           <span class="text-destructive">*</span>
         </label>
@@ -161,9 +151,7 @@ function optionalMinLength(min: number) {
         ></textarea>
         <div class="mt-0.5 flex justify-between text-xs text-muted-foreground">
           @if (diagnosis.invalid && diagnosis.touched) {
-            <span class="text-destructive">{{
-              'prescription.diagnosisRequired' | translate: lang()
-            }}</span>
+            <span class="text-destructive">{{ 'prescription.diagnosisRequired' | translate: lang() }}</span>
           } @else {
             <span></span>
           }
@@ -282,13 +270,7 @@ function optionalMinLength(min: number) {
             <label for="rx-remarks" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'prescription.remarks' | translate: lang() }}
             </label>
-            <input
-              id="rx-remarks"
-              z-input
-              class="w-full"
-              formControlName="remarks"
-              maxlength="150"
-            />
+            <input id="rx-remarks" z-input class="w-full" formControlName="remarks" maxlength="150" />
             @if (lineForm.controls.remarks.invalid && lineForm.controls.remarks.touched) {
               <p class="mt-0.5 text-xs text-destructive">
                 {{ 'prescription.remarksError' | translate: lang() }}
@@ -297,12 +279,7 @@ function optionalMinLength(min: number) {
           </div>
 
           <div class="flex items-end">
-            <button
-              z-button
-              type="submit"
-              zType="outline"
-              [zDisabled]="lineForm.invalid || !hasContext()"
-            >
+            <button z-button type="submit" zType="outline" [zDisabled]="lineForm.invalid || !hasContext()">
               <ng-icon name="lucidePlus" size="16" aria-hidden="true" />
               {{ 'prescription.addDrug' | translate: lang() }}
             </button>
@@ -316,9 +293,7 @@ function optionalMinLength(min: number) {
           {{ 'prescription.current' | translate: lang() }}
         </h4>
         @if (lines().length === 0) {
-          <p
-            class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-          >
+          <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
             {{ 'prescription.empty' | translate: lang() }}
           </p>
         } @else {
@@ -326,24 +301,12 @@ function optionalMinLength(min: number) {
             <table class="w-full text-left text-sm">
               <thead class="bg-muted/50 text-xs text-muted-foreground">
                 <tr>
-                  <th class="px-3 py-2 font-medium">
-                    {{ 'prescription.drug' | translate: lang() }}
-                  </th>
-                  <th class="px-3 py-2 font-medium">
-                    {{ 'prescription.strength' | translate: lang() }}
-                  </th>
-                  <th class="px-3 py-2 font-medium">
-                    {{ 'prescription.frequency' | translate: lang() }}
-                  </th>
-                  <th class="px-3 py-2 font-medium">
-                    {{ 'prescription.noOfDays' | translate: lang() }}
-                  </th>
-                  <th class="px-3 py-2 font-medium">
-                    {{ 'prescription.remarks' | translate: lang() }}
-                  </th>
-                  <th class="px-3 py-2 text-right font-medium">
-                    {{ 'prescription.action' | translate: lang() }}
-                  </th>
+                  <th class="px-3 py-2 font-medium">{{ 'prescription.drug' | translate: lang() }}</th>
+                  <th class="px-3 py-2 font-medium">{{ 'prescription.strength' | translate: lang() }}</th>
+                  <th class="px-3 py-2 font-medium">{{ 'prescription.frequency' | translate: lang() }}</th>
+                  <th class="px-3 py-2 font-medium">{{ 'prescription.noOfDays' | translate: lang() }}</th>
+                  <th class="px-3 py-2 font-medium">{{ 'prescription.remarks' | translate: lang() }}</th>
+                  <th class="px-3 py-2 text-right font-medium">{{ 'prescription.action' | translate: lang() }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -352,14 +315,10 @@ function optionalMinLength(min: number) {
                     <td class="px-3 py-2">
                       <span class="font-medium text-foreground">{{ line.drugName }}</span>
                       @if (line.drugGroupName) {
-                        <span class="block text-xs text-muted-foreground">{{
-                          line.drugGroupName
-                        }}</span>
+                        <span class="block text-xs text-muted-foreground">{{ line.drugGroupName }}</span>
                       }
                     </td>
-                    <td class="px-3 py-2">
-                      {{ line.strength === strengthNA ? '—' : line.strength }}
-                    </td>
+                    <td class="px-3 py-2">{{ line.strength === strengthNA ? '—' : line.strength }}</td>
                     <td class="px-3 py-2">{{ line.frequency }}</td>
                     <td class="px-3 py-2">{{ line.noOfDays }}</td>
                     <td class="px-3 py-2">{{ line.remarks || '—' }}</td>
@@ -407,34 +366,23 @@ function optionalMinLength(min: number) {
       <!-- History -->
       <div class="mt-5 border-t border-border pt-4">
         <button z-button type="button" zType="ghost" (click)="toggleHistory()">
-          {{
-            (showHistory() ? 'prescription.hideHistory' : 'prescription.showHistory')
-              | translate: lang()
-          }}
+          {{ (showHistory() ? 'prescription.hideHistory' : 'prescription.showHistory') | translate: lang() }}
         </button>
         @if (showHistory()) {
           <div class="mt-3">
             @if (history().length === 0) {
-              <p class="text-sm text-muted-foreground">
-                {{ 'prescription.noHistory' | translate: lang() }}
-              </p>
+              <p class="text-sm text-muted-foreground">{{ 'prescription.noHistory' | translate: lang() }}</p>
             } @else {
               <div class="overflow-x-auto rounded-md border border-border">
                 <table class="w-full text-left text-sm">
                   <thead class="bg-muted/50 text-xs text-muted-foreground">
                     <tr>
-                      <th class="px-3 py-2 font-medium">
-                        {{ 'prescription.prescriptionId' | translate: lang() }}
-                      </th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.prescriptionId' | translate: lang() }}</th>
                       <th class="px-3 py-2 font-medium">
                         {{ 'prescription.diagnosisProvisional' | translate: lang() }}
                       </th>
-                      <th class="px-3 py-2 font-medium">
-                        {{ 'prescription.drug' | translate: lang() }}
-                      </th>
-                      <th class="px-3 py-2 font-medium">
-                        {{ 'prescription.createdDate' | translate: lang() }}
-                      </th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.drug' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.createdDate' | translate: lang() }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -530,9 +478,7 @@ export class PrescriptionComponent implements OnInit {
     return names;
   });
 
-  readonly groupOptions = computed(() =>
-    this.drugs().filter((d) => d.drugName === this.selectedDrugName()),
-  );
+  readonly groupOptions = computed(() => this.drugs().filter((d) => d.drugName === this.selectedDrugName()));
 
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);
 
@@ -657,9 +603,7 @@ export class PrescriptionComponent implements OnInit {
           this.saving.set(false);
           const id = res.prescriptionID;
           toast.success(
-            id != null
-              ? this.i18n.instant('prescription.savedPrefix') + id
-              : this.i18n.instant('prescription.saved'),
+            id != null ? this.i18n.instant('prescription.savedPrefix') + id : this.i18n.instant('prescription.saved'),
           );
           if (id != null) {
             this.saved.emit(id);

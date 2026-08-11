@@ -54,19 +54,7 @@ import {
 } from './knowledge-management.service';
 
 /** Allowed upload extensions (legacy `valid_file_extensions`). */
-const VALID_FILE_EXTENSIONS = [
-  'msg',
-  'pdf',
-  'png',
-  'jpeg',
-  'jpg',
-  'doc',
-  'docx',
-  'xlsx',
-  'xls',
-  'csv',
-  'txt',
-];
+const VALID_FILE_EXTENSIONS = ['msg', 'pdf', 'png', 'jpeg', 'jpg', 'doc', 'docx', 'xlsx', 'xls', 'csv', 'txt'];
 /** Max upload size in MB (legacy `maxFileSize`). */
 const MAX_FILE_SIZE_MB = 5;
 
@@ -99,12 +87,7 @@ const MAX_FILE_SIZE_MB = 5;
             {{ 'supKm.selectService' | translate: lang() }}
             <span class="text-destructive">*</span>
           </label>
-          <select
-            id="km-service"
-            [class]="selectClass"
-            formControlName="subServiceID"
-            (change)="onServiceChange()"
-          >
+          <select id="km-service" [class]="selectClass" formControlName="subServiceID" (change)="onServiceChange()">
             <option [ngValue]="null" disabled>{{ 'supKm.select' | translate: lang() }}</option>
             @for (s of services(); track s.subServiceID) {
               <option [ngValue]="s.subServiceID">{{ s.subServiceName }}</option>
@@ -116,12 +99,7 @@ const MAX_FILE_SIZE_MB = 5;
             {{ 'supKm.selectCategory' | translate: lang() }}
             <span class="text-destructive">*</span>
           </label>
-          <select
-            id="km-category"
-            [class]="selectClass"
-            formControlName="categoryID"
-            (change)="onCategoryChange()"
-          >
+          <select id="km-category" [class]="selectClass" formControlName="categoryID" (change)="onCategoryChange()">
             <option [ngValue]="null" disabled>{{ 'supKm.select' | translate: lang() }}</option>
             @for (c of categories(); track c.categoryID) {
               <option [ngValue]="c.categoryID">{{ c.categoryName }}</option>
@@ -148,8 +126,7 @@ const MAX_FILE_SIZE_MB = 5;
         <div>
           <label for="km-file" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supKm.uploadFile' | translate: lang() }}
-            ({{ 'supKm.sizeLimit' | translate: lang() }}: {{ maxFileSize }}
-            {{ 'supKm.mb' | translate: lang() }},
+            ({{ 'supKm.sizeLimit' | translate: lang() }}: {{ maxFileSize }} {{ 'supKm.mb' | translate: lang() }},
             {{ 'supKm.supportedFormats' | translate: lang() }})
             <span class="text-destructive">*</span>
           </label>
@@ -256,9 +233,7 @@ export class KnowledgeManagementComponent implements OnInit {
   readonly fileTooLarge = signal(false);
   readonly invalidFileType = signal(false);
   readonly invalidFileName = signal(false);
-  readonly fileInvalid = computed(
-    () => this.fileTooLarge() || this.invalidFileType() || this.invalidFileName(),
-  );
+  readonly fileInvalid = computed(() => this.fileTooLarge() || this.invalidFileType() || this.invalidFileName());
 
   private file: File | null = null;
   private fileContent: string | null = null;

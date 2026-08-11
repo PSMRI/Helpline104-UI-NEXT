@@ -21,15 +21,7 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
@@ -88,28 +80,20 @@ function pad(value: number): string {
   template: `
     <section class="rounded-xl border border-border bg-card p-4 sm:p-6">
       @if (selection(); as sel) {
-        <header
-          class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4"
-        >
+        <header class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
           <div class="flex items-center gap-3">
-            <span
-              class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary"
-            >
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
               <ng-icon name="lucidePhoneOutgoing" size="18" aria-hidden="true" />
             </span>
             <div>
               <p class="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <ng-icon name="lucideUser" size="14" aria-hidden="true" />
-                {{
-                  sel.beneficiaryName || ('outbound.workspace.unknownCaller' | translate: lang())
-                }}
+                {{ sel.beneficiaryName || ('outbound.workspace.unknownCaller' | translate: lang()) }}
               </p>
               <p class="text-xs text-muted-foreground">
                 {{ sel.phoneNo || '—' }}
                 @if (sel.requestedFeature) {
-                  <span class="ml-2 rounded bg-muted px-1.5 py-0.5">{{
-                    sel.requestedFeature
-                  }}</span>
+                  <span class="ml-2 rounded bg-muted px-1.5 py-0.5">{{ sel.requestedFeature }}</span>
                 }
               </p>
             </div>
@@ -118,9 +102,7 @@ function pad(value: number): string {
             class="inline-flex items-center gap-2 font-mono text-lg tabular-nums text-foreground"
             role="timer"
             aria-live="off"
-            [attr.aria-label]="
-              ('outbound.workspace.callTime' | translate: lang()) + ' ' + elapsed()
-            "
+            [attr.aria-label]="('outbound.workspace.callTime' | translate: lang()) + ' ' + elapsed()"
           >
             <ng-icon name="lucideClock" size="18" aria-hidden="true" />
             {{ elapsed() }}
@@ -128,10 +110,7 @@ function pad(value: number): string {
         </header>
 
         <app-hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
-          <cdk-step
-            [label]="'outbound.workspace.stepCaseSheet' | translate: lang()"
-            [completed]="true"
-          >
+          <cdk-step [label]="'outbound.workspace.stepCaseSheet' | translate: lang()" [completed]="true">
             <app-hao-case-sheet
               [beneficiaryId]="sel.beneficiaryRegID"
               [callId]="null"

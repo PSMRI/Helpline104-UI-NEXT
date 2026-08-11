@@ -21,16 +21,7 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  inject,
-  input,
-  output,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, input, output, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -70,14 +61,7 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
   selector: 'app-role-workspace',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CdkStep,
-    HaoStepperComponent,
-    CaseSheetComponent,
-    ClosureStepComponent,
-    ZardButtonComponent,
-    TranslatePipe,
-  ],
+  imports: [CdkStep, HaoStepperComponent, CaseSheetComponent, ClosureStepComponent, ZardButtonComponent, TranslatePipe],
   template: `
     <section class="rounded-xl border border-border bg-card p-4 sm:p-6">
       <header class="mb-2 flex flex-col gap-1">

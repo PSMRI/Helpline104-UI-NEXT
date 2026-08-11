@@ -22,13 +22,7 @@
 
 import { NgTemplateOutlet } from '@angular/common';
 import { CdkStepper } from '@angular/cdk/stepper';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  signal,
-  viewChildren,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, signal, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
@@ -65,11 +59,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   // Lets nested <cdk-step> elements register with this component as their stepper.
   providers: [{ provide: CdkStepper, useExisting: HaoStepperComponent }],
   template: `
-    <nav
-      class="flex items-center justify-center gap-2 px-2 py-4 sm:gap-4"
-      role="tablist"
-      aria-label="Workspace steps"
-    >
+    <nav class="flex items-center justify-center gap-2 px-2 py-4 sm:gap-4" role="tablist" aria-label="Workspace steps">
       @for (step of steps; track step; let i = $index; let last = $last) {
         <button
           #header

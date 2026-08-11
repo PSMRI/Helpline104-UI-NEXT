@@ -20,16 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
@@ -120,12 +111,7 @@ let instanceCounter = 0;
         @switch (state()) {
           @case ('loading') {
             <div class="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
-              <ng-icon
-                name="lucideLoaderCircle"
-                size="16"
-                class="animate-spin"
-                aria-hidden="true"
-              />
+              <ng-icon name="lucideLoaderCircle" size="16" class="animate-spin" aria-hidden="true" />
               {{ 'snomed.search.loading' | translate: lang() }}
             </div>
           }

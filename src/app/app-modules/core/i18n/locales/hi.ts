@@ -136,8 +136,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.history.empty': 'इस नंबर के लिए कोई पंजीकरण नहीं मिला।',
   'registration.search.empty': 'आपकी खोज से कोई लाभार्थी मेल नहीं खाता।',
   'registration.search.prompt': 'नाम या पंजीकरण आईडी दर्ज करें, फिर खोजें।',
-  'registration.search.error':
-    'खोज पूरी नहीं हो सकी — शायद समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
+  'registration.search.error': 'खोज पूरी नहीं हो सकी — शायद समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
+  'registration.search.timeout': 'खोज का समय समाप्त हो गया। कृपया पुनः प्रयास करें या इसके बजाय फ़ोन नंबर से खोजें।',
   'registration.col.regId': 'पंजी. आईडी',
   'registration.col.name': 'नाम',
   'registration.col.gender': 'लिंग',
@@ -157,6 +157,7 @@ export const hi: Record<TranslationKey, string> = {
   'registration.gender.female': 'महिला',
   'registration.gender.transgender': 'ट्रांसजेंडर',
   'registration.action.search': 'खोजें',
+  'registration.action.retry': 'पुनः प्रयास करें',
   'registration.action.register': 'लाभार्थी पंजीकृत करें',
   'registration.validation.required': 'यह फ़ील्ड आवश्यक है।',
   'registration.validation.firstNameMin': 'कम से कम 3 अक्षर दर्ज करें।',
@@ -167,13 +168,11 @@ export const hi: Record<TranslationKey, string> = {
   'registration.toast.selected': 'इस कॉल के लिए लाभार्थी चुना गया।',
   'registration.toast.registered': 'लाभार्थी पंजीकृत और चयनित किया गया।',
   'registration.toast.error': 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।',
-  'registration.register.error':
-    'पंजीकरण विफल हुआ। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।',
+  'registration.register.error': 'पंजीकरण विफल हुआ। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।',
   'registration.register.dismiss': 'बंद करें',
   'registration.toast.noCli': 'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध नहीं है।',
   'registration.toast.masterError': 'कुछ फ़ॉर्म विकल्प लोड नहीं हो सके।',
-  'registration.notice.noCli':
-    'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध न होने के कारण पंजीकरण उपलब्ध नहीं है।',
+  'registration.notice.noCli': 'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध न होने के कारण पंजीकरण उपलब्ध नहीं है।',
   'registration.section.identity': 'व्यक्तिगत विवरण',
   'registration.section.address': 'पता और संपर्क',
   'registration.field.title': 'शीर्षक',
@@ -227,8 +226,7 @@ export const hi: Record<TranslationKey, string> = {
   'cdss.questionsHeading': 'निकटतम विवरण चुनें',
   'cdss.noQuestions': 'इस शिकायत के लिए कोई CDSS प्रश्न उपलब्ध नहीं है।',
   'cdss.emergencyBadge': 'आपातकाल',
-  'cdss.emergencyWarning':
-    'एक आपातकालीन स्थिति चुनी गई — कॉल को मेडिकल ऑफिसर (MO) को स्थानांतरित करने पर विचार करें।',
+  'cdss.emergencyWarning': 'एक आपातकालीन स्थिति चुनी गई — कॉल को मेडिकल ऑफिसर (MO) को स्थानांतरित करने पर विचार करें।',
   'cdss.diagnosesHeading': 'सुझाए गए निदान और सलाह',
   'cdss.noDiagnoses': 'कोई सुझाया गया निदान नहीं मिला।',
   'cdss.match': 'मिलान',
@@ -239,8 +237,7 @@ export const hi: Record<TranslationKey, string> = {
   'cdss.action': 'अनुशंसित कार्रवाई',
   'cdss.recommendedActionLabel': 'अनुशंसित कार्रवाई (संपादन योग्य)',
   'cdss.resetAction': 'सुझाव पर रीसेट करें',
-  'cdss.recommendedActionPlaceholder':
-    'स्वीकार करने से पहले अनुशंसित कार्रवाई की समीक्षा और संपादन करें…',
+  'cdss.recommendedActionPlaceholder': 'स्वीकार करने से पहले अनुशंसित कार्रवाई की समीक्षा और संपादन करें…',
   'cdss.selectAtLeastOne': 'स्वीकार करने के लिए कम से कम एक निदान चुनें।',
   'cdss.accept': 'चयनित स्वीकार करें',
   'cdss.back': 'वापस',
@@ -370,8 +367,7 @@ export const hi: Record<TranslationKey, string> = {
   'casesheetHistory.mmu.visitCode': 'विज़िट कोड',
   'casesheetHistory.mmu.view': 'देखें',
   'casesheetHistory.mmu.selectedVisit': 'चयनित विज़िट',
-  'casesheetHistory.mmu.detailUnavailable':
-    'इस विज़िट के लिए पूर्ण केस-शीट दृश्य अभी उपलब्ध नहीं है।',
+  'casesheetHistory.mmu.detailUnavailable': 'इस विज़िट के लिए पूर्ण केस-शीट दृश्य अभी उपलब्ध नहीं है।',
 
   // Schedule appointment
   'appointment.title': 'अपॉइंटमेंट शेड्यूल करें',
@@ -494,8 +490,7 @@ export const hi: Record<TranslationKey, string> = {
 
   // Supervisor placeholder page
   'supervisor.title': 'पर्यवेक्षक गतिविधि क्षेत्र',
-  'supervisor.intro':
-    'पर्यवेक्षकों के लिए गतिविधियाँ, विवरण और कॉन्फ़िगरेशन यहाँ प्रबंधित किए जाएंगे।',
+  'supervisor.intro': 'पर्यवेक्षकों के लिए गतिविधियाँ, विवरण और कॉन्फ़िगरेशन यहाँ प्रबंधित किए जाएंगे।',
   'supervisor.backToDashboard': 'डैशबोर्ड पर वापस जाएं',
 
   // Supervisor workspace shell
@@ -521,8 +516,7 @@ export const hi: Record<TranslationKey, string> = {
   'supervisor.home.reportsHint': 'कॉल, गुणवत्ता और सीआरएम रिपोर्ट डाउनलोड करें।',
   'supervisor.home.blockUnblockHint': 'ब्लैकलिस्ट किए गए कॉलर नंबर प्रबंधित करें।',
   'supervisor.home.outboundAllocationHint': 'अनासाइन की गई आउटबाउंड कॉल एजेंटों को आवंटित करें।',
-  'supervisor.home.outboundReallocationHint':
-    'आवंटित आउटबाउंड कॉल एजेंटों के बीच स्थानांतरित करें।',
+  'supervisor.home.outboundReallocationHint': 'आवंटित आउटबाउंड कॉल एजेंटों के बीच स्थानांतरित करें।',
   'supervisor.placeholder.title': 'जल्द आ रहा है',
   'supervisor.placeholder.body':
     'यह पर्यवेक्षक अनुभाग अभी माइग्रेट नहीं हुआ है। कृपया अभी के लिए लीगेसी एप्लिकेशन का उपयोग करें।',
@@ -547,10 +541,11 @@ export const hi: Record<TranslationKey, string> = {
   'supReports.search': 'खोजें…',
   'supReports.noData': 'चयनित फ़िल्टर के लिए कोई डेटा नहीं मिला।',
   'supReports.fetchError': 'रिपोर्ट प्राप्त नहीं हो सकी। कृपया पुनः प्रयास करें।',
+  'supReports.serverError': 'रिपोर्ट उपलब्ध नहीं — सर्वर त्रुटि। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।',
+  'supReports.dismiss': 'बंद करें',
   'supReports.lookupError': 'रिपोर्ट विकल्प लोड नहीं हो सके। कृपया पुनः प्रयास करें।',
   'supReports.unsupportedReport': 'यह रिपोर्ट उपलब्ध नहीं है। कृपया कोई अन्य रिपोर्ट चुनें।',
-  'supReports.parseError':
-    'रिपोर्ट का पूर्वावलोकन नहीं हो सका। डाउनलोड करने के लिए निर्यात का उपयोग करें।',
+  'supReports.parseError': 'रिपोर्ट का पूर्वावलोकन नहीं हो सका। डाउनलोड करने के लिए निर्यात का उपयोग करें।',
   'supReports.downloaded': 'रिपोर्ट डाउनलोड हो गई।',
   'supReports.all': 'सभी',
   'supReports.filter.select': 'चुनें',
@@ -650,8 +645,7 @@ export const hi: Record<TranslationKey, string> = {
   'roleWorkspace.surveyor.title': 'सर्वेयर',
   'roleWorkspace.surveyor.subtitle': 'सर्वेयर कॉल-टाइप रिपोर्ट देखें।',
   'roleWorkspace.surveyor.reportsTitle': 'कॉल-टाइप रिपोर्ट',
-  'roleWorkspace.surveyor.reportsPlaceholder':
-    'सर्वेयर कॉल-टाइप रिपोर्ट जल्द ही यहाँ उपलब्ध होंगी।',
+  'roleWorkspace.surveyor.reportsPlaceholder': 'सर्वेयर कॉल-टाइप रिपोर्ट जल्द ही यहाँ उपलब्ध होंगी।',
 
   // Agent reports — Call Type (Customer Delight Index) report
   'reports.backToDashboard': 'डैशबोर्ड पर वापस जाएं',
@@ -675,8 +669,7 @@ export const hi: Record<TranslationKey, string> = {
   'reports.callType.col.action': 'कार्रवाई',
   'reports.callType.report': 'रिपोर्ट',
   'reports.callType.dial': 'डायल',
-  'reports.callType.dialDeferred':
-    'लंबित कॉल डायल करने के लिए CTI सॉफ्ट-फोन एकीकरण आवश्यक है, जो स्थगित है।',
+  'reports.callType.dialDeferred': 'लंबित कॉल डायल करने के लिए CTI सॉफ्ट-फोन एकीकरण आवश्यक है, जो स्थगित है।',
   'reports.callType.previous': 'पिछला',
   'reports.callType.next': 'अगला',
   'reports.callType.page': 'पृष्ठ',
@@ -1131,14 +1124,12 @@ export const hi: Record<TranslationKey, string> = {
   'supComm.endMustBeAfterStart': 'तक मान्य, से मान्य की तुलना में भविष्य की तारीख होनी चाहिए',
   'supComm.subjectMin': 'विषय आवश्यक है (न्यूनतम 5 वर्ण)',
   'supComm.messageMin': 'संदेश आवश्यक है (न्यूनतम 5 वर्ण)',
-  'supComm.noNotificationTypes':
-    'कोई अधिसूचना प्रकार नहीं मिला। कृपया तकनीकी सहायता से संपर्क करें',
+  'supComm.noNotificationTypes': 'कोई अधिसूचना प्रकार नहीं मिला। कृपया तकनीकी सहायता से संपर्क करें',
   'supComm.noOffices': 'काम का कोई स्थान नहीं मिला',
   'supComm.noOfficesForRole': 'उनमें चयनित भूमिका के साथ कोई कार्यालय कार्यात्मक नहीं मिला',
   'supComm.noRoles': 'कोई भूमिका नहीं मिली',
   'supComm.locationMessageCreated': 'स्थान संदेश सफलतापूर्वक बनाया गया',
-  'supComm.locationMessageCreateFailed':
-    'स्थान संदेश बनाना विफल रहा। कृपया तकनीकी सहायता से संपर्क करें',
+  'supComm.locationMessageCreateFailed': 'स्थान संदेश बनाना विफल रहा। कृपया तकनीकी सहायता से संपर्क करें',
   'supComm.alertCreated': 'चेतावनी सफलतापूर्वक बनाया गया',
   'supComm.notificationCreated': 'अधिसूचना सफलतापूर्वक बनाई गई',
   'supComm.createFailed': 'अधिसूचना/चेतावनी बनाना विफल रहा। कृपया तकनीकी सहायता से संपर्क करें',
@@ -1198,8 +1189,7 @@ export const hi: Record<TranslationKey, string> = {
   'supTraining.uploadFile': 'फ़ाइल अपलोड करें',
   'supTraining.sizeLimit': 'आकार सीमा',
   'supTraining.mb': 'एमबी',
-  'supTraining.supportedFormats':
-    'समर्थित फ़ाइल प्रारूप(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supTraining.supportedFormats': 'समर्थित फ़ाइल प्रारूप(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
   'supTraining.chooseFile': 'कृपया अपलोड करने के लिए एक फ़ाइल चुनें',
   'supTraining.fileTooLarge': 'फ़ाइल का आकार अधिक नहीं होना चाहिए',
   'supTraining.invalidFileName': 'अमान्य फ़ाइल नाम',
@@ -1239,8 +1229,7 @@ export const hi: Record<TranslationKey, string> = {
   'supScheme.uploadFile': 'फ़ाइल अपलोड करें',
   'supScheme.sizeLimit': 'आकार सीमा',
   'supScheme.mb': 'एमबी',
-  'supScheme.supportedFormats':
-    'समर्थित फ़ाइल प्रारूप(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supScheme.supportedFormats': 'समर्थित फ़ाइल प्रारूप(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
   'supScheme.chooseFile': 'कृपया अपलोड करने के लिए एक फ़ाइल चुनें',
   'supScheme.fileTooLarge': 'फ़ाइल का आकार अधिक नहीं होना चाहिए',
   'supScheme.invalidFileName': 'अमान्य फ़ाइल नाम',
@@ -1253,6 +1242,16 @@ export const hi: Record<TranslationKey, string> = {
   'supScheme.modified': 'योजना सफलतापूर्वक संशोधित',
   'supScheme.activated': 'योजना सफलतापूर्वक सक्रिय',
   'supScheme.deactivated': 'योजना सफलतापूर्वक निष्क्रिय कर दी गई',
+
+  // Upload symptoms (CDSS algorithm)
+  'supSymptom.title': 'लक्षण अपलोड करें',
+  'supSymptom.prompt': 'कृपया लक्षण अपलोड करने के लिए एल्गोरिथ्म दर्ज करें',
+  'supSymptom.algorithmLabel': 'सीडीएसएस',
+  'supSymptom.enterAlgorithm': 'कृपया लक्षण एल्गोरिथ्म दर्ज करें',
+  'supSymptom.submit': 'प्रस्तुत',
+  'supSymptom.uploaded': 'सफलतापूर्वक अपलोड किया गया',
+  'supSymptom.alreadyExists': 'डेटा पहले से मौजूद है',
+  'supSymptom.uploadFailed': 'अपलोड विफल रहा, कृपया बाद में पुनः प्रयास करें।',
 
   // Blood bank URL
   'supBlood.title': 'रक्त URL अपडेट करें',
@@ -1283,8 +1282,7 @@ export const hi: Record<TranslationKey, string> = {
   'supKm.uploadFile': 'फ़ाइल अपलोड करें',
   'supKm.sizeLimit': 'आकार सीमा',
   'supKm.mb': 'एमबी',
-  'supKm.supportedFormats':
-    'समर्थित फ़ाइल प्रारूप(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supKm.supportedFormats': 'समर्थित फ़ाइल प्रारूप(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
   'supKm.chooseFile': 'कृपया अपलोड करने के लिए एक फ़ाइल चुनें',
   'supKm.fileTooLarge': 'फ़ाइल का आकार अधिक नहीं होना चाहिए',
   'supKm.invalidFileName': 'अमान्य फ़ाइल नाम',
@@ -1295,4 +1293,11 @@ export const hi: Record<TranslationKey, string> = {
   'supKm.uploaded': 'सफलतापूर्वक अपलोड किया गया',
   'supKm.uploadFailed': 'फ़ाइल अपलोड करने में विफल',
   'supKm.noCategory': 'कोई श्रेणी नहीं मिली',
+
+  // Shared alert/confirm dialog titles (ConfirmationService)
+  'dialog.confirmTitle': 'पुष्टि करें',
+  'dialog.infoTitle': 'जानकारी',
+  'dialog.successTitle': 'सफलता',
+  'dialog.warningTitle': 'चेतावनी',
+  'dialog.errorTitle': 'त्रुटि',
 };

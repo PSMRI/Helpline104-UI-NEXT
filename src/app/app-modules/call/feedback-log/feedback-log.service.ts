@@ -44,9 +44,7 @@ export class FeedbackLogService {
   /** Change-log entries for a grievance/feedback. Resolves to `[]`. */
   getFeedbackLogs(feedbackID: number | null): Observable<FeedbackLogRow[]> {
     return this.http
-      .post<ApiResponse<FeedbackLogRow[]>>(this.config.getCommonBaseURL() + FEEDBACK_LOGS_PATH, {
-        feedbackID,
-      })
+      .post<ApiResponse<FeedbackLogRow[]>>(this.config.getCommonBaseURL() + FEEDBACK_LOGS_PATH, { feedbackID })
       .pipe(
         timeout(FEEDBACK_LOG_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),

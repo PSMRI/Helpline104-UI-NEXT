@@ -45,12 +45,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  BlockOption,
-  DistrictOption,
-  StateOption,
-  VillageOption,
-} from '../../beneficiary/beneficiary.models';
+import { BlockOption, DistrictOption, StateOption, VillageOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { GrievanceService } from './grievance.service';
@@ -83,21 +78,12 @@ import {
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
-        <ng-icon
-          name="lucideMessageSquareWarning"
-          size="18"
-          class="text-primary"
-          aria-hidden="true"
-        />
-        <h3 class="text-sm font-semibold text-foreground">
-          {{ 'sio.grievance.title' | translate: lang() }}
-        </h3>
+        <ng-icon name="lucideMessageSquareWarning" size="18" class="text-primary" aria-hidden="true" />
+        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.grievance.title' | translate: lang() }}</h3>
       </header>
 
       @if (!hasContext()) {
-        <p
-          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-        >
+        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
           {{ 'sio.common.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -108,8 +94,7 @@ import {
         <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label for="grv-nature" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.grievance.nature' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.grievance.nature' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select
               id="grv-nature"
@@ -117,9 +102,7 @@ import {
               formControlName="feedbackNatureID"
               (change)="onNatureChange()"
             >
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (n of natures(); track n.feedbackNatureID) {
                 <option [ngValue]="n.feedbackNatureID">{{ n.feedbackNature }}</option>
               }
@@ -130,12 +113,7 @@ import {
             <label for="grv-category" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.grievance.category' | translate: lang() }}
             </label>
-            <select
-              id="grv-category"
-              [class]="selectClass"
-              formControlName="categoryID"
-              (change)="onCategoryChange()"
-            >
+            <select id="grv-category" [class]="selectClass" formControlName="categoryID" (change)="onCategoryChange()">
               <option [ngValue]="null">{{ 'sio.common.select' | translate: lang() }}</option>
               @for (c of categories(); track c.categoryID) {
                 <option [ngValue]="c.categoryID">{{ c.categoryName }}</option>
@@ -144,10 +122,7 @@ import {
           </div>
 
           <div>
-            <label
-              for="grv-subcategory"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="grv-subcategory" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.grievance.subCategory' | translate: lang() }}
             </label>
             <select id="grv-subcategory" [class]="selectClass" formControlName="subCategoryID">
@@ -171,10 +146,7 @@ import {
           </div>
 
           <div>
-            <label
-              for="grv-designation"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="grv-designation" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.grievance.designation' | translate: lang() }}
             </label>
             <select id="grv-designation" [class]="selectClass" formControlName="designationID">
@@ -187,8 +159,7 @@ import {
 
           <div>
             <label for="grv-against" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.grievance.against' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.grievance.against' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
               id="grv-against"
@@ -204,15 +175,8 @@ import {
             <label for="grv-state" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.state' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select
-              id="grv-state"
-              [class]="selectClass"
-              formControlName="state"
-              (change)="onStateChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+            <select id="grv-state" [class]="selectClass" formControlName="state" (change)="onStateChange()">
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (s of states(); track s.stateID) {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
@@ -221,18 +185,10 @@ import {
 
           <div>
             <label for="grv-district" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.common.district' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.common.district' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select
-              id="grv-district"
-              [class]="selectClass"
-              formControlName="district"
-              (change)="onDistrictChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+            <select id="grv-district" [class]="selectClass" formControlName="district" (change)="onDistrictChange()">
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (d of districts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
@@ -240,10 +196,7 @@ import {
           </div>
 
           <div>
-            <label
-              for="grv-subdistrict"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="grv-subdistrict" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.subDistrict' | translate: lang() }}
             </label>
             <select
@@ -275,21 +228,11 @@ import {
             <label for="grv-date" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.grievance.dateOfIncidence' | translate: lang() }}
             </label>
-            <input
-              id="grv-date"
-              z-input
-              class="w-full"
-              type="date"
-              [max]="today"
-              formControlName="dateOfIncidence"
-            />
+            <input id="grv-date" z-input class="w-full" type="date" [max]="today" formControlName="dateOfIncidence" />
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
-            <label
-              for="grv-description"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="grv-description" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.description' | translate: lang() }}
             </label>
             <textarea
@@ -299,9 +242,7 @@ import {
               maxlength="300"
               formControlName="feedbackDescription"
             ></textarea>
-            <p class="mt-1 text-right text-xs text-muted-foreground">
-              {{ descriptionLength() }}/300
-            </p>
+            <p class="mt-1 text-right text-xs text-muted-foreground">{{ descriptionLength() }}/300</p>
           </div>
         </form>
 
@@ -319,33 +260,19 @@ import {
         </div>
 
         <div class="mt-6">
-          <h4 class="mb-2 text-sm font-medium text-foreground">
-            {{ 'sio.common.history' | translate: lang() }}
-          </h4>
+          <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.common.history' | translate: lang() }}</h4>
           @if (history().length === 0) {
-            <p class="text-sm text-muted-foreground">
-              {{ 'sio.common.noHistory' | translate: lang() }}
-            </p>
+            <p class="text-sm text-muted-foreground">{{ 'sio.common.noHistory' | translate: lang() }}</p>
           } @else {
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.grievance.colGrievanceId' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.description' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.grievance.severity' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.grievance.agent' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.status' | translate: lang() }}
-                    </th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.grievance.colGrievanceId' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.description' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.grievance.severity' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.grievance.agent' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.status' | translate: lang() }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -404,10 +331,7 @@ export class GrievanceServiceComponent implements OnInit {
     subCategoryID: this.fb.control<number | null>(null),
     severityID: this.fb.control<number | null>(null),
     designationID: this.fb.control<number | null>(null),
-    grievanceAgainst: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(25),
-    ]),
+    grievanceAgainst: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(25)]),
     feedbackDescription: this.fb.control<string | null>(null, Validators.maxLength(300)),
     state: this.fb.control<number | null>(null, Validators.required),
     district: this.fb.control<number | null>(null, Validators.required),
@@ -593,10 +517,7 @@ export class GrievanceServiceComponent implements OnInit {
 
   private loadHistory(): void {
     this.grievance
-      .getHistory(
-        this.callStore.beneficiaryId(),
-        this.authStore.currentRole()?.providerServiceMapID ?? null,
-      )
+      .getHistory(this.callStore.beneficiaryId(), this.authStore.currentRole()?.providerServiceMapID ?? null)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: (rows) => this.history.set(rows), error: () => this.history.set([]) });
   }

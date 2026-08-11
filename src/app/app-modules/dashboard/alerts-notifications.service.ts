@@ -73,10 +73,7 @@ export class AlertsNotificationsService {
   }
 
   /** The agent's messages of one notification type. */
-  getNotificationDetails(
-    identity: AlertsIdentity,
-    notificationTypeID: number,
-  ): Observable<UserNotification[]> {
+  getNotificationDetails(identity: AlertsIdentity, notificationTypeID: number): Observable<UserNotification[]> {
     return this.post<UserNotification[]>(DETAILS_PATH, {
       ...identity,
       notificationTypeID,
@@ -87,10 +84,7 @@ export class AlertsNotificationsService {
    * Mark messages read or unread. The payload key `notficationStatus` is the
    * legacy API's exact (misspelled) contract — do not "fix" it.
    */
-  changeStatus(
-    status: 'read' | 'unread',
-    userNotificationMapIDList: number[],
-  ): Observable<StatusChangeResult> {
+  changeStatus(status: 'read' | 'unread', userNotificationMapIDList: number[]): Observable<StatusChangeResult> {
     return this.post<StatusChangeResult>(CHANGE_STATUS_PATH, {
       notficationStatus: status,
       userNotificationMapIDList,
@@ -135,9 +129,7 @@ export class AlertsNotificationsService {
     if (err instanceof HttpErrorResponse) {
       const body = err.error as { errorMessage?: string } | null;
       const message =
-        body && typeof body === 'object' && typeof body.errorMessage === 'string'
-          ? body.errorMessage
-          : '';
+        body && typeof body === 'object' && typeof body.errorMessage === 'string' ? body.errorMessage : '';
       return { status: err.status, errorMessage: message.trim() || GENERIC_ERROR };
     }
     return { status: 0, errorMessage: GENERIC_ERROR };

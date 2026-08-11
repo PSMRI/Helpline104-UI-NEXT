@@ -51,13 +51,7 @@ const SUPERVISOR_FEATURE_CODE = 'Supervisor';
   imports: [ZardButtonComponent],
   template: `
     @if (showCzentrix()) {
-      <button
-        z-button
-        type="button"
-        zSize="sm"
-        class="fixed bottom-12 right-4 z-50 shadow-lg"
-        (click)="toggleCti()"
-      >
+      <button z-button type="button" zSize="sm" class="fixed bottom-12 right-4 z-50 shadow-lg" (click)="toggleCti()">
         {{ czentrixLabel }}
       </button>
 

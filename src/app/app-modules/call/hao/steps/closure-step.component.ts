@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -42,13 +34,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { ScheduleAppointmentComponent } from '../../schedule-appointment/schedule-appointment.component';
-import {
-  CallSubType,
-  CallType,
-  CampaignSkill,
-  CloseCallRequest,
-  TransferCampaign,
-} from '../hao.models';
+import { CallSubType, CallType, CampaignSkill, CloseCallRequest, TransferCampaign } from '../hao.models';
 import { HaoService } from '../hao.service';
 
 /**
@@ -71,13 +57,7 @@ import { HaoService } from '../hao.service';
   selector: 'app-hao-closure-step',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    TranslatePipe,
-    ZardButtonComponent,
-    ZardInputDirective,
-    ScheduleAppointmentComponent,
-  ],
+  imports: [ReactiveFormsModule, TranslatePipe, ZardButtonComponent, ZardInputDirective, ScheduleAppointmentComponent],
   template: `
     <form class="flex flex-col gap-5" [formGroup]="form" novalidate>
       <fieldset class="flex flex-wrap gap-6">
@@ -147,11 +127,7 @@ import { HaoService } from '../hao.service';
 
       <div class="flex flex-col gap-3">
         <label class="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            class="h-4 w-4 accent-primary"
-            formControlName="isFollowupRequired"
-          />
+          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" />
           {{ 'hao.closure.followUpRequired' | translate: lang() }}
         </label>
         @if (followUpRequired()) {
@@ -243,20 +219,11 @@ import { HaoService } from '../hao.service';
       </div>
 
       @if (showAppointment()) {
-        <app-schedule-appointment
-          (saved)="showAppointment.set(false)"
-          (cancelled)="showAppointment.set(false)"
-        />
+        <app-schedule-appointment (saved)="showAppointment.set(false)" (cancelled)="showAppointment.set(false)" />
       }
 
       <div class="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
-        <button
-          z-button
-          type="button"
-          zType="outline"
-          [zDisabled]="actionBusy()"
-          (click)="showAppointment.set(true)"
-        >
+        <button z-button type="button" zType="outline" [zDisabled]="actionBusy()" (click)="showAppointment.set(true)">
           {{ 'hao.closure.scheduleAppointment' | translate: lang() }}
         </button>
         <button
@@ -269,13 +236,7 @@ import { HaoService } from '../hao.service';
         >
           {{ 'hao.closure.submitContinue' | translate: lang() }}
         </button>
-        <button
-          z-button
-          type="button"
-          [zLoading]="submitting()"
-          [zDisabled]="actionBusy()"
-          (click)="submit(false)"
-        >
+        <button z-button type="button" [zLoading]="submitting()" [zDisabled]="actionBusy()" (click)="submit(false)">
           {{ 'hao.closure.submitClose' | translate: lang() }}
         </button>
       </div>
@@ -322,9 +283,7 @@ export class ClosureStepComponent {
    * on this so the agent cannot issue duplicate dispositions, or close and
    * transfer the same live call concurrently.
    */
-  readonly actionBusy = computed(
-    () => this.submitting() || this.transferring() || this.confirming(),
-  );
+  readonly actionBusy = computed(() => this.submitting() || this.transferring() || this.confirming());
 
   // Form values mirrored to signals so conditional UI updates under zoneless CD.
   private readonly selectedCallGroup = signal<string | null>(null);

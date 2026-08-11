@@ -25,12 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../../core/services/config.service';
-import {
-  ApiResponse,
-  SUPERVISOR_TIMEOUT_MS,
-  readSupervisorData,
-  toSupervisorError,
-} from '../../shared/supervisor-api';
+import { ApiResponse, SUPERVISOR_TIMEOUT_MS, readSupervisorData, toSupervisorError } from '../../shared/supervisor-api';
 import {
   DesignationRow,
   EmergencyContactCreateRequest,
@@ -77,10 +72,9 @@ export class SupervisorNotificationService {
 
   /** Provider/state/service ids for the service (admin base). */
   getServiceProviderInfo(providerServiceMapID: number | null): Observable<ServiceProviderInfo> {
-    return this.post<ServiceProviderInfo>(
-      this.config.getAdminBaseURL() + SERVICE_PROVIDER_ID_PATH,
-      { providerServiceMapID },
-    ).pipe(map((data) => data ?? {}));
+    return this.post<ServiceProviderInfo>(this.config.getAdminBaseURL() + SERVICE_PROVIDER_ID_PATH, {
+      providerServiceMapID,
+    }).pipe(map((data) => data ?? {}));
   }
 
   /** All working locations / offices for the service (admin base). */
@@ -91,10 +85,7 @@ export class SupervisorNotificationService {
   }
 
   /** Offices where a role is functional; `roleID` omitted means all roles. */
-  getOfficesByRole(
-    providerServiceMapID: number | null,
-    roleID: number | undefined,
-  ): Observable<OfficeLocation[]> {
+  getOfficesByRole(providerServiceMapID: number | null, roleID: number | undefined): Observable<OfficeLocation[]> {
     return this.post<OfficeLocation[]>(this.config.getCommonBaseURL() + OFFICES_BY_ROLE_PATH, {
       providerServiceMapID,
       roleID,
@@ -119,18 +110,16 @@ export class SupervisorNotificationService {
   }
 
   getSupervisorNotifications(body: NotificationSearchRequest): Observable<NotificationRow[]> {
-    return this.post<NotificationRow[]>(
-      this.config.getCommonBaseURL() + SUPERVISOR_NOTIFICATIONS_PATH,
-      body,
-    ).pipe(map((data) => data ?? []));
+    return this.post<NotificationRow[]>(this.config.getCommonBaseURL() + SUPERVISOR_NOTIFICATIONS_PATH, body).pipe(
+      map((data) => data ?? []),
+    );
   }
 
   /** Create notifications — the API takes one element per location/role fan-out. */
   createNotifications(body: NotificationCreateRequest[]): Observable<NotificationRow[]> {
-    return this.post<NotificationRow[]>(
-      this.config.getCommonBaseURL() + CREATE_NOTIFICATION_PATH,
-      body,
-    ).pipe(map((data) => data ?? []));
+    return this.post<NotificationRow[]>(this.config.getCommonBaseURL() + CREATE_NOTIFICATION_PATH, body).pipe(
+      map((data) => data ?? []),
+    );
   }
 
   updateNotification(body: NotificationUpdateRequest): Observable<unknown> {
@@ -141,25 +130,19 @@ export class SupervisorNotificationService {
     providerServiceMapID: number | null,
     notificationTypeID: number | null,
   ): Observable<EmergencyContactRow[]> {
-    return this.post<EmergencyContactRow[]>(
-      this.config.getCommonBaseURL() + SUPERVISOR_EMERGENCY_CONTACTS_PATH,
-      { providerServiceMapID, notificationTypeID },
-    ).pipe(map((data) => data ?? []));
+    return this.post<EmergencyContactRow[]>(this.config.getCommonBaseURL() + SUPERVISOR_EMERGENCY_CONTACTS_PATH, {
+      providerServiceMapID,
+      notificationTypeID,
+    }).pipe(map((data) => data ?? []));
   }
 
   createEmergencyContacts(body: EmergencyContactCreateRequest[]): Observable<unknown> {
-    return this.post<unknown>(
-      this.config.getCommonBaseURL() + CREATE_EMERGENCY_CONTACTS_PATH,
-      body,
-    );
+    return this.post<unknown>(this.config.getCommonBaseURL() + CREATE_EMERGENCY_CONTACTS_PATH, body);
   }
 
   /** Update takes the whole (mutated) row, matching the legacy screen. */
   updateEmergencyContact(body: EmergencyContactRow): Observable<unknown> {
-    return this.post<unknown>(
-      this.config.getCommonBaseURL() + UPDATE_EMERGENCY_CONTACTS_PATH,
-      body,
-    );
+    return this.post<unknown>(this.config.getCommonBaseURL() + UPDATE_EMERGENCY_CONTACTS_PATH, body);
   }
 
   private post<T>(url: string, body: unknown): Observable<T | undefined> {

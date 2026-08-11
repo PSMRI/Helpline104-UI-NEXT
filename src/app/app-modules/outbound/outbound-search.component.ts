@@ -21,15 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -73,14 +65,7 @@ function today(): string {
   selector: 'app-outbound-search',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DatePipe,
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    OutboundAllocateComponent,
-  ],
+  imports: [DatePipe, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, OutboundAllocateComponent],
   viewProviders: [provideIcons({ lucideSearch })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -97,25 +82,13 @@ function today(): string {
           <label for="search-start" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'outbound.search.startDate' | translate: lang() }}
           </label>
-          <input
-            id="search-start"
-            type="date"
-            [class]="selectClass"
-            formControlName="startDate"
-            [max]="maxDate"
-          />
+          <input id="search-start" type="date" [class]="selectClass" formControlName="startDate" [max]="maxDate" />
         </div>
         <div>
           <label for="search-end" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'outbound.search.endDate' | translate: lang() }}
           </label>
-          <input
-            id="search-end"
-            type="date"
-            [class]="selectClass"
-            formControlName="endDate"
-            [max]="maxDate"
-          />
+          <input id="search-end" type="date" [class]="selectClass" formControlName="endDate" [max]="maxDate" />
         </div>
         <button z-button type="submit" zType="default" [zLoading]="loading()">
           <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
@@ -135,9 +108,7 @@ function today(): string {
               <div class="mb-2 flex items-center justify-between gap-3">
                 <h2 class="text-sm font-semibold text-foreground">
                   {{ bucket.labelKey | translate: lang() }}
-                  <span class="font-normal text-muted-foreground"
-                    >({{ bucket.records.length }})</span
-                  >
+                  <span class="font-normal text-muted-foreground">({{ bucket.records.length }})</span>
                 </h2>
                 <button
                   z-button
@@ -243,9 +214,7 @@ export class OutboundSearchComponent implements OnInit {
   }
 
   nameOf(row: OutboundCallRecord): string {
-    return [row.beneficiary?.firstName, row.beneficiary?.lastName]
-      .filter((p) => !!p && p.trim().length > 0)
-      .join(' ');
+    return [row.beneficiary?.firstName, row.beneficiary?.lastName].filter((p) => !!p && p.trim().length > 0).join(' ');
   }
 
   selectBucket(bucket: RoleBucket): void {

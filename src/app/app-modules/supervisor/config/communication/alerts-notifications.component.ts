@@ -21,15 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  WritableSignal,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, WritableSignal, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -76,14 +68,7 @@ type ViewMode = 'search' | 'create' | 'edit';
   selector: 'app-alerts-notifications',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DatePipe,
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ZardInputDirective,
-  ],
+  imports: [DatePipe, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
   viewProviders: [provideIcons({ lucidePencil, lucideSearch })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -241,11 +226,7 @@ type ViewMode = 'search' | 'create' | 'edit';
 
       <!-- Create -->
       @if (mode() === 'create') {
-        <form
-          [formGroup]="createForm"
-          autocomplete="off"
-          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
+        <form [formGroup]="createForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label for="an-c-type" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supComm.communicationType' | translate: lang() }}
@@ -264,12 +245,7 @@ type ViewMode = 'search' | 'create' | 'edit';
             <label for="an-c-role" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supComm.selectRole' | translate: lang() }}
             </label>
-            <select
-              id="an-c-role"
-              [class]="selectClass"
-              formControlName="roleID"
-              (change)="onRoleChange()"
-            >
+            <select id="an-c-role" [class]="selectClass" formControlName="roleID" (change)="onRoleChange()">
               <option [ngValue]="'All'">{{ 'supComm.all' | translate: lang() }}</option>
               @for (r of roles(); track r.roleID) {
                 <option [ngValue]="r.roleID">{{ r.roleName }}</option>
@@ -309,14 +285,7 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.validFrom' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="an-c-start"
-              z-input
-              class="w-full"
-              type="date"
-              [min]="today"
-              formControlName="startDate"
-            />
+            <input id="an-c-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
           </div>
           <div>
             <label for="an-c-stime" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -365,13 +334,7 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.subject' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="an-c-subject"
-              z-input
-              class="w-full"
-              maxlength="100"
-              formControlName="subject"
-            />
+            <input id="an-c-subject" z-input class="w-full" maxlength="100" formControlName="subject" />
             <div class="mt-1 flex justify-between text-xs">
               <span class="font-medium text-destructive">
                 @if (createForm.controls.subject.invalid && createForm.controls.subject.touched) {
@@ -422,24 +385,13 @@ type ViewMode = 'search' | 'create' | 'edit';
 
       <!-- Edit -->
       @if (mode() === 'edit') {
-        <form
-          [formGroup]="editForm"
-          autocomplete="off"
-          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
+        <form [formGroup]="editForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label for="an-e-start" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supComm.validFrom' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="an-e-start"
-              z-input
-              class="w-full"
-              type="date"
-              [min]="today"
-              formControlName="startDate"
-            />
+            <input id="an-e-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
           </div>
           <div>
             <label for="an-e-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -465,13 +417,7 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.subject' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="an-e-subject"
-              z-input
-              class="w-full"
-              maxlength="100"
-              formControlName="subject"
-            />
+            <input id="an-e-subject" z-input class="w-full" maxlength="100" formControlName="subject" />
             <div class="mt-1 flex justify-between text-xs">
               <span class="font-medium text-destructive">
                 @if (editForm.controls.subject.invalid && editForm.controls.subject.touched) {
@@ -824,8 +770,7 @@ export class AlertsNotificationsComponent implements OnInit {
       end.setHours(23, 59, 59, 0);
     }
 
-    const roleID =
-      value.roleID === 'All' || value.roleID == null ? undefined : (value.roleID as number);
+    const roleID = value.roleID === 'All' || value.roleID == null ? undefined : (value.roleID as number);
     const base: NotificationCreateRequest = {
       providerServiceMapID: this.psmID(),
       notificationTypeID: value.notificationTypeID,
@@ -837,10 +782,7 @@ export class AlertsNotificationsComponent implements OnInit {
       roleID,
     };
     const officeIDs = [...this.selectedOffices()];
-    const body =
-      officeIDs.length > 0
-        ? officeIDs.map((workingLocationID) => ({ ...base, workingLocationID }))
-        : [base];
+    const body = officeIDs.length > 0 ? officeIDs.map((workingLocationID) => ({ ...base, workingLocationID })) : [base];
 
     this.saving.set(true);
     this.errorMessage.set('');
@@ -851,13 +793,9 @@ export class AlertsNotificationsComponent implements OnInit {
         next: (created) => {
           this.saving.set(false);
           if (created.length > 0) {
-            const createdType = this.types().find(
-              (t) => t.notificationTypeID === created[0].notificationTypeID,
-            );
+            const createdType = this.types().find((t) => t.notificationTypeID === created[0].notificationTypeID);
             const isAlert = createdType?.notificationType.toUpperCase() === 'ALERT';
-            toast.success(
-              this.i18n.instant(isAlert ? 'supComm.alertCreated' : 'supComm.notificationCreated'),
-            );
+            toast.success(this.i18n.instant(isAlert ? 'supComm.alertCreated' : 'supComm.notificationCreated'));
             this.createForm.reset({ roleID: 'All' });
             this.selectedOffices.set(new Set());
             this.roleIsAll.set(true);
@@ -909,9 +847,7 @@ export class AlertsNotificationsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.saving.set(false);
-          toast.success(
-            `${this.editTypeName()} ${this.i18n.instant('supComm.editedSuccessfully')}`,
-          );
+          toast.success(`${this.editTypeName()} ${this.i18n.instant('supComm.editedSuccessfully')}`);
           this.backToTable();
           if (this.searchForm.valid) {
             this.load();

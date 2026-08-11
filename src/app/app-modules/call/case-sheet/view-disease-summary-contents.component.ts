@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  input,
-  linkedSignal,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, linkedSignal, output } from '@angular/core';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideX } from '@ng-icons/lucide';
@@ -67,9 +60,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
       <div class="p-5">
         @if (items().length === 0) {
-          <p class="text-sm text-muted-foreground">
-            {{ 'diseaseSummary.empty' | translate: lang() }}
-          </p>
+          <p class="text-sm text-muted-foreground">{{ 'diseaseSummary.empty' | translate: lang() }}</p>
         } @else {
           <div class="flex flex-wrap gap-2">
             @for (item of items(); track $index; let i = $index) {

@@ -134,12 +134,10 @@ export class LoginComponent {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    this.loginService
-      .authenticateUser(this.lastUserID, this.lastEncryptedPassword, doLogout)
-      .subscribe({
-        next: (response) => this.onSuccess(response, this.lastUserID),
-        error: (error: LoginError) => this.onError(error),
-      });
+    this.loginService.authenticateUser(this.lastUserID, this.lastEncryptedPassword, doLogout).subscribe({
+      next: (response) => this.onSuccess(response, this.lastUserID),
+      error: (error: LoginError) => this.onError(error),
+    });
   }
 
   private onSuccess(response: LoginResponse, userID: string): void {
@@ -180,9 +178,7 @@ export class LoginComponent {
       // user id/name it needs from the in-memory recovery store instead.
       const userId = response.userID ?? null;
       if (userId == null) {
-        this.errorMessage.set(
-          'Unable to start first-time setup. Please contact your administrator.',
-        );
+        this.errorMessage.set('Unable to start first-time setup. Please contact your administrator.');
         return;
       }
       this.recoveryStore.startSecurityQuestionSetup(userID, userId);
@@ -216,8 +212,7 @@ export class LoginComponent {
     this.confirmDialog
       .confirm({
         title: 'Already logged in',
-        message:
-          'You are already logged in. Do you want to logout from other device and login here?',
+        message: 'You are already logged in. Do you want to logout from other device and login here?',
         okText: 'Yes, logout',
         cancelText: 'Cancel',
       })
@@ -233,9 +228,7 @@ export class LoginComponent {
           next: () => this.authenticate(true),
           error: (error: LoginError) => {
             this.loading.set(false);
-            this.errorMessage.set(
-              error?.errorMessage || 'Unable to log out the other session. Please try again.',
-            );
+            this.errorMessage.set(error?.errorMessage || 'Unable to log out the other session. Please try again.');
           },
         });
       });

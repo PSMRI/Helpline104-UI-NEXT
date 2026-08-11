@@ -21,11 +21,7 @@
  */
 
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import {
-  ApplicationConfig,
-  provideBrowserGlobalErrorListeners,
-  provideZonelessChangeDetection,
-} from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -46,12 +42,7 @@ export const appConfig: ApplicationConfig = {
     // the backend so every earlier interceptor (and all services) only ever see
     // errorMessage values with raw server exceptions already scrubbed.
     provideHttpClient(
-      withInterceptors([
-        loaderInterceptor,
-        authInterceptor,
-        errorInterceptor,
-        errorSanitizerInterceptor,
-      ]),
+      withInterceptors([loaderInterceptor, authInterceptor, errorInterceptor, errorSanitizerInterceptor]),
     ),
   ],
 };

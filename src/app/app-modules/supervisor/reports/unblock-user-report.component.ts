@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 
@@ -56,13 +49,7 @@ const FILE_NAME = 'Unblock_User_Report';
   selector: 'app-unblock-user-report',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ReportResultsComponent,
-  ],
+  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ReportResultsComponent],
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -70,7 +57,17 @@ const FILE_NAME = 'Unblock_User_Report';
         {{ 'supReports.unblock.title' | translate: lang() }}
       </h3>
 
-      @if (runner.errorMessage()) {
+      @if (runner.serverError()) {
+        <div
+          class="mb-3 flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+          role="alert"
+        >
+          <span>{{ runner.errorMessage() }}</span>
+          <button z-button type="button" zType="ghost" zSize="sm" (click)="runner.dismissError()">
+            {{ 'supReports.dismiss' | translate: lang() }}
+          </button>
+        </div>
+      } @else if (runner.errorMessage()) {
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">
           {{ runner.errorMessage() }}
         </p>
@@ -106,13 +103,7 @@ const FILE_NAME = 'Unblock_User_Report';
       </form>
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
+        <button z-button type="button" [zLoading]="runner.loading()" [zDisabled]="form.invalid" (click)="view()">
           <ng-icon name="lucideEye" size="16" aria-hidden="true" />
           {{ 'supReports.view' | translate: lang() }}
         </button>
@@ -155,9 +146,7 @@ export class UnblockUserReportComponent {
 
   readonly endMax = signal(this.maxDate);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
+  private readonly providerServiceMapID = computed(() => this.authStore.currentRole()?.providerServiceMapID ?? null);
 
   onStartChange(): void {
     const { startDate, endDate } = this.form.getRawValue();

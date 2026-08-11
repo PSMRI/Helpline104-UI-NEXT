@@ -77,11 +77,7 @@ export interface AlertsNotificationsDialogData {
             <div class="min-w-0">
               <p
                 class="text-sm"
-                [class]="
-                  message.notificationState === 'unread'
-                    ? 'font-semibold text-foreground'
-                    : 'text-foreground'
-                "
+                [class]="message.notificationState === 'unread' ? 'font-semibold text-foreground' : 'text-foreground'"
               >
                 {{ message.notification?.notification || '—' }}
               </p>
@@ -215,9 +211,7 @@ export class AlertsNotificationsDialogComponent {
       next: () => this.reload(),
       error: (err: AlertsError) => {
         this.busy.set(false);
-        this.errorMessage.set(
-          err.errorMessage || this.i18n.instant('dashboard.alertsDialog.error'),
-        );
+        this.errorMessage.set(err.errorMessage || this.i18n.instant('dashboard.alertsDialog.error'));
       },
     });
   }
@@ -235,9 +229,7 @@ export class AlertsNotificationsDialogComponent {
         },
         error: (err: AlertsError) => {
           this.busy.set(false);
-          this.errorMessage.set(
-            err.errorMessage || this.i18n.instant('dashboard.alertsDialog.error'),
-          );
+          this.errorMessage.set(err.errorMessage || this.i18n.instant('dashboard.alertsDialog.error'));
           this.data.onChanged();
         },
       });

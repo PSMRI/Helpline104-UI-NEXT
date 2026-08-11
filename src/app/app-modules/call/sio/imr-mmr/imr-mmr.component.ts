@@ -45,12 +45,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  BlockOption,
-  DistrictOption,
-  StateOption,
-  VillageOption,
-} from '../../beneficiary/beneficiary.models';
+import { BlockOption, DistrictOption, StateOption, VillageOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { ImrMmrService } from './imr-mmr.service';
@@ -78,15 +73,11 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
         <ng-icon name="lucideClipboardList" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">
-          {{ 'sio.imrMmr.title' | translate: lang() }}
-        </h3>
+        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.imrMmr.title' | translate: lang() }}</h3>
       </header>
 
       @if (!hasContext()) {
-        <p
-          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-        >
+        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
           {{ 'sio.common.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -97,8 +88,7 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
         <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div class="sm:col-span-2 lg:col-span-3">
             <span class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.imrMmr.typeOfInformation' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.imrMmr.typeOfInformation' | translate: lang() }} <span class="text-destructive">*</span>
             </span>
             <div class="flex flex-wrap gap-4">
               <label class="flex items-center gap-2 text-sm text-foreground">
@@ -113,12 +103,8 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
           </div>
 
           <div>
-            <label
-              for="imr-informer-name"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              {{ 'sio.imrMmr.informerName' | translate: lang() }}
-              <span class="text-destructive">*</span>
+            <label for="imr-informer-name" class="mb-1 block text-xs font-medium text-muted-foreground">
+              {{ 'sio.imrMmr.informerName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
               id="imr-informer-name"
@@ -131,12 +117,8 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
           </div>
 
           <div>
-            <label
-              for="imr-informer-mobile"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              {{ 'sio.imrMmr.informerMobile' | translate: lang() }}
-              <span class="text-destructive">*</span>
+            <label for="imr-informer-mobile" class="mb-1 block text-xs font-medium text-muted-foreground">
+              {{ 'sio.imrMmr.informerMobile' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
               id="imr-informer-mobile"
@@ -150,12 +132,8 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
           </div>
 
           <div class="sm:col-span-2 lg:col-span-1">
-            <label
-              for="imr-informer-address"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              {{ 'sio.imrMmr.informerAddress' | translate: lang() }}
-              <span class="text-destructive">*</span>
+            <label for="imr-informer-address" class="mb-1 block text-xs font-medium text-muted-foreground">
+              {{ 'sio.imrMmr.informerAddress' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <textarea
               id="imr-informer-address"
@@ -167,12 +145,8 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
           </div>
 
           <div>
-            <label
-              for="imr-victim-name"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              {{ 'sio.imrMmr.victimName' | translate: lang() }}
-              <span class="text-destructive">*</span>
+            <label for="imr-victim-name" class="mb-1 block text-xs font-medium text-muted-foreground">
+              {{ 'sio.imrMmr.victimName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
               id="imr-victim-name"
@@ -185,10 +159,7 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
           </div>
 
           <div>
-            <label
-              for="imr-victim-guardian"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="imr-victim-guardian" class="mb-1 block text-xs font-medium text-muted-foreground">
               @if (infoType() === 'CDR') {
                 {{ 'sio.imrMmr.motherName' | translate: lang() }}
               } @else {
@@ -207,10 +178,7 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
           </div>
 
           <div>
-            <label
-              for="imr-victim-age"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="imr-victim-age" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.age' | translate: lang() }}
             </label>
             <input
@@ -229,15 +197,8 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
             <label for="imr-state" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.state' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select
-              id="imr-state"
-              [class]="selectClass"
-              formControlName="stateID"
-              (change)="onStateChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+            <select id="imr-state" [class]="selectClass" formControlName="stateID" (change)="onStateChange()">
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (s of states(); track s.stateID) {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
@@ -246,18 +207,10 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
 
           <div>
             <label for="imr-district" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.common.district' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.common.district' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select
-              id="imr-district"
-              [class]="selectClass"
-              formControlName="districtID"
-              (change)="onDistrictChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+            <select id="imr-district" [class]="selectClass" formControlName="districtID" (change)="onDistrictChange()">
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (d of districts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
@@ -268,12 +221,7 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
             <label for="imr-taluk" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.subDistrict' | translate: lang() }}
             </label>
-            <select
-              id="imr-taluk"
-              [class]="selectClass"
-              formControlName="talukID"
-              (change)="onTalukChange()"
-            >
+            <select id="imr-taluk" [class]="selectClass" formControlName="talukID" (change)="onTalukChange()">
               <option [ngValue]="null">{{ 'sio.common.select' | translate: lang() }}</option>
               @for (b of taluks(); track b.blockID) {
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
@@ -294,10 +242,7 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
-            <label
-              for="imr-victim-address"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="imr-victim-address" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.address' | translate: lang() }}
             </label>
             <textarea
@@ -311,8 +256,7 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
 
           <div class="sm:col-span-2 lg:col-span-3">
             <label for="imr-reason" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.imrMmr.reasonOfDeath' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.imrMmr.reasonOfDeath' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <textarea
               id="imr-reason"
@@ -338,39 +282,21 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
         </div>
 
         <div class="mt-6">
-          <h4 class="mb-2 text-sm font-medium text-foreground">
-            {{ 'sio.common.history' | translate: lang() }}
-          </h4>
+          <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.common.history' | translate: lang() }}</h4>
           @if (history().length === 0) {
-            <p class="text-sm text-muted-foreground">
-              {{ 'sio.common.noHistory' | translate: lang() }}
-            </p>
+            <p class="text-sm text-muted-foreground">{{ 'sio.common.noHistory' | translate: lang() }}</p>
           } @else {
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.imrMmr.deathId' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.imrMmr.victim' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.age' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.district' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.imrMmr.informer' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.imrMmr.informerMobile' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.imrMmr.referenceDate' | translate: lang() }}
-                    </th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.imrMmr.deathId' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.imrMmr.victim' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.age' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.district' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.imrMmr.informer' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.imrMmr.informerMobile' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.imrMmr.referenceDate' | translate: lang() }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -432,29 +358,20 @@ export class ImrMmrComponent implements OnInit {
       Validators.required,
       Validators.pattern(/^[0-9]{10}$/),
     ]),
-    informerAddress: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(100),
-    ]),
+    informerAddress: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(100)]),
     victimName: this.fb.control<string | null>(null, [
       Validators.required,
       Validators.minLength(3),
       Validators.maxLength(25),
     ]),
-    victimGuardian: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(25),
-    ]),
+    victimGuardian: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(25)]),
     victimAge: this.fb.control<number | null>(null, [Validators.min(1), Validators.max(120)]),
     stateID: this.fb.control<number | null>(null, Validators.required),
     districtID: this.fb.control<number | null>(null, Validators.required),
     talukID: this.fb.control<number | null>(null),
     villageID: this.fb.control<number | null>(null),
     victimAddress: this.fb.control<string | null>(null, Validators.maxLength(500)),
-    reasonOfDeath: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(100),
-    ]),
+    reasonOfDeath: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(100)]),
   });
 
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);

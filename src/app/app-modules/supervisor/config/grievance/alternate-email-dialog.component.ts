@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -78,9 +71,7 @@ export interface AlternateEmailDialogData {
         {{ 'supGrievance.loading' | translate: lang() }}
       </p>
     } @else if (emails().length === 0) {
-      <p
-        class="rounded-md border border-dashed border-border py-4 text-center text-sm text-muted-foreground"
-      >
+      <p class="rounded-md border border-dashed border-border py-4 text-center text-sm text-muted-foreground">
         {{ 'supGrievance.email.noEmails' | translate: lang() }}
       </p>
     } @else {
@@ -198,9 +189,7 @@ export class AlternateEmailDialogComponent implements OnInit {
   }
 
   addManual(): void {
-    this.manualEmails.push(
-      this.fb.control('', [Validators.required, Validators.pattern(EMAIL_PATTERN)]),
-    );
+    this.manualEmails.push(this.fb.control('', [Validators.required, Validators.pattern(EMAIL_PATTERN)]));
   }
 
   removeManual(index: number): void {
@@ -218,9 +207,7 @@ export class AlternateEmailDialogComponent implements OnInit {
     if (!this.manualForm.valid) {
       return false;
     }
-    const manualCount = this.manualEmails.controls.filter(
-      (c) => ((c.value as string) ?? '').trim().length > 0,
-    ).length;
+    const manualCount = this.manualEmails.controls.filter((c) => ((c.value as string) ?? '').trim().length > 0).length;
     return this.selected().size > 0 || manualCount > 0;
   }
 

@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -73,13 +66,7 @@ const SEARCH_CRITERIAS: readonly SearchCriteria[] = [
   selector: 'app-call-quality-report',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ReportResultsComponent,
-  ],
+  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ReportResultsComponent],
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -87,7 +74,17 @@ const SEARCH_CRITERIAS: readonly SearchCriteria[] = [
         {{ 'supReports.callQuality.title' | translate: lang() }}
       </h3>
 
-      @if (runner.errorMessage()) {
+      @if (runner.serverError()) {
+        <div
+          class="mb-3 flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+          role="alert"
+        >
+          <span>{{ runner.errorMessage() }}</span>
+          <button z-button type="button" zType="ghost" zSize="sm" (click)="runner.dismissError()">
+            {{ 'supReports.dismiss' | translate: lang() }}
+          </button>
+        </div>
+      } @else if (runner.errorMessage()) {
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">
           {{ runner.errorMessage() }}
         </p>
@@ -124,12 +121,7 @@ const SEARCH_CRITERIAS: readonly SearchCriteria[] = [
           <label for="cq-criteria" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supReports.filter.searchCriteria' | translate: lang() }}
           </label>
-          <select
-            id="cq-criteria"
-            [class]="selectClass"
-            formControlName="searchCriteria"
-            (change)="onCriteriaChange()"
-          >
+          <select id="cq-criteria" [class]="selectClass" formControlName="searchCriteria" (change)="onCriteriaChange()">
             <option [ngValue]="null" disabled>
               {{ 'supReports.filter.select' | translate: lang() }}
             </option>
@@ -206,13 +198,7 @@ const SEARCH_CRITERIAS: readonly SearchCriteria[] = [
       </form>
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
+        <button z-button type="button" [zLoading]="runner.loading()" [zDisabled]="form.invalid" (click)="view()">
           <ng-icon name="lucideEye" size="16" aria-hidden="true" />
           {{ 'supReports.view' | translate: lang() }}
         </button>
@@ -267,9 +253,7 @@ export class CallQualityReportComponent {
   readonly workLocations = signal<WorkLocationOption[]>([]);
   readonly roles = signal<RoleOption[]>([]);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
+  private readonly providerServiceMapID = computed(() => this.authStore.currentRole()?.providerServiceMapID ?? null);
 
   onStartChange(): void {
     const { startDate, endDate } = this.form.getRawValue();
@@ -292,7 +276,7 @@ export class CallQualityReportComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (list) => this.callTypes.set(list),
-          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+          error: (err: SupervisorError) => this.runner.setError(err),
         });
     } else if (criteria === 'AgentWiseReport' && !this.agents().length) {
       this.service
@@ -300,7 +284,7 @@ export class CallQualityReportComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (list) => this.agents.set(list),
-          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+          error: (err: SupervisorError) => this.runner.setError(err),
         });
     } else if (criteria === 'LocationWiseReport' && !this.workLocations().length) {
       this.service
@@ -308,7 +292,7 @@ export class CallQualityReportComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (list) => this.workLocations.set(list),
-          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+          error: (err: SupervisorError) => this.runner.setError(err),
         });
     } else if (criteria === 'SkillsetWiseReport' && !this.roles().length) {
       this.service
@@ -316,7 +300,7 @@ export class CallQualityReportComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (list) => this.roles.set(list),
-          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+          error: (err: SupervisorError) => this.runner.setError(err),
         });
     }
   }

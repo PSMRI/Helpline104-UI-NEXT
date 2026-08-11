@@ -76,9 +76,7 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
               [placeholder]="'covidModal.enterMobile' | translate: lang()"
             />
             @if (!numberValid()) {
-              <p class="mt-0.5 text-xs text-destructive">
-                {{ 'covidModal.mobileError' | translate: lang() }}
-              </p>
+              <p class="mt-0.5 text-xs text-destructive">{{ 'covidModal.mobileError' | translate: lang() }}</p>
             }
           </div>
         }
@@ -87,13 +85,7 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
           <button z-button type="button" zType="outline" (click)="closed.emit()">
             {{ 'covidModal.close' | translate: lang() }}
           </button>
-          <button
-            z-button
-            type="button"
-            zType="default"
-            [zDisabled]="!numberValid()"
-            (click)="onSend()"
-          >
+          <button z-button type="button" zType="default" [zDisabled]="!numberValid()" (click)="onSend()">
             {{ 'covidModal.sendSms' | translate: lang() }}
           </button>
         </div>

@@ -21,15 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -52,10 +44,7 @@ import {
   toDateInputValue,
   toOffsetIsoString,
 } from '../../shared/supervisor-ui';
-import {
-  AlternateEmailDialogComponent,
-  AlternateEmailDialogData,
-} from './alternate-email-dialog.component';
+import { AlternateEmailDialogComponent, AlternateEmailDialogData } from './alternate-email-dialog.component';
 import { ChangeLogDialogComponent, ChangeLogDialogData } from './change-log-dialog.component';
 import {
   Designation,
@@ -90,14 +79,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
   selector: 'app-supervisor-grievance',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DatePipe,
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ZardInputDirective,
-  ],
+  imports: [DatePipe, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
   viewProviders: [provideIcons({ lucidePencil, lucideSearch, lucideUpload })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -122,28 +104,14 @@ type GrievanceAction = 'view' | 'edit' | 'update';
               {{ 'supGrievance.startDate' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="grv-start"
-              z-input
-              class="w-full"
-              type="date"
-              [max]="today"
-              formControlName="startDate"
-            />
+            <input id="grv-start" z-input class="w-full" type="date" [max]="today" formControlName="startDate" />
           </div>
           <div>
             <label for="grv-end" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.endDate' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="grv-end"
-              z-input
-              class="w-full"
-              type="date"
-              [max]="today"
-              formControlName="endDate"
-            />
+            <input id="grv-end" z-input class="w-full" type="date" [max]="today" formControlName="endDate" />
             @if (dateRangeInvalid()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supGrievance.endBeforeStart' | translate: lang() }}
@@ -220,11 +188,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
                   <tr class="border-t border-border align-top">
                     <td class="px-3 py-2">{{ feedback.requestID || '—' }}</td>
                     <td class="px-3 py-2">
-                      {{
-                        feedback.createdDate != null
-                          ? (feedback.createdDate | date: 'dd/MM/yyyy' : 'UTC')
-                          : '—'
-                      }}
+                      {{ feedback.createdDate != null ? (feedback.createdDate | date: 'dd/MM/yyyy' : 'UTC') : '—' }}
                     </td>
                     <td class="px-3 py-2">{{ beneficiaryName(feedback) }}</td>
                     <td class="px-3 py-2">{{ feedback.feedbackType?.feedbackTypeName || '—' }}</td>
@@ -274,11 +238,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
 
       <!-- Edit (forward) / Update (record response) form -->
       @if (action() !== 'view') {
-        <form
-          [formGroup]="detailForm"
-          autocomplete="off"
-          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
+        <form [formGroup]="detailForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <label for="grv-fid" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.grievanceId' | translate: lang() }}
@@ -301,12 +261,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             <label for="grv-dtype" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.grievanceType' | translate: lang() }}
             </label>
-            <select
-              id="grv-dtype"
-              [class]="selectClass"
-              formControlName="feedbackTypeID"
-              (change)="onTypeChange()"
-            >
+            <select id="grv-dtype" [class]="selectClass" formControlName="feedbackTypeID" (change)="onTypeChange()">
               @for (t of feedbackTypes(); track t.feedbackTypeID) {
                 <option [ngValue]="t.feedbackTypeID">{{ t.feedbackTypeName }}</option>
               }
@@ -316,13 +271,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             <label for="grv-status-ro" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.grievanceStatus' | translate: lang() }}
             </label>
-            <input
-              id="grv-status-ro"
-              z-input
-              class="w-full"
-              formControlName="feedbackStatus"
-              readonly
-            />
+            <input id="grv-status-ro" z-input class="w-full" formControlName="feedbackStatus" readonly />
           </div>
           <div>
             <label for="grv-insttype" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -340,19 +289,10 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             </select>
           </div>
           <div>
-            <label
-              for="grv-emailstatus-ro"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="grv-emailstatus-ro" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.emailStatus' | translate: lang() }}
             </label>
-            <input
-              id="grv-emailstatus-ro"
-              z-input
-              class="w-full"
-              formControlName="emailStatus"
-              readonly
-            />
+            <input id="grv-emailstatus-ro" z-input class="w-full" formControlName="emailStatus" readonly />
           </div>
           <div>
             <label for="grv-instname" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -365,10 +305,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             </select>
           </div>
           <div>
-            <label
-              for="grv-designation"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="grv-designation" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.designation' | translate: lang() }}
             </label>
             <select id="grv-designation" [class]="selectClass" formControlName="designationID">
@@ -391,13 +328,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             <label for="grv-against" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.complaintAgainst' | translate: lang() }}
             </label>
-            <input
-              id="grv-against"
-              z-input
-              class="w-full"
-              maxlength="25"
-              formControlName="feedbackAgainst"
-            />
+            <input id="grv-against" z-input class="w-full" maxlength="25" formControlName="feedbackAgainst" />
           </div>
           <div>
             <label for="grv-nature" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -416,19 +347,10 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             <input id="grv-createdby" z-input class="w-full" formControlName="createdBy" readonly />
           </div>
           <div>
-            <label
-              for="grv-modifiedby"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="grv-modifiedby" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.modifiedBy' | translate: lang() }}
             </label>
-            <input
-              id="grv-modifiedby"
-              z-input
-              class="w-full"
-              formControlName="modifiedBy"
-              readonly
-            />
+            <input id="grv-modifiedby" z-input class="w-full" formControlName="modifiedBy" readonly />
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3 grid gap-4 lg:grid-cols-2">
@@ -447,15 +369,10 @@ type GrievanceAction = 'view' | 'edit' | 'update';
               <p class="mt-1 text-right text-xs text-muted-foreground">{{ summaryLength() }}/500</p>
             </div>
             <div>
-              <label
-                for="grv-comments"
-                class="mb-1 block text-xs font-medium text-muted-foreground"
-              >
+              <label for="grv-comments" class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{
-                  (action() === 'edit'
-                    ? 'supGrievance.commentsForEmail'
-                    : 'supGrievance.responseReceived'
-                  ) | translate: lang()
+                  (action() === 'edit' ? 'supGrievance.commentsForEmail' : 'supGrievance.responseReceived')
+                    | translate: lang()
                 }}
                 <span class="text-destructive">*</span>
               </label>
@@ -466,9 +383,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
                 maxlength="500"
                 formControlName="comments"
               ></textarea>
-              <p class="mt-1 text-right text-xs text-muted-foreground">
-                {{ commentsLength() }}/500
-              </p>
+              <p class="mt-1 text-right text-xs text-muted-foreground">{{ commentsLength() }}/500</p>
             </div>
           </div>
 
@@ -483,10 +398,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             </select>
           </div>
           <div>
-            <label
-              for="grv-emailstatusid"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="grv-emailstatusid" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supGrievance.emailStatus' | translate: lang() }}
             </label>
             <select id="grv-emailstatusid" [class]="selectClass" formControlName="emailStatusID">
@@ -550,10 +462,7 @@ type GrievanceAction = 'view' | 'edit' | 'update';
               [zDisabled]="detailForm.invalid || fileInvalid() || saving()"
               (click)="onSubmit()"
             >
-              {{
-                (action() === 'edit' ? 'supGrievance.saveEmail' : 'supGrievance.saveUpdates')
-                  | translate: lang()
-              }}
+              {{ (action() === 'edit' ? 'supGrievance.saveEmail' : 'supGrievance.saveUpdates') | translate: lang() }}
             </button>
           </div>
         </form>
@@ -627,19 +536,11 @@ type GrievanceAction = 'view' | 'edit' | 'update';
                       <td class="px-3 py-2">{{ req.emailStatus?.emailStatus || '—' }}</td>
                       <td class="px-3 py-2">{{ req.createdBy || '—' }}</td>
                       <td class="px-3 py-2">
-                        {{
-                          req.createdDate != null
-                            ? (req.createdDate | date: 'dd/MM/yyyy hh:mm' : 'UTC')
-                            : '—'
-                        }}
+                        {{ req.createdDate != null ? (req.createdDate | date: 'dd/MM/yyyy hh:mm' : 'UTC') : '—' }}
                       </td>
                       <td class="px-3 py-2">{{ req.responseUpdatedBy || '—' }}</td>
                       <td class="px-3 py-2">
-                        {{
-                          req.responseDate != null
-                            ? (req.responseDate | date: 'dd/MM/yyyy hh:mm' : 'UTC')
-                            : '—'
-                        }}
+                        {{ req.responseDate != null ? (req.responseDate | date: 'dd/MM/yyyy hh:mm' : 'UTC') : '—' }}
                       </td>
                     </tr>
                   }
@@ -689,9 +590,7 @@ export class SupervisorGrievanceComponent implements OnInit {
   readonly fileTooLarge = signal(false);
   readonly invalidFileType = signal(false);
   readonly invalidFileName = signal(false);
-  readonly fileInvalid = computed(
-    () => this.fileTooLarge() || this.invalidFileType() || this.invalidFileName(),
-  );
+  readonly fileInvalid = computed(() => this.fileTooLarge() || this.invalidFileType() || this.invalidFileName());
 
   /** Real numeric feedbackID of the row being edited (the form shows requestID). */
   private editingFeedbackID: number | null = null;
@@ -866,9 +765,7 @@ export class SupervisorGrievanceComponent implements OnInit {
     this.enterDetail(feedback, 'update');
     // Update mode shows who last recorded a response, and carries the latest
     // request id so the response lands against it.
-    this.detailForm.controls.modifiedBy.setValue(
-      feedback.consolidatedRequests?.[0]?.responseUpdatedBy ?? '',
-    );
+    this.detailForm.controls.modifiedBy.setValue(feedback.consolidatedRequests?.[0]?.responseUpdatedBy ?? '');
     const requests = feedback.feedbackRequests ?? [];
     this.detailForm.controls.feedbackRequestID.setValue(
       requests.length > 0 ? requests[requests.length - 1].feedbackRequestID : undefined,
@@ -899,10 +796,7 @@ export class SupervisorGrievanceComponent implements OnInit {
       // The form shows the display requestID; the real id is used on save.
       feedbackID: feedback.requestID ?? null,
       beneficiaryName: this.beneficiaryName(feedback),
-      feedbackDate:
-        feedback.createdDate != null
-          ? new Date(feedback.createdDate).toLocaleDateString('en-in')
-          : null,
+      feedbackDate: feedback.createdDate != null ? new Date(feedback.createdDate).toLocaleDateString('en-in') : null,
       feedbackTypeID: feedback.feedbackType?.feedbackTypeID ?? null,
       feedbackStatus: feedback.feedbackStatus?.feedbackStatus ?? '',
       emailStatus: feedback.emailStatus?.emailStatus ?? null,

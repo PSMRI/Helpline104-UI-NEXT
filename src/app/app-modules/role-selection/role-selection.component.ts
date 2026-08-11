@@ -152,9 +152,7 @@ export class RoleSelectionComponent {
   private hasScreen(screenName: string): boolean {
     return this.privileges().some((privilege) =>
       privilege.roles?.some((role) =>
-        role.serviceRoleScreenMappings?.some(
-          (mapping) => mapping.screen?.screenName === screenName,
-        ),
+        role.serviceRoleScreenMappings?.some((mapping) => mapping.screen?.screenName === screenName),
       ),
     );
   }

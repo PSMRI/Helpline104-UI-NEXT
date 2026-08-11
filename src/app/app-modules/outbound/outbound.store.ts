@@ -59,9 +59,7 @@ export class OutboundStore {
     this._selection.set({
       outboundCallReqID: record.outboundCallReqID ?? null,
       beneficiaryRegID: ben?.beneficiaryRegID ?? null,
-      beneficiaryName: [ben?.firstName, ben?.lastName]
-        .filter((p) => !!p && p.trim().length > 0)
-        .join(' '),
+      beneficiaryName: [ben?.firstName, ben?.lastName].filter((p) => !!p && p.trim().length > 0).join(' '),
       phoneNo: ben?.benPhoneMaps?.[0]?.phoneNo ?? '',
       requestedFeature: record.requestedFeature ?? '',
       isSelf: record.isSelf ?? false,

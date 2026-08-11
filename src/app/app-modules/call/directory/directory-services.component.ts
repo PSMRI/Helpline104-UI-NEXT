@@ -91,9 +91,7 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
       </header>
 
       @if (!hasContext()) {
-        <p
-          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-        >
+        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
           {{ 'directory.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -106,15 +104,8 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
             <label for="dir-state" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'directory.state' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select
-              id="dir-state"
-              [class]="selectClass"
-              formControlName="stateID"
-              (change)="onStateChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'directory.select' | translate: lang() }}
-              </option>
+            <select id="dir-state" [class]="selectClass" formControlName="stateID" (change)="onStateChange()">
+              <option [ngValue]="null" disabled>{{ 'directory.select' | translate: lang() }}</option>
               @for (s of states(); track s.stateID) {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
@@ -126,9 +117,7 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
               {{ 'directory.district' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="dir-district" [class]="selectClass" formControlName="districtID">
-              <option [ngValue]="null" disabled>
-                {{ 'directory.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'directory.select' | translate: lang() }}</option>
               @for (d of districts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
@@ -137,8 +126,7 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
 
           <div>
             <label for="dir-directory" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'directory.information' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'directory.information' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select
               id="dir-directory"
@@ -146,9 +134,7 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
               formControlName="instituteDirectoryID"
               (change)="onDirectoryChange()"
             >
-              <option [ngValue]="null" disabled>
-                {{ 'directory.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'directory.select' | translate: lang() }}</option>
               @for (d of directoryList(); track d.instituteDirectoryID) {
                 <option [ngValue]="d.instituteDirectoryID">{{ d.instituteDirectoryName }}</option>
               }
@@ -156,25 +142,13 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
           </div>
 
           <div>
-            <label
-              for="dir-subdirectory"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              {{ 'directory.subDirectory' | translate: lang() }}
-              <span class="text-destructive">*</span>
+            <label for="dir-subdirectory" class="mb-1 block text-xs font-medium text-muted-foreground">
+              {{ 'directory.subDirectory' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select
-              id="dir-subdirectory"
-              [class]="selectClass"
-              formControlName="instituteSubDirectoryID"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'directory.select' | translate: lang() }}
-              </option>
+            <select id="dir-subdirectory" [class]="selectClass" formControlName="instituteSubDirectoryID">
+              <option [ngValue]="null" disabled>{{ 'directory.select' | translate: lang() }}</option>
               @for (s of subDirectoryList(); track s.instituteSubDirectoryID) {
-                <option [ngValue]="s.instituteSubDirectoryID">
-                  {{ s.instituteSubDirectoryName }}
-                </option>
+                <option [ngValue]="s.instituteSubDirectoryID">{{ s.instituteSubDirectoryName }}</option>
               }
             </select>
           </div>
@@ -198,18 +172,14 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
         @if (searched()) {
           <div class="mt-5">
             @if (results().length === 0) {
-              <p
-                class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-              >
+              <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
                 {{ 'directory.noResults' | translate: lang() }}
               </p>
             } @else {
               <ul class="flex flex-col gap-2">
                 @for (r of results(); track $index) {
                   <li class="rounded-md border border-border p-3 text-sm">
-                    <p class="font-medium text-foreground">
-                      {{ r.institute?.institutionName || '—' }}
-                    </p>
+                    <p class="font-medium text-foreground">{{ r.institute?.institutionName || '—' }}</p>
                     @if (r.institute?.address) {
                       <p class="text-muted-foreground">{{ r.institute?.address }}</p>
                     }
@@ -229,37 +199,23 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
             {{ 'directory.history' | translate: lang() }}
           </h4>
           @if (history().length === 0) {
-            <p class="text-sm text-muted-foreground">
-              {{ 'directory.noHistory' | translate: lang() }}
-            </p>
+            <p class="text-sm text-muted-foreground">{{ 'directory.noHistory' | translate: lang() }}</p>
           } @else {
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'directory.colDirectory' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'directory.colSubDirectory' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'directory.colInstitution' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'directory.colAddress' | translate: lang() }}
-                    </th>
+                    <th class="px-3 py-2 font-medium">{{ 'directory.colDirectory' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'directory.colSubDirectory' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'directory.colInstitution' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'directory.colAddress' | translate: lang() }}</th>
                   </tr>
                 </thead>
                 <tbody>
                   @for (row of history(); track $index) {
                     <tr class="border-t border-border align-top">
-                      <td class="px-3 py-2">
-                        {{ row.instituteDirectory?.instituteDirectoryName || '—' }}
-                      </td>
-                      <td class="px-3 py-2">
-                        {{ row.instituteSubDirectory?.instituteSubDirectoryName || '—' }}
-                      </td>
+                      <td class="px-3 py-2">{{ row.instituteDirectory?.instituteDirectoryName || '—' }}</td>
+                      <td class="px-3 py-2">{{ row.instituteSubDirectory?.instituteSubDirectoryName || '—' }}</td>
                       <td class="px-3 py-2">{{ row.institute?.institutionName || '—' }}</td>
                       <td class="px-3 py-2">{{ row.institute?.address || '—' }}</td>
                     </tr>
@@ -338,9 +294,7 @@ export class DirectoryServicesComponent implements OnInit {
       .subscribe({
         next: (services) => {
           const fragments = SUB_SERVICE_BY_FEATURE[role?.featureCode ?? ''] ?? [];
-          const match = services.find((s) =>
-            fragments.some((f) => (s.subServiceName ?? '').includes(f)),
-          );
+          const match = services.find((s) => fragments.some((f) => (s.subServiceName ?? '').includes(f)));
           this.subServiceID.set(match?.subServiceID ?? null);
         },
         error: () => this.subServiceID.set(null),
@@ -359,10 +313,7 @@ export class DirectoryServicesComponent implements OnInit {
     this.beneficiary
       .getDistricts(stateID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (d) => this.districts.set(d),
-        error: (e: DirectoryError) => this.setError(e),
-      });
+      .subscribe({ next: (d) => this.districts.set(d), error: (e: DirectoryError) => this.setError(e) });
   }
 
   onDirectoryChange(): void {
@@ -375,10 +326,7 @@ export class DirectoryServicesComponent implements OnInit {
     this.directory
       .getSubDirectory(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (s) => this.subDirectoryList.set(s),
-        error: (e: DirectoryError) => this.setError(e),
-      });
+      .subscribe({ next: (s) => this.subDirectoryList.set(s), error: (e: DirectoryError) => this.setError(e) });
   }
 
   /** Comma-joined non-empty contact numbers for a result. */

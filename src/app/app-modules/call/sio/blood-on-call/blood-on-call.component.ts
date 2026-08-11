@@ -71,15 +71,11 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
         <ng-icon name="lucideDroplet" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">
-          {{ 'sio.blood.title' | translate: lang() }}
-        </h3>
+        <h3 class="text-sm font-semibold text-foreground">{{ 'sio.blood.title' | translate: lang() }}</h3>
       </header>
 
       @if (!hasContext()) {
-        <p
-          class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground"
-        >
+        <p class="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
           {{ 'sio.common.noContext' | translate: lang() }}
         </p>
       } @else {
@@ -100,12 +96,8 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
 
         <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <label
-              for="blood-recipient"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              {{ 'sio.blood.recipientName' | translate: lang() }}
-              <span class="text-destructive">*</span>
+            <label for="blood-recipient" class="mb-1 block text-xs font-medium text-muted-foreground">
+              {{ 'sio.blood.recipientName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
               id="blood-recipient"
@@ -138,9 +130,7 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
               {{ 'sio.common.gender' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="blood-gender" [class]="selectClass" formControlName="recipientGenderID">
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (g of genders(); track g.genderID) {
                 <option [ngValue]="g.genderID">{{ g.genderName }}</option>
               }
@@ -149,13 +139,10 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
 
           <div>
             <label for="blood-group" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.blood.bloodGroup' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.blood.bloodGroup' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="blood-group" [class]="selectClass" formControlName="bloodGroupID">
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (b of bloodGroups(); track b.bloodGroupID) {
                 <option [ngValue]="b.bloodGroupID">{{ b.bloodGroup }}</option>
               }
@@ -163,10 +150,7 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
           </div>
 
           <div>
-            <label
-              for="blood-component"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="blood-component" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.blood.componentType' | translate: lang() }}
             </label>
             <select id="blood-component" [class]="selectClass" formControlName="componentTypeID">
@@ -179,8 +163,7 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
 
           <div>
             <label for="blood-units" class="mb-1 block text-xs font-medium text-muted-foreground">
-              {{ 'sio.blood.unitsRequired' | translate: lang() }}
-              <span class="text-destructive">*</span>
+              {{ 'sio.blood.unitsRequired' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
               id="blood-units"
@@ -194,10 +177,7 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
           </div>
 
           <div class="sm:col-span-2 lg:col-span-1">
-            <label
-              for="blood-hospital"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
+            <label for="blood-hospital" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.blood.hospital' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input
@@ -214,15 +194,8 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
             <label for="blood-state" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.state' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select
-              id="blood-state"
-              [class]="selectClass"
-              formControlName="stateID"
-              (change)="onStateChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+            <select id="blood-state" [class]="selectClass" formControlName="stateID" (change)="onStateChange()">
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (s of states(); track s.stateID) {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
@@ -230,17 +203,11 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
           </div>
 
           <div>
-            <label
-              for="blood-district"
-              class="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              {{ 'sio.common.district' | translate: lang() }}
-              <span class="text-destructive">*</span>
+            <label for="blood-district" class="mb-1 block text-xs font-medium text-muted-foreground">
+              {{ 'sio.common.district' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <select id="blood-district" [class]="selectClass" formControlName="districtID">
-              <option [ngValue]="null" disabled>
-                {{ 'sio.common.select' | translate: lang() }}
-              </option>
+              <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (d of districts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
@@ -275,36 +242,20 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
         </div>
 
         <div class="mt-6">
-          <h4 class="mb-2 text-sm font-medium text-foreground">
-            {{ 'sio.common.history' | translate: lang() }}
-          </h4>
+          <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.common.history' | translate: lang() }}</h4>
           @if (history().length === 0) {
-            <p class="text-sm text-muted-foreground">
-              {{ 'sio.common.noHistory' | translate: lang() }}
-            </p>
+            <p class="text-sm text-muted-foreground">{{ 'sio.common.noHistory' | translate: lang() }}</p>
           } @else {
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
                   <tr>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.blood.colRequestId' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.blood.colRecipient' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.common.age' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.blood.bloodGroup' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.blood.componentType' | translate: lang() }}
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      {{ 'sio.blood.hospital' | translate: lang() }}
-                    </th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.colRequestId' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.colRecipient' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.common.age' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.bloodGroup' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.componentType' | translate: lang() }}</th>
+                    <th class="px-3 py-2 font-medium">{{ 'sio.blood.hospital' | translate: lang() }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -359,11 +310,7 @@ export class BloodOnCallComponent implements OnInit {
       Validators.minLength(3),
       Validators.maxLength(25),
     ]),
-    recipientAge: this.fb.control<number | null>(null, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(120),
-    ]),
+    recipientAge: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(120)]),
     recipientGenderID: this.fb.control<number | null>(null, Validators.required),
     bloodGroupID: this.fb.control<number | null>(null, Validators.required),
     componentTypeID: this.fb.control<number | null>(null),

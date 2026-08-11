@@ -81,9 +81,7 @@ interface SaveSymptomResult {
         >
           {{ 'insertComplaint.submit' | translate: lang() }}
         </button>
-        <span class="text-xs text-muted-foreground">{{
-          'insertComplaint.hint' | translate: lang()
-        }}</span>
+        <span class="text-xs text-muted-foreground">{{ 'insertComplaint.hint' | translate: lang() }}</span>
       </div>
     </section>
   `,

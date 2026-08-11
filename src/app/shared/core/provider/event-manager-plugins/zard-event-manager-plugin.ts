@@ -45,8 +45,7 @@ export class ZardEventManagerPlugin extends EventManagerPlugin {
         const isKeyboardEvent = event instanceof KeyboardEvent;
         const isElementDisabled = element.getAttribute('aria-disabled') === 'true';
         const shouldApplyModifier =
-          (!keys.length || (isKeyboardEvent && keys.includes(event.key.toLowerCase()))) &&
-          !isElementDisabled;
+          (!keys.length || (isKeyboardEvent && keys.includes(event.key.toLowerCase()))) && !isElementDisabled;
 
         if (shouldApplyModifier) {
           switch (keyword) {
@@ -71,10 +70,7 @@ export class ZardEventManagerPlugin extends EventManagerPlugin {
     );
   }
 
-  #provideEventFrom(
-    eventName: string,
-    keywords: string[],
-  ): { event: string; keyword: string; keys: string[] } {
+  #provideEventFrom(eventName: string, keywords: string[]): { event: string; keyword: string; keys: string[] } {
     const eventNameSubstrings = eventName.split('.');
     let event = '';
     let keys: string[] = [];

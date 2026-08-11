@@ -85,10 +85,7 @@ export function rangeEndIso(date: string): string {
  * service's privilege → the selected role → its first screen mapping's
  * `providerServiceMapping.stateID`.
  */
-export function stateIDForRole(
-  privileges: readonly Privilege[],
-  role: CurrentRole | null,
-): number | null {
+export function stateIDForRole(privileges: readonly Privilege[], role: CurrentRole | null): number | null {
   if (!role) {
     return null;
   }

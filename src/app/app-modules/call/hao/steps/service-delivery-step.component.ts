@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
@@ -79,11 +71,7 @@ const SERVICE_TABS: readonly ServiceTab[] = [
   { id: 'bpScreening', labelKey: 'hao.service.bpScreening', requiresScreen: null },
   { id: 'sms', labelKey: 'hao.service.sms', requiresScreen: null },
   { id: 'bloodOnCall', labelKey: 'hao.service.bloodOnCall', requiresScreen: 'Blood Request' },
-  {
-    id: 'directory',
-    labelKey: 'hao.service.directory',
-    requiresScreen: 'Directory Information Service',
-  },
+  { id: 'directory', labelKey: 'hao.service.directory', requiresScreen: 'Directory Information Service' },
   { id: 'epidemic', labelKey: 'hao.service.epidemic', requiresScreen: 'Epidemic Outbreak Service' },
   { id: 'foodSafety', labelKey: 'hao.service.foodSafety', requiresScreen: 'Food safety' },
   { id: 'grievance', labelKey: 'hao.service.grievance', requiresScreen: 'Grievance' },
@@ -207,11 +195,7 @@ const SERVICE_TABS: readonly ServiceTab[] = [
             <app-sio-scheme (serviceProvided)="serviceAvailed.emit()" />
           }
           @case ('covid19') {
-            <app-covid-service
-              [age]="age()"
-              [genderId]="genderId()"
-              (saved)="serviceAvailed.emit()"
-            />
+            <app-covid-service [age]="age()" [genderId]="genderId()" (saved)="serviceAvailed.emit()" />
           }
           @case ('imrMmr') {
             <app-sio-imr-mmr (serviceProvided)="serviceAvailed.emit()" />

@@ -21,14 +21,7 @@
  */
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -60,11 +53,7 @@ import { LOGIN_ROUTE } from '../core/core.constants';
 import { encryptPassword } from '../login/password-crypto';
 import { AccountRecoveryService } from './account-recovery.service';
 import { AccountRecoveryStore } from './account-recovery.store';
-import {
-  RecoveryError,
-  SaveSecurityQuesAns,
-  SecurityQuestionOption,
-} from './account-recovery.models';
+import { RecoveryError, SaveSecurityQuesAns, SecurityQuestionOption } from './account-recovery.models';
 import { noWhitespace } from './recovery-validators';
 
 /**
@@ -76,11 +65,9 @@ const PASSWORD_PATTERN = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%
 
 /** Group validator: the three chosen questions must all be different. */
 function distinctQuestions(group: AbstractControl): ValidationErrors | null {
-  const values = [
-    group.get('question1')?.value,
-    group.get('question2')?.value,
-    group.get('question3')?.value,
-  ].filter((value) => !!value);
+  const values = [group.get('question1')?.value, group.get('question2')?.value, group.get('question3')?.value].filter(
+    (value) => !!value,
+  );
   return new Set(values).size === values.length ? null : { duplicateQuestion: true };
 }
 
@@ -140,20 +127,11 @@ export class SetSecurityQuestionsComponent implements OnInit {
   readonly form = new FormGroup(
     {
       question1: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      answer1: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.required, noWhitespace],
-      }),
+      answer1: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespace] }),
       question2: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      answer2: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.required, noWhitespace],
-      }),
+      answer2: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespace] }),
       question3: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      answer3: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.required, noWhitespace],
-      }),
+      answer3: new FormControl('', { nonNullable: true, validators: [Validators.required, noWhitespace] }),
       newPassword: new FormControl('', {
         nonNullable: true,
         validators: [
@@ -183,8 +161,7 @@ export class SetSecurityQuestionsComponent implements OnInit {
   readonly question3Options = computed(() =>
     this.questions().filter(
       (option) =>
-        String(option.QuestionID) !== this.question1Value() &&
-        String(option.QuestionID) !== this.question2Value(),
+        String(option.QuestionID) !== this.question1Value() && String(option.QuestionID) !== this.question2Value(),
     ),
   );
 
@@ -211,9 +188,7 @@ export class SetSecurityQuestionsComponent implements OnInit {
       this.form.controls.question3,
       this.form.controls.answer3,
     ]) {
-      control.valueChanges
-        .pipe(takeUntilDestroyed())
-        .subscribe(() => this.store.clearTransactionId());
+      control.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.store.clearTransactionId());
     }
   }
 
@@ -325,12 +300,7 @@ export class SetSecurityQuestionsComponent implements OnInit {
     });
   }
 
-  private toRow(
-    userId: number,
-    userName: string,
-    questionId: string,
-    answer: string,
-  ): SaveSecurityQuesAns {
+  private toRow(userId: number, userName: string, questionId: string, answer: string): SaveSecurityQuesAns {
     return {
       userID: userId,
       questionID: Number(questionId),

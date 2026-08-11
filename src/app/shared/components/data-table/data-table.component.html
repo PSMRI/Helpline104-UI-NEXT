@@ -53,12 +53,7 @@
           @for (column of columns(); track column.key) {
             <td z-table-cell [style.text-align]="column.align || 'left'">
               @if (column.cellTemplate) {
-                <ng-container
-                  *ngTemplateOutlet="
-                    column.cellTemplate;
-                    context: { $implicit: row, column: column }
-                  "
-                />
+                <ng-container *ngTemplateOutlet="column.cellTemplate; context: { $implicit: row, column: column }" />
               } @else {
                 {{ cellText(column, row) }}
               }
@@ -78,11 +73,7 @@
   <div class="dt-footer">
     <span class="dt-count">{{ sorted().length }} record(s)</span>
     @if (totalPages() > 1) {
-      <z-pagination
-        [zPageIndex]="displayIndex()"
-        [zTotal]="totalPages()"
-        (zPageIndexChange)="onPageChange($event)"
-      />
+      <z-pagination [zPageIndex]="displayIndex()" [zTotal]="totalPages()" (zPageIndexChange)="onPageChange($event)" />
     }
   </div>
 </div>

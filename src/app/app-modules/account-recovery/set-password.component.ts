@@ -157,9 +157,7 @@ export class SetPasswordComponent implements OnInit {
       },
       error: (error: RecoveryError) => {
         this.loading.set(false);
-        this.errorMessage.set(
-          error?.errorMessage || 'Unable to change password. Please try again.',
-        );
+        this.errorMessage.set(error?.errorMessage || 'Unable to change password. Please try again.');
       },
     });
   }

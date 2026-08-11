@@ -47,13 +47,7 @@ import { DataTableColumn, DataTableSortDirection } from './data-table.types';
 @Component({
   selector: 'app-data-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ...ZardTableImports,
-    ZardPaginationComponent,
-    ZardInputDirective,
-    ZardButtonComponent,
-    NgTemplateOutlet,
-  ],
+  imports: [...ZardTableImports, ZardPaginationComponent, ZardInputDirective, ZardButtonComponent, NgTemplateOutlet],
   templateUrl: './data-table.component.html',
   styleUrl: './data-table.component.css',
 })
@@ -97,9 +91,7 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
       return rows;
     }
     const columns = this.columns();
-    return rows.filter((row) =>
-      columns.some((column) => this.cellText(column, row).toLowerCase().includes(term)),
-    );
+    return rows.filter((row) => columns.some((column) => this.cellText(column, row).toLowerCase().includes(term)));
   });
 
   /** Filtered rows after applying the active sort. */

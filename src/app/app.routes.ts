@@ -25,29 +25,25 @@ import { Routes } from '@angular/router';
 import { authGuard } from './app-modules/core/auth/auth.guard';
 import { supervisorGuard } from './app-modules/core/auth/supervisor.guard';
 import { inboundGuard } from './app-modules/call/inbound.guard';
+import { sioGuard } from './app-modules/call/sio.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
     path: 'login',
-    loadComponent: () =>
-      import('./app-modules/login/login.component').then((m) => m.LoginComponent),
+    loadComponent: () => import('./app-modules/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'reset-password',
     loadComponent: () =>
-      import('./app-modules/account-recovery/reset-password.component').then(
-        (m) => m.ResetPasswordComponent,
-      ),
+      import('./app-modules/account-recovery/reset-password.component').then((m) => m.ResetPasswordComponent),
   },
   {
     // Reached from the reset flow once security answers are validated (carries a
     // transactionId in memory); guarded inside the component, not by a route guard.
     path: 'set-password',
     loadComponent: () =>
-      import('./app-modules/account-recovery/set-password.component').then(
-        (m) => m.SetPasswordComponent,
-      ),
+      import('./app-modules/account-recovery/set-password.component').then((m) => m.SetPasswordComponent),
   },
   {
     // First-login security-question setup, reached when login reports Status "New".
@@ -61,15 +57,12 @@ export const routes: Routes = [
     path: 'role-selection',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./app-modules/role-selection/role-selection.component').then(
-        (m) => m.RoleSelectionComponent,
-      ),
+      import('./app-modules/role-selection/role-selection.component').then((m) => m.RoleSelectionComponent),
   },
   {
     path: 'dashboard',
     canActivate: [authGuard],
-    loadComponent: () =>
-      import('./app-modules/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+    loadComponent: () => import('./app-modules/dashboard/dashboard.component').then((m) => m.DashboardComponent),
   },
   {
     // On-call workspace shell. Authenticated AND only while a call is connected
@@ -79,16 +72,13 @@ export const routes: Routes = [
     // service workspace reached once the caller is identified.
     path: 'innerpage',
     canActivate: [authGuard, inboundGuard],
-    loadComponent: () =>
-      import('./app-modules/call/innerpage/innerpage.component').then((m) => m.InnerpageComponent),
+    loadComponent: () => import('./app-modules/call/innerpage/innerpage.component').then((m) => m.InnerpageComponent),
     children: [
       {
         // Default on-call view: the role dispatcher (placeholder for now).
         path: '',
         loadComponent: () =>
-          import('./app-modules/call/innerpage/role-dispatcher.component').then(
-            (m) => m.RoleDispatcherComponent,
-          ),
+          import('./app-modules/call/innerpage/role-dispatcher.component').then((m) => m.RoleDispatcherComponent),
       },
       {
         // Caller identification / beneficiary registration (RO workspace step 1).
@@ -102,25 +92,19 @@ export const routes: Routes = [
         // HAO (Health Assistant Officer) service workspace.
         path: 'hao',
         loadComponent: () =>
-          import('./app-modules/call/hao/hao-workspace.component').then(
-            (m) => m.HaoWorkspaceComponent,
-          ),
+          import('./app-modules/call/hao/hao-workspace.component').then((m) => m.HaoWorkspaceComponent),
       },
       {
         // MO (Medical Officer) case-sheet workspace.
         path: 'mo',
         loadComponent: () =>
-          import('./app-modules/call/role-workspace/mo-workspace.component').then(
-            (m) => m.MoWorkspaceComponent,
-          ),
+          import('./app-modules/call/role-workspace/mo-workspace.component').then((m) => m.MoWorkspaceComponent),
       },
       {
         // CO (Counselling Officer) case-sheet workspace.
         path: 'co',
         loadComponent: () =>
-          import('./app-modules/call/role-workspace/co-workspace.component').then(
-            (m) => m.CoWorkspaceComponent,
-          ),
+          import('./app-modules/call/role-workspace/co-workspace.component').then((m) => m.CoWorkspaceComponent),
       },
       {
         // Counsellor (mental-health) case-sheet workspace.
@@ -131,12 +115,12 @@ export const routes: Routes = [
           ),
       },
       {
-        // SIO (Service Information Officer) service-catalogue workspace.
+        // SIO (Service Information Officer) service-catalogue workspace. Gated
+        // so a role without SIO screens cannot reach it by typing the URL.
         path: 'sio',
+        canActivate: [sioGuard],
         loadComponent: () =>
-          import('./app-modules/call/role-workspace/sio-workspace.component').then(
-            (m) => m.SioWorkspaceComponent,
-          ),
+          import('./app-modules/call/role-workspace/sio-workspace.component').then((m) => m.SioWorkspaceComponent),
       },
       {
         // Surveyor workspace (call-type reports host).
@@ -150,9 +134,7 @@ export const routes: Routes = [
         // PD (Psychiatrist / Programme Division) case-sheet workspace.
         path: 'pd',
         loadComponent: () =>
-          import('./app-modules/call/role-workspace/pd-workspace.component').then(
-            (m) => m.PdWorkspaceComponent,
-          ),
+          import('./app-modules/call/role-workspace/pd-workspace.component').then((m) => m.PdWorkspaceComponent),
       },
     ],
   },
@@ -164,24 +146,18 @@ export const routes: Routes = [
     canActivate: [authGuard, supervisorGuard],
     canMatch: [supervisorGuard],
     loadComponent: () =>
-      import('./app-modules/supervisor/supervisor-workspace.component').then(
-        (m) => m.SupervisorWorkspaceComponent,
-      ),
+      import('./app-modules/supervisor/supervisor-workspace.component').then((m) => m.SupervisorWorkspaceComponent),
     children: [
       {
         path: '',
         loadComponent: () =>
-          import('./app-modules/supervisor/supervisor-home.component').then(
-            (m) => m.SupervisorHomeComponent,
-          ),
+          import('./app-modules/supervisor/supervisor-home.component').then((m) => m.SupervisorHomeComponent),
       },
       {
         // Block / unblock a caller number and review nuisance-call recordings.
         path: 'block-unblock',
         loadComponent: () =>
-          import('./app-modules/supervisor/config/block-unblock.component').then(
-            (m) => m.BlockUnblockComponent,
-          ),
+          import('./app-modules/supervisor/config/block-unblock.component').then((m) => m.BlockUnblockComponent),
       },
       // Sidebar sections not yet migrated share the placeholder component
       // until their real screens land. The config-owned sections (grievance,
@@ -201,9 +177,7 @@ export const routes: Routes = [
         // Reports hub: every supervisor report behind one tabbed container.
         path: 'reports',
         loadComponent: () =>
-          import('./app-modules/supervisor/reports/reports-hub.component').then(
-            (m) => m.SupervisorReportsHubComponent,
-          ),
+          import('./app-modules/supervisor/reports/reports-hub.component').then((m) => m.SupervisorReportsHubComponent),
         children: [
           { path: '', redirectTo: 'call-quality', pathMatch: 'full' },
           {
@@ -216,9 +190,7 @@ export const routes: Routes = [
           {
             path: 'qa-report',
             loadComponent: () =>
-              import('./app-modules/supervisor/reports/qa-report.component').then(
-                (m) => m.QaReportComponent,
-              ),
+              import('./app-modules/supervisor/reports/qa-report.component').then((m) => m.QaReportComponent),
           },
           {
             path: 'call-summary',
@@ -273,12 +245,18 @@ export const routes: Routes = [
           ),
       },
       {
+        // Upload a CDSS symptom algorithm as plain text.
+        path: 'upload-symptoms',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/upload-symptoms/upload-symptoms.component').then(
+            (m) => m.UploadSymptomsComponent,
+          ),
+      },
+      {
         // Blood bank URL configuration.
         path: 'blood-url',
         loadComponent: () =>
-          import('./app-modules/supervisor/config/blood-url/blood-url.component').then(
-            (m) => m.BloodUrlComponent,
-          ),
+          import('./app-modules/supervisor/config/blood-url/blood-url.component').then((m) => m.BloodUrlComponent),
       },
       {
         // Force-logout a logged-in agent by username.
@@ -332,7 +310,6 @@ export const routes: Routes = [
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
-        ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
       ].map(([path, titleKey]) => ({
@@ -355,9 +332,7 @@ export const routes: Routes = [
       {
         path: 'worklist',
         loadComponent: () =>
-          import('./app-modules/outbound/outbound-worklist.component').then(
-            (m) => m.OutboundWorklistComponent,
-          ),
+          import('./app-modules/outbound/outbound-worklist.component').then((m) => m.OutboundWorklistComponent),
       },
       {
         path: 'workspace',
@@ -369,16 +344,12 @@ export const routes: Routes = [
       {
         path: 'search',
         loadComponent: () =>
-          import('./app-modules/outbound/outbound-search.component').then(
-            (m) => m.OutboundSearchComponent,
-          ),
+          import('./app-modules/outbound/outbound-search.component').then((m) => m.OutboundSearchComponent),
       },
       {
         path: 'reallocate',
         loadComponent: () =>
-          import('./app-modules/outbound/reallocate-calls.component').then(
-            (m) => m.ReallocateCallsComponent,
-          ),
+          import('./app-modules/outbound/reallocate-calls.component').then((m) => m.ReallocateCallsComponent),
       },
     ],
   },
@@ -387,15 +358,12 @@ export const routes: Routes = [
     path: 'reports/call-type',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./app-modules/reports/call-type-report-page.component').then(
-        (m) => m.CallTypeReportPageComponent,
-      ),
+      import('./app-modules/reports/call-type-report-page.component').then((m) => m.CallTypeReportPageComponent),
   },
   {
     // Post-logout landing for the dashboard logout / feedback links. Unguarded:
     // the session has already been cleared by the time the user lands here.
     path: 'feedback',
-    loadComponent: () =>
-      import('./app-modules/feedback/feedback.component').then((m) => m.FeedbackComponent),
+    loadComponent: () => import('./app-modules/feedback/feedback.component').then((m) => m.FeedbackComponent),
   },
 ];
