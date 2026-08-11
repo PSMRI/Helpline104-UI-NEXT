@@ -186,6 +186,15 @@ export const routes: Routes = [
             (m) => m.BlockUnblockComponent,
           ),
       },
+      {
+        // Quality audit (call auditing): filter call recordings, review the
+        // worklist and play back the voice records.
+        path: 'quality-audit',
+        loadComponent: () =>
+          import('./app-modules/supervisor/quality-audit/quality-audit.component').then(
+            (m) => m.QualityAuditComponent,
+          ),
+      },
       // Sidebar sections not yet migrated share the placeholder component
       // until their real screens land. The config-owned sections (grievance,
       // upload-schemes, communication/*, force-logout, content-management,
@@ -352,7 +361,6 @@ export const routes: Routes = [
       },
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
-        ['quality-audit', 'supervisor.nav.qualityAudit'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
       ].map(([path, titleKey]) => ({
         path,
