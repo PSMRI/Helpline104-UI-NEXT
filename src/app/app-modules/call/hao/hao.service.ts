@@ -56,6 +56,34 @@ const PATHS = {
 } as const;
 
 /**
+ * Session expiry, owned solely by the error interceptor (which force-logs the
+ * agent out). Turning it into a call-action error here as well would stack a
+ * second dialog on top of that logout, so it is passed through untouched.
+ */
+const SESSION_EXPIRED_STATUS = 5002;
+
+/**
+ * Reject a call-lifecycle response that reports failure inside an HTTP 200.
+ *
+ * `closeCall` and `transferCall` answer 200 even when the backend discarded the
+ * action, signalling it only in the envelope — `statusCode` 5000 with an
+ * `errorMessage`, and/or `status` `"FAILURE"` / `"Failed with …"`. Mapping those
+ * to success told the agent the call had been transferred/closed while the
+ * backend had thrown it away and the workspace tore the call down regardless, so
+ * any non-200 envelope becomes an error for the caller's `error:` branch.
+ */
+function assertCallActionSucceeded(res: ApiResponse<unknown>, action: string): void {
+  const status = res.status?.trim().toUpperCase() ?? '';
+  // Covers "FAILURE" and the longer "Failed with <cause> at <timestamp>" form.
+  const failed = (res.statusCode !== undefined && res.statusCode !== 200) || status.startsWith('FAIL');
+  if (!failed || res.statusCode === SESSION_EXPIRED_STATUS) {
+    return;
+  }
+  const detail = res.errorMessage?.trim() || `statusCode ${res.statusCode ?? 'unknown'}`;
+  throw new Error(`${action} failed: ${detail}`);
+}
+
+/**
  * API surface for the HAO (Health Assistant Officer) workspace.
  *
  * Covers the two stages of the HAO step flow: providing a service (the Health
@@ -160,9 +188,17 @@ export class HaoService {
       );
   }
 
-  /** Record the call disposition and close the call. */
+  /**
+   * Record the call disposition and close the call.
+   *
+   * A rejected close is reported inside a 200 envelope, so the response is
+   * checked before the caller treats it as done — see
+   * {@link assertCallActionSucceeded}.
+   */
   closeCall(request: CloseCallRequest): Observable<void> {
-    return this.http.post<ApiResponse<unknown>>(this.baseCommon + PATHS.closeCall, request).pipe(map(() => undefined));
+    return this.http
+      .post<ApiResponse<unknown>>(this.baseCommon + PATHS.closeCall, request)
+      .pipe(map((res) => assertCallActionSucceeded(res, 'closeCall')));
   }
 
   // --- Transfer (CTI) -----------------------------------------------------
@@ -204,6 +240,10 @@ export class HaoService {
    * Transfer the active call to the chosen campaign (and optional skill). The
    * snake_case body mirrors the legacy `transferToCampaign` contract; `skill`
    * is omitted unless a skill was chosen.
+   *
+   * A rejected transfer is reported inside a 200 envelope, so the response is
+   * checked before the caller hands the call off — see
+   * {@link assertCallActionSucceeded}.
    */
   transferCall(request: TransferCallRequest): Observable<void> {
     return this.http
@@ -215,6 +255,6 @@ export class HaoService {
         agentIPAddress: request.agentIPAddress ?? null,
         benCallID: request.benCallID,
       })
-      .pipe(map(() => undefined));
+      .pipe(map((res) => assertCallActionSucceeded(res, 'transferCall')));
   }
 }

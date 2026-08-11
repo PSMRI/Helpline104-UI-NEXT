@@ -31,6 +31,9 @@ const CALL_STORAGE_KEYS = {
   sessionId: 'session_id',
   callId: 'callId',
   startedAt: 'callStartedAt',
+  beneficiaryId: 'callBeneficiaryId',
+  districtId: 'callDistrictId',
+  demographics: 'callDemographics',
 } as const;
 
 /** Sentinel the legacy app wrote to `sessionStorage.onCall` for a live call. */
@@ -64,9 +67,12 @@ export interface CallerDemographics {
  *
  * Holds the state the on-call workspace is built from: whether a call is active
  * (`onCall`), the caller's number (`cli`), the CZentrix session id and the
- * resolved AMRIT call/beneficiary ids. `onCall`, `cli`, `sessionId` and `callId`
- * are persisted to `sessionStorage` (as in the legacy app) so the guarded
- * `/innerpage` route survives a page reload while a call is connected.
+ * resolved AMRIT call/beneficiary ids. All of it is persisted to
+ * `sessionStorage` (as in the legacy app) so the guarded `/innerpage` route
+ * survives a page reload while a call is connected — including the identified
+ * beneficiary, without which the role workspaces would reload into a dead end
+ * (no patient context, nothing saveable). {@link beneficiaryGuard} covers the
+ * case where a workspace is reached with a live call but still no beneficiary.
  *
  * Replaces the legacy `sessionStorage.onCall/CLI/session_id` juggling and the
  * `AuthGuard2` that read it directly.
@@ -82,9 +88,15 @@ export class CallStore {
   private readonly _startedAt = signal<number | null>(
     readStoredTimestamp(this.storage.getItem(CALL_STORAGE_KEYS.startedAt)),
   );
-  private readonly _beneficiaryId = signal<number | null>(null);
-  private readonly _districtID = signal<number | null>(null);
-  private readonly _demographics = signal<CallerDemographics | null>(null);
+  private readonly _beneficiaryId = signal<number | null>(
+    readStoredNumber(this.storage.getItem(CALL_STORAGE_KEYS.beneficiaryId)),
+  );
+  private readonly _districtID = signal<number | null>(
+    readStoredNumber(this.storage.getItem(CALL_STORAGE_KEYS.districtId)),
+  );
+  private readonly _demographics = signal<CallerDemographics | null>(
+    readStoredDemographics(this.storage.getItem(CALL_STORAGE_KEYS.demographics)),
+  );
 
   /** True while an inbound call is connected; gates the on-call workspace. */
   readonly onCall = this._onCall.asReadonly();
@@ -132,6 +144,9 @@ export class CallStore {
     this.storage.setItem(CALL_STORAGE_KEYS.sessionId, seed.sessionId);
     this.storage.setItem(CALL_STORAGE_KEYS.startedAt, String(startedAt));
     this.storage.removeItem(CALL_STORAGE_KEYS.callId);
+    // The persisted beneficiary must be dropped with the signals above, or the
+    // new caller would inherit the previous call's patient after a reload.
+    this.clearBeneficiaryStorage();
   }
 
   /** Record the AMRIT call id once the call is registered with the backend. */
@@ -141,9 +156,9 @@ export class CallStore {
   }
 
   /**
-   * Record the beneficiary resolved for the caller, and their district
-   * (in-memory only). The district is beneficiary-scoped, so clearing the
-   * beneficiary (passing null) also clears it.
+   * Record the beneficiary resolved for the caller, and their district.
+   * Persisted so a reload mid-call keeps the patient context. The district is
+   * beneficiary-scoped, so clearing the beneficiary (passing null) also clears it.
    */
   setBeneficiaryId(beneficiaryId: number | null, districtID: number | null = null): void {
     this._beneficiaryId.set(beneficiaryId);
@@ -152,12 +167,26 @@ export class CallStore {
     // (e.g. "Back to RO") drops the stale patient context too.
     if (beneficiaryId === null) {
       this._demographics.set(null);
+      this.clearBeneficiaryStorage();
+      return;
+    }
+
+    this.storage.setItem(CALL_STORAGE_KEYS.beneficiaryId, String(beneficiaryId));
+    if (districtID === null) {
+      this.storage.removeItem(CALL_STORAGE_KEYS.districtId);
+    } else {
+      this.storage.setItem(CALL_STORAGE_KEYS.districtId, String(districtID));
     }
   }
 
-  /** Record the resolved beneficiary's demographics (in-memory only). */
+  /** Record the resolved beneficiary's demographics (persisted with the call). */
   setDemographics(demographics: CallerDemographics | null): void {
     this._demographics.set(demographics);
+    if (demographics === null) {
+      this.storage.removeItem(CALL_STORAGE_KEYS.demographics);
+      return;
+    }
+    this.storage.setItem(CALL_STORAGE_KEYS.demographics, JSON.stringify(demographics));
   }
 
   /** Clear all live-call state (signals + persisted keys) on call close. */
@@ -176,6 +205,14 @@ export class CallStore {
     this.storage.removeItem(CALL_STORAGE_KEYS.sessionId);
     this.storage.removeItem(CALL_STORAGE_KEYS.callId);
     this.storage.removeItem(CALL_STORAGE_KEYS.startedAt);
+    this.clearBeneficiaryStorage();
+  }
+
+  /** Drop every persisted beneficiary key (id, district, demographics). */
+  private clearBeneficiaryStorage(): void {
+    this.storage.removeItem(CALL_STORAGE_KEYS.beneficiaryId);
+    this.storage.removeItem(CALL_STORAGE_KEYS.districtId);
+    this.storage.removeItem(CALL_STORAGE_KEYS.demographics);
   }
 }
 
@@ -186,4 +223,41 @@ function readStoredTimestamp(raw: string | null): number | null {
   }
   const value = Number(raw);
   return Number.isFinite(value) ? value : null;
+}
+
+/** Parse a stored numeric id (beneficiary, district); null when absent/invalid. */
+function readStoredNumber(raw: string | null): number | null {
+  if (raw === null || raw.trim() === '') {
+    return null;
+  }
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
+/**
+ * Parse stored demographics. A malformed or non-object payload is discarded
+ * rather than thrown: the store is constructed during app bootstrap, so a bad
+ * key must never break startup — the workspace simply reloads without patient
+ * context and {@link beneficiaryGuard} routes the agent back to re-identify.
+ */
+function readStoredDemographics(raw: string | null): CallerDemographics | null {
+  if (raw === null) {
+    return null;
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (parsed === null || typeof parsed !== 'object') {
+      return null;
+    }
+    const value = parsed as Partial<CallerDemographics>;
+    return {
+      firstName: value.firstName ?? null,
+      lastName: value.lastName ?? null,
+      age: typeof value.age === 'number' && Number.isFinite(value.age) ? value.age : null,
+      genderId: typeof value.genderId === 'number' && Number.isFinite(value.genderId) ? value.genderId : null,
+      genderName: value.genderName ?? null,
+    };
+  } catch {
+    return null;
+  }
 }

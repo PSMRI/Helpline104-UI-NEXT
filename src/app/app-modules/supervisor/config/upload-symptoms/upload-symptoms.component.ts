@@ -66,7 +66,7 @@ const ALREADY_EXISTS_MESSAGE = 'data already exist in database';
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
       }
 
-      <form (ngSubmit)="submit()">
+      <form [formGroup]="form" (ngSubmit)="submit()">
         <label for="sym-algorithm" class="mb-1 block text-xs font-medium text-muted-foreground">
           {{ 'supSymptom.algorithmLabel' | translate: lang() }}
           <span class="text-destructive">*</span>
@@ -76,7 +76,7 @@ const ALREADY_EXISTS_MESSAGE = 'data already exist in database';
           aria-required="true"
           [class]="textareaClass"
           rows="15"
-          [formControl]="algorithm"
+          formControlName="algorithm"
           [attr.placeholder]="'supSymptom.algorithmLabel' | translate: lang()"
           (keydown.control.enter)="submit()"
         ></textarea>
@@ -112,11 +112,21 @@ export class UploadSymptomsComponent {
   readonly saving = signal(false);
   readonly errorMessage = signal('');
 
-  /** Whitespace-only input is rejected, like the legacy trim-before-send. */
+  /**
+   * Whitespace-only input is rejected, like the legacy trim-before-send.
+   *
+   * The control is wrapped in a {@link form} group so the `<form>` element is
+   * claimed by `FormGroupDirective`: that is what makes `(ngSubmit)` fire and
+   * suppresses the browser's native submit. Bound as a bare `[formControl]` the
+   * form had no directive at all, so clicking the submit button reloaded the page
+   * and `CDSS/saveSymptom` was never called.
+   */
   readonly algorithm = this.fb.control('', {
     nonNullable: true,
     validators: [Validators.required, notBlankValidator],
   });
+
+  readonly form = this.fb.group({ algorithm: this.algorithm });
 
   submit(): void {
     if (this.algorithm.invalid || this.saving()) {
