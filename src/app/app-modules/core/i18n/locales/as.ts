@@ -551,6 +551,9 @@ export const as: Record<TranslationKey, string> = {
   'supReports.search': 'সন্ধান কৰক…',
   'supReports.noData': 'নিৰ্বাচিত ফিল্টাৰৰ বাবে কোনো তথ্য পোৱা নগ’ল।',
   'supReports.fetchError': 'প্ৰতিবেদন আনিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'supReports.serverError':
+    'প্ৰতিবেদন উপলব্ধ নহয় — চাৰ্ভাৰ ত্ৰুটি। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।',
+  'supReports.dismiss': 'বন্ধ কৰক',
   'supReports.lookupError': 'প্ৰতিবেদনৰ বিকল্পসমূহ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'supReports.unsupportedReport':
     'এই প্ৰতিবেদন উপলব্ধ নহয়। অনুগ্ৰহ কৰি আন এখন প্ৰতিবেদন বাছনি কৰক।',
@@ -1262,6 +1265,16 @@ export const as: Record<TranslationKey, string> = {
   'supScheme.modified': 'আঁচনি সফলতাৰে পৰিৱৰ্তন কৰা হৈছে',
   'supScheme.activated': 'আঁচনি সফলতাৰে সক্ৰিয় কৰা হৈছে',
   'supScheme.deactivated': 'আঁচনি সফলতাৰে নিষ্ক্ৰিয় কৰা হৈছে',
+
+  // Upload symptoms (CDSS algorithm)
+  'supSymptom.title': 'লক্ষণসমূহ আপল’ড কৰক',
+  'supSymptom.prompt': 'লক্ষণসমূহ আপল’ড কৰিবলৈ অনুগ্ৰহ কৰি এলগৰিথম প্ৰবিষ্ট কৰক',
+  'supSymptom.algorithmLabel': 'চিডিএছএছ',
+  'supSymptom.enterAlgorithm': 'অনুগ্ৰহ কৰি লক্ষণৰ এলগৰিথম প্ৰবিষ্ট কৰক',
+  'supSymptom.submit': 'দাখিল কৰক',
+  'supSymptom.uploaded': 'সফলতাৰে আপল’ড কৰা হৈছে',
+  'supSymptom.alreadyExists': 'তথ্য ইতিমধ্যে বিদ্যমান',
+  'supSymptom.uploadFailed': 'আপল’ড বিফল হ’ল, অনুগ্ৰহ কৰি পিছত পুনৰ চেষ্টা কৰক।',
 
   // Blood bank URL
   'supBlood.title': 'ৰক্তৰ ইউআৰএল (URL) আপডেট কৰক',
