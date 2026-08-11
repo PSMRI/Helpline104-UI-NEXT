@@ -1301,4 +1301,11 @@ export const as: Record<TranslationKey, string> = {
   'supKm.uploaded': 'সফলতাৰে আপল’ড কৰা হৈছে',
   'supKm.uploadFailed': 'ফাইল আপল’ড কৰিবলৈ ব্যৰ্থ',
   'supKm.noCategory': 'কোনো শ্ৰেণী পোৱা নগ’ল',
+
+  // Shared alert/confirm dialog titles (ConfirmationService)
+  'dialog.confirmTitle': 'নিশ্চিত কৰক',
+  'dialog.infoTitle': 'তথ্য',
+  'dialog.successTitle': 'সফলতা',
+  'dialog.warningTitle': 'সতৰ্কবাণী',
+  'dialog.errorTitle': 'ত্ৰুটি',
 };

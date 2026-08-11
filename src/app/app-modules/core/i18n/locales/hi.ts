@@ -1298,4 +1298,11 @@ export const hi: Record<TranslationKey, string> = {
   'supKm.uploaded': 'सफलतापूर्वक अपलोड किया गया',
   'supKm.uploadFailed': 'फ़ाइल अपलोड करने में विफल',
   'supKm.noCategory': 'कोई श्रेणी नहीं मिली',
+
+  // Shared alert/confirm dialog titles (ConfirmationService)
+  'dialog.confirmTitle': 'पुष्टि करें',
+  'dialog.infoTitle': 'जानकारी',
+  'dialog.successTitle': 'सफलता',
+  'dialog.warningTitle': 'चेतावनी',
+  'dialog.errorTitle': 'त्रुटि',
 };

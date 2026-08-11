@@ -52,6 +52,13 @@ export class SessionService {
 
   private timeoutRef: ReturnType<typeof setTimeout> | null = null;
   private handlingExpiry = false;
+  /**
+   * Whether the idle-expiry confirm dialog is currently open. The dialog is
+   * async (ZardUI, not the blocking `window.confirm`), so a keepalive during
+   * the prompt can restart the timer and fire a second timeout before the
+   * first prompt settles; this guard keeps a single dialog on screen.
+   */
+  private idlePromptOpen = false;
 
   constructor() {
     // Bind the idle timer to the session lifecycle. notifyActivity() alone
@@ -88,7 +95,7 @@ export class SessionService {
 
   private startTimer(): void {
     const ms = this.config.getSessionTimeoutMinutes() * 60 * 1000;
-    this.timeoutRef = setTimeout(() => this.onIdleTimeout(), ms);
+    this.timeoutRef = setTimeout(() => void this.onIdleTimeout(), ms);
   }
 
   private clearTimer(): void {
@@ -98,13 +105,28 @@ export class SessionService {
     }
   }
 
-  private onIdleTimeout(): void {
-    if (!this.auth.isAuthenticated() || this.handlingExpiry) {
+  private async onIdleTimeout(): Promise<void> {
+    if (
+      !this.auth.isAuthenticated() ||
+      this.handlingExpiry ||
+      this.idlePromptOpen
+    ) {
       return;
     }
-    const wantsMoreTime = this.confirmation.confirm(
-      'Your session is about to expire. Do you need more time?',
-    );
+    this.idlePromptOpen = true;
+    let wantsMoreTime = false;
+    try {
+      wantsMoreTime = await this.confirmation.confirm(
+        'Your session is about to expire. Do you need more time?',
+      );
+    } finally {
+      this.idlePromptOpen = false;
+    }
+    // A forced logout (401/403/5002) may have raced the open dialog; if the
+    // session is already being torn down, the user's answer is moot.
+    if (this.handlingExpiry || !this.auth.isAuthenticated()) {
+      return;
+    }
     if (wantsMoreTime) {
       // Keepalive. TODO(P1): POST to a backend extend-session endpoint once
       // the 104 API exposes one; for now, restarting the timer suffices.
@@ -130,9 +152,12 @@ export class SessionService {
     this.auth.clear();
     this.storage.clear();
 
-    this.confirmation.alert(message, 'error');
-    void this.router.navigate([this.loginRoute]).finally(() => {
-      this.handlingExpiry = false;
+    // Mirror the old blocking `window.alert` ordering: navigate to login only
+    // after the user acknowledges the notice, then release the guard.
+    void this.confirmation.alert(message, 'error').finally(() => {
+      void this.router.navigate([this.loginRoute]).finally(() => {
+        this.handlingExpiry = false;
+      });
     });
   }
 
