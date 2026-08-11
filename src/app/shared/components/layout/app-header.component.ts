@@ -27,6 +27,7 @@ import { lucideGlobe } from '@ng-icons/lucide';
 
 import { I18nService } from '@/app-modules/core/i18n/i18n.service';
 import { TranslatePipe } from '@/app-modules/core/i18n/translate.pipe';
+import { ConfirmationService } from '@/app-modules/core/services/confirmation.service';
 
 /**
  * Shared branded top bar used by the role-selection and dashboard screens so
@@ -98,6 +99,7 @@ import { TranslatePipe } from '@/app-modules/core/i18n/translate.pipe';
 })
 export class AppHeaderComponent {
   private readonly i18n = inject(I18nService);
+  private readonly confirmation = inject(ConfirmationService);
 
   /** Centered screen title, e.g. "RO Dashboard" or "Select your role". */
   readonly title = input('');
@@ -114,12 +116,15 @@ export class AppHeaderComponent {
       this.i18n.setLanguage(code);
       return;
     }
-    // Not yet translated: notify and revert the selection to the active language.
+    // Not yet translated: notify and revert the selection to the active
+    // language. Revert first — the ZardUI notice is async, unlike the old
+    // blocking `window.alert`, so the select must not linger on the
+    // unimplemented option while the dialog is open.
     const label =
       this.languages.find((option) => option.code === code)?.label ?? code;
-    window.alert(
+    select.value = this.lang();
+    void this.confirmation.alert(
       `${this.i18n.instant('dashboard.header.languageComingSoon')} ${label}`,
     );
-    select.value = this.lang();
   }
 }
