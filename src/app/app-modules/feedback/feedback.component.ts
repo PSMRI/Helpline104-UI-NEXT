@@ -21,13 +21,7 @@
  */
 
 import { NgClass } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -78,9 +72,7 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
   imports: [NgClass, NgIcon, ZardButtonComponent, ZardInputDirective, TranslatePipe],
   viewProviders: [provideIcons({ lucideStar, lucideX })],
   template: `
-    <div
-      class="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground"
-    >
+    <div class="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
       <section
         class="relative w-full max-w-md rounded-lg border border-border bg-card p-6 text-card-foreground shadow-lg"
       >
@@ -120,22 +112,14 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
               [ngClass]="option.value <= rating() ? 'text-warning' : 'text-muted-foreground'"
               (click)="selectRating(option.value)"
             >
-              <ng-icon
-                name="lucideStar"
-                size="28"
-                [class.fill-current]="option.value <= rating()"
-                aria-hidden="true"
-              />
+              <ng-icon name="lucideStar" size="28" [class.fill-current]="option.value <= rating()" aria-hidden="true" />
               <span class="text-xs">{{ option.labelKey | translate: lang() }}</span>
             </button>
           }
         </div>
 
         <div class="mb-4">
-          <label
-            class="mb-1 block text-sm font-medium"
-            for="feedback-category"
-          >
+          <label class="mb-1 block text-sm font-medium" for="feedback-category">
             {{ 'feedback.category' | translate: lang() }}
           </label>
           <select
@@ -162,9 +146,7 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
             [placeholder]="'feedback.commentPlaceholder' | translate: lang()"
             (input)="onCommentInput($event)"
           ></textarea>
-          <p class="mt-1 text-right text-xs text-muted-foreground">
-            {{ comment().length }} / {{ maxCommentLength }}
-          </p>
+          <p class="mt-1 text-right text-xs text-muted-foreground">{{ comment().length }} / {{ maxCommentLength }}</p>
         </div>
 
         <p class="mb-4 text-xs text-muted-foreground">
@@ -175,12 +157,7 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
           <button z-button type="button" zType="outline" (click)="close()">
             {{ 'feedback.close' | translate: lang() }}
           </button>
-          <button
-            z-button
-            type="button"
-            [zDisabled]="!canSubmit()"
-            (click)="submit()"
-          >
+          <button z-button type="button" [zDisabled]="!canSubmit()" (click)="submit()">
             {{ 'feedback.okay' | translate: lang() }}
           </button>
         </div>

@@ -60,17 +60,15 @@ export class SioOutboundProviderService {
 
   /** Save the blood-bank provider contact for the request. */
   saveBloodBankDetails(payload: SaveBloodBankRequest): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_BANK_PATH, payload)
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw toSioError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_BANK_PATH, payload).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw toSioError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 }

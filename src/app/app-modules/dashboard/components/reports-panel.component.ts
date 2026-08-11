@@ -40,9 +40,7 @@ interface ReportLink {
 }
 
 /** The reports available to an agent (legacy: the surveyor CDI report). */
-const AGENT_REPORTS: readonly ReportLink[] = [
-  { nameKey: 'reports.callType.title', route: '/reports/call-type' },
-];
+const AGENT_REPORTS: readonly ReportLink[] = [{ nameKey: 'reports.callType.title', route: '/reports/call-type' }];
 
 /**
  * Reports panel: the reports the signed-in agent can open. Each row (and
@@ -60,18 +58,11 @@ const AGENT_REPORTS: readonly ReportLink[] = [
     <section
       class="flex h-full flex-col rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
     >
-      <header
-        class="flex items-center justify-between border-b border-border px-4 py-3"
-      >
+      <header class="flex items-center justify-between border-b border-border px-4 py-3">
         <h2 class="text-lg font-semibold">
           {{ 'dashboard.reports.title' | translate: lang() }}
         </h2>
-        <ng-icon
-          name="lucideChartColumn"
-          size="18"
-          class="text-primary"
-          aria-hidden="true"
-        />
+        <ng-icon name="lucideChartColumn" size="18" class="text-primary" aria-hidden="true" />
       </header>
 
       <div class="flex flex-1 flex-col px-4 py-3">

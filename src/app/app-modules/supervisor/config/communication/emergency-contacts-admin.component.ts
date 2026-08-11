@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -43,11 +36,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { SupervisorError } from '../../shared/supervisor-api';
 import { SUP_SELECT_CLASS } from '../../shared/supervisor-ui';
-import {
-  DesignationRow,
-  EmergencyContactCreateRequest,
-  EmergencyContactRow,
-} from './notification.models';
+import { DesignationRow, EmergencyContactCreateRequest, EmergencyContactRow } from './notification.models';
 import { SupervisorNotificationService } from './notification.service';
 
 type ViewMode = 'table' | 'create' | 'edit';
@@ -180,11 +169,7 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
 
       <!-- Create (buffered) -->
       @if (mode() === 'create') {
-        <form
-          [formGroup]="contactForm"
-          autocomplete="off"
-          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-        >
+        <form [formGroup]="contactForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label for="ec-name" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supEmerg.name' | translate: lang() }}
@@ -236,10 +221,7 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
               maxlength="10"
               formControlName="contactNumber"
             />
-            @if (
-              contactForm.controls.contactNumber.invalid &&
-              contactForm.controls.contactNumber.touched
-            ) {
+            @if (contactForm.controls.contactNumber.invalid && contactForm.controls.contactNumber.touched) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supEmerg.tenDigits' | translate: lang() }}
               </p>
@@ -249,13 +231,7 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
             <button z-button type="button" zType="outline" (click)="backToTable()">
               {{ 'supEmerg.back' | translate: lang() }}
             </button>
-            <button
-              z-button
-              type="button"
-              zType="default"
-              [zDisabled]="contactForm.invalid"
-              (click)="addToBuffer()"
-            >
+            <button z-button type="button" zType="default" [zDisabled]="contactForm.invalid" (click)="addToBuffer()">
               <ng-icon name="lucidePlus" size="16" aria-hidden="true" />
               {{ 'supEmerg.add' | translate: lang() }}
             </button>
@@ -329,11 +305,7 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
 
       <!-- Edit -->
       @if (mode() === 'edit') {
-        <form
-          [formGroup]="contactForm"
-          autocomplete="off"
-          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-        >
+        <form [formGroup]="contactForm" autocomplete="off" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label for="ec-e-name" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supEmerg.name' | translate: lang() }}
@@ -380,10 +352,7 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
               maxlength="10"
               formControlName="contactNumber"
             />
-            @if (
-              contactForm.controls.contactNumber.invalid &&
-              contactForm.controls.contactNumber.touched
-            ) {
+            @if (contactForm.controls.contactNumber.invalid && contactForm.controls.contactNumber.touched) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supEmerg.tenDigits' | translate: lang() }}
               </p>
@@ -645,15 +614,11 @@ export class EmergencyContactsAdminComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          toast.success(
-            this.i18n.instant(deleted ? 'supEmerg.deactivated' : 'supEmerg.activated'),
-          );
+          toast.success(this.i18n.instant(deleted ? 'supEmerg.deactivated' : 'supEmerg.activated'));
           this.loadContacts();
         },
         error: () => {
-          this.errorMessage.set(
-            this.i18n.instant(deleted ? 'supEmerg.deactivateFailed' : 'supEmerg.activateFailed'),
-          );
+          this.errorMessage.set(this.i18n.instant(deleted ? 'supEmerg.deactivateFailed' : 'supEmerg.activateFailed'));
         },
       });
   }

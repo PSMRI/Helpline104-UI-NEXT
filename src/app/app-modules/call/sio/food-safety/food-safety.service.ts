@@ -53,17 +53,15 @@ export class FoodSafetyService {
   }
 
   saveComplaint(payload: SaveFoodComplaintRequest): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload)
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw toSioError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw toSioError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 }

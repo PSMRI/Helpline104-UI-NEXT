@@ -66,11 +66,7 @@ export class PdWorkspaceComponent {
   readonly hasMoPrivilege = computed(() =>
     this.authStore
       .privileges()
-      .some(
-        (p) =>
-          p.serviceName === SERVICE_104 &&
-          (p.roles ?? []).some((r) => r.RoleName === ROLE_MO),
-      ),
+      .some((p) => p.serviceName === SERVICE_104 && (p.roles ?? []).some((r) => r.RoleName === ROLE_MO)),
   );
 
   goToMo(): void {

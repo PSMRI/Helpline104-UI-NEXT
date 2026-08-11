@@ -22,12 +22,7 @@
             class="flex w-80 max-w-full flex-col gap-6 rounded-xl border border-border bg-card p-7 shadow-sm transition-shadow hover:shadow-md"
           >
             <div class="flex items-center gap-3 border-b border-border pb-4">
-              <ng-icon
-                name="lucidePhone"
-                size="30"
-                class="text-primary"
-                aria-hidden="true"
-              />
+              <ng-icon name="lucidePhone" size="30" class="text-primary" aria-hidden="true" />
               <span class="text-4xl font-extrabold leading-none text-primary">
                 {{ service.serviceName }}
               </span>
@@ -48,9 +43,7 @@
                   </button>
                 </li>
               } @empty {
-                <li class="text-center text-sm text-muted-foreground">
-                  No roles available for this service.
-                </li>
+                <li class="text-center text-sm text-muted-foreground">No roles available for this service.</li>
               }
             </ul>
           </section>

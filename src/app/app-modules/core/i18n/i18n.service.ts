@@ -24,11 +24,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { SessionStorageService } from '../services/session-storage.service';
 import { DEFAULT_LANGUAGE, Language } from './i18n.types';
-import {
-  AVAILABLE_LANGUAGES,
-  DICTIONARIES,
-  TranslationKey,
-} from './locales';
+import { AVAILABLE_LANGUAGES, DICTIONARIES, TranslationKey } from './locales';
 
 /** Storage key holding the agent's chosen UI language across reloads. */
 const LANGUAGE_STORAGE_KEY = 'app_language';
@@ -57,10 +53,7 @@ export class I18nService {
   /** Endonym of the active language, e.g. "English" / "हिंदी". */
   readonly currentLanguageLabel = computed(() => {
     const active = this._language();
-    return (
-      AVAILABLE_LANGUAGES.find((option) => option.code === active)?.label ??
-      active
-    );
+    return AVAILABLE_LANGUAGES.find((option) => option.code === active)?.label ?? active;
   });
 
   /** Switch the active language and persist the choice. */
@@ -92,11 +85,7 @@ export class I18nService {
    * passed language drives pure-pipe re-evaluation.
    */
   instantFor(key: TranslationKey, language: Language): string {
-    return (
-      DICTIONARIES[language]?.[key] ??
-      DICTIONARIES[DEFAULT_LANGUAGE][key] ??
-      key
-    );
+    return DICTIONARIES[language]?.[key] ?? DICTIONARIES[DEFAULT_LANGUAGE][key] ?? key;
   }
 
   private readStoredLanguage(): Language {

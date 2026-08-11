@@ -21,15 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  effect,
-  inject,
-  input,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -37,11 +29,7 @@ import { ZardButtonComponent } from '@common-ui/ui/button';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { OtherHelplineService } from './other-helpline.service';
-import {
-  MctsCallRow,
-  MctsQaRow,
-  OtherHelplineError,
-} from './other-helpline.models';
+import { MctsCallRow, MctsQaRow, OtherHelplineError } from './other-helpline.models';
 
 /**
  * MCTS call-history tab: lists the beneficiary's prior MCTS outbound calls and,
@@ -89,7 +77,9 @@ import {
             <tbody>
               @for (row of rows(); track $index; let i = $index) {
                 <tr class="border-t border-border align-top">
-                  <td class="px-3 py-2">{{ row.mctsOutboundCall?.displayOBCallType || row.callType?.callType || '—' }}</td>
+                  <td class="px-3 py-2">
+                    {{ row.mctsOutboundCall?.displayOBCallType || row.callType?.callType || '—' }}
+                  </td>
                   <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
                   <td class="px-3 py-2">{{ row.callType?.callGroupType || '—' }}</td>
                   <td class="px-3 py-2">{{ row.smsAdvice || '—' }}</td>
@@ -111,11 +101,15 @@ import {
                   <tr class="border-t border-border bg-muted/30">
                     <td colspan="6" class="px-3 py-3">
                       @if (qaLoading()) {
-                        <p class="text-sm text-muted-foreground">{{ 'casesheetHistory.loading' | translate: lang() }}</p>
+                        <p class="text-sm text-muted-foreground">
+                          {{ 'casesheetHistory.loading' | translate: lang() }}
+                        </p>
                       } @else if (qaError()) {
                         <p class="text-sm font-medium text-destructive" role="alert">{{ qaError() }}</p>
                       } @else if (qaRows().length === 0) {
-                        <p class="text-sm text-muted-foreground">{{ 'casesheetHistory.mcts.noQa' | translate: lang() }}</p>
+                        <p class="text-sm text-muted-foreground">
+                          {{ 'casesheetHistory.mcts.noQa' | translate: lang() }}
+                        </p>
                       } @else {
                         <p class="mb-2 text-xs font-medium text-muted-foreground">
                           {{ 'casesheetHistory.mcts.qaTitle' | translate: lang() }}
@@ -123,7 +117,9 @@ import {
                         <ul class="flex flex-col gap-2">
                           @for (qa of qaRows(); track $index) {
                             <li class="text-sm">
-                              <span class="font-medium text-foreground">{{ qa.questionnaireDetail?.question || '—' }}</span>
+                              <span class="font-medium text-foreground">{{
+                                qa.questionnaireDetail?.question || '—'
+                              }}</span>
                               <span class="text-muted-foreground"> — {{ qa.answer || '—' }}</span>
                             </li>
                           }

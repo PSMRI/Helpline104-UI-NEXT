@@ -82,10 +82,26 @@ const ACTIVITIES_NAV: readonly SupervisorNavItem[] = [
   { labelKey: 'supervisor.nav.grievance', icon: 'lucideMessageSquare', link: '/supervisor/grievance' },
   { labelKey: 'supervisor.nav.uploadSchemes', icon: 'lucideUpload', link: '/supervisor/upload-schemes' },
   { labelKey: 'supervisor.nav.uploadSymptoms', icon: 'lucideFilePlus2', link: '/supervisor/upload-symptoms' },
-  { labelKey: 'supervisor.nav.alertsNotifications', icon: 'lucideMegaphone', link: '/supervisor/communication/alerts-notifications' },
-  { labelKey: 'supervisor.nav.locationMessages', icon: 'lucideMapPin', link: '/supervisor/communication/location-messages' },
-  { labelKey: 'supervisor.nav.trainingResources', icon: 'lucideBookOpen', link: '/supervisor/communication/training-resources' },
-  { labelKey: 'supervisor.nav.emergencyContacts', icon: 'lucidePhoneCall', link: '/supervisor/communication/emergency-contacts' },
+  {
+    labelKey: 'supervisor.nav.alertsNotifications',
+    icon: 'lucideMegaphone',
+    link: '/supervisor/communication/alerts-notifications',
+  },
+  {
+    labelKey: 'supervisor.nav.locationMessages',
+    icon: 'lucideMapPin',
+    link: '/supervisor/communication/location-messages',
+  },
+  {
+    labelKey: 'supervisor.nav.trainingResources',
+    icon: 'lucideBookOpen',
+    link: '/supervisor/communication/training-resources',
+  },
+  {
+    labelKey: 'supervisor.nav.emergencyContacts',
+    icon: 'lucidePhoneCall',
+    link: '/supervisor/communication/emergency-contacts',
+  },
   { labelKey: 'supervisor.nav.forceLogout', icon: 'lucideLogOut', link: '/supervisor/force-logout' },
 ];
 
@@ -144,9 +160,7 @@ const NAV_GROUPS: readonly SupervisorNavGroup[] = [
   ],
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
-      <header
-        class="flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 sm:px-6"
-      >
+      <header class="flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 sm:px-6">
         <div class="flex items-center gap-2">
           <button
             z-button
@@ -172,11 +186,7 @@ const NAV_GROUPS: readonly SupervisorNavGroup[] = [
       <div class="flex flex-1">
         <aside
           class="hidden shrink-0 flex-col gap-4 bg-card py-4 transition-[width] duration-200 md:flex"
-          [class]="
-            sidebarOpen()
-              ? 'w-60 overflow-y-auto border-r border-border px-3'
-              : 'w-0 overflow-hidden'
-          "
+          [class]="sidebarOpen() ? 'w-60 overflow-y-auto border-r border-border px-3' : 'w-0 overflow-hidden'"
         >
           <a
             routerLink="/supervisor"
@@ -190,9 +200,7 @@ const NAV_GROUPS: readonly SupervisorNavGroup[] = [
 
           @for (group of navGroups; track group.labelKey) {
             <div>
-              <p
-                class="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-              >
+              <p class="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {{ group.labelKey | translate: lang() }}
               </p>
               <nav class="flex flex-col gap-0.5">

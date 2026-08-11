@@ -25,12 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../../core/services/config.service';
-import {
-  ApiResponse,
-  SUPERVISOR_TIMEOUT_MS,
-  readSupervisorData,
-  toSupervisorError,
-} from '../../shared/supervisor-api';
+import { ApiResponse, SUPERVISOR_TIMEOUT_MS, readSupervisorData, toSupervisorError } from '../../shared/supervisor-api';
 
 const SERVICE_TYPES_PATH = 'service/servicetypes';
 const CATEGORY_BY_ID_PATH = 'service/categoryByID';
@@ -89,15 +84,10 @@ export class KnowledgeManagementService {
   private readonly config = inject(ConfigService);
 
   getServiceTypes(providerServiceMapID: number | null): Observable<SubServiceType[]> {
-    return this.post<SubServiceType[]>(SERVICE_TYPES_PATH, { providerServiceMapID }).pipe(
-      map((data) => data ?? []),
-    );
+    return this.post<SubServiceType[]>(SERVICE_TYPES_PATH, { providerServiceMapID }).pipe(map((data) => data ?? []));
   }
 
-  getCategories(
-    subServiceID: number,
-    providerServiceMapID: number | null,
-  ): Observable<KmCategory[]> {
+  getCategories(subServiceID: number, providerServiceMapID: number | null): Observable<KmCategory[]> {
     return this.post<KmCategory[]>(CATEGORY_BY_ID_PATH, {
       subServiceID,
       providerServiceMapID,
@@ -105,9 +95,7 @@ export class KnowledgeManagementService {
   }
 
   getSubCategories(categoryID: number): Observable<KmSubCategory[]> {
-    return this.post<KmSubCategory[]>(SUB_CATEGORY_PATH, { categoryID }).pipe(
-      map((data) => data ?? []),
-    );
+    return this.post<KmSubCategory[]>(SUB_CATEGORY_PATH, { categoryID }).pipe(map((data) => data ?? []));
   }
 
   /** Upload KM documents — the API takes an array of file descriptors. */

@@ -68,17 +68,15 @@ export class SchemeService {
 
   /** Records that the beneficiary availed a scheme (body is an array of one entry). */
   saveSearch(payload: SaveSchemeSearch): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_HISTORY_PATH, [payload])
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw toSioError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_HISTORY_PATH, [payload]).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw toSioError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 }

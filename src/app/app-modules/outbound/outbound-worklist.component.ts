@@ -21,14 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
@@ -129,13 +122,7 @@ import { OutboundStore } from './outbound.store';
                   <td class="px-3 py-2">{{ row.noOfTrials ?? 0 }}</td>
                   <td class="px-3 py-2">{{ row.requestedFeature || '—' }}</td>
                   <td class="px-3 py-2">
-                    <button
-                      z-button
-                      zType="default"
-                      zSize="sm"
-                      [zDisabled]="!phoneOf(row)"
-                      (click)="open(row)"
-                    >
+                    <button z-button zType="default" zSize="sm" [zDisabled]="!phoneOf(row)" (click)="open(row)">
                       <ng-icon name="lucidePhoneOutgoing" size="14" aria-hidden="true" />
                       {{ 'outbound.worklist.open' | translate: lang() }}
                     </button>
@@ -158,9 +145,7 @@ import { OutboundStore } from './outbound.store';
             <ng-icon name="lucidePhone" size="16" class="text-primary" aria-hidden="true" />
             {{ 'outbound.worklist.manualDial' | translate: lang() }}
           </h2>
-          <p
-            class="rounded-md border border-dashed border-border px-3 py-4 text-xs text-muted-foreground"
-          >
+          <p class="rounded-md border border-dashed border-border px-3 py-4 text-xs text-muted-foreground">
             {{ 'outbound.worklist.dialDeferred' | translate: lang() }}
           </p>
         </div>
@@ -191,9 +176,7 @@ export class OutboundWorklistComponent implements OnInit {
   }
 
   nameOf(row: OutboundCallRecord): string {
-    return [row.beneficiary?.firstName, row.beneficiary?.lastName]
-      .filter((p) => !!p && p.trim().length > 0)
-      .join(' ');
+    return [row.beneficiary?.firstName, row.beneficiary?.lastName].filter((p) => !!p && p.trim().length > 0).join(' ');
   }
 
   /** Open a record into the outbound workspace (CTI dial deferred). */

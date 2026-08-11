@@ -21,15 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  input,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -39,11 +31,7 @@ import { lucideFileText, lucidePhoneOutgoing } from '@ng-icons/lucide';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardDialogService } from '@common-ui/ui/dialog';
-import {
-  ZardFormControlComponent,
-  ZardFormFieldComponent,
-  ZardFormLabelComponent,
-} from '@common-ui/ui/form';
+import { ZardFormControlComponent, ZardFormFieldComponent, ZardFormLabelComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../core/auth/auth.store';
@@ -51,11 +39,7 @@ import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { FEATURE_SCREEN_NAMES } from '../outbound/outbound.models';
 import { OutboundService } from '../outbound/outbound.service';
-import {
-  CDI_CALL_STATUSES,
-  CdiCallRecord,
-  ReportError,
-} from './call-type-report.models';
+import { CDI_CALL_STATUSES, CdiCallRecord, ReportError } from './call-type-report.models';
 import { CallTypeReportService } from './call-type-report.service';
 import { CdiReportDialogComponent } from './cdi-report-dialog.component';
 
@@ -120,18 +104,14 @@ function toDateInput(date: Date): string {
       <form [formGroup]="filterForm" (ngSubmit)="search()" autocomplete="off">
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <z-form-field>
-            <label z-form-label zRequired>{{
-              'reports.callType.startDate' | translate: lang()
-            }}</label>
+            <label z-form-label zRequired>{{ 'reports.callType.startDate' | translate: lang() }}</label>
             <z-form-control>
               <input z-input type="date" formControlName="startDate" [attr.max]="maxDate" />
             </z-form-control>
           </z-form-field>
 
           <z-form-field>
-            <label z-form-label zRequired>{{
-              'reports.callType.endDate' | translate: lang()
-            }}</label>
+            <label z-form-label zRequired>{{ 'reports.callType.endDate' | translate: lang() }}</label>
             <z-form-control>
               <input z-input type="date" formControlName="endDate" [attr.max]="maxDate" />
             </z-form-control>
@@ -149,9 +129,7 @@ function toDateInput(date: Date): string {
           </z-form-field>
 
           <z-form-field>
-            <label z-form-label>{{
-              'reports.callType.rowsPerPage' | translate: lang()
-            }}</label>
+            <label z-form-label>{{ 'reports.callType.rowsPerPage' | translate: lang() }}</label>
             <z-form-control>
               <select formControlName="pageSize" [class]="selectClass">
                 @for (size of pageSizes; track size) {
@@ -238,13 +216,7 @@ function toDateInput(date: Date): string {
                   </td>
                   <td class="px-3 py-2">
                     @if (row.cDICallStatus === 'Closed') {
-                      <button
-                        z-button
-                        zType="default"
-                        zSize="sm"
-                        type="button"
-                        (click)="openReport(row)"
-                      >
+                      <button z-button zType="default" zSize="sm" type="button" (click)="openReport(row)">
                         <ng-icon name="lucideFileText" size="14" aria-hidden="true" />
                         {{ 'reports.callType.report' | translate: lang() }}
                       </button>
@@ -336,12 +308,10 @@ export class CallTypeReportComponent implements OnInit {
   private receivedRoleName: string | null = null;
 
   readonly filterForm = new FormGroup({
-    startDate: new FormControl(
-      toDateInput(
-        new Date(new Date().setDate(new Date().getDate() - DEFAULT_RANGE_DAYS)),
-      ),
-      { nonNullable: true, validators: [Validators.required] },
-    ),
+    startDate: new FormControl(toDateInput(new Date(new Date().setDate(new Date().getDate() - DEFAULT_RANGE_DAYS))), {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     endDate: new FormControl(toDateInput(new Date()), {
       nonNullable: true,
       validators: [Validators.required],
@@ -351,8 +321,7 @@ export class CallTypeReportComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const providerServiceMapID =
-      this.authStore.currentRole()?.providerServiceMapID ?? null;
+    const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
 
     // Resolve the "valid" call type (legacy getCallTypesV1 → callGroupType
     // "valid" → callType containing "valid").
@@ -361,13 +330,9 @@ export class CallTypeReportComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (groups) => {
-          const validGroup = groups.find(
-            (g) => g.callGroupType?.toLowerCase() === 'valid',
-          );
+          const validGroup = groups.find((g) => g.callGroupType?.toLowerCase() === 'valid');
           this.callTypeID =
-            validGroup?.callTypes?.find((t) =>
-              t.callType?.toLowerCase().includes('valid'),
-            )?.callTypeID ?? null;
+            validGroup?.callTypes?.find((t) => t.callType?.toLowerCase().includes('valid'))?.callTypeID ?? null;
         },
         error: () => undefined,
       });
@@ -379,9 +344,7 @@ export class CallTypeReportComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (mappings) => {
-          const roleID = mappings.find(
-            (m) => m.screen?.screenName === FEATURE_SCREEN_NAMES.health,
-          )?.roleID;
+          const roleID = mappings.find((m) => m.screen?.screenName === FEATURE_SCREEN_NAMES.health)?.roleID;
           if (roleID == null) {
             return;
           }
@@ -390,8 +353,7 @@ export class CallTypeReportComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: (roles) => {
-                this.receivedRoleName =
-                  roles.find((r) => r.roleID === roleID)?.roleName ?? null;
+                this.receivedRoleName = roles.find((r) => r.roleID === roleID)?.roleName ?? null;
               },
               error: () => undefined,
             });
@@ -445,9 +407,7 @@ export class CallTypeReportComponent implements OnInit {
           this.searched.set(true);
           this.rows.set([]);
           this.totalPages.set(0);
-          this.errorMessage.set(
-            err.errorMessage || this.i18n.instant('reports.callType.loadError'),
-          );
+          this.errorMessage.set(err.errorMessage || this.i18n.instant('reports.callType.loadError'));
         },
       });
   }

@@ -22,31 +22,17 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
-import {
-  ApiResponse,
-  SendSmsRequest,
-  SmsError,
-  SmsTemplate,
-  SmsType,
-} from './sms.models';
+import { ApiResponse, SendSmsRequest, SmsError, SmsTemplate, SmsType } from './sms.models';
 
 const SMS_TYPES_PATH = 'sms/getSMSTypes';
 const SMS_TEMPLATES_PATH = 'sms/getSMSTemplates';
 const SEND_SMS_PATH = 'sms/sendSMS';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 const SMS_TIMEOUT_MS = 20_000;
 
 /**
@@ -73,10 +59,7 @@ export class SmsService {
   }
 
   /** SMS templates for a service (optionally filtered to a type). Resolves to `[]`. */
-  getSmsTemplates(
-    providerServiceMapID: number | null,
-    smsTypeID?: number,
-  ): Observable<SmsTemplate[]> {
+  getSmsTemplates(providerServiceMapID: number | null, smsTypeID?: number): Observable<SmsTemplate[]> {
     return this.http
       .post<ApiResponse<SmsTemplate[]>>(this.config.getCommonBaseURL() + SMS_TEMPLATES_PATH, {
         providerServiceMapID,
@@ -91,18 +74,16 @@ export class SmsService {
 
   /** Send one or more SMS messages. */
   sendSms(requests: SendSmsRequest[]): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.getCommonBaseURL() + SEND_SMS_PATH, requests)
-      .pipe(
-        timeout(SMS_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw this.toError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.getCommonBaseURL() + SEND_SMS_PATH, requests).pipe(
+      timeout(SMS_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw this.toError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   private readData<T>(res: ApiResponse<T>): T | undefined {
@@ -117,11 +98,7 @@ export class SmsService {
       return { status: 0, errorMessage: TIMEOUT_ERROR };
     }
 
-    if (
-      err &&
-      typeof (err as SmsError).status === 'number' &&
-      typeof (err as SmsError).errorMessage === 'string'
-    ) {
+    if (err && typeof (err as SmsError).status === 'number' && typeof (err as SmsError).errorMessage === 'string') {
       return err as SmsError;
     }
 

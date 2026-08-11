@@ -61,9 +61,7 @@ export class AlertsNotificationsService {
   private readonly config = inject(ConfigService);
 
   /** Notification types configured for the service. */
-  getNotificationTypes(
-    providerServiceMapID: number | null,
-  ): Observable<NotificationTypeOption[]> {
+  getNotificationTypes(providerServiceMapID: number | null): Observable<NotificationTypeOption[]> {
     return this.post<NotificationTypeOption[]>(NOTIFICATION_TYPES_PATH, {
       providerServiceMapID,
     });
@@ -75,10 +73,7 @@ export class AlertsNotificationsService {
   }
 
   /** The agent's messages of one notification type. */
-  getNotificationDetails(
-    identity: AlertsIdentity,
-    notificationTypeID: number,
-  ): Observable<UserNotification[]> {
+  getNotificationDetails(identity: AlertsIdentity, notificationTypeID: number): Observable<UserNotification[]> {
     return this.post<UserNotification[]>(DETAILS_PATH, {
       ...identity,
       notificationTypeID,
@@ -89,10 +84,7 @@ export class AlertsNotificationsService {
    * Mark messages read or unread. The payload key `notficationStatus` is the
    * legacy API's exact (misspelled) contract — do not "fix" it.
    */
-  changeStatus(
-    status: 'read' | 'unread',
-    userNotificationMapIDList: number[],
-  ): Observable<StatusChangeResult> {
+  changeStatus(status: 'read' | 'unread', userNotificationMapIDList: number[]): Observable<StatusChangeResult> {
     return this.post<StatusChangeResult>(CHANGE_STATUS_PATH, {
       notficationStatus: status,
       userNotificationMapIDList,
@@ -108,17 +100,15 @@ export class AlertsNotificationsService {
   }
 
   private post<T>(path: string, body: unknown): Observable<T> {
-    return this.http
-      .post<ApiResponse<T>>(this.config.getCommonBaseURL() + path, body)
-      .pipe(
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw this.toError(res);
-          }
-          return res.data ?? ([] as unknown as T);
-        }),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<T>>(this.config.getCommonBaseURL() + path, body).pipe(
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw this.toError(res);
+        }
+        return res.data ?? ([] as unknown as T);
+      }),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   private toError(err: unknown): AlertsError {
@@ -139,9 +129,7 @@ export class AlertsNotificationsService {
     if (err instanceof HttpErrorResponse) {
       const body = err.error as { errorMessage?: string } | null;
       const message =
-        body && typeof body === 'object' && typeof body.errorMessage === 'string'
-          ? body.errorMessage
-          : '';
+        body && typeof body === 'object' && typeof body.errorMessage === 'string' ? body.errorMessage : '';
       return { status: err.status, errorMessage: message.trim() || GENERIC_ERROR };
     }
     return { status: 0, errorMessage: GENERIC_ERROR };

@@ -32,13 +32,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormArray,
-  FormBuilder,
-  FormControl,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePlus, lucideTrash2, lucideX } from '@ng-icons/lucide';
@@ -320,8 +314,6 @@ export class AlternateEmailComponent implements OnInit {
     // Only a row the agent has actually typed into (non-empty) and that fails
     // the email pattern blocks Send; a freshly-added blank row must not disable
     // sending to already-selected authority emails.
-    this.manualInvalidCount.set(
-      controls.filter((c) => c.value.trim().length > 0 && c.invalid).length,
-    );
+    this.manualInvalidCount.set(controls.filter((c) => c.value.trim().length > 0 && c.invalid).length);
   }
 }

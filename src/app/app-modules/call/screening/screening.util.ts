@@ -48,10 +48,7 @@ export function isObesityQuestion(label: string): boolean {
  * is converted from centimetres to metres (÷100). Returns 'Yes' when BMI > 25,
  * 'No' when 0 < BMI < 25, and 'NA' otherwise (incl. exactly 25 or bad input).
  */
-export function calculateObesity(
-  weight: number | null,
-  height: number | null,
-): ObesityResult {
+export function calculateObesity(weight: number | null, height: number | null): ObesityResult {
   if (weight == null || height == null || height <= 0) {
     return 'NA';
   }

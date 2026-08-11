@@ -57,10 +57,7 @@ export function roleWorkspacePath(featureCode: string | null | undefined): strin
  * `<md-tab-group>` gated its service tabs against (see also
  * `HaoWorkspaceComponent.collectScreens`).
  */
-export function collectServiceScreens(
-  privileges: readonly Privilege[],
-  serviceName: string,
-): string[] {
+export function collectServiceScreens(privileges: readonly Privilege[], serviceName: string): string[] {
   const screens = new Set<string>();
   for (const privilege of privileges) {
     if (privilege.serviceName !== serviceName) {

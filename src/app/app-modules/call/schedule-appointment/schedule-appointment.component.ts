@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -113,7 +105,12 @@ const SLOT_MAX_MINUTES = 13 * 60;
             <label for="appt-facility" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'appointment.facility' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="appt-facility" [class]="selectClass" formControlName="facilityName" (change)="onFacilityChange()">
+            <select
+              id="appt-facility"
+              [class]="selectClass"
+              formControlName="facilityName"
+              (change)="onFacilityChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'appointment.selectFacility' | translate: lang() }}</option>
               @for (f of facilities(); track $index) {
                 <option [ngValue]="f.facilityName">{{ f.facilityName }}</option>
@@ -186,7 +183,14 @@ const SLOT_MAX_MINUTES = 13 * 60;
           <button z-button type="button" zType="outline" (click)="cancelled.emit()">
             {{ 'appointment.cancel' | translate: lang() }}
           </button>
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="!canSubmit()" (click)="submit()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="!canSubmit()"
+            (click)="submit()"
+          >
             {{ 'appointment.submit' | translate: lang() }}
           </button>
         </div>

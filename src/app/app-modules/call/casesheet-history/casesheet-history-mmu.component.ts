@@ -21,16 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -56,10 +47,7 @@ import { MmuVisitRow, OtherHelplineError } from './other-helpline.models';
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <h3 class="mb-3 text-sm font-semibold text-foreground">
-        {{
-          (isTm() ? 'casesheetHistory.mmu.titleTm' : 'casesheetHistory.mmu.title')
-            | translate: lang()
-        }}
+        {{ (isTm() ? 'casesheetHistory.mmu.titleTm' : 'casesheetHistory.mmu.title') | translate: lang() }}
       </h3>
 
       @if (errorMessage()) {

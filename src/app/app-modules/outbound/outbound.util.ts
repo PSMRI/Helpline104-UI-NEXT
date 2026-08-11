@@ -61,10 +61,7 @@ const KNOWN_SCREENS = new Set(ROLE_BUCKETS.map((b) => b.screenName));
  * Buckets with no matching records still appear (empty), each carrying the
  * `roleID` its records would be allocated to.
  */
-export function bucketRecords(
-  records: OutboundCallRecord[],
-  mapping: FeatureScreen[],
-): RoleBucket[] {
+export function bucketRecords(records: OutboundCallRecord[], mapping: FeatureScreen[]): RoleBucket[] {
   const buckets: RoleBucket[] = ROLE_BUCKETS.map((def) => ({
     ...def,
     roleID: mapping.find((m) => m.screen?.screenName === def.screenName)?.roleID ?? null,

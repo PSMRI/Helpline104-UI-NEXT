@@ -21,14 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Z_MODAL_DATA } from '@common-ui/ui/dialog';
@@ -89,11 +82,7 @@ export interface ChangeLogDialogData {
                 <td class="px-3 py-2">{{ log.feedbackLogs || '—' }}</td>
                 <td class="px-3 py-2">{{ log.createdBy || '—' }}</td>
                 <td class="px-3 py-2">
-                  {{
-                    log.createdDate != null
-                      ? (log.createdDate | date: 'dd/MM/yyyy hh:mm a' : 'UTC')
-                      : '—'
-                  }}
+                  {{ log.createdDate != null ? (log.createdDate | date: 'dd/MM/yyyy hh:mm a' : 'UTC') : '—' }}
                 </td>
               </tr>
             } @empty {

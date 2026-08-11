@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideClock } from '@ng-icons/lucide';
@@ -64,9 +57,7 @@ function pad(value: number): string {
       class="inline-flex items-center gap-2 font-mono text-lg tabular-nums"
       role="timer"
       aria-live="off"
-      [attr.aria-label]="
-        ('innerpage.timer.ariaLabel' | translate: lang()) + ' ' + elapsed()
-      "
+      [attr.aria-label]="('innerpage.timer.ariaLabel' | translate: lang()) + ' ' + elapsed()"
     >
       <ng-icon name="lucideClock" size="18" aria-hidden="true" />
       {{ elapsed() }}

@@ -21,13 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -40,14 +34,8 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
-import {
-  AlertsError,
-  UserNotification,
-} from '../../alerts-notifications.models';
-import {
-  AlertsIdentity,
-  AlertsNotificationsService,
-} from '../../alerts-notifications.service';
+import { AlertsError, UserNotification } from '../../alerts-notifications.models';
+import { AlertsIdentity, AlertsNotificationsService } from '../../alerts-notifications.service';
 
 /** What the dialog is opened with, passed via `zData`. */
 export interface AlertsNotificationsDialogData {
@@ -89,11 +77,7 @@ export interface AlertsNotificationsDialogData {
             <div class="min-w-0">
               <p
                 class="text-sm"
-                [class]="
-                  message.notificationState === 'unread'
-                    ? 'font-semibold text-foreground'
-                    : 'text-foreground'
-                "
+                [class]="message.notificationState === 'unread' ? 'font-semibold text-foreground' : 'text-foreground'"
               >
                 {{ message.notification?.notification || '—' }}
               </p>
@@ -227,9 +211,7 @@ export class AlertsNotificationsDialogComponent {
       next: () => this.reload(),
       error: (err: AlertsError) => {
         this.busy.set(false);
-        this.errorMessage.set(
-          err.errorMessage || this.i18n.instant('dashboard.alertsDialog.error'),
-        );
+        this.errorMessage.set(err.errorMessage || this.i18n.instant('dashboard.alertsDialog.error'));
       },
     });
   }
@@ -242,16 +224,12 @@ export class AlertsNotificationsDialogComponent {
       .subscribe({
         next: (messages) => {
           this.busy.set(false);
-          this.messages.set(
-            messages.filter((m) => m.notificationState !== 'future'),
-          );
+          this.messages.set(messages.filter((m) => m.notificationState !== 'future'));
           this.data.onChanged();
         },
         error: (err: AlertsError) => {
           this.busy.set(false);
-          this.errorMessage.set(
-            err.errorMessage || this.i18n.instant('dashboard.alertsDialog.error'),
-          );
+          this.errorMessage.set(err.errorMessage || this.i18n.instant('dashboard.alertsDialog.error'));
           this.data.onChanged();
         },
       });

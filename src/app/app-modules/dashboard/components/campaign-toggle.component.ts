@@ -54,10 +54,7 @@ function readErrorMessage(error: unknown, fallback: string): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslatePipe],
   template: `
-    <fieldset
-      class="flex items-center gap-5"
-      [attr.aria-label]="'dashboard.campaign.label' | translate: lang()"
-    >
+    <fieldset class="flex items-center gap-5" [attr.aria-label]="'dashboard.campaign.label' | translate: lang()">
       <label class="flex cursor-pointer items-center gap-2 text-sm">
         <input
           type="radio"
@@ -145,10 +142,7 @@ export class CampaignToggleComponent {
     this.confirmDialog
       .alert({
         title: this.i18n.instant('dashboard.dialog.error'),
-        message: readErrorMessage(
-          error,
-          this.i18n.instant('dashboard.campaign.switchError'),
-        ),
+        message: readErrorMessage(error, this.i18n.instant('dashboard.campaign.switchError')),
         okText: this.i18n.instant('dashboard.dialog.ok'),
       })
       .subscribe();
