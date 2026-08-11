@@ -102,7 +102,7 @@ export const as: Record<TranslationKey, string> = {
 
   // Rating panel
   'dashboard.rating.title': 'মূল্যাংকন',
-  'dashboard.rating.panelContent': 'পেনেল সমল',
+  'dashboard.rating.empty': 'কোনো মূল্যাংকন তথ্য উপলব্ধ নাই',
 
   // Emergency contacts modal
   'dashboard.contacts.name': 'নাম',

@@ -102,7 +102,7 @@ export const hi: Record<TranslationKey, string> = {
 
   // Rating panel
   'dashboard.rating.title': 'रेटिंग',
-  'dashboard.rating.panelContent': 'पैनल सामग्री',
+  'dashboard.rating.empty': 'कोई रेटिंग डेटा उपलब्ध नहीं है',
 
   // Emergency contacts modal
   'dashboard.contacts.name': 'नाम',
