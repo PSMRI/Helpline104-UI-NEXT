@@ -77,6 +77,13 @@ export class ReportRunner {
   readonly exporting = signal(false);
   readonly searched = signal(false);
   readonly errorMessage = signal('');
+  /**
+   * True when the last failure was an HTTP 5xx, i.e. the report is unavailable
+   * because the server faulted — not because the filters matched nothing. The
+   * screens render this as a persistent dismissible banner so a server fault is
+   * never mistaken for an empty result.
+   */
+  readonly serverError = signal(false);
   readonly columns = signal<DataTableColumn<ReportRow>[]>([]);
   readonly rows = signal<ReportRow[]>([]);
 
@@ -96,6 +103,7 @@ export class ReportRunner {
     // that export's response a no-op, so clear its spinner here or it sticks on.
     this.exporting.set(false);
     this.errorMessage.set('');
+    this.serverError.set(false);
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (blob) => {
         void this.applyBlob(reqId, blob);
@@ -121,6 +129,7 @@ export class ReportRunner {
     // that view's response a no-op, so clear its spinner here or it sticks on.
     this.loading.set(false);
     this.errorMessage.set('');
+    this.serverError.set(false);
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (blob) => {
         if (reqId !== this.requestId) {
@@ -173,10 +182,37 @@ export class ReportRunner {
     }
   }
 
-  /** Legacy semantics: a 500 means "no data for these filters". */
+  /**
+   * Record a failure raised outside {@link view}/{@link export} — e.g. loading a
+   * filter's lookup list. Routed through {@link messageFor} so a raw server
+   * message (stack traces, JDBC text) can never reach the screen.
+   */
+  setError(err: SupervisorError): void {
+    this.errorMessage.set(this.messageFor(err));
+  }
+
+  /** Dismiss the current error banner (the agent acknowledging a server fault). */
+  dismissError(): void {
+    this.errorMessage.set('');
+    this.serverError.set(false);
+  }
+
+  /**
+   * Map a failure to display copy, and flag 5xx separately.
+   *
+   * A 5xx is a server fault, so it gets its own persistent message. It used to
+   * be reported as "no data found for the selected filters" on the theory that
+   * the legacy backend returned 500 for an empty result — but that made a real
+   * outage indistinguishable from a genuinely empty report (all six failing UAT
+   * report endpoints looked like empty reports). The raw `errorMessage` is never
+   * surfaced; only these translated strings are.
+   */
   private messageFor(err: SupervisorError): string {
-    return err.status === 500
-      ? this.i18n.instant('supReports.noData')
-      : this.i18n.instant('supReports.fetchError');
+    if (err.status >= 500) {
+      this.serverError.set(true);
+      return this.i18n.instant('supReports.serverError');
+    }
+    this.serverError.set(false);
+    return this.i18n.instant('supReports.fetchError');
   }
 }
