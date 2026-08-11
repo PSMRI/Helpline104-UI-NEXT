@@ -138,6 +138,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.search.prompt': 'নাম বা পঞ্জীয়ন আইডি দিয়ক, তাৰ পিছত সন্ধান কৰক।',
   'registration.search.error':
     'সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ\'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'registration.search.timeout':
+    'সন্ধানৰ সময়সীমা উকলি গ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক অথবা তাৰ পৰিৱৰ্তে ফোন নম্বৰেৰে সন্ধান কৰক।',
   'registration.col.regId': 'পঞ্জী. আইডি',
   'registration.col.name': 'নাম',
   'registration.col.gender': 'লিংগ',
@@ -157,6 +159,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.gender.female': 'মহিলা',
   'registration.gender.transgender': 'ৰূপান্তৰকামী',
   'registration.action.search': 'সন্ধান কৰক',
+  'registration.action.retry': 'পুনৰ চেষ্টা কৰক',
   'registration.action.register': 'হিতাধিকাৰী পঞ্জীয়ন কৰক',
   'registration.validation.required': 'এই ক্ষেত্ৰটো আৱশ্যক।',
   'registration.validation.firstNameMin': 'কমেও ৩টা আখৰ দিয়ক।',
@@ -1342,4 +1345,11 @@ export const as: Record<TranslationKey, string> = {
   'supSms.paramIncomplete': 'পেৰামিটাৰ, মানৰ প্ৰকাৰ আৰু মান নিৰ্বাচন কৰিব লাগিব',
   'supSms.saved': 'টেমপ্লেট সফলতাৰে সংৰক্ষণ কৰা হৈছে',
   'supSms.saveFailed': 'টেমপ্লেট সংৰক্ষণ কৰিবলৈ ব্যৰ্থ। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+
+  // Shared alert/confirm dialog titles (ConfirmationService)
+  'dialog.confirmTitle': 'নিশ্চিত কৰক',
+  'dialog.infoTitle': 'তথ্য',
+  'dialog.successTitle': 'সফলতা',
+  'dialog.warningTitle': 'সতৰ্কবাণী',
+  'dialog.errorTitle': 'ত্ৰুটি',
 };

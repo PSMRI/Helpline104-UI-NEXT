@@ -138,6 +138,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.search.prompt': 'नाम या पंजीकरण आईडी दर्ज करें, फिर खोजें।',
   'registration.search.error':
     'खोज पूरी नहीं हो सकी — शायद समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
+  'registration.search.timeout':
+    'खोज का समय समाप्त हो गया। कृपया पुनः प्रयास करें या इसके बजाय फ़ोन नंबर से खोजें।',
   'registration.col.regId': 'पंजी. आईडी',
   'registration.col.name': 'नाम',
   'registration.col.gender': 'लिंग',
@@ -157,6 +159,7 @@ export const hi: Record<TranslationKey, string> = {
   'registration.gender.female': 'महिला',
   'registration.gender.transgender': 'ट्रांसजेंडर',
   'registration.action.search': 'खोजें',
+  'registration.action.retry': 'पुनः प्रयास करें',
   'registration.action.register': 'लाभार्थी पंजीकृत करें',
   'registration.validation.required': 'यह फ़ील्ड आवश्यक है।',
   'registration.validation.firstNameMin': 'कम से कम 3 अक्षर दर्ज करें।',
@@ -1339,4 +1342,11 @@ export const hi: Record<TranslationKey, string> = {
   'supSms.paramIncomplete': 'पैरामीटर, मान प्रकार और मान चुना जाना चाहिए',
   'supSms.saved': 'टेम्पलेट सफलतापूर्वक सहेजा गया',
   'supSms.saveFailed': 'टेम्पलेट सहेजने में विफल। कृपया पुनः प्रयास करें।',
+
+  // Shared alert/confirm dialog titles (ConfirmationService)
+  'dialog.confirmTitle': 'पुष्टि करें',
+  'dialog.infoTitle': 'जानकारी',
+  'dialog.successTitle': 'सफलता',
+  'dialog.warningTitle': 'चेतावनी',
+  'dialog.errorTitle': 'त्रुटि',
 };
