@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Z_MODAL_DATA } from '@common-ui/ui/dialog';
@@ -114,9 +106,7 @@ export class CdiReportDialogComponent implements OnInit {
   readonly errorMessage = signal('');
 
   /** Sum of the per-question scores (legacy "Total Weightage"). */
-  readonly totalScore = computed(() =>
-    this.rows().reduce((total, row) => total + (row.score ?? 0), 0),
-  );
+  readonly totalScore = computed(() => this.rows().reduce((total, row) => total + (row.score ?? 0), 0));
 
   ngOnInit(): void {
     this.reportService
@@ -129,9 +119,7 @@ export class CdiReportDialogComponent implements OnInit {
         },
         error: (err: ReportError) => {
           this.loading.set(false);
-          this.errorMessage.set(
-            err.errorMessage || this.i18n.instant('reports.cdi.error'),
-          );
+          this.errorMessage.set(err.errorMessage || this.i18n.instant('reports.cdi.error'));
         },
       });
   }

@@ -25,12 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../../core/services/config.service';
-import {
-  ApiResponse,
-  SUPERVISOR_TIMEOUT_MS,
-  readSupervisorData,
-  toSupervisorError,
-} from '../../shared/supervisor-api';
+import { ApiResponse, SUPERVISOR_TIMEOUT_MS, readSupervisorData, toSupervisorError } from '../../shared/supervisor-api';
 
 /** Legacy `CDSSService.saveSymp` posted to `{104 base}CDSS/saveSymptom`. */
 const SAVE_SYMPTOM_PATH = 'CDSS/saveSymptom';
@@ -61,12 +56,10 @@ export class UploadSymptomsService {
   private readonly config = inject(ConfigService);
 
   saveSymptom(body: SaveSymptomRequest): Observable<SaveSymptomResult | undefined> {
-    return this.http
-      .post<ApiResponse<SaveSymptomResult>>(this.config.get104BaseURL() + SAVE_SYMPTOM_PATH, body)
-      .pipe(
-        timeout(SUPERVISOR_TIMEOUT_MS),
-        map((res) => readSupervisorData(res)),
-        catchError((err: unknown) => throwError(() => toSupervisorError(err))),
-      );
+    return this.http.post<ApiResponse<SaveSymptomResult>>(this.config.get104BaseURL() + SAVE_SYMPTOM_PATH, body).pipe(
+      timeout(SUPERVISOR_TIMEOUT_MS),
+      map((res) => readSupervisorData(res)),
+      catchError((err: unknown) => throwError(() => toSupervisorError(err))),
+    );
   }
 }

@@ -128,7 +128,12 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
             <label for="dir-directory" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'directory.information' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="dir-directory" [class]="selectClass" formControlName="instituteDirectoryID" (change)="onDirectoryChange()">
+            <select
+              id="dir-directory"
+              [class]="selectClass"
+              formControlName="instituteDirectoryID"
+              (change)="onDirectoryChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'directory.select' | translate: lang() }}</option>
               @for (d of directoryList(); track d.instituteDirectoryID) {
                 <option [ngValue]="d.instituteDirectoryID">{{ d.instituteDirectoryName }}</option>
@@ -150,7 +155,14 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="searching()" [zDisabled]="form.invalid || searching()" (click)="search()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="searching()"
+            [zDisabled]="form.invalid || searching()"
+            (click)="search()"
+          >
             <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
             {{ 'directory.search' | translate: lang() }}
           </button>
@@ -282,9 +294,7 @@ export class DirectoryServicesComponent implements OnInit {
       .subscribe({
         next: (services) => {
           const fragments = SUB_SERVICE_BY_FEATURE[role?.featureCode ?? ''] ?? [];
-          const match = services.find((s) =>
-            fragments.some((f) => (s.subServiceName ?? '').includes(f)),
-          );
+          const match = services.find((s) => fragments.some((f) => (s.subServiceName ?? '').includes(f)));
           this.subServiceID.set(match?.subServiceID ?? null);
         },
         error: () => this.subServiceID.set(null),

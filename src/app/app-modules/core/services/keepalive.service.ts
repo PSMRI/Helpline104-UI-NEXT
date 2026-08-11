@@ -127,8 +127,7 @@ export class KeepaliveService implements OnDestroy {
     if (!this.auth.isAuthenticated()) {
       return;
     }
-    const providerServiceMapID =
-      this.auth.currentRole()?.providerServiceMapID ?? null;
+    const providerServiceMapID = this.auth.currentRole()?.providerServiceMapID ?? null;
     this.http
       .post(this.config.getCommonBaseURL() + KEEPALIVE_PATH, {
         providerServiceMapID,

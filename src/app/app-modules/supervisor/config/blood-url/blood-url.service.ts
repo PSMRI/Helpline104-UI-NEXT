@@ -25,12 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../../core/services/config.service';
-import {
-  ApiResponse,
-  SUPERVISOR_TIMEOUT_MS,
-  readSupervisorData,
-  toSupervisorError,
-} from '../../shared/supervisor-api';
+import { ApiResponse, SUPERVISOR_TIMEOUT_MS, readSupervisorData, toSupervisorError } from '../../shared/supervisor-api';
 
 const GET_URL_PATH = 'beneficiary/get/bloodBankURL';
 const SAVE_URL_PATH = 'beneficiary/save/bloodBankURL';

@@ -57,9 +57,7 @@ import { ConfirmationService } from '@/app-modules/core/services/confirmation.se
         <span class="text-base font-bold tracking-wide sm:text-lg">AMRIT</span>
       </div>
 
-      <h1
-        class="order-last col-span-2 text-center text-base font-semibold sm:order-none sm:col-span-1 sm:text-xl"
-      >
+      <h1 class="order-last col-span-2 text-center text-base font-semibold sm:order-none sm:col-span-1 sm:text-xl">
         {{ title() }}
       </h1>
 
@@ -75,11 +73,7 @@ import { ConfirmationService } from '@/app-modules/core/services/confirmation.se
             (change)="onLanguageChange($event)"
           >
             @for (option of languages; track option.code) {
-              <option
-                class="text-foreground"
-                [value]="option.code"
-                [selected]="option.code === lang()"
-              >
+              <option class="text-foreground" [value]="option.code" [selected]="option.code === lang()">
                 {{ option.label }}
               </option>
             }
@@ -120,11 +114,8 @@ export class AppHeaderComponent {
     // language. Revert first — the ZardUI notice is async, unlike the old
     // blocking `window.alert`, so the select must not linger on the
     // unimplemented option while the dialog is open.
-    const label =
-      this.languages.find((option) => option.code === code)?.label ?? code;
+    const label = this.languages.find((option) => option.code === code)?.label ?? code;
     select.value = this.lang();
-    void this.confirmation.alert(
-      `${this.i18n.instant('dashboard.header.languageComingSoon')} ${label}`,
-    );
+    void this.confirmation.alert(`${this.i18n.instant('dashboard.header.languageComingSoon')} ${label}`);
   }
 }

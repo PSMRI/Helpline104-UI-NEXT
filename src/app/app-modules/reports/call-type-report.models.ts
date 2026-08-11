@@ -98,10 +98,4 @@ export interface CdiQaMapping {
 }
 
 /** CDI call statuses offered by the worklist filter (sent verbatim). */
-export const CDI_CALL_STATUSES = [
-  'All',
-  'New',
-  'Attempted',
-  'Closed',
-  'Not Interested',
-] as const;
+export const CDI_CALL_STATUSES = ['All', 'New', 'Attempted', 'Closed', 'Not Interested'] as const;

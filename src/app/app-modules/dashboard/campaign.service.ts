@@ -46,17 +46,11 @@ export class CampaignService {
 
   /** Move the agent to the inbound campaign. */
   switchToInbound(agentId: number): Observable<unknown> {
-    return this.http.post(
-      `${this.config.getOpenCommonBaseURL()}${SWITCH_TO_INBOUND_PATH}`,
-      { agent_id: agentId },
-    );
+    return this.http.post(`${this.config.getOpenCommonBaseURL()}${SWITCH_TO_INBOUND_PATH}`, { agent_id: agentId });
   }
 
   /** Move the agent to the outbound campaign. */
   switchToOutbound(agentId: number): Observable<unknown> {
-    return this.http.post(
-      `${this.config.getOpenCommonBaseURL()}${SWITCH_TO_OUTBOUND_PATH}`,
-      { agent_id: agentId },
-    );
+    return this.http.post(`${this.config.getOpenCommonBaseURL()}${SWITCH_TO_OUTBOUND_PATH}`, { agent_id: agentId });
   }
 }

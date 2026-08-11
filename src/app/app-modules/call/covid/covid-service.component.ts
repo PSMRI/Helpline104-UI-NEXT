@@ -214,7 +214,9 @@ interface CheckItem {
 
         <!-- Health conditions -->
         <fieldset class="mt-4">
-          <legend class="mb-2 text-sm font-medium text-foreground">{{ 'covid.healthConditions' | translate: lang() }}</legend>
+          <legend class="mb-2 text-sm font-medium text-foreground">
+            {{ 'covid.healthConditions' | translate: lang() }}
+          </legend>
           <div class="flex flex-wrap gap-3">
             @for (h of healthConditions(); track h.value; let i = $index) {
               <label class="flex items-center gap-2 text-sm" [class.opacity-50]="h.disabled">
@@ -247,7 +249,14 @@ interface CheckItem {
         }
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="!canSave()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="!canSave()"
+            (click)="save()"
+          >
             {{ 'covid.save' | translate: lang() }}
           </button>
         </div>
@@ -310,17 +319,19 @@ export class CovidServiceComponent implements OnInit {
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);
 
   private readonly selectedSymptoms = computed(() =>
-    this.symptoms().filter((s) => s.checked).map((s) => s.value),
+    this.symptoms()
+      .filter((s) => s.checked)
+      .map((s) => s.value),
   );
   private readonly selectedConditions = computed(() =>
-    this.healthConditions().filter((h) => h.checked).map((h) => h.value),
+    this.healthConditions()
+      .filter((h) => h.checked)
+      .map((h) => h.value),
   );
 
   constructor() {
     // Recompute the risk band whenever any scalar risk input changes.
-    this.form.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.recomputeRisk());
+    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.recomputeRisk());
   }
 
   ngOnInit(): void {

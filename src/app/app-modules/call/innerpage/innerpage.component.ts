@@ -20,12 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 
 import { RouterOutlet } from '@angular/router';
 
@@ -56,13 +51,9 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
       <header class="border-b border-border bg-card">
-        <div
-          class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6"
-        >
+        <div class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div class="flex items-center gap-3">
-            <span
-              class="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"
-            >
+            <span class="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
               <ng-icon name="lucidePhoneIncoming" size="22" aria-hidden="true" />
             </span>
             <div class="flex flex-col">

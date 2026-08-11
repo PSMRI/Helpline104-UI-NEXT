@@ -24,12 +24,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideCircleHelp,
-  lucidePhone,
-  lucidePower,
-  lucideUser,
-} from '@ng-icons/lucide';
+import { lucideCircleHelp, lucidePhone, lucidePower, lucideUser } from '@ng-icons/lucide';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardDialogService } from '@common-ui/ui/dialog';
@@ -46,8 +41,7 @@ import { EmergencyContactsViewComponent } from '../../call/emergency-contacts/em
 
 const FEEDBACK_ROUTE = '/feedback';
 const SERVICE_104 = '104';
-const LICENSE_URL =
-  'https://uatamrit.piramalswasthya.org/common-api/license.html';
+const LICENSE_URL = 'https://uatamrit.piramalswasthya.org/common-api/license.html';
 
 /** Title aliases — empty: each role displays its own code (HAO shows as HAO Dashboard). */
 const TITLE_ROLE_ALIASES: Record<string, string> = {};
@@ -192,10 +186,7 @@ export class DashboardHeaderComponent {
 
   /** Centered header title, e.g. "RO Dashboard". */
   readonly roleTitle = computed(() => {
-    const suffix = this.i18n.instantFor(
-      'dashboard.header.titleSuffix',
-      this.lang(),
-    );
+    const suffix = this.i18n.instantFor('dashboard.header.titleSuffix', this.lang());
     const code = this.roleCode();
     return code ? `${code} ${suffix}` : suffix;
   });

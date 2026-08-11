@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
@@ -203,11 +195,7 @@ const SERVICE_TABS: readonly ServiceTab[] = [
             <app-sio-scheme (serviceProvided)="serviceAvailed.emit()" />
           }
           @case ('covid19') {
-            <app-covid-service
-              [age]="age()"
-              [genderId]="genderId()"
-              (saved)="serviceAvailed.emit()"
-            />
+            <app-covid-service [age]="age()" [genderId]="genderId()" (saved)="serviceAvailed.emit()" />
           }
           @case ('imrMmr') {
             <app-sio-imr-mmr (serviceProvided)="serviceAvailed.emit()" />
@@ -293,10 +281,7 @@ export class ServiceDeliveryStepComponent {
   /** Label key of the active tab, for the placeholder heading. */
   readonly activeTabLabelKey = computed<TranslationKey>(() => {
     const active = this.activeTabId();
-    return (
-      SERVICE_TABS.find((tab) => tab.id === active)?.labelKey ??
-      'hao.service.healthAdvisory'
-    );
+    return SERVICE_TABS.find((tab) => tab.id === active)?.labelKey ?? 'hao.service.healthAdvisory';
   });
 
   selectTab(id: HaoServiceId): void {

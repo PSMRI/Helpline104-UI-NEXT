@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -84,7 +76,9 @@ import {
         <!-- Blood requests -->
         @if (bloodRequests().length > 0) {
           <div class="mb-6">
-            <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.services.bloodRequests' | translate: lang() }}</h4>
+            <h4 class="mb-2 text-sm font-medium text-foreground">
+              {{ 'sio.services.bloodRequests' | translate: lang() }}
+            </h4>
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
@@ -113,7 +107,9 @@ import {
         <!-- Epidemic outbreak -->
         @if (epidemicComplaints().length > 0) {
           <div class="mb-6">
-            <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.services.epidemicComplaints' | translate: lang() }}</h4>
+            <h4 class="mb-2 text-sm font-medium text-foreground">
+              {{ 'sio.services.epidemicComplaints' | translate: lang() }}
+            </h4>
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
@@ -144,7 +140,9 @@ import {
         <!-- Food safety -->
         @if (foodComplaints().length > 0) {
           <div class="mb-6">
-            <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.services.foodComplaints' | translate: lang() }}</h4>
+            <h4 class="mb-2 text-sm font-medium text-foreground">
+              {{ 'sio.services.foodComplaints' | translate: lang() }}
+            </h4>
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
@@ -173,7 +171,9 @@ import {
         <!-- Organ donation -->
         @if (organRequests().length > 0) {
           <div>
-            <h4 class="mb-2 text-sm font-medium text-foreground">{{ 'sio.services.organRequests' | translate: lang() }}</h4>
+            <h4 class="mb-2 text-sm font-medium text-foreground">
+              {{ 'sio.services.organRequests' | translate: lang() }}
+            </h4>
             <div class="overflow-x-auto rounded-md border border-border">
               <table class="w-full text-left text-sm">
                 <thead class="bg-muted/50 text-xs text-muted-foreground">
@@ -234,8 +234,7 @@ export class SioServicesHistoryComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => this.data.set(data),
-        error: (err: SioError) =>
-          this.errorMessage.set(err.errorMessage || this.i18n.instant('sio.common.loadError')),
+        error: (err: SioError) => this.errorMessage.set(err.errorMessage || this.i18n.instant('sio.common.loadError')),
       });
   }
 }

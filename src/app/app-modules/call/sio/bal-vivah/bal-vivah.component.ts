@@ -45,13 +45,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  BlockOption,
-  DistrictOption,
-  Gender,
-  StateOption,
-  VillageOption,
-} from '../../beneficiary/beneficiary.models';
+import { BlockOption, DistrictOption, Gender, StateOption, VillageOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { BalVivahService } from './bal-vivah.service';
@@ -101,7 +95,13 @@ import { BalVivahRow } from './bal-vivah.models';
             <label for="bv-subject" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.balVivah.subject' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <textarea id="bv-subject" [class]="textareaClass" rows="2" maxlength="100" formControlName="subjectOfComplaint"></textarea>
+            <textarea
+              id="bv-subject"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="100"
+              formControlName="subjectOfComplaint"
+            ></textarea>
           </div>
 
           <div>
@@ -115,14 +115,30 @@ import { BalVivahRow } from './bal-vivah.models';
             <label for="bv-father-name" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.balVivah.childFatherName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="bv-father-name" z-input class="w-full" type="text" maxlength="50" formControlName="childFatherName" />
+            <input
+              id="bv-father-name"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="50"
+              formControlName="childFatherName"
+            />
           </div>
 
           <div>
             <label for="bv-child-age" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.balVivah.childAge' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="bv-child-age" z-input class="w-full" type="number" inputmode="numeric" min="1" max="17" formControlName="childAge" />
+            <input
+              id="bv-child-age"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="17"
+              formControlName="childAge"
+            />
           </div>
 
           <div>
@@ -155,7 +171,12 @@ import { BalVivahRow } from './bal-vivah.models';
             <label for="bv-child-state" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.state' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="bv-child-state" [class]="selectClass" formControlName="childState" (change)="onChildStateChange()">
+            <select
+              id="bv-child-state"
+              [class]="selectClass"
+              formControlName="childState"
+              (change)="onChildStateChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (s of states(); track s.stateID) {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
@@ -167,7 +188,12 @@ import { BalVivahRow } from './bal-vivah.models';
             <label for="bv-child-district" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.district' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="bv-child-district" [class]="selectClass" formControlName="childDistrict" (change)="onChildDistrictChange()">
+            <select
+              id="bv-child-district"
+              [class]="selectClass"
+              formControlName="childDistrict"
+              (change)="onChildDistrictChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (d of childDistricts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
@@ -179,7 +205,12 @@ import { BalVivahRow } from './bal-vivah.models';
             <label for="bv-child-subdistrict" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.subDistrict' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="bv-child-subdistrict" [class]="selectClass" formControlName="childSubDistrict" (change)="onChildSubDistrictChange()">
+            <select
+              id="bv-child-subdistrict"
+              [class]="selectClass"
+              formControlName="childSubDistrict"
+              (change)="onChildSubDistrictChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (b of childSubDistricts(); track b.blockID) {
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
@@ -210,7 +241,12 @@ import { BalVivahRow } from './bal-vivah.models';
             <label for="bv-father-state" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.state' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="bv-father-state" [class]="selectClass" formControlName="fatherState" (change)="onFatherStateChange()">
+            <select
+              id="bv-father-state"
+              [class]="selectClass"
+              formControlName="fatherState"
+              (change)="onFatherStateChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (s of states(); track s.stateID) {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
@@ -222,7 +258,12 @@ import { BalVivahRow } from './bal-vivah.models';
             <label for="bv-father-district" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.district' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="bv-father-district" [class]="selectClass" formControlName="fatherDistrict" (change)="onFatherDistrictChange()">
+            <select
+              id="bv-father-district"
+              [class]="selectClass"
+              formControlName="fatherDistrict"
+              (change)="onFatherDistrictChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (d of fatherDistricts(); track d.districtID) {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
@@ -234,7 +275,12 @@ import { BalVivahRow } from './bal-vivah.models';
             <label for="bv-father-subdistrict" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.subDistrict' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="bv-father-subdistrict" [class]="selectClass" formControlName="fatherSubDistrict" (change)="onFatherSubDistrictChange()">
+            <select
+              id="bv-father-subdistrict"
+              [class]="selectClass"
+              formControlName="fatherSubDistrict"
+              (change)="onFatherSubDistrictChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (b of fatherSubDistricts(); track b.blockID) {
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
@@ -256,7 +302,14 @@ import { BalVivahRow } from './bal-vivah.models';
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>
@@ -335,23 +388,10 @@ export class BalVivahComponent implements OnInit {
   readonly errorMessage = signal('');
 
   readonly form = this.fb.group({
-    subjectOfComplaint: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(100),
-    ]),
-    childName: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(50),
-    ]),
-    childFatherName: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(50),
-    ]),
-    childAge: this.fb.control<number | null>(null, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(17),
-    ]),
+    subjectOfComplaint: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(100)]),
+    childName: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
+    childFatherName: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
+    childAge: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(17)]),
     childGender: this.fb.control<number | null>(null, Validators.required),
     marriageDate: this.fb.control<string | null>(null, Validators.required),
     childState: this.fb.control<number | null>(null, Validators.required),

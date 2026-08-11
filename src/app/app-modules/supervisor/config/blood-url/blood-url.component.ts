@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -71,9 +64,7 @@ const WEBSITE_PATTERN = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9.-]+\.[a-zA-
 
       @if (!editing()) {
         <div class="flex flex-wrap items-center gap-2 text-sm">
-          <span class="font-medium text-foreground">
-            {{ 'supBlood.currentUrl' | translate: lang() }}:
-          </span>
+          <span class="font-medium text-foreground"> {{ 'supBlood.currentUrl' | translate: lang() }}: </span>
           @if (hasUrl()) {
             <a
               class="text-primary underline-offset-2 hover:underline"

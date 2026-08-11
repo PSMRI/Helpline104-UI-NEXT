@@ -22,24 +22,10 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  of,
-  switchMap,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, of, switchMap, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
-import {
-  ApiResponse,
-  EmergencyContact,
-  NotificationError,
-  NotificationType,
-} from './notification.models';
+import { ApiResponse, EmergencyContact, NotificationError, NotificationType } from './notification.models';
 
 const NOTIFICATION_TYPES_PATH = 'notification/getNotificationType';
 const EMERGENCY_CONTACTS_PATH = 'notification/getEmergencyContacts';
@@ -79,9 +65,7 @@ export class NotificationService {
     );
   }
 
-  private getNotificationTypes(
-    providerServiceMapID: number | null,
-  ): Observable<NotificationType[]> {
+  private getNotificationTypes(providerServiceMapID: number | null): Observable<NotificationType[]> {
     return this.post<NotificationType[]>(NOTIFICATION_TYPES_PATH, {
       providerServiceMapID,
     });

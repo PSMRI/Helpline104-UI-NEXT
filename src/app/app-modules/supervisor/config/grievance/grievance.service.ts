@@ -25,12 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../../core/services/config.service';
-import {
-  ApiResponse,
-  SUPERVISOR_TIMEOUT_MS,
-  readSupervisorData,
-  toSupervisorError,
-} from '../../shared/supervisor-api';
+import { ApiResponse, SUPERVISOR_TIMEOUT_MS, readSupervisorData, toSupervisorError } from '../../shared/supervisor-api';
 import {
   Designation,
   EmailStatus,
@@ -149,9 +144,7 @@ export class SupervisorGrievanceService {
   /** Institution names for a type (common base, GET with the id on the path). */
   getInstituteNames(institutionTypeID: number): Observable<InstituteName[]> {
     return this.http
-      .get<ApiResponse<InstituteName[]>>(
-        this.config.getCommonBaseURL() + INSTITUTE_NAME_PATH + institutionTypeID,
-      )
+      .get<ApiResponse<InstituteName[]>>(this.config.getCommonBaseURL() + INSTITUTE_NAME_PATH + institutionTypeID)
       .pipe(
         timeout(SUPERVISOR_TIMEOUT_MS),
         map((res) => readSupervisorData(res) ?? []),
@@ -165,9 +158,7 @@ export class SupervisorGrievanceService {
    */
   getDesignations(): Observable<Designation[]> {
     return this.http
-      .get<ApiResponse<DesignationEnvelope | Designation[]>>(
-        this.config.getCommonBaseURL() + DESIGNATIONS_PATH,
-      )
+      .get<ApiResponse<DesignationEnvelope | Designation[]>>(this.config.getCommonBaseURL() + DESIGNATIONS_PATH)
       .pipe(
         timeout(SUPERVISOR_TIMEOUT_MS),
         map((res) => {
@@ -198,10 +189,7 @@ export class SupervisorGrievanceService {
   }
 
   /** Nature-of-complaint options for a grievance type (104 base), flattened. */
-  getNatureOfComplaints(
-    providerServiceMapID: number | null,
-    feedbackTypeID: number,
-  ): Observable<FeedbackNature[]> {
+  getNatureOfComplaints(providerServiceMapID: number | null, feedbackTypeID: number): Observable<FeedbackNature[]> {
     return this.http
       .post<ApiResponse<NatureOfComplaintRow[]>>(this.config.get104BaseURL() + NATURE_PATH, {
         providerServiceMapID,
