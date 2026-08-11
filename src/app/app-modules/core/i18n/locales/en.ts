@@ -136,6 +136,8 @@ export const en = {
   'registration.search.prompt': 'Enter a name or registration ID, then search.',
   'registration.search.error':
     'The search could not be completed — it may have timed out. Please try again.',
+  'registration.search.timeout':
+    'Search timed out. Please try again or search by phone number instead.',
   'registration.col.regId': 'Reg. ID',
   'registration.col.name': 'Name',
   'registration.col.gender': 'Gender',
@@ -155,6 +157,7 @@ export const en = {
   'registration.gender.female': 'Female',
   'registration.gender.transgender': 'Transgender',
   'registration.action.search': 'Search',
+  'registration.action.retry': 'Retry',
   'registration.action.register': 'Register beneficiary',
   'registration.validation.required': 'This field is required.',
   'registration.validation.firstNameMin': 'Enter at least 3 characters.',
@@ -544,6 +547,9 @@ export const en = {
   'supReports.search': 'Search…',
   'supReports.noData': 'No data found for the selected filters.',
   'supReports.fetchError': 'Could not fetch the report. Please try again.',
+  'supReports.serverError':
+    'Report unavailable — server error. Please try again or contact support.',
+  'supReports.dismiss': 'Dismiss',
   'supReports.lookupError': 'Could not load report options. Please try again.',
   'supReports.unsupportedReport': 'This report is not available. Please select another report.',
   'supReports.parseError': 'The report could not be previewed. Use Export to download it.',
@@ -1251,6 +1257,16 @@ export const en = {
   'supScheme.activated': 'Scheme Activated Successfully',
   'supScheme.deactivated': 'Scheme Deactivated Successfully',
 
+  // Upload symptoms (CDSS algorithm)
+  'supSymptom.title': 'Upload Symptoms',
+  'supSymptom.prompt': 'Please enter algorithm to upload symptoms',
+  'supSymptom.algorithmLabel': 'CDSS',
+  'supSymptom.enterAlgorithm': 'Please enter the symptom algorithm',
+  'supSymptom.submit': 'Submit',
+  'supSymptom.uploaded': 'Uploaded successfully',
+  'supSymptom.alreadyExists': 'Data already exists',
+  'supSymptom.uploadFailed': 'Upload failed, please try again later.',
+
   // Blood bank URL
   'supBlood.title': 'Update Blood URL',
   'supBlood.currentUrl': 'Current URL',
@@ -1292,6 +1308,13 @@ export const en = {
   'supKm.uploaded': 'Uploaded successfully',
   'supKm.uploadFailed': 'Failed to upload file',
   'supKm.noCategory': 'No category found',
+
+  // Shared alert/confirm dialog titles (ConfirmationService)
+  'dialog.confirmTitle': 'Confirm',
+  'dialog.infoTitle': 'Information',
+  'dialog.successTitle': 'Success',
+  'dialog.warningTitle': 'Warning',
+  'dialog.errorTitle': 'Error',
 } as const;
 
 /** Every translatable key in the app, derived from the English dictionary. */

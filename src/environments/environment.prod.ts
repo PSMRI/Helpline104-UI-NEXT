@@ -21,8 +21,9 @@
  */
 
 // Production environment.
-// NOTE: host and API path suffixes are placeholders following the AMRIT v1.0
-// naming convention. Confirm the real production hostnames with the deploy team.
+// NOTE: API path prefixes follow the hyphenated APIMAN convention verified on
+// UAT (e.g. common-api/). The hostnames are still placeholders — confirm the
+// real production hostnames with the deploy team.
 // CAPTCHA is disabled here only because no production credentials exist yet.
 // Before go-live, set siteKey + captchaChallengeURL to the real production
 // values and flip enableCaptcha to true (tracked on PR #1).
@@ -30,16 +31,16 @@
 const prodHost = 'https://amrit.piramalswasthya.org/';
 
 const sessionStorageEncKey = '';
-const commonAPI = `${prodHost}commonapi-v1.0/`;
-const tmAPI = `${prodHost}tmapi-v1.0/`;
-const mmuAPI = `${prodHost}mmuapi-v1.0/`;
-const adminAPI = `${prodHost}adminapi-v1.0/`;
+const commonAPI = `${prodHost}common-api/`;
+const tmAPI = `${prodHost}tm-api/`;
+const mmuAPI = `${prodHost}mmu-api/`;
+const adminAPI = `${prodHost}admin-api/`;
 const telephoneServer = 'https://cz.piramalswasthya.org/';
-const fhirAPI = `${prodHost}fhirapi-v1.0/`;
+const fhirAPI = `${prodHost}fhir-api/`;
 // OpenKM document-download base (placeholder — set the real host; no credentials).
 const openKmBaseUrl = 'https://amrit.piramalswasthya.org:8084/OpenKM/Download?uuid=';
-const API1097 = `${prodHost}1097api-v1.0/`;
-const API104 = `${prodHost}104api-v1.0/`;
+const API1097 = `${prodHost}1097-api/`;
+const API104 = `${prodHost}104-api/`;
 const siteKey = '';
 const captchaChallengeURL = '';
 const enableCaptcha = false;

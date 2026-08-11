@@ -34,6 +34,25 @@ import { SessionService } from '../services/session.service';
 const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please login again.';
 
 /**
+ * Endpoints the app polls on a timer, not because the agent did anything.
+ *
+ * Treating their responses as activity resets the idle timer forever: the
+ * dashboard polls `cti/getAgentState` every 15s (AGENT_STATUS_POLL_MS), which is
+ * far shorter than the inactivity window, so the session-expiry timer could
+ * never elapse while the dashboard was open. Their responses still get the 5002
+ * force-logout check — they are only excluded from the keepalive ping.
+ *
+ * Lowercase; matched against a lowercased request URL.
+ */
+const POLLING_URLS: readonly string[] = [
+  'cti/getagentstate',
+  'cti/getagentipaddress',
+  'cti/getloginkey',
+  'cti/doagentlogin',
+  'user/getloginresponse',
+];
+
+/**
  * Centralises session-expiry handling, replacing the legacy `onSuccess`/
  * `onError` callbacks. Force-logout triggers:
  *  - HTTP 401, and
@@ -68,6 +87,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     url.includes('user/getsecurityquetions') ||
     url.includes('user/saveusersecurityquesans');
 
+  // Background polls are not agent activity — see POLLING_URLS.
+  const isPollingRequest = POLLING_URLS.some((path) => url.includes(path));
+
   return next(req).pipe(
     tap((event) => {
       if (isAuthFlowRequest || !(event instanceof HttpResponse)) {
@@ -80,7 +102,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             ? body.errorMessage
             : SESSION_EXPIRED_MESSAGE;
         session.handleSessionExpiry(msg);
-      } else {
+      } else if (!isPollingRequest) {
         session.notifyActivity();
       }
     }),
