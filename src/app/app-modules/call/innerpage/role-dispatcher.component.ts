@@ -32,11 +32,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
-import {
-  SERVICE_104,
-  collectServiceScreens,
-  roleWorkspacePath,
-} from '../role-workspace/role-screens.util';
+import { SERVICE_104, collectServiceScreens, roleWorkspacePath } from '../role-workspace/role-screens.util';
 
 /** Screen whose presence marks a hybrid RO+HAO agent (see ngOnInit). */
 const SCREEN_HEALTH_ADVICE = 'Health_Advice';
@@ -55,19 +51,12 @@ const SCREEN_HEALTH_ADVICE = 'Health_Advice';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, NgIcon, TranslatePipe, ZardButtonComponent],
-  viewProviders: [
-    provideIcons({ lucideLayoutDashboard, lucideUserSearch }),
-  ],
+  viewProviders: [provideIcons({ lucideLayoutDashboard, lucideUserSearch })],
   template: `
     <section
       class="flex min-h-[16rem] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center"
     >
-      <ng-icon
-        name="lucideLayoutDashboard"
-        size="40"
-        class="text-muted-foreground"
-        aria-hidden="true"
-      />
+      <ng-icon name="lucideLayoutDashboard" size="40" class="text-muted-foreground" aria-hidden="true" />
       <p class="text-base font-medium text-foreground">
         {{ 'innerpage.dispatcherTitle' | translate: lang() }}
       </p>
@@ -110,9 +99,7 @@ export class RoleDispatcherComponent implements OnInit {
     if (
       path === null &&
       featureCode === 'RO' &&
-      collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes(
-        SCREEN_HEALTH_ADVICE,
-      )
+      collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes(SCREEN_HEALTH_ADVICE)
     ) {
       path = 'hao';
     }

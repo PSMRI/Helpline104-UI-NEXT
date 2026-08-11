@@ -35,11 +35,7 @@
   padding: 1.5rem;
   /* Subtle medical-blue gradient wash behind the card. */
   background:
-    radial-gradient(
-      120% 80% at 50% -10%,
-      color-mix(in srgb, var(--primary) 14%, transparent),
-      transparent 60%
-    ),
+    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 60%),
     linear-gradient(180deg, var(--secondary) 0%, var(--background) 100%);
 }
 

@@ -13,16 +13,18 @@
         />
       }
       @if (exportable()) {
-        <button z-button zType="outline" type="button" (click)="exportCsv()">
-          Export CSV
-        </button>
+        <button z-button zType="outline" type="button" (click)="exportCsv()">Export CSV</button>
       }
     </div>
   }
 
   <table z-table>
     @if (caption()) {
-      <caption z-table-caption>{{ caption() }}</caption>
+      <caption z-table-caption>
+        {{
+          caption()
+        }}
+      </caption>
     }
     <thead z-table-header>
       <tr z-table-row>
@@ -51,12 +53,7 @@
           @for (column of columns(); track column.key) {
             <td z-table-cell [style.text-align]="column.align || 'left'">
               @if (column.cellTemplate) {
-                <ng-container
-                  *ngTemplateOutlet="
-                    column.cellTemplate;
-                    context: { $implicit: row, column: column }
-                  "
-                />
+                <ng-container *ngTemplateOutlet="column.cellTemplate; context: { $implicit: row, column: column }" />
               } @else {
                 {{ cellText(column, row) }}
               }
@@ -76,11 +73,7 @@
   <div class="dt-footer">
     <span class="dt-count">{{ sorted().length }} record(s)</span>
     @if (totalPages() > 1) {
-      <z-pagination
-        [zPageIndex]="displayIndex()"
-        [zTotal]="totalPages()"
-        (zPageIndexChange)="onPageChange($event)"
-      />
+      <z-pagination [zPageIndex]="displayIndex()" [zTotal]="totalPages()" (zPageIndexChange)="onPageChange($event)" />
     }
   </div>
 </div>

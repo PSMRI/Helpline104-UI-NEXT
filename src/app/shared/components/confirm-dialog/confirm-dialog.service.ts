@@ -102,7 +102,7 @@ export class ConfirmDialogService {
     if (isPlatformBrowser(this.platformId)) {
       fromEvent<KeyboardEvent>(document, 'keydown')
         .pipe(
-          filter(event => event.key === 'Escape'),
+          filter((event) => event.key === 'Escape'),
           takeUntil(result$),
         )
         .subscribe(() => {
@@ -149,7 +149,7 @@ export class ConfirmDialogService {
     if (isPlatformBrowser(this.platformId)) {
       fromEvent<KeyboardEvent>(document, 'keydown')
         .pipe(
-          filter(event => event.key === 'Escape'),
+          filter((event) => event.key === 'Escape'),
           takeUntil(result$),
         )
         .subscribe(() => {

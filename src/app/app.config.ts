@@ -42,12 +42,7 @@ export const appConfig: ApplicationConfig = {
     // the backend so every earlier interceptor (and all services) only ever see
     // errorMessage values with raw server exceptions already scrubbed.
     provideHttpClient(
-      withInterceptors([
-        loaderInterceptor,
-        authInterceptor,
-        errorInterceptor,
-        errorSanitizerInterceptor,
-      ]),
+      withInterceptors([loaderInterceptor, authInterceptor, errorInterceptor, errorSanitizerInterceptor]),
     ),
   ],
 };

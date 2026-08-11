@@ -20,26 +20,9 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  Subject,
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  of,
-  switchMap,
-} from 'rxjs';
+import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideLoaderCircle, lucideSearch } from '@ng-icons/lucide';
@@ -127,15 +110,8 @@ let instanceCounter = 0;
       >
         @switch (state()) {
           @case ('loading') {
-            <div
-              class="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground"
-            >
-              <ng-icon
-                name="lucideLoaderCircle"
-                size="16"
-                class="animate-spin"
-                aria-hidden="true"
-              />
+            <div class="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+              <ng-icon name="lucideLoaderCircle" size="16" class="animate-spin" aria-hidden="true" />
               {{ 'snomed.search.loading' | translate: lang() }}
             </div>
           }
@@ -235,12 +211,10 @@ export class SnomedSearchComponent {
           }
           this.state.set('loading');
           return this.snomed.search(term).pipe(
-            map(
-              (results): SearchOutcome => ({
-                state: results.length > 0 ? 'results' : 'empty',
-                results,
-              }),
-            ),
+            map((results): SearchOutcome => ({
+              state: results.length > 0 ? 'results' : 'empty',
+              results,
+            })),
             // A failed search shows the error row rather than tearing down the
             // stream, so later keystrokes still search.
             catchError(() => of<SearchOutcome>({ state: 'error', results: [] })),

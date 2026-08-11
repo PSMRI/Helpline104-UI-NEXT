@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -41,15 +34,8 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TranslationKey } from '../../core/i18n/locales';
-import {
-  ALERT_CATEGORY_TYPES,
-  AlertCategory,
-  UserNotification,
-} from '../alerts-notifications.models';
-import {
-  AlertsIdentity,
-  AlertsNotificationsService,
-} from '../alerts-notifications.service';
+import { ALERT_CATEGORY_TYPES, AlertCategory, UserNotification } from '../alerts-notifications.models';
+import { AlertsIdentity, AlertsNotificationsService } from '../alerts-notifications.service';
 import { AlertsNotificationsDialogComponent } from './dialogs/alerts-notifications-dialog.component';
 
 /** One alert category row: its labels and which notification type it shows. */
@@ -94,9 +80,7 @@ const ALERT_ROWS: readonly AlertRow[] = [
     <section
       class="flex h-full flex-col rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
     >
-      <header
-        class="flex items-center justify-between border-b border-border px-4 py-3"
-      >
+      <header class="flex items-center justify-between border-b border-border px-4 py-3">
         <h2 class="text-lg font-semibold">
           {{ 'dashboard.alerts.title' | translate: lang() }}
         </h2>
@@ -181,8 +165,7 @@ export class AlertsPanelComponent implements OnInit {
         next: (count) => {
           const list = count.userNotificationTypeList ?? [];
           const unreadOf = (typeName: string): number =>
-            list.find((item) => item.notificationType === typeName)
-              ?.notificationTypeUnreadCount ?? 0;
+            list.find((item) => item.notificationType === typeName)?.notificationTypeUnreadCount ?? 0;
           this.counts.set({
             alerts: unreadOf(ALERT_CATEGORY_TYPES.alerts),
             officeBulletin: unreadOf(ALERT_CATEGORY_TYPES.officeBulletin),
@@ -205,9 +188,7 @@ export class AlertsPanelComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (messages) => {
-          const current = messages.filter(
-            (m: UserNotification) => m.notificationState !== 'future',
-          );
+          const current = messages.filter((m: UserNotification) => m.notificationState !== 'future');
           if (current.length === 0) {
             this.showEmpty(row.emptyKey);
             return;
@@ -233,8 +214,7 @@ export class AlertsPanelComponent implements OnInit {
     return {
       userID: this.authStore.user()?.userID ?? null,
       roleID: this.authStore.currentRole()?.roleID ?? null,
-      providerServiceMapID:
-        this.authStore.currentRole()?.providerServiceMapID ?? null,
+      providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
     };
   }
 

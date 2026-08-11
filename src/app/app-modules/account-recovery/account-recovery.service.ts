@@ -37,8 +37,7 @@ import {
 } from './account-recovery.models';
 
 /** Neutral, non-revealing fallback shown when the backend sends no message. */
-const NEUTRAL_MESSAGE =
-  'If the username is registered, you will be asked a security question.';
+const NEUTRAL_MESSAGE = 'If the username is registered, you will be asked a security question.';
 const GENERIC_ERROR = 'Internal issue, please try again later.';
 
 /**
@@ -86,9 +85,7 @@ export class AccountRecoveryService {
         }),
         // A transport failure must also stay neutral — never leak existence via
         // a distinct error path. Only the message differs (generic).
-        catchError(() =>
-          throwError(() => this.toRecoveryError(undefined, NEUTRAL_MESSAGE)),
-        ),
+        catchError(() => throwError(() => this.toRecoveryError(undefined, NEUTRAL_MESSAGE))),
       );
   }
 
@@ -96,15 +93,12 @@ export class AccountRecoveryService {
    * Validate the user's answers. Resolves to the `transactionId` required by
    * {@link setForgetPassword}, or errors with the backend message.
    */
-  validateSecurityAnswers(
-    userName: string,
-    answers: SecurityAnswer[],
-  ): Observable<string> {
+  validateSecurityAnswers(userName: string, answers: SecurityAnswer[]): Observable<string> {
     return this.http
-      .post<ApiResponse<ValidateAnswersData>>(
-        this.baseUrl + 'user/validateSecurityQuestionAndAnswer',
-        { SecurityQuesAns: answers, userName },
-      )
+      .post<ApiResponse<ValidateAnswersData>>(this.baseUrl + 'user/validateSecurityQuestionAndAnswer', {
+        SecurityQuesAns: answers,
+        userName,
+      })
       .pipe(
         map((res) => {
           const transactionId = res.data?.transactionId;
@@ -121,11 +115,7 @@ export class AccountRecoveryService {
    * Set a new password using the transaction id obtained from answer
    * validation. `encryptedPassword` is the legacy `salt+iv+ciphertext` string.
    */
-  setForgetPassword(
-    userName: string,
-    encryptedPassword: string,
-    transactionId: string,
-  ): Observable<void> {
+  setForgetPassword(userName: string, encryptedPassword: string, transactionId: string): Observable<void> {
     return this.http
       .post<ApiResponse<unknown>>(this.baseUrl + 'user/setForgetPassword', {
         userName,
@@ -144,23 +134,19 @@ export class AccountRecoveryService {
 
   /** Fetch the catalogue of selectable security questions (first-login setup). */
   getSecurityQuestionOptions(): Observable<SecurityQuestionOption[]> {
-    return this.http
-      .get<ApiResponse<SecurityQuestionOption[]>>(
-        this.baseUrl + 'user/getsecurityquetions',
-      )
-      .pipe(
-        map((res) => {
-          // A bad envelope (non-200) or a missing `data` payload is a hard
-          // failure, not "zero questions" — returning [] here would silently
-          // strand the user on an empty dropdown. Surface it as an error so the
-          // component shows the retry dialog instead.
-          if (res.statusCode !== 200 || !res.data) {
-            throw this.toRecoveryError(res);
-          }
-          return res.data;
-        }),
-        catchError((err: unknown) => throwError(() => this.toRecoveryError(err))),
-      );
+    return this.http.get<ApiResponse<SecurityQuestionOption[]>>(this.baseUrl + 'user/getsecurityquetions').pipe(
+      map((res) => {
+        // A bad envelope (non-200) or a missing `data` payload is a hard
+        // failure, not "zero questions" — returning [] here would silently
+        // strand the user on an empty dropdown. Surface it as an error so the
+        // component shows the retry dialog instead.
+        if (res.statusCode !== 200 || !res.data) {
+          throw this.toRecoveryError(res);
+        }
+        return res.data;
+      }),
+      catchError((err: unknown) => throwError(() => this.toRecoveryError(err))),
+    );
   }
 
   /**
@@ -170,10 +156,7 @@ export class AccountRecoveryService {
    */
   saveSecurityQuestions(payload: SaveSecurityQuesAns[]): Observable<string> {
     return this.http
-      .post<ApiResponse<ValidateAnswersData>>(
-        this.baseUrl + 'user/saveUserSecurityQuesAns',
-        payload,
-      )
+      .post<ApiResponse<ValidateAnswersData>>(this.baseUrl + 'user/saveUserSecurityQuesAns', payload)
       .pipe(
         map((res) => {
           const transactionId = res.data?.transactionId;

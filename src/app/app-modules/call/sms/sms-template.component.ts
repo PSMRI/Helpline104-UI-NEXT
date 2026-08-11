@@ -139,7 +139,14 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="sending()" [zDisabled]="!canSend()" (click)="send()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="sending()"
+            [zDisabled]="!canSend()"
+            (click)="send()"
+          >
             <ng-icon name="lucideSend" size="16" aria-hidden="true" />
             {{ 'sms.send' | translate: lang() }}
           </button>

@@ -152,11 +152,7 @@ export class OutboundAllocateComponent {
   readonly errorMessage = signal('');
 
   readonly canAllocate = computed(
-    () =>
-      this.selectedIds().length > 0 &&
-      this.allocateNo() > 0 &&
-      this.records().length > 0 &&
-      !this.allocating(),
+    () => this.selectedIds().length > 0 && this.allocateNo() > 0 && this.records().length > 0 && !this.allocating(),
   );
 
   constructor() {
@@ -191,9 +187,7 @@ export class OutboundAllocateComponent {
     if (userID == null) {
       return;
     }
-    this.selectedIds.update((ids) =>
-      ids.includes(userID) ? ids.filter((id) => id !== userID) : [...ids, userID],
-    );
+    this.selectedIds.update((ids) => (ids.includes(userID) ? ids.filter((id) => id !== userID) : [...ids, userID]));
     this.recomputeCount();
   }
 

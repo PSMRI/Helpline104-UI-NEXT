@@ -45,12 +45,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  BlockOption,
-  DistrictOption,
-  StateOption,
-  VillageOption,
-} from '../../beneficiary/beneficiary.models';
+import { BlockOption, DistrictOption, StateOption, VillageOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { GrievanceService } from './grievance.service';
@@ -101,7 +96,12 @@ import {
             <label for="grv-nature" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.grievance.nature' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="grv-nature" [class]="selectClass" formControlName="feedbackNatureID" (change)="onNatureChange()">
+            <select
+              id="grv-nature"
+              [class]="selectClass"
+              formControlName="feedbackNatureID"
+              (change)="onNatureChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (n of natures(); track n.feedbackNatureID) {
                 <option [ngValue]="n.feedbackNatureID">{{ n.feedbackNature }}</option>
@@ -161,7 +161,14 @@ import {
             <label for="grv-against" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.grievance.against' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="grv-against" z-input class="w-full" type="text" maxlength="25" formControlName="grievanceAgainst" />
+            <input
+              id="grv-against"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="grievanceAgainst"
+            />
           </div>
 
           <div>
@@ -192,7 +199,12 @@ import {
             <label for="grv-subdistrict" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.subDistrict' | translate: lang() }}
             </label>
-            <select id="grv-subdistrict" [class]="selectClass" formControlName="subDistrict" (change)="onSubDistrictChange()">
+            <select
+              id="grv-subdistrict"
+              [class]="selectClass"
+              formControlName="subDistrict"
+              (change)="onSubDistrictChange()"
+            >
               <option [ngValue]="null">{{ 'sio.common.select' | translate: lang() }}</option>
               @for (b of subDistricts(); track b.blockID) {
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
@@ -223,13 +235,26 @@ import {
             <label for="grv-description" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.description' | translate: lang() }}
             </label>
-            <textarea id="grv-description" [class]="textareaClass" rows="3" maxlength="300" formControlName="feedbackDescription"></textarea>
+            <textarea
+              id="grv-description"
+              [class]="textareaClass"
+              rows="3"
+              maxlength="300"
+              formControlName="feedbackDescription"
+            ></textarea>
             <p class="mt-1 text-right text-xs text-muted-foreground">{{ descriptionLength() }}/300</p>
           </div>
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>
@@ -306,10 +331,7 @@ export class GrievanceServiceComponent implements OnInit {
     subCategoryID: this.fb.control<number | null>(null),
     severityID: this.fb.control<number | null>(null),
     designationID: this.fb.control<number | null>(null),
-    grievanceAgainst: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(25),
-    ]),
+    grievanceAgainst: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(25)]),
     feedbackDescription: this.fb.control<string | null>(null, Validators.maxLength(300)),
     state: this.fb.control<number | null>(null, Validators.required),
     district: this.fb.control<number | null>(null, Validators.required),
@@ -334,14 +356,20 @@ export class GrievanceServiceComponent implements OnInit {
         next: (list) => this.natures.set(list),
         error: (err: SioError) => this.setError(err),
       });
-    this.grievance.getSeverity().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (list) => this.severities.set(list),
-      error: (err: SioError) => this.setError(err),
-    });
-    this.grievance.getDesignations().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (list) => this.designations.set(list),
-      error: (err: SioError) => this.setError(err),
-    });
+    this.grievance
+      .getSeverity()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.severities.set(list),
+        error: (err: SioError) => this.setError(err),
+      });
+    this.grievance
+      .getDesignations()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.designations.set(list),
+        error: (err: SioError) => this.setError(err),
+      });
     this.beneficiary
       .getProviderStates(role?.serviceProviderID ?? null)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -457,9 +485,7 @@ export class GrievanceServiceComponent implements OnInit {
         serviceID: this.authStore.currentRole()?.providerServiceMapID ?? null,
         createdBy: this.authStore.user()?.userName ?? '',
         benCallID: this.callStore.callId(),
-        serviceAvailDate: v.dateOfIncidence
-          ? new Date(v.dateOfIncidence).toISOString()
-          : null,
+        serviceAvailDate: v.dateOfIncidence ? new Date(v.dateOfIncidence).toISOString() : null,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -491,10 +517,7 @@ export class GrievanceServiceComponent implements OnInit {
 
   private loadHistory(): void {
     this.grievance
-      .getHistory(
-        this.callStore.beneficiaryId(),
-        this.authStore.currentRole()?.providerServiceMapID ?? null,
-      )
+      .getHistory(this.callStore.beneficiaryId(), this.authStore.currentRole()?.providerServiceMapID ?? null)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: (rows) => this.history.set(rows), error: () => this.history.set([]) });
   }

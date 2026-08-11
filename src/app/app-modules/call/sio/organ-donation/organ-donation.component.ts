@@ -49,11 +49,7 @@ import { Gender } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { OrganDonationService } from './organ-donation.service';
-import {
-  DonatableOrgan,
-  DonationType,
-  OrganDonationRow,
-} from './organ-donation.models';
+import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation.models';
 
 /**
  * Organ Donation (donation request) service tab. The agent captures the donor,
@@ -99,7 +95,16 @@ import {
             <label for="organ-age" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.age' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="organ-age" z-input class="w-full" type="number" inputmode="numeric" min="1" max="120" formControlName="donorAge" />
+            <input
+              id="organ-age"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="120"
+              formControlName="donorAge"
+            />
           </div>
 
           <div>
@@ -142,12 +147,25 @@ import {
             <label for="organ-remarks" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.remarks' | translate: lang() }}
             </label>
-            <textarea id="organ-remarks" [class]="textareaClass" rows="2" maxlength="500" formControlName="remarks"></textarea>
+            <textarea
+              id="organ-remarks"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="500"
+              formControlName="remarks"
+            ></textarea>
           </div>
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>
@@ -218,11 +236,7 @@ export class OrganDonationComponent implements OnInit {
       Validators.minLength(3),
       Validators.maxLength(25),
     ]),
-    donorAge: this.fb.control<number | null>(null, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(120),
-    ]),
+    donorAge: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(120)]),
     donorGenderID: this.fb.control<number | null>(null, Validators.required),
     donationTypeID: this.fb.control<number | null>(null, Validators.required),
     donatableOrganID: this.fb.control<number | null>(null, Validators.required),
@@ -238,14 +252,20 @@ export class OrganDonationComponent implements OnInit {
     const role = this.authStore.currentRole();
     const providerServiceMapID = role?.providerServiceMapID ?? null;
 
-    this.organ.getDonationTypes().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (list) => this.donationTypes.set(list),
-      error: (err: SioError) => this.setError(err),
-    });
-    this.organ.getDonatableOrgans().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (list) => this.donatableOrgans.set(list),
-      error: (err: SioError) => this.setError(err),
-    });
+    this.organ
+      .getDonationTypes()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.donationTypes.set(list),
+        error: (err: SioError) => this.setError(err),
+      });
+    this.organ
+      .getDonatableOrgans()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.donatableOrgans.set(list),
+        error: (err: SioError) => this.setError(err),
+      });
     this.beneficiary
       .getRegistrationData(providerServiceMapID)
       .pipe(takeUntilDestroyed(this.destroyRef))

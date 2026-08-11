@@ -25,13 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
-import {
-  ApiResponse,
-  SnomedError,
-  SnomedSearchRequest,
-  SnomedSearchResponse,
-  SnomedTerm,
-} from './snomed.models';
+import { ApiResponse, SnomedError, SnomedSearchRequest, SnomedSearchResponse, SnomedTerm } from './snomed.models';
 
 /** Endpoint path (relative to the common API base), ported from CaseSheetService. */
 const SNOMED_SEARCH_PATH = 'snomed/getSnomedCTRecordList';
@@ -66,12 +60,10 @@ export class SnomedService {
    */
   search(term: string, pageNo = 0): Observable<SnomedTerm[]> {
     const body: SnomedSearchRequest = { term, pageNo };
-    return this.http
-      .post<ApiResponse<SnomedSearchResponse>>(this.baseUrl + SNOMED_SEARCH_PATH, body)
-      .pipe(
-        map((res) => this.readTerms(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<SnomedSearchResponse>>(this.baseUrl + SNOMED_SEARCH_PATH, body).pipe(
+      map((res) => this.readTerms(res)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /**

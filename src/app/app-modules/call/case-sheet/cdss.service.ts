@@ -22,14 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -52,8 +45,7 @@ const RESULT_PATH = CDSS_PREFIX + 'getResult';
 const SAVE_SYMPTOM_PATH = CDSS_PREFIX + 'saveSymptom';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 
 /**
  * Max time to wait for any CDSS call before failing. Without this a hung
@@ -85,13 +77,11 @@ export class CdssService {
    * case-sheet complaint picker). Resolves to `[]` when none are returned.
    */
   getChiefComplaints(req: CdssChiefComplaintsRequest): Observable<string[]> {
-    return this.http
-      .post<ApiResponse<string[]>>(this.baseUrl + CHIEF_COMPLAINTS_PATH, req)
-      .pipe(
-        timeout(CDSS_TIMEOUT_MS),
-        map((res) => this.readData(res) ?? []),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<string[]>>(this.baseUrl + CHIEF_COMPLAINTS_PATH, req).pipe(
+      timeout(CDSS_TIMEOUT_MS),
+      map((res) => this.readData(res) ?? []),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /**
@@ -100,13 +90,11 @@ export class CdssService {
    * with an empty `questions` array when the backend has none.
    */
   getQuestions(patient: CdssPatientContext): Observable<CdssQuestionnaire> {
-    return this.http
-      .post<ApiResponse<RawCdssQuestionSet>>(this.baseUrl + QUESTIONS_PATH, patient)
-      .pipe(
-        timeout(CDSS_TIMEOUT_MS),
-        map((res) => this.normaliseQuestionnaire(this.readData(res))),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<RawCdssQuestionSet>>(this.baseUrl + QUESTIONS_PATH, patient).pipe(
+      timeout(CDSS_TIMEOUT_MS),
+      map((res) => this.normaliseQuestionnaire(this.readData(res))),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /**
@@ -114,13 +102,11 @@ export class CdssService {
    * when the backend returns no diagnoses.
    */
   getResult(selection: CdssQuestionSelection): Observable<CdssDiagnosis[]> {
-    return this.http
-      .post<ApiResponse<RawCdssDiagnosis[]>>(this.baseUrl + RESULT_PATH, selection)
-      .pipe(
-        timeout(CDSS_TIMEOUT_MS),
-        map((res) => (this.readData(res) ?? []).map((d) => this.normaliseDiagnosis(d))),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<RawCdssDiagnosis[]>>(this.baseUrl + RESULT_PATH, selection).pipe(
+      timeout(CDSS_TIMEOUT_MS),
+      map((res) => (this.readData(res) ?? []).map((d) => this.normaliseDiagnosis(d))),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /**
@@ -128,13 +114,11 @@ export class CdssService {
    * legacy service; resolves to the backend `data` payload.
    */
   saveSymptom(payload: unknown): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.baseUrl + SAVE_SYMPTOM_PATH, payload)
-      .pipe(
-        timeout(CDSS_TIMEOUT_MS),
-        map((res) => this.readData(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.baseUrl + SAVE_SYMPTOM_PATH, payload).pipe(
+      timeout(CDSS_TIMEOUT_MS),
+      map((res) => this.readData(res)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /** Normalise a raw questionnaire; drops questions without text. */
@@ -165,9 +149,7 @@ export class CdssService {
 
   /** Trim entries and drop empty/blank ones from a possibly-absent string list. */
   private cleanList(list: (string | null | undefined)[] | undefined): string[] {
-    return (list ?? [])
-      .map((item) => (item ?? '').toString().trim())
-      .filter((item) => item.length > 0);
+    return (list ?? []).map((item) => (item ?? '').toString().trim()).filter((item) => item.length > 0);
   }
 
   /**
@@ -191,11 +173,7 @@ export class CdssService {
       return { status: 0, errorMessage: TIMEOUT_ERROR };
     }
 
-    if (
-      err &&
-      typeof (err as CdssError).status === 'number' &&
-      typeof (err as CdssError).errorMessage === 'string'
-    ) {
+    if (err && typeof (err as CdssError).status === 'number' && typeof (err as CdssError).errorMessage === 'string') {
       return err as CdssError;
     }
 

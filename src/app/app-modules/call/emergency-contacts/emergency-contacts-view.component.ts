@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -78,9 +70,7 @@ import { NotificationService } from './notification.service';
             {{ 'emergencyContacts.loading' | translate: lang() }}
           </p>
         } @else if (contacts().length === 0) {
-          <p
-            class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground"
-          >
+          <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
             {{ 'emergencyContacts.empty' | translate: lang() }}
           </p>
         } @else {
@@ -147,9 +137,7 @@ export class EmergencyContactsViewComponent implements OnInit {
         error: (err: NotificationError) => {
           this.loading.set(false);
           this.contacts.set([]);
-          this.errorMessage.set(
-            err.errorMessage || this.i18n.instant('emergencyContacts.loadError'),
-          );
+          this.errorMessage.set(err.errorMessage || this.i18n.instant('emergencyContacts.loadError'));
         },
       });
   }

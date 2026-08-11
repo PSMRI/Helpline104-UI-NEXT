@@ -21,14 +21,7 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -86,11 +79,8 @@ const SCREEN_REGISTRATION = 'Registration';
         </p>
       </header>
 
-      <hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
-        <cdk-step
-          [label]="'hao.workspace.stepService' | translate: lang()"
-          [completed]="true"
-        >
+      <app-hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
+        <cdk-step [label]="'hao.workspace.stepService' | translate: lang()" [completed]="true">
           <app-hao-service-delivery-step
             [beneficiaryId]="beneficiaryId()"
             [callId]="callId()"
@@ -107,7 +97,7 @@ const SCREEN_REGISTRATION = 'Registration';
             (transferred)="onCallClosed()"
           />
         </cdk-step>
-      </hao-stepper>
+      </app-hao-stepper>
 
       <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
         @if (showBackToRo()) {
@@ -152,9 +142,7 @@ export class HaoWorkspaceComponent {
   readonly callId = this.callStore.callId;
 
   /** Screen names granted to the agent on the 104 service. */
-  readonly screens = computed(() =>
-    collectServiceScreens(this.authStore.privileges(), SERVICE_104),
-  );
+  readonly screens = computed(() => collectServiceScreens(this.authStore.privileges(), SERVICE_104));
 
   /** Show "Back to RO" when the agent also holds the registration role. */
   readonly showBackToRo = computed(() => this.screens().includes(SCREEN_REGISTRATION));

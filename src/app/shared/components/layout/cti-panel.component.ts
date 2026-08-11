@@ -20,13 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -57,13 +51,7 @@ const SUPERVISOR_FEATURE_CODE = 'Supervisor';
   imports: [ZardButtonComponent],
   template: `
     @if (showCzentrix()) {
-      <button
-        z-button
-        type="button"
-        zSize="sm"
-        class="fixed bottom-12 right-4 z-50 shadow-lg"
-        (click)="toggleCti()"
-      >
+      <button z-button type="button" zSize="sm" class="fixed bottom-12 right-4 z-50 shadow-lg" (click)="toggleCti()">
         {{ czentrixLabel }}
       </button>
 

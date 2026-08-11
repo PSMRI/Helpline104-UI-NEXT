@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -162,9 +154,7 @@ export class DiseasesSummaryReportComponent implements OnInit {
           const isServerError = err.status >= 500;
           this.serverError.set(isServerError);
           this.errorMessage.set(
-            this.i18n.instant(
-              isServerError ? 'supReports.serverError' : 'supReports.diseases.loadError',
-            ),
+            this.i18n.instant(isServerError ? 'supReports.serverError' : 'supReports.diseases.loadError'),
           );
         },
       });

@@ -26,12 +26,7 @@ import { Observable, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../../core/services/config.service';
 import { ApiResponse, SIO_TIMEOUT_MS, readSioData, toSioError } from '../shared/sio-api';
-import {
-  DonatableOrgan,
-  DonationType,
-  OrganDonationRow,
-  SaveOrganDonationRequest,
-} from './organ-donation.models';
+import { DonatableOrgan, DonationType, OrganDonationRow, SaveOrganDonationRequest } from './organ-donation.models';
 
 const DONATION_TYPES_PATH = 'beneficiary/get/organDonationTypes';
 const DONATABLE_ORGANS_PATH = 'beneficiary/get/DonatableOrgans';
@@ -48,23 +43,19 @@ export class OrganDonationService {
   private readonly config = inject(ConfigService);
 
   getDonationTypes(): Observable<DonationType[]> {
-    return this.http
-      .post<ApiResponse<DonationType[]>>(this.config.get104BaseURL() + DONATION_TYPES_PATH, {})
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => readSioData(res) ?? []),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<DonationType[]>>(this.config.get104BaseURL() + DONATION_TYPES_PATH, {}).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => readSioData(res) ?? []),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 
   getDonatableOrgans(): Observable<DonatableOrgan[]> {
-    return this.http
-      .post<ApiResponse<DonatableOrgan[]>>(this.config.get104BaseURL() + DONATABLE_ORGANS_PATH, {})
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => readSioData(res) ?? []),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<DonatableOrgan[]>>(this.config.get104BaseURL() + DONATABLE_ORGANS_PATH, {}).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => readSioData(res) ?? []),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 
   getHistory(beneficiaryRegID: number | null): Observable<OrganDonationRow[]> {
@@ -80,17 +71,15 @@ export class OrganDonationService {
   }
 
   saveRequest(payload: SaveOrganDonationRequest): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload)
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw toSioError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw toSioError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 }
