@@ -24,6 +24,16 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 
+/**
+ * The root shell renders no content of its own: a `<router-outlet />` for the
+ * routed view plus the two root-level siblings that must outlive it — the CTI
+ * panel (the CZentrix softphone iframe, which has to survive every navigation or
+ * the live call drops) and the toaster.
+ *
+ * These specs previously asserted the Angular starter's `<h1>Hello, …</h1>`, which
+ * the shell has never rendered in this app, so the suite carried a permanent
+ * failure. They now pin what the shell actually guarantees.
+ */
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -32,16 +42,32 @@ describe('App', () => {
     }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', () => {
+  function render(): HTMLElement {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, helpline104-next');
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(App);
+    expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('renders the outlet the routed views are projected into', () => {
+    expect(render().querySelector('router-outlet')).not.toBeNull();
+  });
+
+  it('renders the CTI panel outside the outlet so the softphone survives navigation', () => {
+    const compiled = render();
+    const panel = compiled.querySelector('app-cti-panel');
+
+    expect(panel).not.toBeNull();
+    // A sibling of the outlet, not a descendant — nesting it inside would tear the
+    // iframe down on every route change and drop the connected call.
+    expect(panel?.closest('router-outlet')).toBeNull();
+  });
+
+  it('renders the toaster', () => {
+    expect(render().querySelector('z-toaster')).not.toBeNull();
   });
 });
