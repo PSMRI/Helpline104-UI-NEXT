@@ -21,12 +21,7 @@
  */
 
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -53,8 +48,7 @@ import { noWhitespace } from './recovery-validators';
 
 const SET_PASSWORD_ROUTE = '/set-password';
 /** Privacy-preserving fallback so the user always gets feedback (never a blank notice). */
-const NEUTRAL_FALLBACK =
-  'If the username is registered, you will be asked a security question.';
+const NEUTRAL_FALLBACK = 'If the username is registered, you will be asked a security question.';
 
 /**
  * Account-support / forgot-password screen (legacy `/resetPassword`).
@@ -121,13 +115,9 @@ export class ResetPasswordComponent {
   private collectedAnswers: SecurityAnswer[] = [];
 
   /** The question currently being asked. */
-  readonly currentQuestion = computed(
-    () => this.questions()[this.currentIndex()] ?? null,
-  );
+  readonly currentQuestion = computed(() => this.questions()[this.currentIndex()] ?? null);
   /** True on the final question, so the button reads "Submit" not "Next". */
-  readonly isLastQuestion = computed(
-    () => this.currentIndex() === this.questions().length - 1,
-  );
+  readonly isLastQuestion = computed(() => this.currentIndex() === this.questions().length - 1);
 
   toggleAnswer(): void {
     this.showAnswer.update((v) => !v);

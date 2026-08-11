@@ -72,10 +72,7 @@ export class GrievanceService {
       );
   }
 
-  getCategories(
-    providerServiceMapID: number | null,
-    feedbackNatureID: number,
-  ): Observable<GrievanceCategory[]> {
+  getCategories(providerServiceMapID: number | null, feedbackNatureID: number): Observable<GrievanceCategory[]> {
     return this.http
       .post<ApiResponse<GrievanceCategory[]>>(this.config.getCommonBaseURL() + CATEGORIES_PATH, {
         providerServiceMapID,
@@ -90,10 +87,7 @@ export class GrievanceService {
 
   getSubCategories(categoryID: number): Observable<GrievanceSubCategory[]> {
     return this.http
-      .post<ApiResponse<GrievanceSubCategory[]>>(
-        this.config.getCommonBaseURL() + SUB_CATEGORIES_PATH,
-        { categoryID },
-      )
+      .post<ApiResponse<GrievanceSubCategory[]>>(this.config.getCommonBaseURL() + SUB_CATEGORIES_PATH, { categoryID })
       .pipe(
         timeout(SIO_TIMEOUT_MS),
         map((res) => readSioData(res) ?? []),
@@ -102,30 +96,23 @@ export class GrievanceService {
   }
 
   getSeverity(): Observable<Severity[]> {
-    return this.http
-      .post<ApiResponse<Severity[]>>(this.config.getCommonBaseURL() + SEVERITY_PATH, {})
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => readSioData(res) ?? []),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<Severity[]>>(this.config.getCommonBaseURL() + SEVERITY_PATH, {}).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => readSioData(res) ?? []),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 
   /** Designation master (common base, GET, no body). */
   getDesignations(): Observable<Designation[]> {
-    return this.http
-      .get<ApiResponse<Designation[]>>(this.config.getCommonBaseURL() + DESIGNATIONS_PATH)
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => readSioData(res) ?? []),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.get<ApiResponse<Designation[]>>(this.config.getCommonBaseURL() + DESIGNATIONS_PATH).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => readSioData(res) ?? []),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 
-  getHistory(
-    beneficiaryRegID: number | null,
-    serviceID: number | null,
-  ): Observable<GrievanceRow[]> {
+  getHistory(beneficiaryRegID: number | null, serviceID: number | null): Observable<GrievanceRow[]> {
     return this.http
       .post<ApiResponse<GrievanceRow[]>>(this.config.getCommonBaseURL() + HISTORY_PATH, {
         beneficiaryRegID,
@@ -140,17 +127,15 @@ export class GrievanceService {
 
   /** Persist a grievance. The API expects a one-element array of the feedback object. */
   saveGrievance(payload: SaveGrievanceRequest): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, [payload])
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw toSioError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, [payload]).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw toSioError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 }

@@ -154,9 +154,7 @@ export class ReportRunner {
     let parseFailed = false;
     try {
       const workbook = XLSX.read(await blob.arrayBuffer());
-      const sheetName = workbook.SheetNames.includes(REPORT_SHEET)
-        ? REPORT_SHEET
-        : workbook.SheetNames[0];
+      const sheetName = workbook.SheetNames.includes(REPORT_SHEET) ? REPORT_SHEET : workbook.SheetNames[0];
       const sheet = sheetName ? workbook.Sheets[sheetName] : undefined;
       rows = sheet ? XLSX.utils.sheet_to_json<ReportRow>(sheet, { defval: '' }) : [];
     } catch {

@@ -21,14 +21,7 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -137,9 +130,7 @@ export class SioWorkspaceComponent {
   readonly callId = this.callStore.callId;
 
   /** Screen names the SIO role holds on the 104 service; gates the tabs. */
-  readonly screens = computed(() =>
-    collectServiceScreens(this.authStore.privileges(), SERVICE_104),
-  );
+  readonly screens = computed(() => collectServiceScreens(this.authStore.privileges(), SERVICE_104));
 
   onServiceAvailed(): void {
     this._serviceAvailed.set(true);

@@ -21,14 +21,7 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -149,9 +142,7 @@ export class HaoWorkspaceComponent {
   readonly callId = this.callStore.callId;
 
   /** Screen names granted to the agent on the 104 service. */
-  readonly screens = computed(() =>
-    collectServiceScreens(this.authStore.privileges(), SERVICE_104),
-  );
+  readonly screens = computed(() => collectServiceScreens(this.authStore.privileges(), SERVICE_104));
 
   /** Show "Back to RO" when the agent also holds the registration role. */
   readonly showBackToRo = computed(() => this.screens().includes(SCREEN_REGISTRATION));

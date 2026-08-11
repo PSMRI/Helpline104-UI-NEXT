@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -56,14 +48,7 @@ import {
   WorkLocationOption,
 } from './reports.models';
 import { Crm104ReportKey, SupervisorReportsService } from './reports.service';
-import {
-  clampEndDate,
-  maxEndFor,
-  rangeEndIso,
-  rangeStartIso,
-  stateIDForRole,
-  todayInput,
-} from './reports.util';
+import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, stateIDForRole, todayInput } from './reports.util';
 
 /** Simple date-range services: service name → endpoint key + file name. */
 const SIMPLE_SERVICES: Record<string, { key: Crm104ReportKey; fileName: string }> = {
@@ -160,12 +145,7 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
           <label for="ct-service" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supReports.filter.service' | translate: lang() }}
           </label>
-          <select
-            id="ct-service"
-            [class]="selectClass"
-            formControlName="service"
-            (change)="onServiceChange()"
-          >
+          <select id="ct-service" [class]="selectClass" formControlName="service" (change)="onServiceChange()">
             <option [ngValue]="null" disabled>
               {{ 'supReports.filter.select' | translate: lang() }}
             </option>
@@ -231,12 +211,7 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
             <label for="ct-district" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supReports.filter.district' | translate: lang() }}
             </label>
-            <select
-              id="ct-district"
-              [class]="selectClass"
-              formControlName="districtID"
-              (change)="onDistrictChange()"
-            >
+            <select id="ct-district" [class]="selectClass" formControlName="districtID" (change)="onDistrictChange()">
               <option [ngValue]="null">
                 {{ 'supReports.filter.select' | translate: lang() }}
               </option>
@@ -357,13 +332,7 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
       </form>
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
+        <button z-button type="button" [zLoading]="runner.loading()" [zDisabled]="form.invalid" (click)="view()">
           <ng-icon name="lucideEye" size="16" aria-hidden="true" />
           {{ 'supReports.view' | translate: lang() }}
         </button>
@@ -445,9 +414,7 @@ export class CallTypeReportsComponent implements OnInit {
 
   private readonly brdCriteria = signal<string | null>(null);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
+  private readonly providerServiceMapID = computed(() => this.authStore.currentRole()?.providerServiceMapID ?? null);
 
   ngOnInit(): void {
     const psmID = this.providerServiceMapID();
@@ -464,9 +431,7 @@ export class CallTypeReportsComponent implements OnInit {
       .subscribe({
         next: (types) => {
           this.feedbackTypes.set(types);
-          this.grievanceTypes.set(
-            types.filter((t) => GRIEVANCE_TYPE_NAMES.includes(t.feedbackTypeName ?? '')),
-          );
+          this.grievanceTypes.set(types.filter((t) => GRIEVANCE_TYPE_NAMES.includes(t.feedbackTypeName ?? '')));
         },
         error: () => undefined,
       });

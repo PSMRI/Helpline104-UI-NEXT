@@ -21,14 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormBuilder } from '@angular/forms';
@@ -66,14 +59,7 @@ function recordingKey(entry: RecordingEntry): string {
   selector: 'app-block-unblock',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DatePipe,
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ZardInputDirective,
-  ],
+  imports: [DatePipe, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
   viewProviders: [provideIcons({ lucidePlay, lucideSearch })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -98,9 +84,7 @@ function recordingKey(entry: RecordingEntry): string {
 
         @if (searchByPhone()) {
           <div>
-            <label for="bu-phone" class="sr-only">{{
-              'blockUnblock.phone' | translate: lang()
-            }}</label>
+            <label for="bu-phone" class="sr-only">{{ 'blockUnblock.phone' | translate: lang() }}</label>
             <input
               id="bu-phone"
               z-input
@@ -110,13 +94,7 @@ function recordingKey(entry: RecordingEntry): string {
               [placeholder]="'blockUnblock.phone' | translate: lang()"
             />
           </div>
-          <button
-            z-button
-            type="button"
-            zType="default"
-            [zDisabled]="phone.invalid || loading()"
-            (click)="search()"
-          >
+          <button z-button type="button" zType="default" [zDisabled]="phone.invalid || loading()" (click)="search()">
             <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
             {{ 'blockUnblock.search' | translate: lang() }}
           </button>
@@ -157,10 +135,7 @@ function recordingKey(entry: RecordingEntry): string {
                 <tr class="border-t border-border align-top">
                   <td class="px-3 py-2">{{ entry.phoneNo || '—' }}</td>
                   <td class="px-3 py-2">
-                    {{
-                      (entry.isBlocked ? 'blockUnblock.blocked' : 'blockUnblock.unblocked')
-                        | translate: lang()
-                    }}
+                    {{ (entry.isBlocked ? 'blockUnblock.blocked' : 'blockUnblock.unblocked') | translate: lang() }}
                   </td>
                   <td class="px-3 py-2">
                     <button
@@ -174,31 +149,15 @@ function recordingKey(entry: RecordingEntry): string {
                   </td>
                   <td class="px-3 py-2">{{ 'blockUnblock.nuisanceCall' | translate: lang() }}</td>
                   <td class="px-3 py-2">
-                    {{
-                      entry.isBlocked && entry.blockEndDate
-                        ? (entry.blockEndDate | date: 'dd/MM/yyyy HH:mm')
-                        : '—'
-                    }}
+                    {{ entry.isBlocked && entry.blockEndDate ? (entry.blockEndDate | date: 'dd/MM/yyyy HH:mm') : '—' }}
                   </td>
                   <td class="px-3 py-2">
                     @if (entry.isBlocked) {
-                      <button
-                        z-button
-                        type="button"
-                        zType="outline"
-                        zSize="sm"
-                        (click)="unblock(entry)"
-                      >
+                      <button z-button type="button" zType="outline" zSize="sm" (click)="unblock(entry)">
                         {{ 'blockUnblock.unblock' | translate: lang() }}
                       </button>
                     } @else {
-                      <button
-                        z-button
-                        type="button"
-                        zType="destructive"
-                        zSize="sm"
-                        (click)="block(entry)"
-                      >
+                      <button z-button type="button" zType="destructive" zSize="sm" (click)="block(entry)">
                         {{ 'blockUnblock.block' | translate: lang() }}
                       </button>
                     }

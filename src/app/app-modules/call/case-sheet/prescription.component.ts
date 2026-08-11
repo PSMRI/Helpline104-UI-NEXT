@@ -32,13 +32,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePencil, lucidePlus, lucidePill, lucideTrash2 } from '@ng-icons/lucide';
@@ -72,9 +66,7 @@ function optionalMinLength(min: number) {
   return (control: AbstractControl): ValidationErrors | null => {
     const value = (control.value ?? '') as string;
     const len = value.trim().length;
-    return len > 0 && len < min
-      ? { minlength: { requiredLength: min, actualLength: len } }
-      : null;
+    return len > 0 && len < min ? { minlength: { requiredLength: min, actualLength: len } } : null;
   };
 }
 
@@ -143,10 +135,8 @@ function optionalMinLength(min: number) {
       <div class="mb-4">
         <label for="rx-diagnosis" class="mb-1 block text-sm font-medium text-foreground">
           {{
-            (provisionalDiagnosis()
-              ? 'prescription.diagnosisProvisional'
-              : 'prescription.diagnosisInformation'
-            ) | translate: lang()
+            (provisionalDiagnosis() ? 'prescription.diagnosisProvisional' : 'prescription.diagnosisInformation')
+              | translate: lang()
           }}
           <span class="text-destructive">*</span>
         </label>
@@ -359,7 +349,14 @@ function optionalMinLength(min: number) {
           </div>
 
           <div class="mt-4 flex flex-wrap gap-2">
-            <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="!canSave()" (click)="save()">
+            <button
+              z-button
+              type="button"
+              zType="default"
+              [zLoading]="saving()"
+              [zDisabled]="!canSave()"
+              (click)="save()"
+            >
               {{ 'prescription.save' | translate: lang() }}
             </button>
           </div>
@@ -381,7 +378,9 @@ function optionalMinLength(min: number) {
                   <thead class="bg-muted/50 text-xs text-muted-foreground">
                     <tr>
                       <th class="px-3 py-2 font-medium">{{ 'prescription.prescriptionId' | translate: lang() }}</th>
-                      <th class="px-3 py-2 font-medium">{{ 'prescription.diagnosisProvisional' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">
+                        {{ 'prescription.diagnosisProvisional' | translate: lang() }}
+                      </th>
                       <th class="px-3 py-2 font-medium">{{ 'prescription.drug' | translate: lang() }}</th>
                       <th class="px-3 py-2 font-medium">{{ 'prescription.createdDate' | translate: lang() }}</th>
                     </tr>
@@ -479,9 +478,7 @@ export class PrescriptionComponent implements OnInit {
     return names;
   });
 
-  readonly groupOptions = computed(() =>
-    this.drugs().filter((d) => d.drugName === this.selectedDrugName()),
-  );
+  readonly groupOptions = computed(() => this.drugs().filter((d) => d.drugName === this.selectedDrugName()));
 
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);
 
@@ -502,12 +499,7 @@ export class PrescriptionComponent implements OnInit {
 
   /** Whether the prescription can be saved. */
   canSave(): boolean {
-    return (
-      this.hasContext() &&
-      !this.saving() &&
-      this.diagnosis.valid &&
-      this.lines().length > 0
-    );
+    return this.hasContext() && !this.saving() && this.diagnosis.valid && this.lines().length > 0;
   }
 
   onDrugNameChange(): void {
@@ -611,9 +603,7 @@ export class PrescriptionComponent implements OnInit {
           this.saving.set(false);
           const id = res.prescriptionID;
           toast.success(
-            id != null
-              ? this.i18n.instant('prescription.savedPrefix') + id
-              : this.i18n.instant('prescription.saved'),
+            id != null ? this.i18n.instant('prescription.savedPrefix') + id : this.i18n.instant('prescription.saved'),
           );
           if (id != null) {
             this.saved.emit(id);

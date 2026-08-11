@@ -47,17 +47,8 @@ import { CallStore } from '../call.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ScreeningService } from './screening.service';
-import {
-  QUESTION_TYPE,
-  ScreeningError,
-  ScreeningQuestion,
-} from './screening.models';
-import {
-  SCREENING_SELECT_CLASS,
-  calculateObesity,
-  isObesityQuestion,
-  normalizeLabel,
-} from './screening.util';
+import { QUESTION_TYPE, ScreeningError, ScreeningQuestion } from './screening.models';
+import { SCREENING_SELECT_CLASS, calculateObesity, isObesityQuestion, normalizeLabel } from './screening.util';
 
 const REMARKS_MAX = 50;
 const GENDER_MALE = 1;
@@ -118,7 +109,13 @@ const GENDER_FEMALE = 2;
             <input id="bp-height" z-input class="w-full" type="number" inputmode="numeric" [formControl]="height" />
           </div>
           <div>
-            <button z-button type="button" zType="outline" [zDisabled]="weight.value == null && height.value == null" (click)="calculateBmi()">
+            <button
+              z-button
+              type="button"
+              zType="outline"
+              [zDisabled]="weight.value == null && height.value == null"
+              (click)="calculateBmi()"
+            >
               {{ 'screening.calculateBmi' | translate: lang() }}
             </button>
           </div>
@@ -166,10 +163,26 @@ const GENDER_FEMALE = 2;
                 </tr>
               </thead>
               <tbody>
-                <tr class="border-t border-border"><td class="px-2 py-1">{{ 'screening.normal' | translate: lang() }}</td><td class="px-2 py-1">90–119</td><td class="px-2 py-1">60–79</td></tr>
-                <tr class="border-t border-border"><td class="px-2 py-1">{{ 'screening.bp.prehypertension' | translate: lang() }}</td><td class="px-2 py-1">120–139</td><td class="px-2 py-1">80–89</td></tr>
-                <tr class="border-t border-border"><td class="px-2 py-1">{{ 'screening.bp.stage1' | translate: lang() }}</td><td class="px-2 py-1">140–159</td><td class="px-2 py-1">90–99</td></tr>
-                <tr class="border-t border-border"><td class="px-2 py-1">{{ 'screening.bp.isolatedSystolic' | translate: lang() }}</td><td class="px-2 py-1">≥140</td><td class="px-2 py-1">&lt;90</td></tr>
+                <tr class="border-t border-border">
+                  <td class="px-2 py-1">{{ 'screening.normal' | translate: lang() }}</td>
+                  <td class="px-2 py-1">90–119</td>
+                  <td class="px-2 py-1">60–79</td>
+                </tr>
+                <tr class="border-t border-border">
+                  <td class="px-2 py-1">{{ 'screening.bp.prehypertension' | translate: lang() }}</td>
+                  <td class="px-2 py-1">120–139</td>
+                  <td class="px-2 py-1">80–89</td>
+                </tr>
+                <tr class="border-t border-border">
+                  <td class="px-2 py-1">{{ 'screening.bp.stage1' | translate: lang() }}</td>
+                  <td class="px-2 py-1">140–159</td>
+                  <td class="px-2 py-1">90–99</td>
+                </tr>
+                <tr class="border-t border-border">
+                  <td class="px-2 py-1">{{ 'screening.bp.isolatedSystolic' | translate: lang() }}</td>
+                  <td class="px-2 py-1">≥140</td>
+                  <td class="px-2 py-1">&lt;90</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -180,14 +193,28 @@ const GENDER_FEMALE = 2;
           <label for="bp-remarks" class="mb-1 block text-sm font-medium text-foreground">
             {{ 'screening.remarksByHao' | translate: lang() }} <span class="text-destructive">*</span>
           </label>
-          <textarea id="bp-remarks" z-input rows="2" class="w-full" [maxlength]="remarksMax" [formControl]="remarks"></textarea>
+          <textarea
+            id="bp-remarks"
+            z-input
+            rows="2"
+            class="w-full"
+            [maxlength]="remarksMax"
+            [formControl]="remarks"
+          ></textarea>
           @if (remarks.invalid && remarks.touched) {
             <p class="mt-0.5 text-xs text-destructive">{{ 'screening.remarksRequired' | translate: lang() }}</p>
           }
         </div>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="remarks.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="remarks.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'screening.save' | translate: lang() }}
           </button>
         </div>
@@ -248,9 +275,7 @@ export class BpScreeningComponent implements OnInit {
       .pipe(
         switchMap((types) => {
           const bpId = types.find((t) => t.questionType === QUESTION_TYPE.bp)?.questionTypeID;
-          return bpId == null
-            ? of<ScreeningQuestion[]>([])
-            : this.screening.getQuestions(bpId, providerServiceMapID);
+          return bpId == null ? of<ScreeningQuestion[]>([]) : this.screening.getQuestions(bpId, providerServiceMapID);
         }),
         takeUntilDestroyed(this.destroyRef),
       )

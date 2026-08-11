@@ -21,15 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  WritableSignal,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, WritableSignal, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -69,14 +61,7 @@ type ViewMode = 'search' | 'create' | 'edit';
   selector: 'app-location-communication',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DatePipe,
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ZardInputDirective,
-  ],
+  imports: [DatePipe, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
   viewProviders: [provideIcons({ lucidePencil, lucideSearch })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -241,14 +226,7 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.validFrom' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="lc-c-start"
-              z-input
-              class="w-full"
-              type="date"
-              [min]="today"
-              formControlName="startDate"
-            />
+            <input id="lc-c-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
           </div>
           <div>
             <label for="lc-c-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -277,9 +255,7 @@ type ViewMode = 'search' | 'create' | 'edit';
             <input id="lc-c-subject" z-input class="w-full" maxlength="100" formControlName="subject" />
             <div class="mt-1 flex justify-between text-xs">
               <span class="font-medium text-destructive">
-                @if (
-                  createForm.controls.subject.invalid && createForm.controls.subject.touched
-                ) {
+                @if (createForm.controls.subject.invalid && createForm.controls.subject.touched) {
                   {{ 'supComm.subjectMin' | translate: lang() }}
                 }
               </span>
@@ -300,9 +276,7 @@ type ViewMode = 'search' | 'create' | 'edit';
             ></textarea>
             <div class="mt-1 flex justify-between text-xs">
               <span class="font-medium text-destructive">
-                @if (
-                  createForm.controls.message.invalid && createForm.controls.message.touched
-                ) {
+                @if (createForm.controls.message.invalid && createForm.controls.message.touched) {
                   {{ 'supComm.messageMin' | translate: lang() }}
                 }
               </span>
@@ -318,9 +292,7 @@ type ViewMode = 'search' | 'create' | 'edit';
               type="button"
               zType="default"
               [zLoading]="saving()"
-              [zDisabled]="
-                createForm.invalid || selectedOffices().size === 0 || createRangeInvalid() || saving()
-              "
+              [zDisabled]="createForm.invalid || selectedOffices().size === 0 || createRangeInvalid() || saving()"
               (click)="create()"
             >
               {{ 'supComm.save' | translate: lang() }}
@@ -337,14 +309,7 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.validFrom' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="lc-e-start"
-              z-input
-              class="w-full"
-              type="date"
-              [min]="today"
-              formControlName="startDate"
-            />
+            <input id="lc-e-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
           </div>
           <div>
             <label for="lc-e-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -508,9 +473,7 @@ export class LocationCommunicationComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (types) => {
-          const match = types.find(
-            (t) => t.notificationType.toUpperCase() === 'LOCATION MESSAGE',
-          );
+          const match = types.find((t) => t.notificationType.toUpperCase() === 'LOCATION MESSAGE');
           if (!match) {
             this.errorMessage.set(this.i18n.instant('supComm.noNotificationTypes'));
             return;

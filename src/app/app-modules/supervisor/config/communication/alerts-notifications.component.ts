@@ -21,15 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  WritableSignal,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, WritableSignal, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -76,14 +68,7 @@ type ViewMode = 'search' | 'create' | 'edit';
   selector: 'app-alerts-notifications',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DatePipe,
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ZardInputDirective,
-  ],
+  imports: [DatePipe, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
   viewProviders: [provideIcons({ lucidePencil, lucideSearch })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -300,14 +285,7 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.validFrom' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="an-c-start"
-              z-input
-              class="w-full"
-              type="date"
-              [min]="today"
-              formControlName="startDate"
-            />
+            <input id="an-c-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
           </div>
           <div>
             <label for="an-c-stime" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -413,14 +391,7 @@ type ViewMode = 'search' | 'create' | 'edit';
               {{ 'supComm.validFrom' | translate: lang() }}
               <span class="text-destructive">*</span>
             </label>
-            <input
-              id="an-e-start"
-              z-input
-              class="w-full"
-              type="date"
-              [min]="today"
-              formControlName="startDate"
-            />
+            <input id="an-e-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
           </div>
           <div>
             <label for="an-e-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -799,8 +770,7 @@ export class AlertsNotificationsComponent implements OnInit {
       end.setHours(23, 59, 59, 0);
     }
 
-    const roleID =
-      value.roleID === 'All' || value.roleID == null ? undefined : (value.roleID as number);
+    const roleID = value.roleID === 'All' || value.roleID == null ? undefined : (value.roleID as number);
     const base: NotificationCreateRequest = {
       providerServiceMapID: this.psmID(),
       notificationTypeID: value.notificationTypeID,
@@ -812,10 +782,7 @@ export class AlertsNotificationsComponent implements OnInit {
       roleID,
     };
     const officeIDs = [...this.selectedOffices()];
-    const body =
-      officeIDs.length > 0
-        ? officeIDs.map((workingLocationID) => ({ ...base, workingLocationID }))
-        : [base];
+    const body = officeIDs.length > 0 ? officeIDs.map((workingLocationID) => ({ ...base, workingLocationID })) : [base];
 
     this.saving.set(true);
     this.errorMessage.set('');
@@ -826,15 +793,9 @@ export class AlertsNotificationsComponent implements OnInit {
         next: (created) => {
           this.saving.set(false);
           if (created.length > 0) {
-            const createdType = this.types().find(
-              (t) => t.notificationTypeID === created[0].notificationTypeID,
-            );
+            const createdType = this.types().find((t) => t.notificationTypeID === created[0].notificationTypeID);
             const isAlert = createdType?.notificationType.toUpperCase() === 'ALERT';
-            toast.success(
-              this.i18n.instant(
-                isAlert ? 'supComm.alertCreated' : 'supComm.notificationCreated',
-              ),
-            );
+            toast.success(this.i18n.instant(isAlert ? 'supComm.alertCreated' : 'supComm.notificationCreated'));
             this.createForm.reset({ roleID: 'All' });
             this.selectedOffices.set(new Set());
             this.roleIsAll.set(true);

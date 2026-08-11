@@ -20,22 +20,9 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
@@ -56,11 +43,7 @@ import { DiseaseSummaryDetail } from '../../case-sheet/disease-summary.models';
 import { SnomedSearchComponent } from '../../case-sheet/snomed-search.component';
 import type { SnomedTerm } from '../../case-sheet/snomed.models';
 import { ViewDiseaseSummaryDetailsComponent } from '../../case-sheet/view-disease-summary-details.component';
-import {
-  AvailableDisease,
-  CaseSheetRequest,
-  PresentCaseSheet,
-} from '../hao.models';
+import { AvailableDisease, CaseSheetRequest, PresentCaseSheet } from '../hao.models';
 import { HaoService } from '../hao.service';
 
 /** History tabs shown in the case-sheet history section. */
@@ -106,12 +89,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
     CdssComponent,
   ],
   template: `
-    <form
-      class="flex flex-col gap-5"
-      [formGroup]="form"
-      (ngSubmit)="save()"
-      novalidate
-    >
+    <form class="flex flex-col gap-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium" for="hao-cs-complaints">
           {{ 'hao.caseSheet.chiefComplaints' | translate: lang() }}
@@ -124,17 +102,11 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
           maxlength="2000"
           formControlName="chiefComplaints"
           [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
-          [attr.aria-describedby]="
-            isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null
-          "
+          [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
           [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
         ></textarea>
         @if (isInvalid('chiefComplaints')) {
-          <p
-            id="hao-cs-complaints-error"
-            class="text-xs font-medium text-destructive"
-            role="alert"
-          >
+          <p id="hao-cs-complaints-error" class="text-xs font-medium text-destructive" role="alert">
             @if (form.controls.chiefComplaints.hasError('maxlength')) {
               {{ 'hao.caseSheet.chiefComplaintsTooLong' | translate: lang() }}
             } @else {
@@ -205,12 +177,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
         <label class="text-sm font-medium" for="hao-cs-remarks">
           {{ 'hao.caseSheet.remarks' | translate: lang() }}
         </label>
-        <textarea
-          z-input
-          id="hao-cs-remarks"
-          rows="2"
-          formControlName="remarks"
-        ></textarea>
+        <textarea z-input id="hao-cs-remarks" rows="2" formControlName="remarks"></textarea>
       </div>
 
       <!-- Clinical decision support: fed the chief complaint above plus the
@@ -225,12 +192,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
       />
 
       <div class="flex justify-end">
-        <button
-          z-button
-          type="submit"
-          [zLoading]="saving()"
-          [zDisabled]="saving() || beneficiaryId() === null"
-        >
+        <button z-button type="submit" [zLoading]="saving()" [zDisabled]="saving() || beneficiaryId() === null">
           {{ 'hao.caseSheet.save' | translate: lang() }}
         </button>
       </div>
@@ -243,10 +205,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
             {{ 'casesheetHistory.sectionTitle' | translate: lang() }}
           </h2>
           <button z-button type="button" zType="ghost" zSize="sm" (click)="toggleHistory()">
-            {{
-              (historyOpen() ? 'casesheetHistory.hide' : 'casesheetHistory.show')
-                | translate: lang()
-            }}
+            {{ (historyOpen() ? 'casesheetHistory.hide' : 'casesheetHistory.show') | translate: lang() }}
           </button>
         </div>
 
@@ -273,10 +232,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
                 <app-casesheet-history-mcts [benRegID]="beneficiaryId()" />
               }
               @case ('mmu') {
-                <app-casesheet-history-mmu
-                  [benRegID]="beneficiaryId()"
-                  (selectVisit)="onSelectVisit($event)"
-                />
+                <app-casesheet-history-mmu [benRegID]="beneficiaryId()" (selectVisit)="onSelectVisit($event)" />
               }
               @case ('tm') {
                 <app-casesheet-history-mmu
@@ -299,7 +255,9 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
                 </div>
                 <dl class="grid gap-x-6 gap-y-1 sm:grid-cols-2">
                   <div class="flex justify-between gap-2">
-                    <dt class="text-muted-foreground">{{ 'casesheetHistory.mmu.visitCategory' | translate: lang() }}</dt>
+                    <dt class="text-muted-foreground">
+                      {{ 'casesheetHistory.mmu.visitCategory' | translate: lang() }}
+                    </dt>
                     <dd class="text-foreground">{{ visit.VisitCategory || '—' }}</dd>
                   </div>
                   <div class="flex justify-between gap-2">
@@ -377,9 +335,7 @@ export class CaseSheetComponent {
 
   /** Patient context for the embedded clinical tools (from the CallStore). */
   readonly patientAge = computed(() => this.callStore.demographics()?.age ?? null);
-  readonly patientGender = computed<CdssGender | null>(() =>
-    toCdssGender(this.callStore.demographics()?.genderName),
-  );
+  readonly patientGender = computed<CdssGender | null>(() => toCdssGender(this.callStore.demographics()?.genderName));
   /** Current role's feature code (CDSS warns non-MO roles to transfer). */
   readonly roleCode = computed(() => this.authStore.currentRole()?.featureCode ?? '');
 
@@ -464,9 +420,7 @@ export class CaseSheetComponent {
       },
       error: () => {
         this.loadingDisease.set(false);
-        this.diseaseError.set(
-          this.i18n.instant('hao.caseSheet.diseaseSummaryError'),
-        );
+        this.diseaseError.set(this.i18n.instant('hao.caseSheet.diseaseSummaryError'));
       },
     });
   }
@@ -506,8 +460,7 @@ export class CaseSheetComponent {
       provisionalDiagnosis: selectedDisease?.diseaseName ?? null,
       healthAdvice: value.healthAdvice?.trim() || null,
       remarks: value.remarks?.trim() || null,
-      providerServiceMapID:
-        this.authStore.currentRole()?.providerServiceMapID ?? null,
+      providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
       createdBy: this.authStore.user()?.userName ?? '',
     };
 

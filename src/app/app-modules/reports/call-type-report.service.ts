@@ -54,25 +54,16 @@ export class CallTypeReportService {
 
   /** Call-type groups for the service (to resolve the "valid" call type). */
   getCallTypes(providerServiceMapID: number | null): Observable<CallTypeGroup[]> {
-    return this.post<CallTypeGroup[]>(
-      this.config.getCommonBaseURL() + GET_CALL_TYPES_PATH,
-      { providerServiceMapID },
-    );
+    return this.post<CallTypeGroup[]>(this.config.getCommonBaseURL() + GET_CALL_TYPES_PATH, { providerServiceMapID });
   }
 
   /** One page of the CDI worklist. */
   filterCallList(req: FilterCallListRequest): Observable<FilterCallListResponse> {
-    return this.post<FilterCallListResponse>(
-      this.config.getCommonBaseURL() + FILTER_CALL_LIST_PATH,
-      req,
-    );
+    return this.post<FilterCallListResponse>(this.config.getCommonBaseURL() + FILTER_CALL_LIST_PATH, req);
   }
 
   /** The answered CDI questionnaire for one closed call. */
-  getCallReports(
-    beneficiaryRegID: number | null,
-    benCallID: number | null,
-  ): Observable<CdiQaMapping[]> {
+  getCallReports(beneficiaryRegID: number | null, benCallID: number | null): Observable<CdiQaMapping[]> {
     return this.post<CdiQaMapping[]>(this.config.get104BaseURL() + CDI_QA_MAPPING_PATH, {
       beneficiaryRegID,
       benCallID,
@@ -109,9 +100,7 @@ export class CallTypeReportService {
     if (err instanceof HttpErrorResponse) {
       const body = err.error as { errorMessage?: string } | null;
       const message =
-        body && typeof body === 'object' && typeof body.errorMessage === 'string'
-          ? body.errorMessage
-          : '';
+        body && typeof body === 'object' && typeof body.errorMessage === 'string' ? body.errorMessage : '';
       return { status: err.status, errorMessage: message.trim() || GENERIC_ERROR };
     }
     return { status: 0, errorMessage: GENERIC_ERROR };

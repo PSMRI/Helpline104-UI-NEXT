@@ -21,13 +21,7 @@
  */
 
 import { NgTemplateOutlet } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardPaginationComponent } from '@common-ui/ui/pagination';
@@ -53,19 +47,11 @@ import { DataTableColumn, DataTableSortDirection } from './data-table.types';
 @Component({
   selector: 'app-data-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ...ZardTableImports,
-    ZardPaginationComponent,
-    ZardInputDirective,
-    ZardButtonComponent,
-    NgTemplateOutlet,
-  ],
+  imports: [...ZardTableImports, ZardPaginationComponent, ZardInputDirective, ZardButtonComponent, NgTemplateOutlet],
   templateUrl: './data-table.component.html',
   styleUrl: './data-table.component.css',
 })
-export class DataTableComponent<
-  T extends Record<string, unknown> = Record<string, unknown>,
-> {
+export class DataTableComponent<T extends Record<string, unknown> = Record<string, unknown>> {
   readonly columns = input.required<DataTableColumn<T>[]>();
   readonly data = input<readonly T[]>([]);
   /**
@@ -105,11 +91,7 @@ export class DataTableComponent<
       return rows;
     }
     const columns = this.columns();
-    return rows.filter((row) =>
-      columns.some((column) =>
-        this.cellText(column, row).toLowerCase().includes(term),
-      ),
-    );
+    return rows.filter((row) => columns.some((column) => this.cellText(column, row).toLowerCase().includes(term)));
   });
 
   /** Filtered rows after applying the active sort. */

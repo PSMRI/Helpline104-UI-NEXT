@@ -45,19 +45,11 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  BlockOption,
-  DistrictOption,
-  StateOption,
-  VillageOption,
-} from '../../beneficiary/beneficiary.models';
+import { BlockOption, DistrictOption, StateOption, VillageOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { EpidemicOutbreakService } from './epidemic-outbreak.service';
-import {
-  EpidemicComplaintRow,
-  NatureOfComplaint,
-} from './epidemic-outbreak.models';
+import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.models';
 
 /**
  * Epidemic-Outbreak service tab. The agent captures the nature of the complaint,
@@ -109,7 +101,16 @@ import {
             <label for="epi-affected" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.epidemic.peopleAffected' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="epi-affected" z-input class="w-full" type="number" inputmode="numeric" min="1" max="999999999" formControlName="totalPeopleAffected" />
+            <input
+              id="epi-affected"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="999999999"
+              formControlName="totalPeopleAffected"
+            />
           </div>
 
           <div>
@@ -140,7 +141,12 @@ import {
             <label for="epi-subdistrict" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.subDistrict' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <select id="epi-subdistrict" [class]="selectClass" formControlName="subDistrictID" (change)="onSubDistrictChange()">
+            <select
+              id="epi-subdistrict"
+              [class]="selectClass"
+              formControlName="subDistrictID"
+              (change)="onSubDistrictChange()"
+            >
               <option [ngValue]="null" disabled>{{ 'sio.common.select' | translate: lang() }}</option>
               @for (b of subDistricts(); track b.blockID) {
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
@@ -164,12 +170,25 @@ import {
             <label for="epi-remarks" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.remarks' | translate: lang() }}
             </label>
-            <textarea id="epi-remarks" [class]="textareaClass" rows="2" maxlength="500" formControlName="remarks"></textarea>
+            <textarea
+              id="epi-remarks"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="500"
+              formControlName="remarks"
+            ></textarea>
           </div>
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>

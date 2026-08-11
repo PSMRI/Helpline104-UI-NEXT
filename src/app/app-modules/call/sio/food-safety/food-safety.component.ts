@@ -45,13 +45,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  BlockOption,
-  DistrictOption,
-  Gender,
-  StateOption,
-  VillageOption,
-} from '../../beneficiary/beneficiary.models';
+import { BlockOption, DistrictOption, Gender, StateOption, VillageOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { FoodSafetyService } from './food-safety.service';
@@ -105,7 +99,16 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
             <label for="food-age" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.age' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="food-age" z-input class="w-full" type="number" inputmode="numeric" min="1" max="120" formControlName="patientAge" />
+            <input
+              id="food-age"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="120"
+              formControlName="patientAge"
+            />
           </div>
 
           <div>
@@ -150,14 +153,28 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
             <label for="food-source" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.food.foodConsumedFrom' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="food-source" z-input class="w-full" type="text" maxlength="25" formControlName="foodConsumedFrom" />
+            <input
+              id="food-source"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="foodConsumedFrom"
+            />
           </div>
 
           <div>
             <label for="food-symptoms" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.food.associatedSymptoms' | translate: lang() }}
             </label>
-            <input id="food-symptoms" z-input class="w-full" type="text" maxlength="50" formControlName="associatedSymptoms" />
+            <input
+              id="food-symptoms"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="50"
+              formControlName="associatedSymptoms"
+            />
           </div>
 
           <div>
@@ -168,7 +185,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
           </div>
 
           <fieldset class="sm:col-span-2 lg:col-span-3">
-            <legend class="mb-2 text-xs font-medium text-muted-foreground">{{ 'sio.food.symptoms' | translate: lang() }}</legend>
+            <legend class="mb-2 text-xs font-medium text-muted-foreground">
+              {{ 'sio.food.symptoms' | translate: lang() }}
+            </legend>
             <div class="flex flex-wrap gap-3">
               @for (s of symptomFields; track s.key) {
                 <label class="flex items-center gap-2 text-sm">
@@ -211,7 +230,12 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
             <label for="food-subdistrict" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.subDistrict' | translate: lang() }}
             </label>
-            <select id="food-subdistrict" [class]="selectClass" formControlName="subDistrictID" (change)="onSubDistrictChange()">
+            <select
+              id="food-subdistrict"
+              [class]="selectClass"
+              formControlName="subDistrictID"
+              (change)="onSubDistrictChange()"
+            >
               <option [ngValue]="null">{{ 'sio.common.select' | translate: lang() }}</option>
               @for (b of subDistricts(); track b.blockID) {
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
@@ -235,12 +259,25 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
             <label for="food-remarks" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.remarks' | translate: lang() }}
             </label>
-            <textarea id="food-remarks" [class]="textareaClass" rows="2" maxlength="500" formControlName="remarks"></textarea>
+            <textarea
+              id="food-remarks"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="500"
+              formControlName="remarks"
+            ></textarea>
           </div>
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>
@@ -305,7 +342,10 @@ export class FoodSafetyComponent implements OnInit {
   /** Fixed complaint types (value = the string sent as `typeOfRequest`). */
   readonly complaintTypes = COMPLAINT_TYPES;
   /** Today's date (yyyy-MM-dd) used to cap the incident-date picker. */
-  readonly today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+  readonly today = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
 
   /** Symptom checkbox fields: form-control key → label key. */
   readonly symptomFields = [
@@ -334,11 +374,7 @@ export class FoodSafetyComponent implements OnInit {
       Validators.minLength(3),
       Validators.maxLength(25),
     ]),
-    patientAge: this.fb.control<number | null>(null, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(120),
-    ]),
+    patientAge: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(120)]),
     patientGenderID: this.fb.control<number | null>(null, Validators.required),
     complaintType: this.fb.control<string | null>(null, Validators.required),
     historyOfDiet: this.fb.control<string | null>(null, [

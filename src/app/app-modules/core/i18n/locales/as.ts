@@ -136,10 +136,9 @@ export const as: Record<TranslationKey, string> = {
   'registration.history.empty': 'এই নম্বৰৰ বাবে কোনো পঞ্জীয়ন পোৱা নগ’ল।',
   'registration.search.empty': 'আপোনাৰ সন্ধানৰ সৈতে কোনো হিতাধিকাৰী মিলা নাই।',
   'registration.search.prompt': 'নাম বা পঞ্জীয়ন আইডি দিয়ক, তাৰ পিছত সন্ধান কৰক।',
-  'registration.search.error':
-    'সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ\'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'registration.search.error': "সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
   'registration.search.timeout':
-    'সন্ধানৰ সময়সীমা উকলি গ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক অথবা তাৰ পৰিৱৰ্তে ফোন নম্বৰেৰে সন্ধান কৰক।',
+    "সন্ধানৰ সময়সীমা উকলি গ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক অথবা তাৰ পৰিৱৰ্তে ফোন নম্বৰেৰে সন্ধান কৰক।",
   'registration.col.regId': 'পঞ্জী. আইডি',
   'registration.col.name': 'নাম',
   'registration.col.gender': 'লিংগ',
@@ -170,13 +169,11 @@ export const as: Record<TranslationKey, string> = {
   'registration.toast.selected': 'এই কলৰ বাবে হিতাধিকাৰী বাছনি কৰা হ’ল।',
   'registration.toast.registered': 'হিতাধিকাৰী পঞ্জীয়ন আৰু বাছনি কৰা হ’ল।',
   'registration.toast.error': 'কিবা ভুল হ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
-  'registration.register.error':
-    "পঞ্জীয়ন বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।",
+  'registration.register.error': "পঞ্জীয়ন বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।",
   'registration.register.dismiss': 'বন্ধ কৰক',
   'registration.toast.noCli': 'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নহয়।',
   'registration.toast.masterError': 'কিছুমান ফৰ্ম বিকল্প ল’ড কৰিব পৰা নগ’ল।',
-  'registration.notice.noCli':
-    'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নোহোৱাৰ বাবে পঞ্জীয়ন উপলব্ধ নহয়।',
+  'registration.notice.noCli': 'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নোহোৱাৰ বাবে পঞ্জীয়ন উপলব্ধ নহয়।',
   'registration.section.identity': 'ব্যক্তিগত বিৱৰণ',
   'registration.section.address': 'ঠিকনা আৰু যোগাযোগ',
   'registration.field.title': 'উপাধি',
@@ -230,8 +227,7 @@ export const as: Record<TranslationKey, string> = {
   'cdss.questionsHeading': 'নিকটতম বিৱৰণ বাছনি কৰক',
   'cdss.noQuestions': 'এই অভিযোগৰ বাবে কোনো CDSS প্ৰশ্ন উপলব্ধ নহয়।',
   'cdss.emergencyBadge': 'জৰুৰীকালীন',
-  'cdss.emergencyWarning':
-    'এটা জৰুৰীকালীন অৱস্থা বাছনি কৰা হ’ল — কলটো মেডিকেল অফিচাৰ (MO)লৈ স্থানান্তৰ কৰাৰ কথা ভাবক।',
+  'cdss.emergencyWarning': 'এটা জৰুৰীকালীন অৱস্থা বাছনি কৰা হ’ল — কলটো মেডিকেল অফিচাৰ (MO)লৈ স্থানান্তৰ কৰাৰ কথা ভাবক।',
   'cdss.diagnosesHeading': 'পৰামৰ্শিত ৰোগ নিৰ্ণয় আৰু পৰামৰ্শ',
   'cdss.noDiagnoses': 'কোনো পৰামৰ্শিত ৰোগ নিৰ্ণয় পোৱা নগ’ল।',
   'cdss.match': 'মিল',
@@ -242,8 +238,7 @@ export const as: Record<TranslationKey, string> = {
   'cdss.action': 'পৰামৰ্শিত ব্যৱস্থা',
   'cdss.recommendedActionLabel': 'পৰামৰ্শিত ব্যৱস্থা (সম্পাদনযোগ্য)',
   'cdss.resetAction': 'পৰামৰ্শলৈ ৰিছেট কৰক',
-  'cdss.recommendedActionPlaceholder':
-    'গ্ৰহণ কৰাৰ আগতে পৰামৰ্শিত ব্যৱস্থা পৰীক্ষা আৰু সম্পাদনা কৰক…',
+  'cdss.recommendedActionPlaceholder': 'গ্ৰহণ কৰাৰ আগতে পৰামৰ্শিত ব্যৱস্থা পৰীক্ষা আৰু সম্পাদনা কৰক…',
   'cdss.selectAtLeastOne': 'গ্ৰহণ কৰিবলৈ কমেও এটা ৰোগ নিৰ্ণয় বাছনি কৰক।',
   'cdss.accept': 'বাছনি কৰাটো গ্ৰহণ কৰক',
   'cdss.back': 'উভতি যাওক',
@@ -373,8 +368,7 @@ export const as: Record<TranslationKey, string> = {
   'casesheetHistory.mmu.visitCode': 'ভ্ৰমণ ক’ড',
   'casesheetHistory.mmu.view': 'চাওক',
   'casesheetHistory.mmu.selectedVisit': 'নিৰ্বাচিত ভ্ৰমণ',
-  'casesheetHistory.mmu.detailUnavailable':
-    'এই ভ্ৰমণৰ সম্পূৰ্ণ কেছ-শ্বীট দৃশ্য এতিয়ালৈকে উপলব্ধ নহয়।',
+  'casesheetHistory.mmu.detailUnavailable': 'এই ভ্ৰমণৰ সম্পূৰ্ণ কেছ-শ্বীট দৃশ্য এতিয়ালৈকে উপলব্ধ নহয়।',
 
   // Schedule appointment
   'appointment.title': 'এপইণ্টমেণ্ট সূচী কৰক',
@@ -497,8 +491,7 @@ export const as: Record<TranslationKey, string> = {
 
   // Supervisor placeholder page
   'supervisor.title': 'তত্ত্বাৱধায়ক কাৰ্যকলাপ ক্ষেত্ৰ',
-  'supervisor.intro':
-    'তত্ত্বাৱধায়কৰ বাবে কাৰ্যকলাপ, প্ৰতিবেদন আৰু কনফিগাৰেচন ইয়াত পৰিচালনা কৰা হ’ব।',
+  'supervisor.intro': 'তত্ত্বাৱধায়কৰ বাবে কাৰ্যকলাপ, প্ৰতিবেদন আৰু কনফিগাৰেচন ইয়াত পৰিচালনা কৰা হ’ব।',
   'supervisor.backToDashboard': 'ডেশ্ববৰ্ডলৈ উভতি যাওক',
 
   // Supervisor workspace shell
@@ -523,10 +516,8 @@ export const as: Record<TranslationKey, string> = {
   'supervisor.home.title': 'তত্ত্বাৱধায়ক কনচ’ল',
   'supervisor.home.reportsHint': 'কল, গুণগত মান আৰু চিআৰএম প্ৰতিবেদন ডাউনল’ড কৰক।',
   'supervisor.home.blockUnblockHint': 'ব্লেকলিষ্ট কৰা কলাৰ নম্বৰ পৰিচালনা কৰক।',
-  'supervisor.home.outboundAllocationHint':
-    'আবণ্টন নোহোৱা আউটবাউণ্ড কল এজেণ্টক আবণ্টন কৰক।',
-  'supervisor.home.outboundReallocationHint':
-    'আবণ্টিত আউটবাউণ্ড কল এজেণ্টৰ মাজত স্থানান্তৰ কৰক।',
+  'supervisor.home.outboundAllocationHint': 'আবণ্টন নোহোৱা আউটবাউণ্ড কল এজেণ্টক আবণ্টন কৰক।',
+  'supervisor.home.outboundReallocationHint': 'আবণ্টিত আউটবাউণ্ড কল এজেণ্টৰ মাজত স্থানান্তৰ কৰক।',
   'supervisor.placeholder.title': 'সোনকালে আহি আছে',
   'supervisor.placeholder.body':
     'এই তত্ত্বাৱধায়ক অংশটো এতিয়ালৈকে স্থানান্তৰ কৰা হোৱা নাই। অনুগ্ৰহ কৰি এতিয়াৰ বাবে লিগেচী এপ্লিকেচন ব্যৱহাৰ কৰক।',
@@ -555,10 +546,8 @@ export const as: Record<TranslationKey, string> = {
     'প্ৰতিবেদন উপলব্ধ নহয় — চাৰ্ভাৰ ত্ৰুটি। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।',
   'supReports.dismiss': 'বন্ধ কৰক',
   'supReports.lookupError': 'প্ৰতিবেদনৰ বিকল্পসমূহ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
-  'supReports.unsupportedReport':
-    'এই প্ৰতিবেদন উপলব্ধ নহয়। অনুগ্ৰহ কৰি আন এখন প্ৰতিবেদন বাছনি কৰক।',
-  'supReports.parseError':
-    'প্ৰতিবেদনৰ পূৰ্বদৰ্শন কৰিব পৰা নগ’ল। ডাউনল’ড কৰিবলৈ ৰপ্তানি ব্যৱহাৰ কৰক।',
+  'supReports.unsupportedReport': 'এই প্ৰতিবেদন উপলব্ধ নহয়। অনুগ্ৰহ কৰি আন এখন প্ৰতিবেদন বাছনি কৰক।',
+  'supReports.parseError': 'প্ৰতিবেদনৰ পূৰ্বদৰ্শন কৰিব পৰা নগ’ল। ডাউনল’ড কৰিবলৈ ৰপ্তানি ব্যৱহাৰ কৰক।',
   'supReports.downloaded': 'প্ৰতিবেদন ডাউনল’ড হ’ল।',
   'supReports.all': 'সকলো',
   'supReports.filter.select': 'বাছনি কৰক',
@@ -658,8 +647,7 @@ export const as: Record<TranslationKey, string> = {
   'roleWorkspace.surveyor.title': 'জৰীপকৰ্তা',
   'roleWorkspace.surveyor.subtitle': 'জৰীপকৰ্তাৰ কল-টাইপ প্ৰতিবেদন চাওক।',
   'roleWorkspace.surveyor.reportsTitle': 'কল-টাইপ প্ৰতিবেদন',
-  'roleWorkspace.surveyor.reportsPlaceholder':
-    'জৰীপকৰ্তাৰ কল-টাইপ প্ৰতিবেদন সোনকালে ইয়াত উপলব্ধ হ’ব।',
+  'roleWorkspace.surveyor.reportsPlaceholder': 'জৰীপকৰ্তাৰ কল-টাইপ প্ৰতিবেদন সোনকালে ইয়াত উপলব্ধ হ’ব।',
 
   // Agent reports — Call Type (Customer Delight Index) report
   'reports.backToDashboard': 'ডেশ্ববৰ্ডলৈ উভতি যাওক',
@@ -683,8 +671,7 @@ export const as: Record<TranslationKey, string> = {
   'reports.callType.col.action': 'কাৰ্য',
   'reports.callType.report': 'প্ৰতিবেদন',
   'reports.callType.dial': 'ডায়েল',
-  'reports.callType.dialDeferred':
-    'বাকী থকা কল ডায়েল কৰিবলৈ CTI ছফ্ট-ফোন সংযোগৰ প্ৰয়োজন, যি স্থগিত কৰা হৈছে।',
+  'reports.callType.dialDeferred': 'বাকী থকা কল ডায়েল কৰিবলৈ CTI ছফ্ট-ফোন সংযোগৰ প্ৰয়োজন, যি স্থগিত কৰা হৈছে।',
   'reports.callType.previous': 'আগৰ',
   'reports.callType.next': 'পৰৱৰ্তী',
   'reports.callType.page': 'পৃষ্ঠা',
@@ -738,8 +725,7 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.remarks': 'মন্তব্য',
   'hao.caseSheet.save': 'কেছ শ্বীট সংৰক্ষণ কৰক',
   'hao.caseSheet.viewDiseaseSummary': 'ৰোগৰ সাৰাংশ চাওক',
-  'hao.caseSheet.diseaseSummaryError':
-    'ৰোগৰ সাৰাংশ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'hao.caseSheet.diseaseSummaryError': 'ৰোগৰ সাৰাংশ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.caseSheet.saveSuccess': 'কেছ শ্বীট সফলতাৰে সংৰক্ষণ কৰা হ’ল।',
   'hao.caseSheet.saveError': 'কেছ শ্বীট সংৰক্ষণ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
 
@@ -801,8 +787,7 @@ export const as: Record<TranslationKey, string> = {
   'outbound.worklist.open': 'খোলক',
   'outbound.worklist.empty': 'কোনো আউটবাউণ্ড কল নিযুক্ত কৰা হোৱা নাই।',
   'outbound.worklist.manualDial': 'মেনুৱেল ডায়েল',
-  'outbound.worklist.dialDeferred':
-    'মেনুৱেল ডায়েলিং ছফ্টফ’নে (CTI) পৰিচালনা কৰে, যি এই বিল্ডত উপলব্ধ নহয়।',
+  'outbound.worklist.dialDeferred': 'মেনুৱেল ডায়েলিং ছফ্টফ’নে (CTI) পৰিচালনা কৰে, যি এই বিল্ডত উপলব্ধ নহয়।',
 
   // Outbound — workspace
   'outbound.workspace.unknownCaller': 'অজ্ঞাত কলাৰ',
@@ -844,8 +829,7 @@ export const as: Record<TranslationKey, string> = {
   'outbound.reallocate.fetch': 'ৰেকৰ্ড আনক',
   'outbound.reallocate.records': 'ৰেকৰ্ড',
   'outbound.reallocate.moveToBin': 'বিনলৈ স্থানান্তৰ কৰক',
-  'outbound.reallocate.moveToBinConfirm':
-    'এই এজেণ্টৰ সকলো ৰেকৰ্ড পুনৰ অনাবণ্টিত বিনলৈ স্থানান্তৰ কৰিবনে?',
+  'outbound.reallocate.moveToBinConfirm': 'এই এজেণ্টৰ সকলো ৰেকৰ্ড পুনৰ অনাবণ্টিত বিনলৈ স্থানান্তৰ কৰিবনে?',
   'outbound.reallocate.reallocate': 'পুনৰ আবণ্টন কৰক',
   'outbound.reallocate.noRecords': 'এই এজেণ্টৰ বাবে কোনো ৰেকৰ্ড পোৱা নগ’ল।',
 
@@ -858,8 +842,7 @@ export const as: Record<TranslationKey, string> = {
   'emergencyContacts.designation': 'পদবী',
   'emergencyContacts.location': 'স্থান',
   'emergencyContacts.number': 'যোগাযোগ নম্বৰ',
-  'emergencyContacts.loadError':
-    'জৰুৰীকালীন যোগাযোগ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'emergencyContacts.loadError': 'জৰুৰীকালীন যোগাযোগ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
 
   // Alternate email
   'alternateEmail.title': 'ইমেইল পঠিয়াওক',
@@ -1142,8 +1125,7 @@ export const as: Record<TranslationKey, string> = {
   'supComm.endMustBeAfterStart': 'লৈকে বৈধ, ইয়াৰ পৰা বৈধতকৈ ভৱিষ্যতৰ তাৰিখ হ’ব লাগিব',
   'supComm.subjectMin': 'বিষয়ৰ প্ৰয়োজন (নূন্যতম 5 টা বৰ্ণ)',
   'supComm.messageMin': 'বাৰ্তাৰ প্ৰয়োজন (নূন্যতম 5 টা বৰ্ণ)',
-  'supComm.noNotificationTypes':
-    'কোনো অধিসূচনাৰ প্ৰকাৰ পোৱা নগ’ল। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
+  'supComm.noNotificationTypes': 'কোনো অধিসূচনাৰ প্ৰকাৰ পোৱা নগ’ল। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
   'supComm.noOffices': 'কোনো কামৰ স্থান পোৱা নগ’ল',
   'supComm.noOfficesForRole': 'নিৰ্বাচিত ভূমিকা কাৰ্যকৰী হোৱাৰ সৈতে কোনো কাৰ্যালয় পোৱা নগ’ল',
   'supComm.noRoles': 'কোনো ভূমিকা পোৱা নগ’ল',
@@ -1152,8 +1134,7 @@ export const as: Record<TranslationKey, string> = {
     'অৱস্থান বাৰ্তা সৃষ্টি ব্যৰ্থ হৈছে। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
   'supComm.alertCreated': 'সফলতাৰে সৃষ্টি কৰা সতৰ্কবাণী',
   'supComm.notificationCreated': 'সফলতাৰে সৃষ্টি কৰা অধিসূচনা',
-  'supComm.createFailed':
-    'অধিসূচনা/সতৰ্কবাণী সৃষ্টি ব্যৰ্থ হৈছে। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
+  'supComm.createFailed': 'অধিসূচনা/সতৰ্কবাণী সৃষ্টি ব্যৰ্থ হৈছে। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
   'supComm.editedSuccessfully': 'সফলতাৰে সম্পাদন কৰা হৈছে',
   'supComm.editFailed': 'সম্পাদনা ব্যৰ্থ হৈছে। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
   'supComm.endTimeBeforeStart': 'অন্তিম সময় আৰম্ভণিৰ সময়তকৈ কম হব নোৱাৰে',
@@ -1210,8 +1191,7 @@ export const as: Record<TranslationKey, string> = {
   'supTraining.uploadFile': 'ফাইল আপল’ড কৰক',
   'supTraining.sizeLimit': 'আকাৰৰ সীমা',
   'supTraining.mb': 'এমবি',
-  'supTraining.supportedFormats':
-    'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supTraining.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
   'supTraining.chooseFile': 'অনুগ্ৰহ কৰি আপল’ডৰ বাবে এটা ফাইল বাছনি কৰক',
   'supTraining.fileTooLarge': 'ফাইলৰ আকাৰ অতিক্ৰম কৰিব নালাগে',
   'supTraining.invalidFileName': 'অবৈধ ফাইলৰ নাম',
@@ -1251,8 +1231,7 @@ export const as: Record<TranslationKey, string> = {
   'supScheme.uploadFile': 'ফাইল আপল’ড কৰক',
   'supScheme.sizeLimit': 'আকাৰৰ সীমা',
   'supScheme.mb': 'এমবি',
-  'supScheme.supportedFormats':
-    'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supScheme.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
   'supScheme.chooseFile': 'অনুগ্ৰহ কৰি আপল’ডৰ বাবে এটা ফাইল বাছনি কৰক',
   'supScheme.fileTooLarge': 'ফাইলৰ আকাৰ অতিক্ৰম কৰিব নালাগে',
   'supScheme.invalidFileName': 'অবৈধ ফাইলৰ নাম',
@@ -1305,8 +1284,7 @@ export const as: Record<TranslationKey, string> = {
   'supKm.uploadFile': 'ফাইল আপল’ড কৰক',
   'supKm.sizeLimit': 'আকাৰৰ সীমা',
   'supKm.mb': 'এমবি',
-  'supKm.supportedFormats':
-    'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supKm.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
   'supKm.chooseFile': 'অনুগ্ৰহ কৰি আপল’ডৰ বাবে এটা ফাইল বাছনি কৰক',
   'supKm.fileTooLarge': 'ফাইলৰ আকাৰ অতিক্ৰম কৰিব নালাগে',
   'supKm.invalidFileName': 'অবৈধ ফাইলৰ নাম',

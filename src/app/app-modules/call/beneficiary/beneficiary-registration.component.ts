@@ -137,9 +137,7 @@ function trimmedMinLength(min: number): ValidatorFn {
       return null;
     }
     const trimmedLength = value.trim().length;
-    return trimmedLength < min
-      ? { minlength: { requiredLength: min, actualLength: trimmedLength } }
-      : null;
+    return trimmedLength < min ? { minlength: { requiredLength: min, actualLength: trimmedLength } } : null;
   };
 }
 
@@ -190,11 +188,7 @@ function fromDateInput(value: string): Date | null {
   const parsed = new Date(year, month - 1, day);
   // `Date` normalizes overflow (Feb 31 -> Mar 3), so a component that changed
   // on the round-trip means the input was not a real calendar date.
-  if (
-    parsed.getFullYear() !== year ||
-    parsed.getMonth() !== month - 1 ||
-    parsed.getDate() !== day
-  ) {
+  if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
     return null;
   }
   // A DOB in the future is invalid; the picked local-midnight date must not be
@@ -292,16 +286,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               {{ 'registration.history.loading' | translate: lang() }}
             </p>
           } @else if (historyResults().length === 0) {
-            <p
-              class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground"
-            >
+            <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
               {{ 'registration.history.empty' | translate: lang() }}
             </p>
           } @else {
-            <ng-container
-              [ngTemplateOutlet]="resultsTable"
-              [ngTemplateOutletContext]="{ rows: historyResults() }"
-            />
+            <ng-container [ngTemplateOutlet]="resultsTable" [ngTemplateOutletContext]="{ rows: historyResults() }" />
           }
         </div>
       }
@@ -350,23 +339,14 @@ function validDob(control: AbstractControl): ValidationErrors | null {
           }
 
           <div class="mt-4">
-            <button
-              z-button
-              type="submit"
-              zType="default"
-              [zLoading]="searchLoading()"
-              [zDisabled]="searchLoading()"
-            >
+            <button z-button type="submit" zType="default" [zLoading]="searchLoading()" [zDisabled]="searchLoading()">
               {{ 'registration.action.search' | translate: lang() }}
             </button>
           </div>
 
           <div class="mt-5">
             @if (searchTimedOut()) {
-              <div
-                class="rounded-md border border-dashed border-destructive/50 px-4 py-8 text-center"
-                role="alert"
-              >
+              <div class="rounded-md border border-dashed border-destructive/50 px-4 py-8 text-center" role="alert">
                 <p class="text-sm font-medium text-destructive">
                   {{ 'registration.search.timeout' | translate: lang() }}
                 </p>
@@ -394,16 +374,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 {{ 'registration.search.prompt' | translate: lang() }}
               </p>
             } @else if (searchResults().length === 0) {
-              <p
-                class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground"
-              >
+              <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
                 {{ 'registration.search.empty' | translate: lang() }}
               </p>
             } @else {
-              <ng-container
-                [ngTemplateOutlet]="resultsTable"
-                [ngTemplateOutletContext]="{ rows: searchResults() }"
-              />
+              <ng-container [ngTemplateOutlet]="resultsTable" [ngTemplateOutletContext]="{ rows: searchResults() }" />
             }
           </div>
         </form>
@@ -454,9 +429,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             <!-- Healthcare worker + emergency toggles -->
             <div class="mb-4 flex flex-wrap items-center gap-6">
               <span class="flex items-center gap-3 text-sm">
-                <span class="font-medium">{{
-                  'registration.field.healthcareWorker' | translate: lang()
-                }}</span>
+                <span class="font-medium">{{ 'registration.field.healthcareWorker' | translate: lang() }}</span>
                 <label class="flex items-center gap-1">
                   <input
                     type="radio"
@@ -512,11 +485,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               <z-form-field>
                 <label z-form-label>{{ 'registration.field.title' | translate: lang() }}</label>
                 <z-form-control>
-                  <select
-                    formControlName="titleId"
-                    [class]="selectClass"
-                    (change)="onTitleChange()"
-                  >
+                  <select formControlName="titleId" [class]="selectClass" (change)="onTitleChange()">
                     <option [ngValue]="null">
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -528,48 +497,30 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{
-                  'registration.field.firstName' | translate: lang()
-                }}</label>
+                <label z-form-label zRequired>{{ 'registration.field.firstName' | translate: lang() }}</label>
                 <z-form-control>
-                  <input
-                    z-input
-                    formControlName="firstName"
-                    [attr.aria-invalid]="ariaInvalid('firstName')"
-                  />
+                  <input z-input formControlName="firstName" [attr.aria-invalid]="ariaInvalid('firstName')" />
                 </z-form-control>
                 @if (showError('firstName', 'required')) {
-                  <z-form-message>{{
-                    'registration.validation.required' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
                 @if (showError('firstName', 'minlength')) {
-                  <z-form-message>{{
-                    'registration.validation.firstNameMin' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.firstNameMin' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
 
               <z-form-field>
                 <label z-form-label>{{ 'registration.field.lastName' | translate: lang() }}</label>
                 <z-form-control>
-                  <input
-                    z-input
-                    formControlName="lastName"
-                    [attr.aria-invalid]="ariaInvalid('lastName')"
-                  />
+                  <input z-input formControlName="lastName" [attr.aria-invalid]="ariaInvalid('lastName')" />
                 </z-form-control>
                 @if (showError('lastName', 'whitespace')) {
-                  <z-form-message>{{
-                    'registration.validation.whitespace' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.whitespace' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{
-                  'registration.field.gender' | translate: lang()
-                }}</label>
+                <label z-form-label zRequired>{{ 'registration.field.gender' | translate: lang() }}</label>
                 <z-form-control>
                   <select
                     formControlName="genderID"
@@ -585,9 +536,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   </select>
                 </z-form-control>
                 @if (showError('genderID', 'required')) {
-                  <z-form-message>{{
-                    'registration.validation.required' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
 
@@ -605,16 +554,12 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   />
                 </z-form-control>
                 @if (showError('dob', 'invalidDob')) {
-                  <z-form-message>{{
-                    'registration.validation.dobInvalid' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.dobInvalid' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{
-                  'registration.field.age' | translate: lang()
-                }}</label>
+                <label z-form-label zRequired>{{ 'registration.field.age' | translate: lang() }}</label>
                 <z-form-control>
                   <input
                     z-input
@@ -626,27 +571,17 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   />
                 </z-form-control>
                 @if (showError('age', 'required')) {
-                  <z-form-message>{{
-                    'registration.validation.required' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
                 @if (showError('age', 'ageRange')) {
-                  <z-form-message>{{
-                    'registration.validation.ageRange' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.ageRange' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{
-                  'registration.field.ageUnit' | translate: lang()
-                }}</label>
+                <label z-form-label zRequired>{{ 'registration.field.ageUnit' | translate: lang() }}</label>
                 <z-form-control>
-                  <select
-                    formControlName="ageUnit"
-                    [class]="selectClass"
-                    (change)="onAgeUnitChange()"
-                  >
+                  <select formControlName="ageUnit" [class]="selectClass" (change)="onAgeUnitChange()">
                     <option value="years">
                       {{ 'registration.ageUnit.years' | translate: lang() }}
                     </option>
@@ -698,9 +633,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{
-                    'registration.field.maritalStatus' | translate: lang()
-                  }}</label>
+                  <label z-form-label>{{ 'registration.field.maritalStatus' | translate: lang() }}</label>
                   <z-form-control>
                     <select formControlName="maritalStatusID" [class]="selectClass">
                       <option [ngValue]="null">
@@ -714,27 +647,21 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{
-                    'registration.field.fatherName' | translate: lang()
-                  }}</label>
+                  <label z-form-label>{{ 'registration.field.fatherName' | translate: lang() }}</label>
                   <z-form-control>
                     <input z-input formControlName="fatherName" />
                   </z-form-control>
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{
-                    'registration.field.spouseName' | translate: lang()
-                  }}</label>
+                  <label z-form-label>{{ 'registration.field.spouseName' | translate: lang() }}</label>
                   <z-form-control>
                     <input z-input formControlName="spouseName" />
                   </z-form-control>
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{
-                    'registration.field.education' | translate: lang()
-                  }}</label>
+                  <label z-form-label>{{ 'registration.field.education' | translate: lang() }}</label>
                   <z-form-control>
                     <select formControlName="educationID" [class]="selectClass">
                       <option [ngValue]="null">
@@ -750,11 +677,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 <z-form-field>
                   <label z-form-label>{{ 'registration.field.idType' | translate: lang() }}</label>
                   <z-form-control>
-                    <select
-                      formControlName="identityType"
-                      [class]="selectClass"
-                      (change)="onIdTypeChange()"
-                    >
+                    <select formControlName="identityType" [class]="selectClass" (change)="onIdTypeChange()">
                       <option [ngValue]="null">
                         {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                       </option>
@@ -768,20 +691,12 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{
-                    'registration.field.idNumber' | translate: lang()
-                  }}</label>
+                  <label z-form-label>{{ 'registration.field.idNumber' | translate: lang() }}</label>
                   <z-form-control>
-                    <input
-                      z-input
-                      formControlName="govtIdentityNo"
-                      [attr.maxlength]="idMaxLength()"
-                    />
+                    <input z-input formControlName="govtIdentityNo" [attr.maxlength]="idMaxLength()" />
                   </z-form-control>
                   @if (showError('govtIdentityNo', 'pattern')) {
-                    <z-form-message>{{
-                      'registration.validation.idInvalid' | translate: lang()
-                    }}</z-form-message>
+                    <z-form-message>{{ 'registration.validation.idInvalid' | translate: lang() }}</z-form-message>
                   }
                 </z-form-field>
               </div>
@@ -799,13 +714,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   {{ 'registration.action.register' | translate: lang() }}
                 </button>
               } @else {
-                <button
-                  z-button
-                  type="button"
-                  zType="default"
-                  [zDisabled]="cliMissing()"
-                  (click)="goToAddress()"
-                >
+                <button z-button type="button" zType="default" [zDisabled]="cliMissing()" (click)="goToAddress()">
                   {{ 'registration.action.next' | translate: lang() }}
                 </button>
               }
@@ -816,15 +725,9 @@ function validDob(control: AbstractControl): ValidationErrors | null {
           <div [hidden]="page() !== 2 || isEmergency()">
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <z-form-field>
-                <label z-form-label zRequired>{{
-                  'registration.field.state' | translate: lang()
-                }}</label>
+                <label z-form-label zRequired>{{ 'registration.field.state' | translate: lang() }}</label>
                 <z-form-control>
-                  <select
-                    formControlName="stateID"
-                    [class]="selectClass"
-                    (change)="onStateChange()"
-                  >
+                  <select formControlName="stateID" [class]="selectClass" (change)="onStateChange()">
                     <option [ngValue]="null" disabled>
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -834,22 +737,14 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   </select>
                 </z-form-control>
                 @if (showError('stateID', 'required')) {
-                  <z-form-message>{{
-                    'registration.validation.required' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{
-                  'registration.field.district' | translate: lang()
-                }}</label>
+                <label z-form-label zRequired>{{ 'registration.field.district' | translate: lang() }}</label>
                 <z-form-control>
-                  <select
-                    formControlName="districtID"
-                    [class]="selectClass"
-                    (change)="onDistrictChange()"
-                  >
+                  <select formControlName="districtID" [class]="selectClass" (change)="onDistrictChange()">
                     <option [ngValue]="null" disabled>
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -859,22 +754,14 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   </select>
                 </z-form-control>
                 @if (showError('districtID', 'required')) {
-                  <z-form-message>{{
-                    'registration.validation.required' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{
-                  'registration.field.subDistrict' | translate: lang()
-                }}</label>
+                <label z-form-label zRequired>{{ 'registration.field.subDistrict' | translate: lang() }}</label>
                 <z-form-control>
-                  <select
-                    formControlName="subDistrictID"
-                    [class]="selectClass"
-                    (change)="onSubDistrictChange()"
-                  >
+                  <select formControlName="subDistrictID" [class]="selectClass" (change)="onSubDistrictChange()">
                     <option [ngValue]="null" disabled>
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -884,16 +771,12 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   </select>
                 </z-form-control>
                 @if (showError('subDistrictID', 'required')) {
-                  <z-form-message>{{
-                    'registration.validation.required' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{
-                  'registration.field.village' | translate: lang()
-                }}</label>
+                <label z-form-label zRequired>{{ 'registration.field.village' | translate: lang() }}</label>
                 <z-form-control>
                   <select formControlName="villageID" [class]="selectClass">
                     <option [ngValue]="null" disabled>
@@ -905,16 +788,12 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   </select>
                 </z-form-control>
                 @if (showError('villageID', 'required')) {
-                  <z-form-message>{{
-                    'registration.validation.required' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label>{{
-                  'registration.field.houseNumber' | translate: lang()
-                }}</label>
+                <label z-form-label>{{ 'registration.field.houseNumber' | translate: lang() }}</label>
                 <z-form-control>
                   <input z-input formControlName="houseNumber" maxlength="25" />
                 </z-form-control>
@@ -926,9 +805,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   <input z-input formControlName="pincode" inputmode="numeric" maxlength="6" />
                 </z-form-control>
                 @if (showError('pincode', 'pattern')) {
-                  <z-form-message>{{
-                    'registration.validation.pincode' | translate: lang()
-                  }}</z-form-message>
+                  <z-form-message>{{ 'registration.validation.pincode' | translate: lang() }}</z-form-message>
                 }
               </z-form-field>
             </div>
@@ -937,25 +814,12 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               @for (ctrl of altPhoneControls; track ctrl.name; let i = $index) {
                 <z-form-field>
-                  <label z-form-label
-                    >{{ 'registration.field.alternateNumber' | translate: lang() }}
-                    {{ i + 1 }}</label
-                  >
+                  <label z-form-label>{{ 'registration.field.alternateNumber' | translate: lang() }} {{ i + 1 }}</label>
                   <z-form-control>
-                    <input
-                      z-input
-                      [formControlName]="ctrl.name"
-                      inputmode="numeric"
-                      maxlength="10"
-                    />
+                    <input z-input [formControlName]="ctrl.name" inputmode="numeric" maxlength="10" />
                   </z-form-control>
-                  @if (
-                    registerForm.get(ctrl.name)?.touched &&
-                    registerForm.get(ctrl.name)?.hasError('pattern')
-                  ) {
-                    <z-form-message>{{
-                      'registration.validation.phone' | translate: lang()
-                    }}</z-form-message>
+                  @if (registerForm.get(ctrl.name)?.touched && registerForm.get(ctrl.name)?.hasError('pattern')) {
+                    <z-form-message>{{ 'registration.validation.phone' | translate: lang() }}</z-form-message>
                   }
                 </z-form-field>
               }
@@ -984,13 +848,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             role="alert"
           >
             <span>{{ msg }}</span>
-            <button
-              z-button
-              type="button"
-              zType="ghost"
-              zSize="sm"
-              (click)="registerError.set(null)"
-            >
+            <button z-button type="button" zType="ghost" zSize="sm" (click)="registerError.set(null)">
               {{ 'registration.register.dismiss' | translate: lang() }}
             </button>
           </div>
@@ -1029,13 +887,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   {{ row.i_bendemographics?.m_district?.districtName ?? '—' }}
                 </td>
                 <td z-table-cell class="text-right">
-                  <button
-                    z-button
-                    type="button"
-                    zType="outline"
-                    zSize="sm"
-                    (click)="selectBeneficiary(row)"
-                  >
+                  <button z-button type="button" zType="outline" zSize="sm" (click)="selectBeneficiary(row)">
                     {{ 'registration.action.select' | translate: lang() }}
                   </button>
                 </td>
@@ -1081,9 +933,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
    */
   readonly searchTimedOut = signal(false);
   /** The last submitted search criteria, so Retry re-fires the same search. */
-  private readonly lastSearchCriteria = signal<BeneficiarySearchRequest | null>(
-    null,
-  );
+  private readonly lastSearchCriteria = signal<BeneficiarySearchRequest | null>(null);
   /**
    * Monotonic id for the latest search request. Bumped on every {@link doSearch}
    * call (including the empty-criteria reset), so a slow in-flight response whose
@@ -1112,9 +962,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   private parentBenRegID: number | null = null;
 
   // --- Master data --------------------------------------------------------
-  readonly genders = signal<Gender[]>(
-    GENDER_OPTIONS.map((g) => ({ genderID: g.genderID, genderName: g.genderName })),
-  );
+  readonly genders = signal<Gender[]>(GENDER_OPTIONS.map((g) => ({ genderID: g.genderID, genderName: g.genderName })));
   readonly titles = signal<Title[]>([]);
   readonly communities = signal<Community[]>([]);
   readonly maritalStatuses = signal<MaritalStatus[]>([]);
@@ -1130,9 +978,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   readonly villages = signal<VillageOption[]>([]);
 
   /** Age range validator; the minimum depends on the healthcare-worker flag. */
-  private readonly ageRangeValidator: ValidatorFn = (
-    control: AbstractControl,
-  ): ValidationErrors | null => {
+  private readonly ageRangeValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
     const value = control.value;
     if (value === null || value === '' || value === undefined) {
       return null; // emptiness is handled by `required`
@@ -1210,9 +1056,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   });
 
   /** Alternate-number control names, for the template loop. */
-  readonly altPhoneControls: ReadonlyArray<{ name: AltPhoneName }> = ALT_PHONE_NAMES.map(
-    (name) => ({ name }),
-  );
+  readonly altPhoneControls: ReadonlyArray<{ name: AltPhoneName }> = ALT_PHONE_NAMES.map((name) => ({ name }));
 
   /** Display the full name from the available name parts. */
   readonly fullName = (row: BeneficiaryRecord): string =>
@@ -1247,9 +1091,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
   private translateGender(id?: number, name?: string): string {
     const option = GENDER_OPTIONS.find(
-      (g) =>
-        (id != null && g.genderID === id) ||
-        (!!name && g.genderName.toLowerCase() === name.toLowerCase()),
+      (g) => (id != null && g.genderID === id) || (!!name && g.genderName.toLowerCase() === name.toLowerCase()),
     );
     return option ? this.i18n.instant(option.labelKey) : (name ?? '—');
   }
@@ -1300,9 +1142,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         this.educations.set(data.i_BeneficiaryEducation ?? []);
         this.govtIdTypes.set((data.govtIdentityTypes ?? []).filter((t) => t.isGovtID !== false));
         this.relationships.set(
-          (data.benRelationshipTypes ?? []).filter(
-            (r) => r.benRelationshipType?.toLowerCase() !== 'self',
-          ),
+          (data.benRelationshipTypes ?? []).filter((r) => r.benRelationshipType?.toLowerCase() !== 'self'),
         );
       },
       // Master data is best-effort: the form still works with the gender
@@ -1341,8 +1181,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
    */
   private detectParentBeneficiary(rows: BeneficiaryRecord[]): void {
     const self = rows.find(
-      (r) =>
-        r.benPhoneMaps?.[0]?.benRelationshipType?.benRelationshipType?.toLowerCase() === 'self',
+      (r) => r.benPhoneMaps?.[0]?.benRelationshipType?.benRelationshipType?.toLowerCase() === 'self',
     );
     if (self) {
       this.parentBenRegID = self.beneficiaryRegID;
@@ -1599,9 +1438,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         // as non-retryable — normalise it to a retryable BeneficiaryError.
         catchError((err: unknown) =>
           throwError(() =>
-            err instanceof TimeoutError
-              ? ({ status: 0, errorMessage: '' } satisfies BeneficiaryError)
-              : err,
+            err instanceof TimeoutError ? ({ status: 0, errorMessage: '' } satisfies BeneficiaryError) : err,
           ),
         ),
       )
@@ -1723,20 +1560,15 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       .subscribe({
         next: (created) => {
           this.registerLoading.set(false);
-          this.resolveBeneficiary(
-            created.beneficiaryRegID,
-            'registration.toast.registered',
-            v.districtID,
-            {
-              firstName: v.firstName.trim() || null,
-              lastName: v.lastName.trim() || null,
-              // Age captured in years only (the form's default age unit); other
-              // units are left null so the clinical tools don't misread them.
-              age: v.ageUnit === 'years' ? v.age : null,
-              genderId: v.genderID,
-              genderName,
-            },
-          );
+          this.resolveBeneficiary(created.beneficiaryRegID, 'registration.toast.registered', v.districtID, {
+            firstName: v.firstName.trim() || null,
+            lastName: v.lastName.trim() || null,
+            // Age captured in years only (the form's default age unit); other
+            // units are left null so the clinical tools don't misread them.
+            age: v.ageUnit === 'years' ? v.age : null,
+            genderId: v.genderID,
+            genderName,
+          });
         },
         error: (err: BeneficiaryError) => {
           this.registerLoading.set(false);
@@ -1779,8 +1611,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   selectBeneficiary(row: BeneficiaryRecord): void {
     // Age is only meaningful in years for the clinical tools; a months/days
     // infant age is left null rather than mis-read as years.
-    const ageInYears =
-      row.ageUnits === undefined || /year/i.test(row.ageUnits) ? (row.actualAge ?? null) : null;
+    const ageInYears = row.ageUnits === undefined || /year/i.test(row.ageUnits) ? (row.actualAge ?? null) : null;
     this.resolveBeneficiary(
       row.beneficiaryRegID,
       'registration.toast.selected',

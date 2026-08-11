@@ -60,11 +60,7 @@ export class MoWorkspaceComponent {
   readonly hasCoPrivilege = computed(() =>
     this.authStore
       .privileges()
-      .some(
-        (p) =>
-          p.serviceName === SERVICE_104 &&
-          (p.roles ?? []).some((r) => r.RoleName === ROLE_CO),
-      ),
+      .some((p) => p.serviceName === SERVICE_104 && (p.roles ?? []).some((r) => r.RoleName === ROLE_CO)),
   );
 
   goToCo(): void {

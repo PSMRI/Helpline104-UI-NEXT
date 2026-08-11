@@ -59,13 +59,11 @@ export class AlternateEmailService {
 
   /** Send the feedback email to the chosen recipients. */
   sendEmail(req: SendEmailRequest): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.getCommonBaseURL() + SEND_EMAIL_PATH, req)
-      .pipe(
-        timeout(EMAIL_TIMEOUT_MS),
-        map((res) => this.readData(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.getCommonBaseURL() + SEND_EMAIL_PATH, req).pipe(
+      timeout(EMAIL_TIMEOUT_MS),
+      map((res) => this.readData(res)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   private readData<T>(res: ApiResponse<T>): T | undefined {

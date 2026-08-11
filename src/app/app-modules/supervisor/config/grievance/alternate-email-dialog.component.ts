@@ -20,22 +20,9 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePlus, lucideTrash2 } from '@ng-icons/lucide';
@@ -202,9 +189,7 @@ export class AlternateEmailDialogComponent implements OnInit {
   }
 
   addManual(): void {
-    this.manualEmails.push(
-      this.fb.control('', [Validators.required, Validators.pattern(EMAIL_PATTERN)]),
-    );
+    this.manualEmails.push(this.fb.control('', [Validators.required, Validators.pattern(EMAIL_PATTERN)]));
   }
 
   removeManual(index: number): void {
@@ -222,9 +207,7 @@ export class AlternateEmailDialogComponent implements OnInit {
     if (!this.manualForm.valid) {
       return false;
     }
-    const manualCount = this.manualEmails.controls.filter(
-      (c) => ((c.value as string) ?? '').trim().length > 0,
-    ).length;
+    const manualCount = this.manualEmails.controls.filter((c) => ((c.value as string) ?? '').trim().length > 0).length;
     return this.selected().size > 0 || manualCount > 0;
   }
 
