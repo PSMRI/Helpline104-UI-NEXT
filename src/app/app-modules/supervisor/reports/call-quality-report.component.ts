@@ -92,7 +92,17 @@ const SEARCH_CRITERIAS: readonly SearchCriteria[] = [
         {{ 'supReports.callQuality.title' | translate: lang() }}
       </h3>
 
-      @if (runner.errorMessage()) {
+      @if (runner.serverError()) {
+        <div
+          class="mb-3 flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+          role="alert"
+        >
+          <span>{{ runner.errorMessage() }}</span>
+          <button z-button type="button" zType="ghost" zSize="sm" (click)="runner.dismissError()">
+            {{ 'supReports.dismiss' | translate: lang() }}
+          </button>
+        </div>
+      } @else if (runner.errorMessage()) {
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">
           {{ runner.errorMessage() }}
         </p>
@@ -297,7 +307,7 @@ export class CallQualityReportComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (list) => this.callTypes.set(list),
-          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+          error: (err: SupervisorError) => this.runner.setError(err),
         });
     } else if (criteria === 'AgentWiseReport' && !this.agents().length) {
       this.service
@@ -305,7 +315,7 @@ export class CallQualityReportComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (list) => this.agents.set(list),
-          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+          error: (err: SupervisorError) => this.runner.setError(err),
         });
     } else if (criteria === 'LocationWiseReport' && !this.workLocations().length) {
       this.service
@@ -313,7 +323,7 @@ export class CallQualityReportComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (list) => this.workLocations.set(list),
-          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+          error: (err: SupervisorError) => this.runner.setError(err),
         });
     } else if (criteria === 'SkillsetWiseReport' && !this.roles().length) {
       this.service
@@ -321,7 +331,7 @@ export class CallQualityReportComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (list) => this.roles.set(list),
-          error: (err: SupervisorError) => this.runner.errorMessage.set(err.errorMessage),
+          error: (err: SupervisorError) => this.runner.setError(err),
         });
     }
   }

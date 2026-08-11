@@ -21,18 +21,125 @@
  */
 
 import { Injectable } from '@angular/core';
+import * as CryptoJS from 'crypto-js';
+import { environment } from '@env/environment';
+import { generateKey } from '../crypto/pbkdf2.util';
 
 /**
- * Thin wrapper over the browser `sessionStorage`.
+ * Thin wrapper over the browser `sessionStorage` that transparently encrypts
+ * values at rest (AES-CBC, key derived via the same PBKDF2 primitive the login
+ * flow uses — see `password-crypto.ts`).
  *
  * Exposes the same `getItem/setItem/removeItem/clear` surface used by MMU and
- * Common-UI so call sites stay portable. Values are currently stored in plain
- * text — the legacy 104 app also kept the auth token unencrypted.
+ * Common-UI so call sites stay portable; callers are unaware of the
+ * encryption.
  *
- * TODO(P1): swap the plain backing for the encrypted Common-UI
- * `SessionStorageService` (or crypto-js with `environment.encKey`) once the
- * Common-UI submodule is wired into this app.
+ * Stored format: `104enc.v1:` + ivHex(32) + ':' + ciphertextBase64 + ':' +
+ * hmacHex(64). Encrypt-then-MAC: the HMAC-SHA256 (separate derived key) is
+ * verified BEFORE decryption, so any bit-flipped or truncated payload yields
+ * `null` — CBC alone is malleable, a plaintext marker check cannot catch all
+ * tampering. Legacy plaintext written before this change, foreign data, or a
+ * wrong key likewise yield `null`, which callers already treat as
+ * "absent / re-login".
+ *
+ * HONEST LIMITATION: the key is derived from constants bundled in the JS (and
+ * `environment.encKey` when set). Anyone who can read this code can decrypt
+ * the values, so this is obfuscation / defense-in-depth against casual
+ * inspection of DevTools > Application > Session Storage — NOT real secrecy.
+ * The token is still protected primarily by its server-side expiry.
  */
+
+/** Marker for values written by this service (outer prefix + inner check). */
+const ENC_MARKER = '104enc.v1:';
+
+/**
+ * Fixed app salt (hex) for PBKDF2. Deliberately constant — the derived key
+ * must be deterministic so an in-flight session survives a page reload.
+ */
+const ENC_SALT_HEX =
+  '68656c706c696e6531303475692d73657373696f6e2d73746f726167652d7631';
+
+/** Passphrase for key derivation; `environment.encKey` wins when configured. */
+const ENC_FALLBACK_PASSPHRASE = 'Helpline104UI@SessionStore';
+
+/**
+ * Key derived lazily ONCE at module level. PBKDF2 (1989 SHA-512 iterations)
+ * is too slow to run per call — `getItem` runs repeatedly during store
+ * rehydration on every reload.
+ */
+let cachedKey: CryptoJS.lib.WordArray | null = null;
+let cachedMacKey: CryptoJS.lib.WordArray | null = null;
+
+function storageKey(): CryptoJS.lib.WordArray {
+  if (cachedKey === null) {
+    cachedKey = generateKey(
+      ENC_SALT_HEX,
+      environment.encKey || ENC_FALLBACK_PASSPHRASE,
+    );
+  }
+  return cachedKey;
+}
+
+/** Separate derived key for the HMAC — encryption keys are never reused for authentication. */
+function macKey(): CryptoJS.lib.WordArray {
+  if (cachedMacKey === null) {
+    cachedMacKey = generateKey(
+      ENC_SALT_HEX,
+      (environment.encKey || ENC_FALLBACK_PASSPHRASE) + ':mac',
+    );
+  }
+  return cachedMacKey;
+}
+
+function computeMac(ivHex: string, cipherB64: string): string {
+  return CryptoJS.HmacSHA256(ivHex + ':' + cipherB64, macKey()).toString(CryptoJS.enc.Hex);
+}
+
+/** Encrypt a plaintext value into the `104enc.v1:ivHex:cipherB64:macHex` format. */
+function encryptValue(plainText: string): string {
+  const iv = CryptoJS.lib.WordArray.random(16);
+  const encrypted = CryptoJS.AES.encrypt(ENC_MARKER + plainText, storageKey(), {
+    iv,
+  });
+  const ivHex = iv.toString(CryptoJS.enc.Hex);
+  const cipherB64 = encrypted.ciphertext.toString(CryptoJS.enc.Base64);
+  return ENC_MARKER + ivHex + ':' + cipherB64 + ':' + computeMac(ivHex, cipherB64);
+}
+
+/**
+ * Decrypt a stored value; returns `null` (never throws) for anything that is
+ * not a valid, MAC-verified ciphertext produced by {@link encryptValue}.
+ */
+function decryptValue(stored: string): string | null {
+  if (!stored.startsWith(ENC_MARKER)) {
+    // Legacy plaintext from before encryption, or foreign data.
+    return null;
+  }
+  const parts = stored.slice(ENC_MARKER.length).split(':');
+  if (parts.length !== 3) {
+    return null;
+  }
+  const [ivHex, cipherB64, macHex] = parts;
+  try {
+    // Encrypt-then-MAC: verify authenticity BEFORE touching the ciphertext.
+    // CBC is malleable, so a marker check alone cannot detect all tampering.
+    if (computeMac(ivHex, cipherB64) !== macHex) {
+      return null;
+    }
+    const decrypted = CryptoJS.AES.decrypt(cipherB64, storageKey(), {
+      iv: CryptoJS.enc.Hex.parse(ivHex),
+    }).toString(CryptoJS.enc.Utf8);
+    // The inner marker proves the decrypt round-tripped with the right key.
+    if (!decrypted.startsWith(ENC_MARKER)) {
+      return null;
+    }
+    return decrypted.slice(ENC_MARKER.length);
+  } catch {
+    // Malformed base64/hex or invalid padding — treat as absent.
+    return null;
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class SessionStorageService {
   private get store(): Storage | null {
@@ -41,7 +148,7 @@ export class SessionStorageService {
 
   setItem(key: string, value: string): void {
     try {
-      this.store?.setItem(key, value);
+      this.store?.setItem(key, encryptValue(value));
     } catch {
       // Ignore: quota exceeded, private-mode restrictions, or storage disabled.
     }
@@ -49,7 +156,8 @@ export class SessionStorageService {
 
   getItem(key: string): string | null {
     try {
-      return this.store?.getItem(key) ?? null;
+      const stored = this.store?.getItem(key) ?? null;
+      return stored === null ? null : decryptValue(stored);
     } catch {
       return null;
     }
