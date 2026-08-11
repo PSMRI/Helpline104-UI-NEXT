@@ -20,20 +20,48 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpContextToken, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { finalize } from 'rxjs/operators';
 
 import { SpinnerService } from '../services/spinner.service';
 
 /**
+ * Per-request spinner opt-out for background calls whose URL also serves real
+ * screens (e.g. the session keepalive ping):
+ * `http.post(url, body, { context: new HttpContext().set(SKIP_SPINNER, true) })`.
+ */
+export const SKIP_SPINNER = new HttpContextToken<boolean>(() => false);
+
+/**
+ * Endpoints that must not drive the global spinner — mirrors MMU's
+ * `donotShowSpinnerUrl`. The CTI calls fire on login and on a background
+ * polling cadence; routing them through the spinner makes it flicker.
+ */
+const SPINNER_SKIP_URLS: readonly string[] = [
+  'cti/getAgentState',
+  'cti/getAgentIPAddress',
+  'cti/getLoginKey',
+  'cti/doAgentLogin',
+];
+
+/**
  * Drives the global loading indicator via a pending-request counter, replacing
  * the legacy interceptor's inline `loaderService.show()/hide()`.
- *
- * TODO(P1): add a skip-list (e.g. CTI agent-state polling) so background polls
- * don't flash the spinner — mirrors MMU's `donotShowSpinnerUrl`.
  */
 export const loaderInterceptor: HttpInterceptorFn = (req, next) => {
+  // Match on path-segment boundaries, not substrings, so unrelated routes that
+  // merely contain a skip entry (e.g. /other/cti/getAgentState/details) still
+  // drive the spinner. req.url may be relative; the base only anchors parsing.
+  const pathname = new URL(req.url, 'http://localhost').pathname.replace(/\/+$/, '');
+  const shouldSkip =
+    req.context.get(SKIP_SPINNER) ||
+    SPINNER_SKIP_URLS.some((url) => pathname === `/${url}` || pathname.endsWith(`/${url}`));
+
+  if (shouldSkip) {
+    return next(req);
+  }
+
   const spinner = inject(SpinnerService);
 
   spinner.show();

@@ -42,6 +42,7 @@ import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideSearch, lucideUserPlus } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
+import { TimeoutError, catchError, throwError, timeout } from 'rxjs';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import {
@@ -61,6 +62,7 @@ import { BeneficiaryService } from './beneficiary.service';
 import {
   BeneficiaryError,
   BeneficiaryRecord,
+  BeneficiarySearchRequest,
   BlockOption,
   Community,
   DistrictOption,
@@ -91,6 +93,12 @@ const RELATIONSHIP_OTHER = 11;
 const MAX_AGE = 120;
 const MIN_AGE_GENERAL = 1;
 const MIN_AGE_HCW = 16;
+/**
+ * Client-side cap on a beneficiary search: no interceptor adds an HTTP-level
+ * timeout, so without this a stalled request never errors and the search
+ * spinner (and Retry state) would never appear.
+ */
+const SEARCH_TIMEOUT_MS = 30_000;
 /** Alternate phone control names (legacy alternateNumber1..5). */
 const ALT_PHONE_NAMES = [
   'alternateNumber1',
@@ -370,7 +378,27 @@ function validDob(control: AbstractControl): ValidationErrors | null {
           </div>
 
           <div class="mt-5">
-            @if (searchError()) {
+            @if (searchTimedOut()) {
+              <div
+                class="rounded-md border border-dashed border-destructive/50 px-4 py-8 text-center"
+                role="alert"
+              >
+                <p class="text-sm font-medium text-destructive">
+                  {{ 'registration.search.timeout' | translate: lang() }}
+                </p>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  class="mt-4"
+                  [zLoading]="searchLoading()"
+                  [zDisabled]="searchLoading()"
+                  (click)="retrySearch()"
+                >
+                  {{ 'registration.action.retry' | translate: lang() }}
+                </button>
+              </div>
+            } @else if (searchError()) {
               <p
                 class="rounded-md border border-dashed border-destructive/50 py-8 text-center text-sm font-medium text-destructive"
                 role="alert"
@@ -1077,8 +1105,17 @@ export class BeneficiaryRegistrationComponent implements OnInit {
   readonly searchLoading = signal(false);
   readonly searchAttempted = signal(false);
   readonly searchCriteriaError = signal(false);
-  /** True when the last search request failed (e.g. a 504 timeout). */
+  /** True when the last search request failed with a non-retryable error. */
   readonly searchError = signal(false);
+  /**
+   * True when the last search failed with a timeout/5xx — shows the retryable
+   * empty state ("Search timed out…" + Retry) instead of the generic error.
+   */
+  readonly searchTimedOut = signal(false);
+  /** The last submitted search criteria, so Retry re-fires the same search. */
+  private readonly lastSearchCriteria = signal<BeneficiarySearchRequest | null>(
+    null,
+  );
   /**
    * Monotonic id for the latest search request. Bumped on every {@link doSearch}
    * call (including the empty-criteria reset), so a slow in-flight response whose
@@ -1562,49 +1599,86 @@ export class BeneficiaryRegistrationComponent implements OnInit {
       this.searchAttempted.set(false);
       this.searchCriteriaError.set(true);
       this.searchError.set(false);
+      this.searchTimedOut.set(false);
       // A prior in-flight request is now stale (its handlers early-return), so
       // clear the loading flag here or it would stay stuck on.
       this.searchLoading.set(false);
       return;
     }
+    const criteria: BeneficiarySearchRequest = {
+      firstName: firstName.trim() || undefined,
+      lastName: lastName.trim() || undefined,
+      beneficiaryID: beneficiaryID.trim() || undefined,
+      genderID: genderID ?? undefined,
+    };
+    this.lastSearchCriteria.set(criteria);
+    this.runSearch(criteria, requestId);
+  }
+
+  /** Re-fire the last search with the exact same criteria (Retry button). */
+  retrySearch(): void {
+    const criteria = this.lastSearchCriteria();
+    if (!criteria) {
+      return;
+    }
+    this.runSearch(criteria, ++this.searchRequestId);
+  }
+
+  private runSearch(criteria: BeneficiarySearchRequest, requestId: number): void {
     this.searchCriteriaError.set(false);
     this.searchError.set(false);
+    this.searchTimedOut.set(false);
     this.searchLoading.set(true);
 
     this.beneficiary
-      .searchBeneficiary({
-        firstName: firstName.trim() || undefined,
-        lastName: lastName.trim() || undefined,
-        beneficiaryID: beneficiaryID.trim() || undefined,
-        genderID: genderID ?? undefined,
-      })
+      .searchBeneficiary(criteria)
+      .pipe(
+        timeout(SEARCH_TIMEOUT_MS),
+        // A TimeoutError has no `status`, which the handler below would read
+        // as non-retryable — normalise it to a retryable BeneficiaryError.
+        catchError((err: unknown) =>
+          throwError(() =>
+            err instanceof TimeoutError
+              ? ({ status: 0, errorMessage: '' } satisfies BeneficiaryError)
+              : err,
+          ),
+        ),
+      )
       .subscribe({
-        // Guard against out-of-order responses: ignore if a newer search (or a
-        // reset) has since been issued.
-        next: (rows) => {
-          if (this.searchRequestId !== requestId) {
-            return;
-          }
-          this.searchResults.set(rows);
-          this.searchAttempted.set(true);
-          this.searchError.set(false);
-          this.searchLoading.set(false);
-        },
-        error: (err: BeneficiaryError) => {
-          if (this.searchRequestId !== requestId) {
-            return;
-          }
-          this.searchLoading.set(false);
-          this.searchResults.set([]);
-          // A failed request is NOT an empty result — flag it so the panel shows
-          // a retryable error (e.g. a 504 timeout) instead of "no matches".
-          this.searchAttempted.set(true);
-          this.searchError.set(true);
+      // Guard against out-of-order responses: ignore if a newer search (or a
+      // reset) has since been issued.
+      next: (rows) => {
+        if (this.searchRequestId !== requestId) {
+          return;
+        }
+        this.searchResults.set(rows);
+        this.searchAttempted.set(true);
+        this.searchError.set(false);
+        this.searchLoading.set(false);
+      },
+      error: (err: BeneficiaryError) => {
+        if (this.searchRequestId !== requestId) {
+          return;
+        }
+        this.searchLoading.set(false);
+        this.searchResults.set([]);
+        // A failed request is NOT an empty result — flag it so the panel shows
+        // an error state instead of "no matches". Timeouts and server faults
+        // (UAT 504s are intermittent) get the actionable empty state with a
+        // Retry button; other failures keep the generic error message.
+        this.searchAttempted.set(true);
+        const retryable = !err || err.status === 0 || err.status >= 500;
+        this.searchTimedOut.set(retryable);
+        this.searchError.set(!retryable);
+        // Retryable failures already surface the inline Retry panel; a toast
+        // on top of it is redundant, so only non-retryable errors toast.
+        if (!retryable) {
           toast.error(
             err?.errorMessage || this.i18n.instant('registration.search.error'),
           );
-        },
-      });
+        }
+      },
+    });
   }
 
   doRegister(): void {

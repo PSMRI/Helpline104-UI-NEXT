@@ -25,6 +25,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './app-modules/core/auth/auth.guard';
 import { supervisorGuard } from './app-modules/core/auth/supervisor.guard';
 import { inboundGuard } from './app-modules/call/inbound.guard';
+import { sioGuard } from './app-modules/call/sio.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -131,8 +132,10 @@ export const routes: Routes = [
           ),
       },
       {
-        // SIO (Service Information Officer) service-catalogue workspace.
+        // SIO (Service Information Officer) service-catalogue workspace. Gated
+        // so a role without SIO screens cannot reach it by typing the URL.
         path: 'sio',
+        canActivate: [sioGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/sio-workspace.component').then(
             (m) => m.SioWorkspaceComponent,
@@ -273,6 +276,14 @@ export const routes: Routes = [
           ),
       },
       {
+        // Upload a CDSS symptom algorithm as plain text.
+        path: 'upload-symptoms',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/upload-symptoms/upload-symptoms.component').then(
+            (m) => m.UploadSymptomsComponent,
+          ),
+      },
+      {
         // Blood bank URL configuration.
         path: 'blood-url',
         loadComponent: () =>
@@ -332,7 +343,6 @@ export const routes: Routes = [
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
         ['quality-audit', 'supervisor.nav.qualityAudit'],
-        ['upload-symptoms', 'supervisor.nav.uploadSymptoms'],
         ['sms-templates', 'supervisor.nav.smsTemplates'],
         ['diseases-summary', 'supervisor.nav.diseasesSummary'],
       ].map(([path, titleKey]) => ({

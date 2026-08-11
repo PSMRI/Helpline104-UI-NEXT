@@ -188,17 +188,28 @@ export class HaoService {
   /**
    * Campaigns the active call may be transferred to.
    *
-   * UAT returns 200 with a non-array `data` payload for this endpoint, which
-   * the `@for` over the campaign list cannot iterate — anything that is not an
-   * array is treated as "no campaigns".
+   * The CTI backend nests the list at `data.campaign` (snake_case
+   * `campaign_name` keys); older responses put the array directly on `data`.
+   * Both shapes are accepted, anything else is treated as "no campaigns".
    */
   getTransferCampaigns(agentID: number): Observable<TransferCampaign[]> {
     return this.http
-      .post<ApiResponse<TransferCampaign[]>>(
-        this.baseCommon + PATHS.transferCampaigns,
-        { agent_id: agentID },
-      )
-      .pipe(map((res) => (Array.isArray(res.data) ? res.data : [])));
+      .post<
+        ApiResponse<TransferCampaign[] | { campaign?: TransferCampaign[] }>
+      >(this.baseCommon + PATHS.transferCampaigns, { agent_id: agentID })
+      .pipe(
+        map((res) => {
+          const arr = Array.isArray(res.data)
+            ? res.data
+            : Array.isArray(res.data?.campaign)
+              ? res.data.campaign
+              : [];
+          return arr.map((c: any) => ({
+            ...c,
+            campaignName: c.campaignName ?? c.campaign_name ?? '',
+          }));
+        }),
+      );
   }
 
   /** Skills available within a chosen transfer campaign (keyed by name). */
