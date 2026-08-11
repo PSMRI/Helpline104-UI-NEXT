@@ -72,7 +72,13 @@ const SESSION_EXPIRED_STATUS = 5002;
  * backend had thrown it away and the workspace tore the call down regardless, so
  * any non-200 envelope becomes an error for the caller's `error:` branch.
  */
-function assertCallActionSucceeded(res: ApiResponse<unknown>, action: string): void {
+function assertCallActionSucceeded(res: ApiResponse<unknown> | null, action: string): void {
+  // A body-less answer (HTTP 204, or a JSON `null`) carries no failure to report,
+  // and reading through it would throw a TypeError that the caller would surface
+  // as a failed transfer/close — the very mis-report this check exists to prevent.
+  if (res === null || res === undefined) {
+    return;
+  }
   const status = res.status?.trim().toUpperCase() ?? '';
   // Covers "FAILURE" and the longer "Failed with <cause> at <timestamp>" form.
   const failed = (res.statusCode !== undefined && res.statusCode !== 200) || status.startsWith('FAIL');

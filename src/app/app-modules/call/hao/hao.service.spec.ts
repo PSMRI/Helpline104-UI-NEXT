@@ -102,7 +102,7 @@ describe('HaoService call-lifecycle envelope handling', () => {
       expect(failure?.message).toContain('FK constraint fails');
     });
 
-    it('passes a 5002 envelope through — session expiry is the interceptor\'s to own', () => {
+    it("passes a 5002 envelope through — session expiry is the interceptor's to own", () => {
       const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
       service.closeCall(closeRequest()).subscribe(outcome);
 
@@ -148,6 +148,31 @@ describe('HaoService call-lifecycle envelope handling', () => {
       service.transferCall(transferRequest()).subscribe(outcome);
 
       expectOne('cti/transferCall').flush({});
+
+      expect(outcome.error).not.toHaveBeenCalled();
+      expect(outcome.next).toHaveBeenCalled();
+    });
+  });
+
+  // A body-less answer (HTTP 204, or a JSON `null`) must not be read through: it
+  // carries no failure, and a TypeError here would be surfaced to the agent as a
+  // failed transfer/close — the mis-report the envelope check exists to prevent.
+  describe('null response body', () => {
+    it('closeCall completes', () => {
+      const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
+      service.closeCall(closeRequest()).subscribe(outcome);
+
+      expectOne('call/closeCall').flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(outcome.error).not.toHaveBeenCalled();
+      expect(outcome.next).toHaveBeenCalled();
+    });
+
+    it('transferCall completes', () => {
+      const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
+      service.transferCall(transferRequest()).subscribe(outcome);
+
+      expectOne('cti/transferCall').flush(null, { status: 204, statusText: 'No Content' });
 
       expect(outcome.error).not.toHaveBeenCalled();
       expect(outcome.next).toHaveBeenCalled();

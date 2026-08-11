@@ -89,10 +89,10 @@ export class CallStore {
     readStoredTimestamp(this.storage.getItem(CALL_STORAGE_KEYS.startedAt)),
   );
   private readonly _beneficiaryId = signal<number | null>(
-    readStoredNumber(this.storage.getItem(CALL_STORAGE_KEYS.beneficiaryId)),
+    readStoredId(this.storage.getItem(CALL_STORAGE_KEYS.beneficiaryId)),
   );
   private readonly _districtID = signal<number | null>(
-    readStoredNumber(this.storage.getItem(CALL_STORAGE_KEYS.districtId)),
+    readStoredId(this.storage.getItem(CALL_STORAGE_KEYS.districtId)),
   );
   private readonly _demographics = signal<CallerDemographics | null>(
     readStoredDemographics(this.storage.getItem(CALL_STORAGE_KEYS.demographics)),
@@ -225,13 +225,26 @@ function readStoredTimestamp(raw: string | null): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
-/** Parse a stored numeric id (beneficiary, district); null when absent/invalid. */
-function readStoredNumber(raw: string | null): number | null {
+/**
+ * Parse a stored record id (beneficiary, district, gender).
+ *
+ * Ids are positive whole numbers, so anything else — negative, fractional, beyond
+ * safe-integer precision, empty — is discarded rather than restored. Without this,
+ * a corrupt key could seed a bogus id that {@link beneficiaryGuard} would accept
+ * as an identified caller (it only tests for non-null), admitting a workspace with
+ * no valid patient behind it. No upper bound is imposed: the real ids are issued
+ * by the backend and range from small district ids to 12-digit registration ids.
+ */
+function readStoredId(raw: string | null): number | null {
   if (raw === null || raw.trim() === '') {
     return null;
   }
-  const value = Number(raw);
-  return Number.isFinite(value) ? value : null;
+  return toId(Number(raw));
+}
+
+/** Narrow an already-parsed value to a positive whole id, or null. */
+function toId(value: unknown): number | null {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : null;
 }
 
 /**
@@ -249,15 +262,33 @@ function readStoredDemographics(raw: string | null): CallerDemographics | null {
     if (parsed === null || typeof parsed !== 'object') {
       return null;
     }
-    const value = parsed as Partial<CallerDemographics>;
+    // Every field is re-validated rather than trusted: the payload is only as
+    // good as the stored key, and a wrong-typed value would violate
+    // CallerDemographics for every consumer downstream (CDSS, prescription
+    // header, screening age bands).
+    const value = parsed as Record<keyof CallerDemographics, unknown>;
     return {
-      firstName: value.firstName ?? null,
-      lastName: value.lastName ?? null,
-      age: typeof value.age === 'number' && Number.isFinite(value.age) ? value.age : null,
-      genderId: typeof value.genderId === 'number' && Number.isFinite(value.genderId) ? value.genderId : null,
-      genderName: value.genderName ?? null,
+      firstName: readString(value.firstName),
+      lastName: readString(value.lastName),
+      age: readAge(value.age),
+      genderId: toId(value.genderId),
+      genderName: readString(value.genderName),
     };
   } catch {
     return null;
   }
+}
+
+/** Accept only a genuine string; anything else restores as absent. */
+function readString(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+/**
+ * Whole-unit age in years per {@link CallerDemographics}. Zero is legitimate (an
+ * infant registered in months reports 0 years), so the bound is non-negative
+ * rather than positive; fractional and negative values are discarded.
+ */
+function readAge(value: unknown): number | null {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
 }
