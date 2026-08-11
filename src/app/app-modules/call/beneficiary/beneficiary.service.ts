@@ -86,41 +86,24 @@ export class BeneficiaryService {
       pageNo: 1,
       rowsPerPage: HISTORY_PAGE_SIZE,
     };
-    return this.http
-      .post<ApiResponse<BeneficiaryRecord[]>>(
-        this.baseUrl + SEARCH_BY_PHONE_PATH,
-        body,
-      )
-      .pipe(
-        map((res) => this.readList(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<BeneficiaryRecord[]>>(this.baseUrl + SEARCH_BY_PHONE_PATH, body).pipe(
+      map((res) => this.readList(res)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /** Search beneficiaries by name and/or registration ID and gender. */
-  searchBeneficiary(
-    criteria: BeneficiarySearchRequest,
-  ): Observable<BeneficiaryRecord[]> {
-    return this.http
-      .post<ApiResponse<BeneficiaryRecord[]>>(
-        this.baseUrl + SEARCH_BENEFICIARY_PATH,
-        criteria,
-      )
-      .pipe(
-        map((res) => this.readList(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+  searchBeneficiary(criteria: BeneficiarySearchRequest): Observable<BeneficiaryRecord[]> {
+    return this.http.post<ApiResponse<BeneficiaryRecord[]>>(this.baseUrl + SEARCH_BENEFICIARY_PATH, criteria).pipe(
+      map((res) => this.readList(res)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /** Register a new beneficiary; resolves to the created record. */
-  create(
-    payload: RegisterBeneficiaryRequest,
-  ): Observable<RegisterBeneficiaryResponse> {
+  create(payload: RegisterBeneficiaryRequest): Observable<RegisterBeneficiaryResponse> {
     return this.http
-      .post<ApiResponse<RegisterBeneficiaryResponse>>(
-        this.baseUrl + CREATE_BENEFICIARY_PATH,
-        payload,
-      )
+      .post<ApiResponse<RegisterBeneficiaryResponse>>(this.baseUrl + CREATE_BENEFICIARY_PATH, payload)
       .pipe(
         map((res) => {
           if ((res.statusCode && res.statusCode !== 200) || !res.data) {
@@ -137,14 +120,9 @@ export class BeneficiaryService {
    * statuses, educations, govt identity types, relationships) for the agent's
    * service. Mirrors the legacy `getUserBeneficaryData` call.
    */
-  getRegistrationData(
-    providerServiceMapID: number | null,
-  ): Observable<RegistrationMasterData | undefined> {
+  getRegistrationData(providerServiceMapID: number | null): Observable<RegistrationMasterData | undefined> {
     return this.http
-      .post<ApiResponse<RegistrationMasterData>>(
-        this.baseUrl + REGISTRATION_DATA_PATH,
-        { providerServiceMapID },
-      )
+      .post<ApiResponse<RegistrationMasterData>>(this.baseUrl + REGISTRATION_DATA_PATH, { providerServiceMapID })
       .pipe(
         map((res) => this.readData(res)),
         catchError((err: unknown) => throwError(() => this.toError(err))),
@@ -153,24 +131,16 @@ export class BeneficiaryService {
 
   /** Healthcare-worker types (104 API), loaded when registering a HCW. */
   getHealthCareWorkerTypes(): Observable<HealthCareWorkerType[]> {
-    return this.http
-      .post<ApiResponse<HealthCareWorkerType[]>>(
-        this.config.get104BaseURL() + HCW_TYPES_PATH,
-        {},
-      )
-      .pipe(
-        map((res) => this.readData(res) ?? []),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<HealthCareWorkerType[]>>(this.config.get104BaseURL() + HCW_TYPES_PATH, {}).pipe(
+      map((res) => this.readData(res) ?? []),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /** Provider states for the location cascade (admin API). */
   getProviderStates(serviceProviderID: number | null): Observable<StateOption[]> {
     return this.http
-      .post<ApiResponse<StateOption[]>>(
-        this.config.getAdminBaseURL() + PROVIDER_STATES_PATH,
-        { serviceProviderID },
-      )
+      .post<ApiResponse<StateOption[]>>(this.config.getAdminBaseURL() + PROVIDER_STATES_PATH, { serviceProviderID })
       .pipe(
         map((res) => this.readData(res) ?? []),
         catchError((err: unknown) => throwError(() => this.toError(err))),
@@ -179,32 +149,26 @@ export class BeneficiaryService {
 
   /** Districts for a state (common API, GET). */
   getDistricts(stateID: number): Observable<DistrictOption[]> {
-    return this.http
-      .get<ApiResponse<DistrictOption[]>>(this.baseUrl + DISTRICTS_PATH + stateID)
-      .pipe(
-        map((res) => this.readData(res) ?? []),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.get<ApiResponse<DistrictOption[]>>(this.baseUrl + DISTRICTS_PATH + stateID).pipe(
+      map((res) => this.readData(res) ?? []),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /** Sub-districts / blocks for a district (common API, GET). */
   getSubDistricts(districtID: number): Observable<BlockOption[]> {
-    return this.http
-      .get<ApiResponse<BlockOption[]>>(this.baseUrl + SUB_DISTRICTS_PATH + districtID)
-      .pipe(
-        map((res) => this.readData(res) ?? []),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.get<ApiResponse<BlockOption[]>>(this.baseUrl + SUB_DISTRICTS_PATH + districtID).pipe(
+      map((res) => this.readData(res) ?? []),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /** Villages for a sub-district (common API, GET). */
   getVillages(subDistrictID: number): Observable<VillageOption[]> {
-    return this.http
-      .get<ApiResponse<VillageOption[]>>(this.baseUrl + VILLAGES_PATH + subDistrictID)
-      .pipe(
-        map((res) => this.readData(res) ?? []),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.get<ApiResponse<VillageOption[]>>(this.baseUrl + VILLAGES_PATH + subDistrictID).pipe(
+      map((res) => this.readData(res) ?? []),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   /**

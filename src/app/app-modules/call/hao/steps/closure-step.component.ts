@@ -20,21 +20,9 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
@@ -46,13 +34,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { ScheduleAppointmentComponent } from '../../schedule-appointment/schedule-appointment.component';
-import {
-  CallSubType,
-  CallType,
-  CampaignSkill,
-  CloseCallRequest,
-  TransferCampaign,
-} from '../hao.models';
+import { CallSubType, CallType, CampaignSkill, CloseCallRequest, TransferCampaign } from '../hao.models';
 import { HaoService } from '../hao.service';
 
 /**
@@ -75,13 +57,7 @@ import { HaoService } from '../hao.service';
   selector: 'app-hao-closure-step',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    TranslatePipe,
-    ZardButtonComponent,
-    ZardInputDirective,
-    ScheduleAppointmentComponent,
-  ],
+  imports: [ReactiveFormsModule, TranslatePipe, ZardButtonComponent, ZardInputDirective, ScheduleAppointmentComponent],
   template: `
     <form class="flex flex-col gap-5" [formGroup]="form" novalidate>
       <fieldset class="flex flex-wrap gap-6">
@@ -181,12 +157,7 @@ import { HaoService } from '../hao.service';
         <label class="text-sm font-medium" for="hao-cl-remarks">
           {{ 'hao.closure.remarks' | translate: lang() }}
         </label>
-        <textarea
-          z-input
-          id="hao-cl-remarks"
-          rows="2"
-          formControlName="remarks"
-        ></textarea>
+        <textarea z-input id="hao-cl-remarks" rows="2" formControlName="remarks"></textarea>
       </div>
 
       <div class="flex flex-col gap-3 rounded-lg border border-border p-4">
@@ -248,20 +219,11 @@ import { HaoService } from '../hao.service';
       </div>
 
       @if (showAppointment()) {
-        <app-schedule-appointment
-          (saved)="showAppointment.set(false)"
-          (cancelled)="showAppointment.set(false)"
-        />
+        <app-schedule-appointment (saved)="showAppointment.set(false)" (cancelled)="showAppointment.set(false)" />
       }
 
       <div class="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
-        <button
-          z-button
-          type="button"
-          zType="outline"
-          [zDisabled]="actionBusy()"
-          (click)="showAppointment.set(true)"
-        >
+        <button z-button type="button" zType="outline" [zDisabled]="actionBusy()" (click)="showAppointment.set(true)">
           {{ 'hao.closure.scheduleAppointment' | translate: lang() }}
         </button>
         <button
@@ -274,13 +236,7 @@ import { HaoService } from '../hao.service';
         >
           {{ 'hao.closure.submitContinue' | translate: lang() }}
         </button>
-        <button
-          z-button
-          type="button"
-          [zLoading]="submitting()"
-          [zDisabled]="actionBusy()"
-          (click)="submit(false)"
-        >
+        <button z-button type="button" [zLoading]="submitting()" [zDisabled]="actionBusy()" (click)="submit(false)">
           {{ 'hao.closure.submitClose' | translate: lang() }}
         </button>
       </div>
@@ -327,9 +283,7 @@ export class ClosureStepComponent {
    * on this so the agent cannot issue duplicate dispositions, or close and
    * transfer the same live call concurrently.
    */
-  readonly actionBusy = computed(
-    () => this.submitting() || this.transferring() || this.confirming(),
-  );
+  readonly actionBusy = computed(() => this.submitting() || this.transferring() || this.confirming());
 
   // Form values mirrored to signals so conditional UI updates under zoneless CD.
   private readonly selectedCallGroup = signal<string | null>(null);
@@ -377,16 +331,14 @@ export class ClosureStepComponent {
       c.callSubTypeID.updateValueAndValidity();
     });
 
-    c.isFollowupRequired.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((required) => {
-        this.followUpRequired.set(required);
-        c.followUpDate.setValidators(required ? [Validators.required] : []);
-        if (!required) {
-          c.followUpDate.reset(null);
-        }
-        c.followUpDate.updateValueAndValidity();
-      });
+    c.isFollowupRequired.valueChanges.pipe(takeUntilDestroyed()).subscribe((required) => {
+      this.followUpRequired.set(required);
+      c.followUpDate.setValidators(required ? [Validators.required] : []);
+      if (!required) {
+        c.followUpDate.reset(null);
+      }
+      c.followUpDate.updateValueAndValidity();
+    });
 
     c.doTransfer.valueChanges.pipe(takeUntilDestroyed()).subscribe((on) => {
       this.doTransfer.set(on);
@@ -483,9 +435,7 @@ export class ClosureStepComponent {
       createdBy: this.authStore.user()?.userName ?? '',
     };
 
-    const confirmKey = andContinue
-      ? 'hao.closure.confirmContinue'
-      : 'hao.closure.confirmClose';
+    const confirmKey = andContinue ? 'hao.closure.confirmContinue' : 'hao.closure.confirmClose';
 
     this.confirming.set(true);
     this.confirmDialog
@@ -603,8 +553,7 @@ export class ClosureStepComponent {
     this.haoService.getTransferCampaigns(agentID).subscribe({
       // Belt-and-braces: the template's @for iterates this signal, so a
       // non-array value (misbehaving backend, stale mock) must never land.
-      next: (campaigns) =>
-        this.campaigns.set(Array.isArray(campaigns) ? campaigns : []),
+      next: (campaigns) => this.campaigns.set(Array.isArray(campaigns) ? campaigns : []),
       error: () => this.campaigns.set([]),
     });
   }

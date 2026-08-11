@@ -21,14 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
@@ -70,14 +63,7 @@ const EXCLUDED_SCREENS = new Set(['supervising', 'registration', 'surveyor']);
   selector: 'app-reallocate-calls',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DatePipe,
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    OutboundAllocateComponent,
-  ],
+  imports: [DatePipe, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, OutboundAllocateComponent],
   viewProviders: [provideIcons({ lucideSearch, lucideTrash2 })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -89,21 +75,12 @@ const EXCLUDED_SCREENS = new Set(['supervising', 'registration', 'surveyor']);
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
       }
 
-      <form
-        [formGroup]="form"
-        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-        (ngSubmit)="search()"
-      >
+      <form [formGroup]="form" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" (ngSubmit)="search()">
         <div>
           <label for="re-role" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'outbound.reallocate.role' | translate: lang() }}
           </label>
-          <select
-            id="re-role"
-            [class]="selectClass"
-            formControlName="roleID"
-            (change)="onRoleChange()"
-          >
+          <select id="re-role" [class]="selectClass" formControlName="roleID" (change)="onRoleChange()">
             <option [ngValue]="null" disabled>{{ 'outbound.select' | translate: lang() }}</option>
             @for (role of roles(); track role.roleID) {
               <option [ngValue]="role.roleID">{{ role.roleName }}</option>
@@ -167,13 +144,7 @@ const EXCLUDED_SCREENS = new Set(['supervising', 'registration', 'surveyor']);
                   <ng-icon name="lucideTrash2" size="14" aria-hidden="true" />
                   {{ 'outbound.reallocate.moveToBin' | translate: lang() }}
                 </button>
-                <button
-                  z-button
-                  type="button"
-                  zType="outline"
-                  zSize="sm"
-                  (click)="toggleReallocate()"
-                >
+                <button z-button type="button" zType="outline" zSize="sm" (click)="toggleReallocate()">
                   {{ 'outbound.reallocate.reallocate' | translate: lang() }}
                 </button>
               </div>
@@ -282,9 +253,7 @@ export class ReallocateCallsComponent implements OnInit {
   }
 
   nameOf(row: OutboundCallRecord): string {
-    return [row.beneficiary?.firstName, row.beneficiary?.lastName]
-      .filter((p) => !!p && p.trim().length > 0)
-      .join(' ');
+    return [row.beneficiary?.firstName, row.beneficiary?.lastName].filter((p) => !!p && p.trim().length > 0).join(' ');
   }
 
   agentName(agent: AgentUser): string {
@@ -397,9 +366,7 @@ export class ReallocateCallsComponent implements OnInit {
       if (features.length === 0) {
         return false;
       }
-      return !features.some((f) =>
-        EXCLUDED_SCREENS.has((f.screen?.screenName ?? '').trim().toLowerCase()),
-      );
+      return !features.some((f) => EXCLUDED_SCREENS.has((f.screen?.screenName ?? '').trim().toLowerCase()));
     });
   }
 

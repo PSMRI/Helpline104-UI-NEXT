@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -45,12 +38,7 @@ import { SupervisorError } from '../shared/supervisor-api';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
-import {
-  AgentOption,
-  CallTypeOption,
-  RoleOption,
-  WorkLocationOption,
-} from './reports.models';
+import { AgentOption, CallTypeOption, RoleOption, WorkLocationOption } from './reports.models';
 import { SupervisorReportsService } from './reports.service';
 import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from './reports.util';
 
@@ -78,13 +66,7 @@ const SEARCH_CRITERIAS: readonly SearchCriteria[] = [
   selector: 'app-call-quality-report',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NgIcon,
-    TranslatePipe,
-    ZardButtonComponent,
-    ReportResultsComponent,
-  ],
+  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ReportResultsComponent],
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -139,12 +121,7 @@ const SEARCH_CRITERIAS: readonly SearchCriteria[] = [
           <label for="cq-criteria" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supReports.filter.searchCriteria' | translate: lang() }}
           </label>
-          <select
-            id="cq-criteria"
-            [class]="selectClass"
-            formControlName="searchCriteria"
-            (change)="onCriteriaChange()"
-          >
+          <select id="cq-criteria" [class]="selectClass" formControlName="searchCriteria" (change)="onCriteriaChange()">
             <option [ngValue]="null" disabled>
               {{ 'supReports.filter.select' | translate: lang() }}
             </option>
@@ -221,13 +198,7 @@ const SEARCH_CRITERIAS: readonly SearchCriteria[] = [
       </form>
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
+        <button z-button type="button" [zLoading]="runner.loading()" [zDisabled]="form.invalid" (click)="view()">
           <ng-icon name="lucideEye" size="16" aria-hidden="true" />
           {{ 'supReports.view' | translate: lang() }}
         </button>
@@ -282,9 +253,7 @@ export class CallQualityReportComponent {
   readonly workLocations = signal<WorkLocationOption[]>([]);
   readonly roles = signal<RoleOption[]>([]);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
+  private readonly providerServiceMapID = computed(() => this.authStore.currentRole()?.providerServiceMapID ?? null);
 
   onStartChange(): void {
     const { startDate, endDate } = this.form.getRawValue();

@@ -45,19 +45,11 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  DistrictOption,
-  Gender,
-  StateOption,
-} from '../../beneficiary/beneficiary.models';
+import { DistrictOption, Gender, StateOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { BloodOnCallService } from './blood-on-call.service';
-import {
-  BloodComponentType,
-  BloodGroup,
-  BloodRequestRow,
-} from './blood-on-call.models';
+import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call.models';
 
 /**
  * Blood-on-Call (blood request) service tab. The agent captures the recipient,
@@ -92,7 +84,12 @@ import {
         }
 
         @if (bankUrl(); as url) {
-          <a [href]="url" target="_blank" rel="noopener noreferrer" class="mb-4 inline-block text-sm font-medium text-primary underline">
+          <a
+            [href]="url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mb-4 inline-block text-sm font-medium text-primary underline"
+          >
             {{ 'sio.blood.bankLink' | translate: lang() }}
           </a>
         }
@@ -102,14 +99,30 @@ import {
             <label for="blood-recipient" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.blood.recipientName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="blood-recipient" z-input class="w-full" type="text" maxlength="25" formControlName="recipientName" />
+            <input
+              id="blood-recipient"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="recipientName"
+            />
           </div>
 
           <div>
             <label for="blood-age" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.age' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="blood-age" z-input class="w-full" type="number" inputmode="numeric" min="1" max="120" formControlName="recipientAge" />
+            <input
+              id="blood-age"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="120"
+              formControlName="recipientAge"
+            />
           </div>
 
           <div>
@@ -152,14 +165,29 @@ import {
             <label for="blood-units" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.blood.unitsRequired' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="blood-units" z-input class="w-full" type="number" inputmode="numeric" min="1" formControlName="unitRequired" />
+            <input
+              id="blood-units"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              formControlName="unitRequired"
+            />
           </div>
 
           <div class="sm:col-span-2 lg:col-span-1">
             <label for="blood-hospital" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.blood.hospital' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="blood-hospital" z-input class="w-full" type="text" maxlength="150" formControlName="hospitalAdmitted" />
+            <input
+              id="blood-hospital"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="150"
+              formControlName="hospitalAdmitted"
+            />
           </div>
 
           <div>
@@ -190,12 +218,25 @@ import {
             <label for="blood-remarks" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.remarks' | translate: lang() }}
             </label>
-            <textarea id="blood-remarks" [class]="textareaClass" rows="2" maxlength="500" formControlName="remarks"></textarea>
+            <textarea
+              id="blood-remarks"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="500"
+              formControlName="remarks"
+            ></textarea>
           </div>
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>
@@ -269,11 +310,7 @@ export class BloodOnCallComponent implements OnInit {
       Validators.minLength(3),
       Validators.maxLength(25),
     ]),
-    recipientAge: this.fb.control<number | null>(null, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(120),
-    ]),
+    recipientAge: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(120)]),
     recipientGenderID: this.fb.control<number | null>(null, Validators.required),
     bloodGroupID: this.fb.control<number | null>(null, Validators.required),
     componentTypeID: this.fb.control<number | null>(null),
@@ -297,18 +334,27 @@ export class BloodOnCallComponent implements OnInit {
     const role = this.authStore.currentRole();
     const providerServiceMapID = role?.providerServiceMapID ?? null;
 
-    this.blood.getComponentTypes().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (list) => this.componentTypes.set(list),
-      error: (err: SioError) => this.setError(err),
-    });
-    this.blood.getBloodGroups().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (list) => this.bloodGroups.set(list),
-      error: (err: SioError) => this.setError(err),
-    });
-    this.blood.getBloodBankUrl(providerServiceMapID).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (url) => this.bankUrl.set(url),
-      error: () => this.bankUrl.set(null),
-    });
+    this.blood
+      .getComponentTypes()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.componentTypes.set(list),
+        error: (err: SioError) => this.setError(err),
+      });
+    this.blood
+      .getBloodGroups()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.bloodGroups.set(list),
+        error: (err: SioError) => this.setError(err),
+      });
+    this.blood
+      .getBloodBankUrl(providerServiceMapID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (url) => this.bankUrl.set(url),
+        error: () => this.bankUrl.set(null),
+      });
     this.beneficiary
       .getRegistrationData(providerServiceMapID)
       .pipe(takeUntilDestroyed(this.destroyRef))

@@ -109,20 +109,18 @@ export class LoginService {
    * by the concurrent-session ("already logged in elsewhere", 5002) flow.
    */
   logOutUserFromConcurrentSession(userName: string): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.concurrentSessionLogoutUrl, { userName })
-      .pipe(
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw {
-              status: res.statusCode,
-              errorMessage: res.errorMessage || 'Unknown error',
-            } satisfies LoginError;
-          }
-          return res.data ?? null;
-        }),
-        catchError((err: unknown) => throwError(() => this.toLoginError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.concurrentSessionLogoutUrl, { userName }).pipe(
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw {
+            status: res.statusCode,
+            errorMessage: res.errorMessage || 'Unknown error',
+          } satisfies LoginError;
+        }
+        return res.data ?? null;
+      }),
+      catchError((err: unknown) => throwError(() => this.toLoginError(err))),
+    );
   }
 
   /**
@@ -133,11 +131,7 @@ export class LoginService {
    */
   private toLoginError(err: unknown): LoginError {
     // Already normalised (thrown from the map above).
-    if (
-      err &&
-      typeof (err as LoginError).status === 'number' &&
-      typeof (err as LoginError).errorMessage === 'string'
-    ) {
+    if (err && typeof (err as LoginError).status === 'number' && typeof (err as LoginError).errorMessage === 'string') {
       return err as LoginError;
     }
 

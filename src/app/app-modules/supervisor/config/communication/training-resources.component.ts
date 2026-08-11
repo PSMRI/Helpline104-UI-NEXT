@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -44,30 +36,13 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { SupervisorError } from '../../shared/supervisor-api';
 import { SUP_SELECT_CLASS, SUP_TEXTAREA_CLASS } from '../../shared/supervisor-ui';
-import {
-  KmFileManager,
-  NotificationCreateRequest,
-  NotificationRow,
-  ProviderRole,
-} from './notification.models';
+import { KmFileManager, NotificationCreateRequest, NotificationRow, ProviderRole } from './notification.models';
 import { SupervisorNotificationService } from './notification.service';
 
 type ViewMode = 'table' | 'create' | 'edit';
 
 /** Allowed attachment extensions (legacy `valid_file_extensions`). */
-const VALID_FILE_EXTENSIONS = [
-  'msg',
-  'pdf',
-  'png',
-  'jpeg',
-  'jpg',
-  'doc',
-  'docx',
-  'xlsx',
-  'xls',
-  'csv',
-  'txt',
-];
+const VALID_FILE_EXTENSIONS = ['msg', 'pdf', 'png', 'jpeg', 'jpg', 'doc', 'docx', 'xlsx', 'xls', 'csv', 'txt'];
 /** Max attachment size in MB (legacy `maxFileSize`). */
 const MAX_FILE_SIZE_MB = 5;
 
@@ -288,8 +263,7 @@ const MAX_FILE_SIZE_MB = 5;
             <label for="tr-file" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supTraining.uploadFile' | translate: lang() }}
               ({{ 'supTraining.sizeLimit' | translate: lang() }}: {{ maxFileSize }}
-              {{ 'supTraining.mb' | translate: lang() }},
-              {{ 'supTraining.supportedFormats' | translate: lang() }})
+              {{ 'supTraining.mb' | translate: lang() }}, {{ 'supTraining.supportedFormats' | translate: lang() }})
             </label>
             <input
               id="tr-file"
@@ -380,9 +354,7 @@ export class TrainingResourcesAdminComponent implements OnInit {
   readonly fileTooLarge = signal(false);
   readonly invalidFileType = signal(false);
   readonly invalidFileName = signal(false);
-  readonly fileInvalid = computed(
-    () => this.fileTooLarge() || this.invalidFileType() || this.invalidFileName(),
-  );
+  readonly fileInvalid = computed(() => this.fileTooLarge() || this.invalidFileType() || this.invalidFileName());
 
   /** The `KM` notification type id, resolved on init. */
   private notificationTypeID: number | null = null;
@@ -686,16 +658,12 @@ export class TrainingResourcesAdminComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          toast.success(
-            this.i18n.instant(deleted ? 'supTraining.deactivated' : 'supTraining.activated'),
-          );
+          toast.success(this.i18n.instant(deleted ? 'supTraining.deactivated' : 'supTraining.activated'));
           this.loadResources();
         },
         error: () => {
           this.errorMessage.set(
-            this.i18n.instant(
-              deleted ? 'supTraining.deactivateFailed' : 'supTraining.activateFailed',
-            ),
+            this.i18n.instant(deleted ? 'supTraining.deactivateFailed' : 'supTraining.activateFailed'),
           );
         },
       });

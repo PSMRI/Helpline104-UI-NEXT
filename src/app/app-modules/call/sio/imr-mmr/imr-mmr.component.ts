@@ -45,12 +45,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
-import {
-  BlockOption,
-  DistrictOption,
-  StateOption,
-  VillageOption,
-} from '../../beneficiary/beneficiary.models';
+import { BlockOption, DistrictOption, StateOption, VillageOption } from '../../beneficiary/beneficiary.models';
 import { SIO_SELECT_CLASS } from '../shared/sio-ui';
 import { SioError } from '../shared/sio-api';
 import { ImrMmrService } from './imr-mmr.service';
@@ -111,28 +106,56 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
             <label for="imr-informer-name" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.imrMmr.informerName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="imr-informer-name" z-input class="w-full" type="text" maxlength="25" formControlName="informerName" />
+            <input
+              id="imr-informer-name"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="informerName"
+            />
           </div>
 
           <div>
             <label for="imr-informer-mobile" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.imrMmr.informerMobile' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="imr-informer-mobile" z-input class="w-full" type="text" inputmode="numeric" maxlength="10" formControlName="informerMobileNumber" />
+            <input
+              id="imr-informer-mobile"
+              z-input
+              class="w-full"
+              type="text"
+              inputmode="numeric"
+              maxlength="10"
+              formControlName="informerMobileNumber"
+            />
           </div>
 
           <div class="sm:col-span-2 lg:col-span-1">
             <label for="imr-informer-address" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.imrMmr.informerAddress' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <textarea id="imr-informer-address" [class]="textareaClass" rows="2" maxlength="100" formControlName="informerAddress"></textarea>
+            <textarea
+              id="imr-informer-address"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="100"
+              formControlName="informerAddress"
+            ></textarea>
           </div>
 
           <div>
             <label for="imr-victim-name" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.imrMmr.victimName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="imr-victim-name" z-input class="w-full" type="text" maxlength="25" formControlName="victimName" />
+            <input
+              id="imr-victim-name"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="victimName"
+            />
           </div>
 
           <div>
@@ -144,14 +167,30 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
               }
               <span class="text-destructive">*</span>
             </label>
-            <input id="imr-victim-guardian" z-input class="w-full" type="text" maxlength="25" formControlName="victimGuardian" />
+            <input
+              id="imr-victim-guardian"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="victimGuardian"
+            />
           </div>
 
           <div>
             <label for="imr-victim-age" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.age' | translate: lang() }}
             </label>
-            <input id="imr-victim-age" z-input class="w-full" type="number" inputmode="numeric" min="1" max="120" formControlName="victimAge" />
+            <input
+              id="imr-victim-age"
+              z-input
+              class="w-full"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="120"
+              formControlName="victimAge"
+            />
           </div>
 
           <div>
@@ -206,19 +245,38 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
             <label for="imr-victim-address" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.address' | translate: lang() }}
             </label>
-            <textarea id="imr-victim-address" [class]="textareaClass" rows="2" maxlength="500" formControlName="victimAddress"></textarea>
+            <textarea
+              id="imr-victim-address"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="500"
+              formControlName="victimAddress"
+            ></textarea>
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
             <label for="imr-reason" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.imrMmr.reasonOfDeath' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <textarea id="imr-reason" [class]="textareaClass" rows="2" maxlength="100" formControlName="reasonOfDeath"></textarea>
+            <textarea
+              id="imr-reason"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="100"
+              formControlName="reasonOfDeath"
+            ></textarea>
           </div>
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>
@@ -300,29 +358,20 @@ export class ImrMmrComponent implements OnInit {
       Validators.required,
       Validators.pattern(/^[0-9]{10}$/),
     ]),
-    informerAddress: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(100),
-    ]),
+    informerAddress: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(100)]),
     victimName: this.fb.control<string | null>(null, [
       Validators.required,
       Validators.minLength(3),
       Validators.maxLength(25),
     ]),
-    victimGuardian: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(25),
-    ]),
+    victimGuardian: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(25)]),
     victimAge: this.fb.control<number | null>(null, [Validators.min(1), Validators.max(120)]),
     stateID: this.fb.control<number | null>(null, Validators.required),
     districtID: this.fb.control<number | null>(null, Validators.required),
     talukID: this.fb.control<number | null>(null),
     villageID: this.fb.control<number | null>(null),
     victimAddress: this.fb.control<string | null>(null, Validators.maxLength(500)),
-    reasonOfDeath: this.fb.control<string | null>(null, [
-      Validators.required,
-      Validators.maxLength(100),
-    ]),
+    reasonOfDeath: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(100)]),
   });
 
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);

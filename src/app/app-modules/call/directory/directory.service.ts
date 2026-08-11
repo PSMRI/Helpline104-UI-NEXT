@@ -22,14 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -54,8 +47,7 @@ const GET_HISTORY_PATH = 'beneficiary/getdirectorySearchHistory';
 const SAVE_HISTORY_PATH = 'beneficiary/save/directorySearchHistory';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 const DIRECTORY_TIMEOUT_MS = 20_000;
 
 /**
@@ -72,10 +64,9 @@ export class DirectoryService {
   /** Directory types (read from the registration master's `directory` list). */
   getDirectoryList(providerServiceMapID: number | null): Observable<DirectoryItem[]> {
     return this.http
-      .post<ApiResponse<RegistrationDirectoryData>>(
-        this.config.getCommonBaseURL() + REGISTRATION_DATA_PATH,
-        { providerServiceMapID },
-      )
+      .post<ApiResponse<RegistrationDirectoryData>>(this.config.getCommonBaseURL() + REGISTRATION_DATA_PATH, {
+        providerServiceMapID,
+      })
       .pipe(
         timeout(DIRECTORY_TIMEOUT_MS),
         map((res) => this.readData(res)?.directory ?? []),
@@ -86,10 +77,9 @@ export class DirectoryService {
   /** Sub-directories for a directory type. */
   getSubDirectory(instituteDirectoryID: number): Observable<SubDirectoryItem[]> {
     return this.http
-      .post<ApiResponse<SubDirectoryData>>(
-        this.config.getCommonBaseURL() + SUB_DIRECTORY_PATH,
-        { instituteDirectoryID },
-      )
+      .post<ApiResponse<SubDirectoryData>>(this.config.getCommonBaseURL() + SUB_DIRECTORY_PATH, {
+        instituteDirectoryID,
+      })
       .pipe(
         timeout(DIRECTORY_TIMEOUT_MS),
         map((res) => this.readData(res)?.subDirectory ?? []),
@@ -113,10 +103,7 @@ export class DirectoryService {
   /** Search institutes matching the selected directory + location. */
   searchInstitutes(req: SearchInstitutesRequest): Observable<InstituteResult[]> {
     return this.http
-      .post<ApiResponse<InstituteResult[]>>(
-        this.config.getCommonBaseURL() + SEARCH_INSTITUTES_PATH,
-        req,
-      )
+      .post<ApiResponse<InstituteResult[]>>(this.config.getCommonBaseURL() + SEARCH_INSTITUTES_PATH, req)
       .pipe(
         timeout(DIRECTORY_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
@@ -139,13 +126,11 @@ export class DirectoryService {
 
   /** Persist directory search history (fire-and-forget on the caller side). */
   saveSearchHistory(rows: SaveDirectoryHistoryItem[]): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_HISTORY_PATH, rows)
-      .pipe(
-        timeout(DIRECTORY_TIMEOUT_MS),
-        map((res) => this.readData(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_HISTORY_PATH, rows).pipe(
+      timeout(DIRECTORY_TIMEOUT_MS),
+      map((res) => this.readData(res)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   private readData<T>(res: ApiResponse<T>): T | undefined {

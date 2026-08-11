@@ -22,13 +22,7 @@
 
 import { NgTemplateOutlet } from '@angular/common';
 import { CdkStepper } from '@angular/cdk/stepper';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  signal,
-  viewChildren,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, signal, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
@@ -51,25 +45,21 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
  *
  * Used declaratively:
  * ```html
- * <hao-stepper [linear]="true" (selectionChange)="onStep($event)">
+ * <app-hao-stepper [linear]="true" (selectionChange)="onStep($event)">
  *   <cdk-step [label]="..."> ...content... </cdk-step>
  *   <cdk-step [label]="..." [completed]="..."> ...content... </cdk-step>
- * </hao-stepper>
+ * </app-hao-stepper>
  * ```
  */
 @Component({
-  selector: 'hao-stepper',
+  selector: 'app-hao-stepper',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgTemplateOutlet],
   // Lets nested <cdk-step> elements register with this component as their stepper.
   providers: [{ provide: CdkStepper, useExisting: HaoStepperComponent }],
   template: `
-    <nav
-      class="flex items-center justify-center gap-2 px-2 py-4 sm:gap-4"
-      role="tablist"
-      aria-label="Workspace steps"
-    >
+    <nav class="flex items-center justify-center gap-2 px-2 py-4 sm:gap-4" role="tablist" aria-label="Workspace steps">
       @for (step of steps; track step; let i = $index; let last = $last) {
         <button
           #header
@@ -114,8 +104,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   `,
 })
 export class HaoStepperComponent extends CdkStepper {
-  private readonly headerButtons =
-    viewChildren<ElementRef<HTMLButtonElement>>('header');
+  private readonly headerButtons = viewChildren<ElementRef<HTMLButtonElement>>('header');
 
   /** Header that currently holds the roving tabindex (focus target). */
   readonly focusedIndex = signal(0);
@@ -141,7 +130,7 @@ export class HaoStepperComponent extends CdkStepper {
 
   /** WAI-ARIA roving-focus keyboard navigation across the step headers. */
   onHeaderKeydown(event: KeyboardEvent, index: number): void {
-    let target: number | null = null;
+    let target: number | null;
     switch (event.key) {
       case 'ArrowRight':
       case 'ArrowDown':

@@ -59,10 +59,7 @@ export class BlockUnblockService {
   private readonly config = inject(ConfigService);
 
   /** Blacklist entries for the service, optionally filtered by phone number. */
-  getBlacklist(
-    providerServiceMapID: number | null,
-    phoneNo?: string | null,
-  ): Observable<BlacklistEntry[]> {
+  getBlacklist(providerServiceMapID: number | null, phoneNo?: string | null): Observable<BlacklistEntry[]> {
     return this.post<BlacklistEntry[]>(BLACKLIST_PATH, {
       providerServiceMapID,
       ...(phoneNo ? { phoneNo } : {}),
@@ -80,11 +77,7 @@ export class BlockUnblockService {
   }
 
   /** Nuisance-call recordings for a number. */
-  getRecordings(
-    calledServiceID: number | null,
-    phoneNo: string,
-    count: number,
-  ): Observable<RecordingEntry[]> {
+  getRecordings(calledServiceID: number | null, phoneNo: string, count: number): Observable<RecordingEntry[]> {
     return this.post<RecordingData>(RECORDINGS_PATH, {
       calledServiceID,
       phoneNo,

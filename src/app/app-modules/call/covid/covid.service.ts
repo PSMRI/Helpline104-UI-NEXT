@@ -22,29 +22,16 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  TimeoutError,
-  catchError,
-  map,
-  throwError,
-  timeout,
-} from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
-import {
-  ApiResponse,
-  CovidError,
-  CovidMasterData,
-  SaveCovidRequest,
-} from './covid.models';
+import { ApiResponse, CovidError, CovidMasterData, SaveCovidRequest } from './covid.models';
 
 const MASTER_PATH = 'master/patient/covidDetails/';
 const SAVE_PATH = 'master/save/covidScreeningData';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
-const TIMEOUT_ERROR =
-  'The request timed out. Please check your connection and try again.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
 const COVID_TIMEOUT_MS = 20_000;
 
 /**
@@ -63,9 +50,7 @@ export class CovidService {
       return throwError(() => ({ status: 0, errorMessage: GENERIC_ERROR }) as CovidError);
     }
     return this.http
-      .get<ApiResponse<CovidMasterData>>(
-        this.config.get104BaseURL() + MASTER_PATH + providerServiceMapID,
-      )
+      .get<ApiResponse<CovidMasterData>>(this.config.get104BaseURL() + MASTER_PATH + providerServiceMapID)
       .pipe(
         timeout(COVID_TIMEOUT_MS),
         map((res) => this.readData(res) ?? {}),
@@ -75,18 +60,16 @@ export class CovidService {
 
   /** Save a COVID screening; resolves to the backend payload (truthy on success). */
   saveCovidData(payload: SaveCovidRequest): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload)
-      .pipe(
-        timeout(COVID_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw this.toError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload).pipe(
+      timeout(COVID_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw this.toError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
   }
 
   private readData<T>(res: ApiResponse<T>): T | undefined {
@@ -101,11 +84,7 @@ export class CovidService {
       return { status: 0, errorMessage: TIMEOUT_ERROR };
     }
 
-    if (
-      err &&
-      typeof (err as CovidError).status === 'number' &&
-      typeof (err as CovidError).errorMessage === 'string'
-    ) {
+    if (err && typeof (err as CovidError).status === 'number' && typeof (err as CovidError).errorMessage === 'string') {
       return err as CovidError;
     }
 

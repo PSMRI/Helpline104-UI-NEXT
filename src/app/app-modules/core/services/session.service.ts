@@ -106,19 +106,13 @@ export class SessionService {
   }
 
   private async onIdleTimeout(): Promise<void> {
-    if (
-      !this.auth.isAuthenticated() ||
-      this.handlingExpiry ||
-      this.idlePromptOpen
-    ) {
+    if (!this.auth.isAuthenticated() || this.handlingExpiry || this.idlePromptOpen) {
       return;
     }
     this.idlePromptOpen = true;
     let wantsMoreTime = false;
     try {
-      wantsMoreTime = await this.confirmation.confirm(
-        'Your session is about to expire. Do you need more time?',
-      );
+      wantsMoreTime = await this.confirmation.confirm('Your session is about to expire. Do you need more time?');
     } finally {
       this.idlePromptOpen = false;
     }

@@ -20,14 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 
@@ -110,13 +103,7 @@ const FILE_NAME = 'Unblock_User_Report';
       </form>
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
+        <button z-button type="button" [zLoading]="runner.loading()" [zDisabled]="form.invalid" (click)="view()">
           <ng-icon name="lucideEye" size="16" aria-hidden="true" />
           {{ 'supReports.view' | translate: lang() }}
         </button>
@@ -159,9 +146,7 @@ export class UnblockUserReportComponent {
 
   readonly endMax = signal(this.maxDate);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
+  private readonly providerServiceMapID = computed(() => this.authStore.currentRole()?.providerServiceMapID ?? null);
 
   onStartChange(): void {
     const { startDate, endDate } = this.form.getRawValue();

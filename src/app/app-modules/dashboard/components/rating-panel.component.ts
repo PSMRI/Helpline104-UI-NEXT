@@ -25,7 +25,11 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
-/** Rating panel. Display-only; the rating widget is not yet wired. */
+/**
+ * Rating panel. Shows an empty state: the legacy dashboard's rating card was
+ * also display-only (it fetched "User Ratings" alerts but never rendered
+ * them), so there is no rating data source to wire yet.
+ */
 @Component({
   selector: 'app-rating-panel',
   standalone: true,
@@ -40,9 +44,9 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
           {{ 'dashboard.rating.title' | translate: lang() }}
         </h2>
       </header>
-      <div class="px-4 py-3 text-sm text-muted-foreground">
-        {{ 'dashboard.rating.panelContent' | translate: lang() }}
-      </div>
+      <p class="px-4 py-6 text-center text-sm text-muted-foreground">
+        {{ 'dashboard.rating.empty' | translate: lang() }}
+      </p>
     </section>
   `,
 })

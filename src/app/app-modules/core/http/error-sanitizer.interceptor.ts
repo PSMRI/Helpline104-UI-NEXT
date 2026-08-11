@@ -20,11 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  HttpErrorResponse,
-  HttpInterceptorFn,
-  HttpResponse,
-} from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
@@ -36,8 +32,7 @@ import { catchError, map } from 'rxjs/operators';
  * service or the session-expiry interceptor reads the body — keeps leaked
  * SQL/stack detail off the screen everywhere with a single change point.
  */
-const GENERIC_ERROR_MESSAGE =
-  'Something went wrong. Please try again or contact support.';
+const GENERIC_ERROR_MESSAGE = 'Something went wrong. Please try again or contact support.';
 
 const SERVER_EXCEPTION_PATTERNS: readonly RegExp[] = [
   /jdbc/i,
@@ -49,9 +44,7 @@ const SERVER_EXCEPTION_PATTERNS: readonly RegExp[] = [
 
 /** Replace a message that looks like a raw server exception with generic copy. */
 export function sanitizeErrorMessage(message: string): string {
-  return SERVER_EXCEPTION_PATTERNS.some((p) => p.test(message))
-    ? GENERIC_ERROR_MESSAGE
-    : message;
+  return SERVER_EXCEPTION_PATTERNS.some((p) => p.test(message)) ? GENERIC_ERROR_MESSAGE : message;
 }
 
 /** Return a copy of an envelope body with its `errorMessage` sanitized, or null if untouched. */

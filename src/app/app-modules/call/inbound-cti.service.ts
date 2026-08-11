@@ -74,9 +74,7 @@ export class InboundCtiService {
       this.handleCtiMessage(event.data);
     };
     window.addEventListener('message', onMessage);
-    inject(DestroyRef).onDestroy(() =>
-      window.removeEventListener('message', onMessage),
-    );
+    inject(DestroyRef).onDestroy(() => window.removeEventListener('message', onMessage));
   }
 
   /**
@@ -100,10 +98,7 @@ export class InboundCtiService {
    * navigate into the on-call workspace.
    */
   private isCtiEligible(): boolean {
-    if (
-      !this.authStore.isAuthenticated() ||
-      (this.authStore.user()?.agentID ?? null) === null
-    ) {
+    if (!this.authStore.isAuthenticated() || (this.authStore.user()?.agentID ?? null) === null) {
       return false;
     }
     const featureCode = this.authStore.currentRole()?.featureCode ?? null;
@@ -117,10 +112,7 @@ export class InboundCtiService {
       return;
     }
     // De-dupe: the iframe may re-post the same event for one connected call.
-    if (
-      this.callStore.onCall() &&
-      this.callStore.sessionId() === inbound.sessionId
-    ) {
+    if (this.callStore.onCall() && this.callStore.sessionId() === inbound.sessionId) {
       return;
     }
 

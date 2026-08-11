@@ -100,7 +100,7 @@ export const en = {
 
   // Rating panel
   'dashboard.rating.title': 'Rating',
-  'dashboard.rating.panelContent': 'Panel Content',
+  'dashboard.rating.empty': 'No rating data available',
 
   // Emergency contacts modal
   'dashboard.contacts.name': 'Name',
@@ -134,10 +134,8 @@ export const en = {
   'registration.history.empty': 'No existing registrations for this number.',
   'registration.search.empty': 'No beneficiaries match your search.',
   'registration.search.prompt': 'Enter a name or registration ID, then search.',
-  'registration.search.error':
-    'The search could not be completed — it may have timed out. Please try again.',
-  'registration.search.timeout':
-    'Search timed out. Please try again or search by phone number instead.',
+  'registration.search.error': 'The search could not be completed — it may have timed out. Please try again.',
+  'registration.search.timeout': 'Search timed out. Please try again or search by phone number instead.',
   'registration.col.regId': 'Reg. ID',
   'registration.col.name': 'Name',
   'registration.col.gender': 'Gender',
@@ -168,13 +166,11 @@ export const en = {
   'registration.toast.selected': 'Beneficiary selected for this call.',
   'registration.toast.registered': 'Beneficiary registered and selected.',
   'registration.toast.error': 'Something went wrong. Please try again.',
-  'registration.register.error':
-    'Registration failed. Please try again or contact support.',
+  'registration.register.error': 'Registration failed. Please try again or contact support.',
   'registration.register.dismiss': 'Close',
   'registration.toast.noCli': 'No caller number is available for this call.',
   'registration.toast.masterError': 'Could not load some form options.',
-  'registration.notice.noCli':
-    'Registration is unavailable because no caller number is available for this call.',
+  'registration.notice.noCli': 'Registration is unavailable because no caller number is available for this call.',
   'registration.section.identity': 'Personal details',
   'registration.section.address': 'Address & contact',
   'registration.field.title': 'Title',
@@ -370,8 +366,7 @@ export const en = {
   'casesheetHistory.mmu.visitCode': 'Visit code',
   'casesheetHistory.mmu.view': 'View',
   'casesheetHistory.mmu.selectedVisit': 'Selected visit',
-  'casesheetHistory.mmu.detailUnavailable':
-    'The full case-sheet view for this visit is not yet available.',
+  'casesheetHistory.mmu.detailUnavailable': 'The full case-sheet view for this visit is not yet available.',
 
   // Schedule appointment
   'appointment.title': 'Schedule appointment',
@@ -424,8 +419,7 @@ export const en = {
   'diseaseSummary.empty': 'No items.',
   'diseaseSummary.remove': 'Remove',
   'diseaseSummary.summary': 'Summary',
-  'diseaseSummary.couldBeDangerous':
-    'Could be dangerous if the answer is Yes to any of the following',
+  'diseaseSummary.couldBeDangerous': 'Could be dangerous if the answer is Yes to any of the following',
   'diseaseSummary.causes': 'Causes',
   'diseaseSummary.dosDonts': 'Dos & Don’ts',
   'diseaseSummary.signsSymptoms': 'Signs & symptoms',
@@ -495,8 +489,7 @@ export const en = {
 
   // Supervisor placeholder page
   'supervisor.title': 'Supervisor Activity Area',
-  'supervisor.intro':
-    'Activities, reports and configurations for supervisors will be managed here.',
+  'supervisor.intro': 'Activities, reports and configurations for supervisors will be managed here.',
   'supervisor.backToDashboard': 'Back to Dashboard',
 
   // Supervisor workspace shell
@@ -547,8 +540,7 @@ export const en = {
   'supReports.search': 'Search…',
   'supReports.noData': 'No data found for the selected filters.',
   'supReports.fetchError': 'Could not fetch the report. Please try again.',
-  'supReports.serverError':
-    'Report unavailable — server error. Please try again or contact support.',
+  'supReports.serverError': 'Report unavailable — server error. Please try again or contact support.',
   'supReports.dismiss': 'Dismiss',
   'supReports.lookupError': 'Could not load report options. Please try again.',
   'supReports.unsupportedReport': 'This report is not available. Please select another report.',
@@ -592,6 +584,29 @@ export const en = {
   'supReports.diseases.colTreatment': 'Treatment',
   'supReports.diseases.colSelfCare': 'Self Care',
   'supReports.unblock.title': 'Unblock User Report',
+
+  // Supervisor quality audit (call auditing) activity screen
+  'supQa.title': 'Quality Audit (Call Auditing)',
+  'supQa.filter.inboundOutbound': 'Inbound / Outbound Call',
+  'supQa.inbound': 'Inbound',
+  'supQa.outbound': 'Outbound',
+  'supQa.filter.phone': 'Beneficiary Phone Number',
+  'supQa.phoneInvalid': 'Enter a valid 10–12 digit phone number.',
+  'supQa.col.sno': 'S.No',
+  'supQa.col.callId': 'Call ID',
+  'supQa.col.callTime': 'Call Date & Time',
+  'supQa.col.beneficiaryId': 'Beneficiary ID',
+  'supQa.col.name': 'Beneficiary Name',
+  'supQa.col.phone': 'Beneficiary Phone No',
+  'supQa.col.remarks': 'Call Remarks',
+  'supQa.col.callType': 'Call Type',
+  'supQa.col.voice': 'Voice Record',
+  'supQa.play': 'Play',
+  'supQa.audioError': 'Failed to get the voice file path.',
+  'supQa.page': 'Page',
+  'supQa.of': 'of',
+  'supQa.prev': 'Previous',
+  'supQa.next': 'Next',
 
   // Post-logout feedback page
   'feedback.loggedOut': 'You have logged out of the session',
@@ -652,8 +667,7 @@ export const en = {
   'roleWorkspace.surveyor.title': 'Surveyor',
   'roleWorkspace.surveyor.subtitle': 'View surveyor call-type reports.',
   'roleWorkspace.surveyor.reportsTitle': 'Call-type reports',
-  'roleWorkspace.surveyor.reportsPlaceholder':
-    'The surveyor call-type reports will be available here soon.',
+  'roleWorkspace.surveyor.reportsPlaceholder': 'The surveyor call-type reports will be available here soon.',
 
   // Agent reports — Call Type (Customer Delight Index) report
   'reports.backToDashboard': 'Back to Dashboard',
@@ -677,8 +691,7 @@ export const en = {
   'reports.callType.col.action': 'Action',
   'reports.callType.report': 'Report',
   'reports.callType.dial': 'Dial',
-  'reports.callType.dialDeferred':
-    'Dialing a pending call requires the CTI soft-phone integration, which is deferred.',
+  'reports.callType.dialDeferred': 'Dialing a pending call requires the CTI soft-phone integration, which is deferred.',
   'reports.callType.previous': 'Previous',
   'reports.callType.next': 'Next',
   'reports.callType.page': 'Page',
@@ -732,8 +745,7 @@ export const en = {
   'hao.caseSheet.remarks': 'Remarks',
   'hao.caseSheet.save': 'Save Case Sheet',
   'hao.caseSheet.viewDiseaseSummary': 'View disease summary',
-  'hao.caseSheet.diseaseSummaryError':
-    'Unable to load the disease summary. Please try again.',
+  'hao.caseSheet.diseaseSummaryError': 'Unable to load the disease summary. Please try again.',
   'hao.caseSheet.saveSuccess': 'Case sheet saved successfully.',
   'hao.caseSheet.saveError': 'Unable to save the case sheet. Please try again.',
 
@@ -838,8 +850,7 @@ export const en = {
   'outbound.reallocate.fetch': 'Fetch Records',
   'outbound.reallocate.records': 'Records',
   'outbound.reallocate.moveToBin': 'Move to Bin',
-  'outbound.reallocate.moveToBinConfirm':
-    'Move all of this agent’s records back to the unallocated bin?',
+  'outbound.reallocate.moveToBinConfirm': 'Move all of this agent’s records back to the unallocated bin?',
   'outbound.reallocate.reallocate': 'Reallocate',
   'outbound.reallocate.noRecords': 'No records found for this agent.',
 
@@ -1140,8 +1151,7 @@ export const en = {
   'supComm.noOfficesForRole': 'No office found with the selected role functional in them',
   'supComm.noRoles': 'No roles found',
   'supComm.locationMessageCreated': 'Location message created successfully',
-  'supComm.locationMessageCreateFailed':
-    'Location message creation failed. Please contact technical support',
+  'supComm.locationMessageCreateFailed': 'Location message creation failed. Please contact technical support',
   'supComm.alertCreated': 'Alert created successfully',
   'supComm.notificationCreated': 'Notification created successfully',
   'supComm.createFailed': 'Notification/Alert creation failed. Please contact technical support',
@@ -1201,8 +1211,7 @@ export const en = {
   'supTraining.uploadFile': 'Upload file',
   'supTraining.sizeLimit': 'Size limit',
   'supTraining.mb': 'MB',
-  'supTraining.supportedFormats':
-    'Supported File Formats(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supTraining.supportedFormats': 'Supported File Formats(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
   'supTraining.chooseFile': 'Please choose a file for upload',
   'supTraining.fileTooLarge': 'File Size should not exceed',
   'supTraining.invalidFileName': 'Invalid file name',
@@ -1242,8 +1251,7 @@ export const en = {
   'supScheme.uploadFile': 'Upload file',
   'supScheme.sizeLimit': 'Size limit',
   'supScheme.mb': 'MB',
-  'supScheme.supportedFormats':
-    'Supported File Formats(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supScheme.supportedFormats': 'Supported File Formats(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
   'supScheme.chooseFile': 'Please choose a file for upload',
   'supScheme.fileTooLarge': 'File Size should not exceed',
   'supScheme.invalidFileName': 'Invalid file name',
@@ -1296,8 +1304,7 @@ export const en = {
   'supKm.uploadFile': 'Upload file',
   'supKm.sizeLimit': 'Size limit',
   'supKm.mb': 'MB',
-  'supKm.supportedFormats':
-    'Supported File Formats(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supKm.supportedFormats': 'Supported File Formats(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
   'supKm.chooseFile': 'Please choose a file for upload',
   'supKm.fileTooLarge': 'File Size should not exceed',
   'supKm.invalidFileName': 'Invalid file name',
@@ -1322,6 +1329,50 @@ export const en = {
   'supervisor.agentStatus.unknown': 'Unknown',
   'supervisor.agentStatus.noAgents': 'No agents are currently online.',
   'supervisor.agentStatus.loadError': 'Unable to load agent status. Please try again.',
+  // Diseases Summary configuration
+  'supDisease.title': 'Diseases Summary',
+  'supDisease.createTitle': 'Create Disease Summary',
+  'supDisease.editTitle': 'Edit Disease Summary',
+  'supDisease.loading': 'Loading…',
+  'supDisease.sno': 'S.No',
+  'supDisease.diseaseName': 'Disease Name',
+  'supDisease.summary': 'Disease Summary',
+  'supDisease.colAdvice': 'Medical Advice',
+  'supDisease.actions': 'Actions',
+  'supDisease.edit': 'Edit',
+  'supDisease.activate': 'Activate',
+  'supDisease.deactivate': 'Deactivate',
+  'supDisease.confirmActivate': 'Do you really want to activate this disease summary?',
+  'supDisease.confirmDeactivate': 'Do you really want to deactivate this disease summary?',
+  'supDisease.noRecords': 'No Records Found',
+  'supDisease.pageSize': 'Page Size',
+  'supDisease.page': 'Page',
+  'supDisease.prevPage': 'Previous page',
+  'supDisease.nextPage': 'Next page',
+  'supDisease.nameRequired': 'Disease name is required',
+  'supDisease.nameExists': 'Disease name already exists',
+  'supDisease.questions':
+    'Could be dangerous if the answer is yes for any one of the following questions',
+  'supDisease.causes': 'Causes',
+  'supDisease.dosDonts': "Do's & Don'ts",
+  'supDisease.symptoms': 'Signs & Symptoms',
+  'supDisease.whenToSeekAdvice': 'When to seek medical advice',
+  'supDisease.riskFactors': 'Risk Factors',
+  'supDisease.treatment': 'Treatment',
+  'supDisease.selfCare': 'Self Care',
+  'supDisease.investigations': 'Investigations',
+  'supDisease.linesHint': 'Enter one item per line.',
+  'supDisease.back': 'Back',
+  'supDisease.reset': 'Reset',
+  'supDisease.save': 'Save',
+  'supDisease.update': 'Update',
+  'supDisease.saved': 'Disease summary saved successfully',
+  'supDisease.updated': 'Disease summary updated successfully',
+  'supDisease.saveFailed': 'Failed to save disease summary',
+  'supDisease.updateFailed': 'Failed to update disease summary',
+  'supDisease.statusUpdated': 'Status updated successfully',
+  'supDisease.statusFailed': 'Failed to update status',
+  'supDisease.loadError': 'Failed to load disease summaries',
 
   // Shared alert/confirm dialog titles (ConfirmationService)
   'dialog.confirmTitle': 'Confirm',

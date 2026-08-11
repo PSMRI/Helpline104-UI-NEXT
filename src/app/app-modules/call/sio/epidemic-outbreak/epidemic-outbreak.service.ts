@@ -59,9 +59,7 @@ export class EpidemicOutbreakService {
         timeout(SIO_TIMEOUT_MS),
         map((res) => {
           const rows = readSioData(res) ?? [];
-          return rows
-            .map((row) => row.m_feedbackNature?.[0])
-            .filter((n): n is NatureOfComplaint => n != null);
+          return rows.map((row) => row.m_feedbackNature?.[0]).filter((n): n is NatureOfComplaint => n != null);
         }),
         catchError((err: unknown) => throwError(() => toSioError(err))),
       );
@@ -80,17 +78,15 @@ export class EpidemicOutbreakService {
   }
 
   saveComplaint(payload: SaveEpidemicComplaint): Observable<unknown> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload)
-      .pipe(
-        timeout(SIO_TIMEOUT_MS),
-        map((res) => {
-          if (res.statusCode && res.statusCode !== 200) {
-            throw toSioError(res);
-          }
-          return res.data ?? res;
-        }),
-        catchError((err: unknown) => throwError(() => toSioError(err))),
-      );
+    return this.http.post<ApiResponse<unknown>>(this.config.get104BaseURL() + SAVE_PATH, payload).pipe(
+      timeout(SIO_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw toSioError(res);
+        }
+        return res.data ?? res;
+      }),
+      catchError((err: unknown) => throwError(() => toSioError(err))),
+    );
   }
 }

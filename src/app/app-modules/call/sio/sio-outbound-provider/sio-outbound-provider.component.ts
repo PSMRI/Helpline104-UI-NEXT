@@ -20,16 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, of, switchMap, tap } from 'rxjs';
@@ -83,13 +74,21 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
         }
 
         <!-- Request under fulfilment (read-only) -->
-        <dl class="mb-5 grid gap-3 rounded-md border border-border bg-muted/30 p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        <dl
+          class="mb-5 grid gap-3 rounded-md border border-border bg-muted/30 p-4 text-sm sm:grid-cols-2 lg:grid-cols-4"
+        >
           <div>
-            <dt class="text-xs font-medium text-muted-foreground">{{ 'sio.outbound.recipient' | translate: lang() }}</dt>
-            <dd class="font-medium text-foreground">{{ request()?.beneficiaryName || detail()?.recipientName || '—' }}</dd>
+            <dt class="text-xs font-medium text-muted-foreground">
+              {{ 'sio.outbound.recipient' | translate: lang() }}
+            </dt>
+            <dd class="font-medium text-foreground">
+              {{ request()?.beneficiaryName || detail()?.recipientName || '—' }}
+            </dd>
           </div>
           <div>
-            <dt class="text-xs font-medium text-muted-foreground">{{ 'sio.blood.componentType' | translate: lang() }}</dt>
+            <dt class="text-xs font-medium text-muted-foreground">
+              {{ 'sio.blood.componentType' | translate: lang() }}
+            </dt>
             <dd class="font-medium text-foreground">{{ detail()?.m_componentType?.componentType || '—' }}</dd>
           </div>
           <div>
@@ -97,7 +96,9 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
             <dd class="font-medium text-foreground">{{ detail()?.m_bloodGroup?.bloodGroup || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs font-medium text-muted-foreground">{{ 'sio.outbound.unitRequired' | translate: lang() }}</dt>
+            <dt class="text-xs font-medium text-muted-foreground">
+              {{ 'sio.outbound.unitRequired' | translate: lang() }}
+            </dt>
             <dd class="font-medium text-foreground">{{ detail()?.unitRequired ?? '—' }}</dd>
           </div>
         </dl>
@@ -114,35 +115,68 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
             <label for="ob-designation" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.outbound.designation' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="ob-designation" z-input class="w-full" type="text" maxlength="25" formControlName="designation" />
+            <input
+              id="ob-designation"
+              z-input
+              class="w-full"
+              type="text"
+              maxlength="25"
+              formControlName="designation"
+            />
           </div>
 
           <div>
             <label for="ob-mobile" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.mobileNumber' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <input id="ob-mobile" z-input class="w-full" type="text" inputmode="numeric" maxlength="10" formControlName="mobileNo" />
+            <input
+              id="ob-mobile"
+              z-input
+              class="w-full"
+              type="text"
+              inputmode="numeric"
+              maxlength="10"
+              formControlName="mobileNo"
+            />
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
             <label for="ob-address" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.address' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
-            <textarea id="ob-address" [class]="textareaClass" rows="2" maxlength="100" formControlName="address"></textarea>
+            <textarea
+              id="ob-address"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="100"
+              formControlName="address"
+            ></textarea>
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
             <label for="ob-feedback" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.outbound.feedback' | translate: lang() }}
             </label>
-            <textarea id="ob-feedback" [class]="textareaClass" rows="2" maxlength="500" formControlName="feedback"></textarea>
+            <textarea
+              id="ob-feedback"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="500"
+              formControlName="feedback"
+            ></textarea>
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
             <label for="ob-remarks" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'sio.common.remarks' | translate: lang() }}
             </label>
-            <textarea id="ob-remarks" [class]="textareaClass" rows="2" maxlength="500" formControlName="remarks"></textarea>
+            <textarea
+              id="ob-remarks"
+              [class]="textareaClass"
+              rows="2"
+              maxlength="500"
+              formControlName="remarks"
+            ></textarea>
           </div>
 
           <label class="flex items-center gap-2 text-sm sm:col-span-2 lg:col-span-3">
@@ -156,7 +190,14 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
         </form>
 
         <div class="mt-4">
-          <button z-button type="button" zType="default" [zLoading]="saving()" [zDisabled]="form.invalid || saving()" (click)="save()">
+          <button
+            z-button
+            type="button"
+            zType="default"
+            [zLoading]="saving()"
+            [zDisabled]="form.invalid || saving()"
+            (click)="save()"
+          >
             {{ 'sio.common.save' | translate: lang() }}
           </button>
         </div>

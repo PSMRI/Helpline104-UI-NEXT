@@ -21,12 +21,7 @@
  */
 
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -81,9 +76,7 @@ const CONCURRENT_SESSION_CODE = 5002;
     ZardFormLabelComponent,
     ZardFormMessageComponent,
   ],
-  viewProviders: [
-    provideIcons({ lucideEye, lucideEyeOff, lucideUser, lucideLock }),
-  ],
+  viewProviders: [provideIcons({ lucideEye, lucideEyeOff, lucideUser, lucideLock })],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -141,12 +134,10 @@ export class LoginComponent {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    this.loginService
-      .authenticateUser(this.lastUserID, this.lastEncryptedPassword, doLogout)
-      .subscribe({
-        next: (response) => this.onSuccess(response, this.lastUserID),
-        error: (error: LoginError) => this.onError(error),
-      });
+    this.loginService.authenticateUser(this.lastUserID, this.lastEncryptedPassword, doLogout).subscribe({
+      next: (response) => this.onSuccess(response, this.lastUserID),
+      error: (error: LoginError) => this.onError(error),
+    });
   }
 
   private onSuccess(response: LoginResponse, userID: string): void {
@@ -177,9 +168,7 @@ export class LoginComponent {
       // in the background (as the legacy app did) so a dark softphone never
       // blocks the portal login; the service stores the key/IP for later use.
       if (agentID !== null) {
-        this.czentrix
-          .startCtiSession(userID, this.lastEncryptedPassword, agentID)
-          .subscribe();
+        this.czentrix.startCtiSession(userID, this.lastEncryptedPassword, agentID).subscribe();
       }
       void this.router.navigate([ROLE_SELECTION_ROUTE]);
     } else if (response.isAuthenticated && response.Status === 'New') {
@@ -189,9 +178,7 @@ export class LoginComponent {
       // user id/name it needs from the in-memory recovery store instead.
       const userId = response.userID ?? null;
       if (userId == null) {
-        this.errorMessage.set(
-          'Unable to start first-time setup. Please contact your administrator.',
-        );
+        this.errorMessage.set('Unable to start first-time setup. Please contact your administrator.');
         return;
       }
       this.recoveryStore.startSecurityQuestionSetup(userID, userId);
@@ -213,9 +200,7 @@ export class LoginComponent {
       return;
     }
 
-    this.errorMessage.set(
-      error?.errorMessage || 'Internal issue, please try again later.',
-    );
+    this.errorMessage.set(error?.errorMessage || 'Internal issue, please try again later.');
   }
 
   /**
@@ -227,8 +212,7 @@ export class LoginComponent {
     this.confirmDialog
       .confirm({
         title: 'Already logged in',
-        message:
-          'You are already logged in. Do you want to logout from other device and login here?',
+        message: 'You are already logged in. Do you want to logout from other device and login here?',
         okText: 'Yes, logout',
         cancelText: 'Cancel',
       })
@@ -240,18 +224,13 @@ export class LoginComponent {
         this.concurrentLogoutTried = true;
         this.loading.set(true);
         this.errorMessage.set('');
-        this.loginService
-          .logOutUserFromConcurrentSession(this.lastUserID)
-          .subscribe({
-            next: () => this.authenticate(true),
-            error: (error: LoginError) => {
-              this.loading.set(false);
-              this.errorMessage.set(
-                error?.errorMessage ||
-                  'Unable to log out the other session. Please try again.',
-              );
-            },
-          });
+        this.loginService.logOutUserFromConcurrentSession(this.lastUserID).subscribe({
+          next: () => this.authenticate(true),
+          error: (error: LoginError) => {
+            this.loading.set(false);
+            this.errorMessage.set(error?.errorMessage || 'Unable to log out the other session. Please try again.');
+          },
+        });
       });
   }
 }
@@ -263,10 +242,7 @@ export class LoginComponent {
  * Checks the top level first for backward compatibility, then the privilege
  * tree; returns null when the user has no dialer id (CTI stays dark).
  */
-function resolveAgentID(
-  response: LoginResponse,
-  privileges: Privilege[],
-): number | null {
+function resolveAgentID(response: LoginResponse, privileges: Privilege[]): number | null {
   const candidates: unknown[] = [
     response.agentID,
     ...privileges.flatMap((privilege) => [

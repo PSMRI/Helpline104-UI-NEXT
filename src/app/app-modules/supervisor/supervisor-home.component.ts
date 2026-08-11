@@ -24,12 +24,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideChartColumn,
-  lucidePhoneForwarded,
-  lucidePhoneOff,
-  lucideRefreshCw,
-} from '@ng-icons/lucide';
+import { lucideChartColumn, lucidePhoneForwarded, lucidePhoneOff, lucideRefreshCw } from '@ng-icons/lucide';
 
 import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';

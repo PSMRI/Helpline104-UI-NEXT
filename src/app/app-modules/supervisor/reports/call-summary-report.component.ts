@@ -20,15 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -145,12 +137,7 @@ import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from 
           <label for="cs-calltype" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supReports.filter.callType' | translate: lang() }}
           </label>
-          <select
-            id="cs-calltype"
-            [class]="selectClass"
-            formControlName="callType"
-            (change)="onCallTypeChange()"
-          >
+          <select id="cs-calltype" [class]="selectClass" formControlName="callType" (change)="onCallTypeChange()">
             <option [ngValue]="null">
               {{ 'supReports.filter.select' | translate: lang() }}
             </option>
@@ -175,13 +162,7 @@ import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from 
       </form>
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          z-button
-          type="button"
-          [zLoading]="runner.loading()"
-          [zDisabled]="form.invalid"
-          (click)="view()"
-        >
+        <button z-button type="button" [zLoading]="runner.loading()" [zDisabled]="form.invalid" (click)="view()">
           <ng-icon name="lucideEye" size="16" aria-hidden="true" />
           {{ 'supReports.view' | translate: lang() }}
         </button>
@@ -231,9 +212,7 @@ export class CallSummaryReportComponent implements OnInit {
   readonly callTypeGroups = signal<CallTypeGroup[]>([]);
   readonly callSubTypes = signal<CallTypeOption[]>([]);
 
-  private readonly providerServiceMapID = computed(
-    () => this.authStore.currentRole()?.providerServiceMapID ?? null,
-  );
+  private readonly providerServiceMapID = computed(() => this.authStore.currentRole()?.providerServiceMapID ?? null);
 
   ngOnInit(): void {
     const psmID = this.providerServiceMapID();

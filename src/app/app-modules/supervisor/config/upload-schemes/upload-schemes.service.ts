@@ -25,12 +25,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../../core/services/config.service';
-import {
-  ApiResponse,
-  SUPERVISOR_TIMEOUT_MS,
-  readSupervisorData,
-  toSupervisorError,
-} from '../../shared/supervisor-api';
+import { ApiResponse, SUPERVISOR_TIMEOUT_MS, readSupervisorData, toSupervisorError } from '../../shared/supervisor-api';
 import { SaveSchemeRequest, SchemeRow } from './upload-schemes.models';
 
 const SCHEME_LIST_PATH = 'beneficiary/get/schemeList';
@@ -48,9 +43,7 @@ export class UploadSchemesService {
   private readonly config = inject(ConfigService);
 
   getSchemeList(providerServiceMapID: number | null): Observable<SchemeRow[]> {
-    return this.post<SchemeRow[]>(SCHEME_LIST_PATH, { providerServiceMapID }).pipe(
-      map((data) => data ?? []),
-    );
+    return this.post<SchemeRow[]>(SCHEME_LIST_PATH, { providerServiceMapID }).pipe(map((data) => data ?? []));
   }
 
   saveScheme(body: SaveSchemeRequest): Observable<unknown> {

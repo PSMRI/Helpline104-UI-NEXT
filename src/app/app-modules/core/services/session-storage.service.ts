@@ -56,8 +56,7 @@ const ENC_MARKER = '104enc.v1:';
  * Fixed app salt (hex) for PBKDF2. Deliberately constant — the derived key
  * must be deterministic so an in-flight session survives a page reload.
  */
-const ENC_SALT_HEX =
-  '68656c706c696e6531303475692d73657373696f6e2d73746f726167652d7631';
+const ENC_SALT_HEX = '68656c706c696e6531303475692d73657373696f6e2d73746f726167652d7631';
 
 /** Passphrase for key derivation; `environment.encKey` wins when configured. */
 const ENC_FALLBACK_PASSPHRASE = 'Helpline104UI@SessionStore';
@@ -72,10 +71,7 @@ let cachedMacKey: CryptoJS.lib.WordArray | null = null;
 
 function storageKey(): CryptoJS.lib.WordArray {
   if (cachedKey === null) {
-    cachedKey = generateKey(
-      ENC_SALT_HEX,
-      environment.encKey || ENC_FALLBACK_PASSPHRASE,
-    );
+    cachedKey = generateKey(ENC_SALT_HEX, environment.encKey || ENC_FALLBACK_PASSPHRASE);
   }
   return cachedKey;
 }
@@ -83,10 +79,7 @@ function storageKey(): CryptoJS.lib.WordArray {
 /** Separate derived key for the HMAC — encryption keys are never reused for authentication. */
 function macKey(): CryptoJS.lib.WordArray {
   if (cachedMacKey === null) {
-    cachedMacKey = generateKey(
-      ENC_SALT_HEX,
-      (environment.encKey || ENC_FALLBACK_PASSPHRASE) + ':mac',
-    );
+    cachedMacKey = generateKey(ENC_SALT_HEX, (environment.encKey || ENC_FALLBACK_PASSPHRASE) + ':mac');
   }
   return cachedMacKey;
 }

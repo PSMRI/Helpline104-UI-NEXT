@@ -20,16 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -48,13 +39,7 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CdssService } from './cdss.service';
-import {
-  CdssDiagnosis,
-  CdssError,
-  CdssGender,
-  CdssQuestionnaire,
-  CdssSelection,
-} from './cdss.models';
+import { CdssDiagnosis, CdssError, CdssGender, CdssQuestionnaire, CdssSelection } from './cdss.models';
 
 /** Which step of the CDSS flow is on screen. */
 type Stage = 'idle' | 'questions' | 'diagnoses';
@@ -107,12 +92,7 @@ interface DiagnosisVm extends CdssDiagnosis {
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <header class="mb-4 flex items-center gap-2">
-        <ng-icon
-          name="lucideStethoscope"
-          size="18"
-          class="text-primary"
-          aria-hidden="true"
-        />
+        <ng-icon name="lucideStethoscope" size="18" class="text-primary" aria-hidden="true" />
         <h3 class="text-sm font-semibold text-foreground">
           {{ 'cdss.title' | translate: lang() }}
         </h3>
@@ -158,11 +138,7 @@ interface DiagnosisVm extends CdssDiagnosis {
           </h4>
           @if (questionnaire()?.questions?.length) {
             <ul class="flex flex-col gap-2" role="list">
-              @for (
-                q of questionnaire()!.questions;
-                track $index;
-                let i = $index
-              ) {
+              @for (q of questionnaire()!.questions; track $index; let i = $index) {
                 <li>
                   <button
                     type="button"
@@ -178,11 +154,7 @@ interface DiagnosisVm extends CdssDiagnosis {
                       <span
                         class="inline-flex shrink-0 items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive"
                       >
-                        <ng-icon
-                          name="lucideTriangleAlert"
-                          size="12"
-                          aria-hidden="true"
-                        />
+                        <ng-icon name="lucideTriangleAlert" size="12" aria-hidden="true" />
                         {{ 'cdss.emergencyBadge' | translate: lang() }}
                       </span>
                     }
@@ -206,12 +178,7 @@ interface DiagnosisVm extends CdssDiagnosis {
               class="mb-4 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
               role="alert"
             >
-              <ng-icon
-                name="lucideTriangleAlert"
-                size="16"
-                class="mt-0.5 shrink-0"
-                aria-hidden="true"
-              />
+              <ng-icon name="lucideTriangleAlert" size="16" class="mt-0.5 shrink-0" aria-hidden="true" />
               <span>{{ 'cdss.emergencyWarning' | translate: lang() }}</span>
             </div>
           }
@@ -240,8 +207,7 @@ interface DiagnosisVm extends CdssDiagnosis {
                     </label>
                     @if (d.symptoms.length) {
                       <span class="text-xs text-muted-foreground">
-                        {{ 'cdss.match' | translate: lang() }}:
-                        {{ matchCount(d) }}/{{ d.symptoms.length }}
+                        {{ 'cdss.match' | translate: lang() }}: {{ matchCount(d) }}/{{ d.symptoms.length }}
                       </span>
                     }
                   </div>
@@ -258,9 +224,7 @@ interface DiagnosisVm extends CdssDiagnosis {
                             class="rounded-full border px-2.5 py-1 text-xs"
                             [class.border-primary]="d.selectedSymptoms.includes(si)"
                             [class.bg-primary]="d.selectedSymptoms.includes(si)"
-                            [class.text-primary-foreground]="
-                              d.selectedSymptoms.includes(si)
-                            "
+                            [class.text-primary-foreground]="d.selectedSymptoms.includes(si)"
                             [class.border-border]="!d.selectedSymptoms.includes(si)"
                             [attr.aria-pressed]="d.selectedSymptoms.includes(si)"
                             (click)="toggleSymptom(di, si)"
@@ -277,9 +241,7 @@ interface DiagnosisVm extends CdssDiagnosis {
                       <p class="mb-1 text-xs font-medium text-muted-foreground">
                         {{ 'cdss.information' | translate: lang() }}
                       </p>
-                      <ul
-                        class="list-disc pl-5 text-sm text-foreground marker:text-muted-foreground"
-                      >
+                      <ul class="list-disc pl-5 text-sm text-foreground marker:text-muted-foreground">
                         @for (item of d.information; track $index) {
                           <li>{{ item }}</li>
                         }
@@ -292,9 +254,7 @@ interface DiagnosisVm extends CdssDiagnosis {
                       <p class="mb-1 text-xs font-medium text-muted-foreground">
                         {{ 'cdss.dosDonts' | translate: lang() }}
                       </p>
-                      <ul
-                        class="list-disc pl-5 text-sm text-foreground marker:text-muted-foreground"
-                      >
+                      <ul class="list-disc pl-5 text-sm text-foreground marker:text-muted-foreground">
                         @for (item of d.dosDonts; track $index) {
                           <li>{{ item }}</li>
                         }
@@ -307,9 +267,7 @@ interface DiagnosisVm extends CdssDiagnosis {
                       <p class="mb-1 text-xs font-medium text-muted-foreground">
                         {{ 'cdss.selfCare' | translate: lang() }}
                       </p>
-                      <ul
-                        class="list-disc pl-5 text-sm text-foreground marker:text-muted-foreground"
-                      >
+                      <ul class="list-disc pl-5 text-sm text-foreground marker:text-muted-foreground">
                         @for (item of d.selfCare; track $index) {
                           <li>{{ item }}</li>
                         }
@@ -322,9 +280,7 @@ interface DiagnosisVm extends CdssDiagnosis {
                       <p class="mb-1 text-xs font-medium text-muted-foreground">
                         {{ 'cdss.action' | translate: lang() }}
                       </p>
-                      <ul
-                        class="list-disc pl-5 text-sm text-foreground marker:text-muted-foreground"
-                      >
+                      <ul class="list-disc pl-5 text-sm text-foreground marker:text-muted-foreground">
                         @for (item of d.action; track $index) {
                           <li>{{ item }}</li>
                         }
@@ -338,10 +294,7 @@ interface DiagnosisVm extends CdssDiagnosis {
             <!-- Editable recommended action (agent may modify before accepting) -->
             <div class="mt-4">
               <div class="mb-1 flex items-center justify-between gap-2">
-                <label
-                  [attr.for]="actionId"
-                  class="block text-sm font-medium text-foreground"
-                >
+                <label [attr.for]="actionId" class="block text-sm font-medium text-foreground">
                   {{ 'cdss.recommendedActionLabel' | translate: lang() }}
                 </label>
                 @if (actionEdited()) {
@@ -454,19 +407,12 @@ export class CdssComponent {
 
   /** Patient context is complete enough to call the API. */
   readonly hasContext = computed(
-    () =>
-      this.complaint().trim().length > 0 &&
-      this.age() !== null &&
-      this.gender() !== null,
+    () => this.complaint().trim().length > 0 && this.age() !== null && this.gender() !== null,
   );
 
-  readonly canFetch = computed(
-    () => this.hasContext() && !this.disabled() && !this.loading(),
-  );
+  readonly canFetch = computed(() => this.hasContext() && !this.disabled() && !this.loading());
 
-  readonly acceptedDiagnoses = computed(() =>
-    this.diagnoses().filter((d) => d.accepted),
-  );
+  readonly acceptedDiagnoses = computed(() => this.diagnoses().filter((d) => d.accepted));
 
   readonly canAccept = computed(() => this.acceptedDiagnoses().length > 0);
 
@@ -528,9 +474,7 @@ export class CdssComponent {
     }
     const question = questionnaire.questions[index];
     this.selectedQuestion.set(index);
-    this.emergencyWarning.set(
-      question?.isEmergency === true && this.role() !== MEDICAL_OFFICER_ROLE,
-    );
+    this.emergencyWarning.set(question?.isEmergency === true && this.role() !== MEDICAL_OFFICER_ROLE);
 
     const reqId = ++this.diagnosesReqId;
     this.loading.set(true);
@@ -545,9 +489,7 @@ export class CdssComponent {
             return;
           }
           this.loading.set(false);
-          this.diagnoses.set(
-            list.map((d) => ({ ...d, accepted: false, selectedSymptoms: [] })),
-          );
+          this.diagnoses.set(list.map((d) => ({ ...d, accepted: false, selectedSymptoms: [] })));
           this.actionOverride.set(null);
           this.stage.set('diagnoses');
         },
@@ -584,11 +526,7 @@ export class CdssComponent {
   }
 
   toggleAccept(diagnosisIndex: number): void {
-    this.diagnoses.update((list) =>
-      list.map((d, i) =>
-        i === diagnosisIndex ? { ...d, accepted: !d.accepted } : d,
-      ),
-    );
+    this.diagnoses.update((list) => list.map((d, i) => (i === diagnosisIndex ? { ...d, accepted: !d.accepted } : d)));
     // With nothing accepted there is no suggested action to diverge from, so
     // drop any manual edit and fall back to the (empty) suggestion.
     if (this.acceptedDiagnoses().length === 0) {
@@ -612,9 +550,7 @@ export class CdssComponent {
     }
     const diagnoses = this.acceptedDiagnoses().map((d) => ({
       disease: d.disease,
-      symptoms: d.selectedSymptoms
-        .map((i) => d.symptoms[i])
-        .filter((s): s is string => !!s),
+      symptoms: d.selectedSymptoms.map((i) => d.symptoms[i]).filter((s): s is string => !!s),
       action: d.action.join(', '),
     }));
     this.selection.emit({

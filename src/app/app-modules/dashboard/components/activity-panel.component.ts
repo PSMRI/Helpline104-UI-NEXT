@@ -45,18 +45,11 @@ import { KmDocsDialogComponent } from './dialogs/km-docs-dialog.component';
     <section
       class="flex h-full flex-col rounded-lg bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md"
     >
-      <header
-        class="flex items-center justify-between border-b border-border px-4 py-3"
-      >
+      <header class="flex items-center justify-between border-b border-border px-4 py-3">
         <h2 class="text-lg font-semibold">
           {{ 'dashboard.activity.title' | translate: lang() }}
         </h2>
-        <ng-icon
-          name="lucideActivity"
-          size="18"
-          class="text-primary"
-          aria-hidden="true"
-        />
+        <ng-icon name="lucideActivity" size="18" class="text-primary" aria-hidden="true" />
       </header>
 
       <div class="flex flex-1 flex-col px-4 py-3">

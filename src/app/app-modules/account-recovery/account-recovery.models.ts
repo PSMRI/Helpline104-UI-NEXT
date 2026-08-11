@@ -67,8 +67,7 @@ export interface ForgetPasswordData {
  *    neutral message and do not advance.
  */
 export type ForgetPasswordResult =
-  | { kind: 'questions'; questions: SecurityQuestion[] }
-  | { kind: 'neutral'; message: string };
+  { kind: 'questions'; questions: SecurityQuestion[] } | { kind: 'neutral'; message: string };
 
 /** One answered question sent to `user/validateSecurityQuestionAndAnswer`. */
 export interface SecurityAnswer {
