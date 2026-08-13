@@ -1329,6 +1329,11 @@ export const en = {
   'supervisor.agentStatus.unknown': 'Unknown',
   'supervisor.agentStatus.noAgents': 'No agents are currently online.',
   'supervisor.agentStatus.loadError': 'Unable to load agent status. Please try again.',
+  // Login
+  'login.captchaLabel': 'Security check',
+  'login.captchaFailed':
+    'The security check could not be loaded. Check your connection and try again.',
+  'login.captchaRetry': 'Retry security check',
 
   // SMS templates
   'supSms.listTitle': 'SMS Template List',

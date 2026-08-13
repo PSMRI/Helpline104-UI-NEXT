@@ -1330,6 +1330,11 @@ export const hi: Record<TranslationKey, string> = {
   'supervisor.agentStatus.unknown': 'अज्ञात',
   'supervisor.agentStatus.noAgents': 'वर्तमान में कोई एजेंट ऑनलाइन नहीं है।',
   'supervisor.agentStatus.loadError': 'एजेंट स्थिति लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
+  // Login
+  'login.captchaLabel': 'सुरक्षा जांच',
+  'login.captchaFailed':
+    'सुरक्षा जांच लोड नहीं हो सकी। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
+  'login.captchaRetry': 'सुरक्षा जांच पुनः आज़माएं',
 
   // SMS templates
   'supSms.listTitle': 'एसएमएस टेम्पलेट सूची',

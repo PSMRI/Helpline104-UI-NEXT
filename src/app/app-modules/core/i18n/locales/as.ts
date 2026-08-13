@@ -1333,6 +1333,11 @@ export const as: Record<TranslationKey, string> = {
   'supervisor.agentStatus.noAgents': 'বৰ্তমান কোনো এজেণ্ট অনলাইনত নাই।',
   'supervisor.agentStatus.loadError':
     'এজেণ্টৰ স্থিতি ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  // Login
+  'login.captchaLabel': 'সুৰক্ষা পৰীক্ষা',
+  'login.captchaFailed':
+    'সুৰক্ষা পৰীক্ষা ল’ড কৰিব পৰা নগ’ল। আপোনাৰ সংযোগ পৰীক্ষা কৰি পুনৰ চেষ্টা কৰক।',
+  'login.captchaRetry': 'সুৰক্ষা পৰীক্ষা পুনৰ চেষ্টা কৰক',
 
   // SMS templates
   'supSms.listTitle': 'এছএমএছ টেমপ্লেট তালিকা',
