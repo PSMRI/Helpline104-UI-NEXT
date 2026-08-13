@@ -326,9 +326,17 @@ export const routes: Routes = [
             './app-modules/supervisor/config/diseases-summary/diseases-summary-config.component'
           ).then((m) => m.DiseasesSummaryConfigComponent),
       },
+      {
+        // SMS templates: list/view the service's SMS templates and create new
+        // ones with $$PARAMETER$$ placeholders mapped to backend values.
+        path: 'sms-templates',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/sms-templates/sms-templates.component').then(
+            (m) => m.SmsTemplatesComponent,
+          ),
+      },
       ...[
         ['agent-status', 'supervisor.nav.agentStatus'],
-        ['sms-templates', 'supervisor.nav.smsTemplates'],
       ].map(([path, titleKey]) => ({
         path,
         data: { titleKey },
