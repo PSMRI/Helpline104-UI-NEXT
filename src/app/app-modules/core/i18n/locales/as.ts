@@ -1319,6 +1319,20 @@ export const as: Record<TranslationKey, string> = {
   'supKm.uploadFailed': 'ফাইল আপল’ড কৰিবলৈ ব্যৰ্থ',
   'supKm.noCategory': 'কোনো শ্ৰেণী পোৱা নগ’ল',
 
+  // Supervisor agent status
+  'supervisor.agentStatus.title': 'এজেণ্টৰ স্থিতি',
+  'supervisor.agentStatus.autoRefresh': 'প্ৰতি ৩০ ছেকেণ্ডত স্বয়ংক্ৰিয়ভাৱে ৰিফ্ৰেছ হয়',
+  'supervisor.agentStatus.lastUpdated': 'শেষ আপডেট',
+  'supervisor.agentStatus.refresh': 'ৰিফ্ৰেছ কৰক',
+  'supervisor.agentStatus.loading': 'এজেণ্টৰ স্থিতি ল’ড হৈ আছে…',
+  'supervisor.agentStatus.agentId': 'এজেণ্ট আইডি',
+  'supervisor.agentStatus.name': 'নাম',
+  'supervisor.agentStatus.extension': 'এক্সটেনচন',
+  'supervisor.agentStatus.status': 'স্থিতি',
+  'supervisor.agentStatus.unknown': 'অজ্ঞাত',
+  'supervisor.agentStatus.noAgents': 'বৰ্তমান কোনো এজেণ্ট অনলাইনত নাই।',
+  'supervisor.agentStatus.loadError':
+    'এজেণ্টৰ স্থিতি ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   // Login
   'login.captchaLabel': 'সুৰক্ষা পৰীক্ষা',
   'login.captchaFailed':

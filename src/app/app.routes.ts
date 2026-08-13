@@ -335,16 +335,14 @@ export const routes: Routes = [
             (m) => m.SmsTemplatesComponent,
           ),
       },
-      ...[
-        ['agent-status', 'supervisor.nav.agentStatus'],
-      ].map(([path, titleKey]) => ({
-        path,
-        data: { titleKey },
+      {
+        // Live CZentrix agent status (online agents, auto-refreshing).
+        path: 'agent-status',
         loadComponent: () =>
-          import('./app-modules/supervisor/supervisor-placeholder.component').then(
-            (m) => m.SupervisorPlaceholderComponent,
+          import('./app-modules/supervisor/agent-status/agent-status.component').then(
+            (m) => m.AgentStatusComponent,
           ),
-      })),
+      },
     ],
   },
   {
