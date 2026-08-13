@@ -102,6 +102,23 @@ describe('HaoService call-lifecycle envelope handling', () => {
       expect(failure?.message).toContain('FK constraint fails');
     });
 
+    // Same two-trigger split as transferCall below: an OK statusCode here leaves
+    // the longer "Failed with <cause>" status as the only thing that can raise.
+    it('errors on a 200 whose status reads "Failed with …", even with an OK statusCode', () => {
+      let failure: Error | undefined;
+      service.closeCall(closeRequest()).subscribe({ error: (err: Error) => (failure = err) });
+
+      expectOne('call/closeCall').flush({
+        statusCode: 200,
+        errorMessage: 'could not execute statement [FK constraint fails]',
+        status: 'Failed with could not execute statement',
+      });
+
+      expect(failure).toBeDefined();
+      expect(failure?.message).toContain('closeCall failed');
+      expect(failure?.message).toContain('FK constraint fails');
+    });
+
     it("passes a 5002 envelope through — session expiry is the interceptor's to own", () => {
       const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
       service.closeCall(closeRequest()).subscribe(outcome);
@@ -132,11 +149,25 @@ describe('HaoService call-lifecycle envelope handling', () => {
       expect(outcome.next).toHaveBeenCalled();
     });
 
-    it('errors on a 200 whose status reports FAILURE', () => {
+    // The envelope check has two independent triggers — a non-200 statusCode and
+    // a FAIL* status — so each is exercised on its own. Asserting both at once
+    // would let either regress unnoticed behind the other.
+    it('errors on a 200 whose status reports FAILURE, even with an OK statusCode', () => {
       let failure: Error | undefined;
       service.transferCall(transferRequest()).subscribe({ error: (err: Error) => (failure = err) });
 
-      expectOne('cti/transferCall').flush({ statusCode: 5000, errorMessage: 'NOT_LOGGED_IN', status: 'FAILURE' });
+      expectOne('cti/transferCall').flush({ statusCode: 200, errorMessage: 'NOT_LOGGED_IN', status: 'FAILURE' });
+
+      expect(failure).toBeDefined();
+      expect(failure?.message).toContain('transferCall failed');
+      expect(failure?.message).toContain('NOT_LOGGED_IN');
+    });
+
+    it('errors on a 200 carrying statusCode 5000, even when the status reads Success', () => {
+      let failure: Error | undefined;
+      service.transferCall(transferRequest()).subscribe({ error: (err: Error) => (failure = err) });
+
+      expectOne('cti/transferCall').flush({ statusCode: 5000, errorMessage: 'NOT_LOGGED_IN', status: 'Success' });
 
       expect(failure).toBeDefined();
       expect(failure?.message).toContain('transferCall failed');

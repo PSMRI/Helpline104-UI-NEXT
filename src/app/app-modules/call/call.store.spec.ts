@@ -248,5 +248,54 @@ describe('CallStore beneficiary persistence', () => {
       expect(() => freshStore()).not.toThrow();
       expect(freshStore().demographics()).toBeNull();
     });
+
+    // `typeof [] === 'object'`, so an array would slip past a bare object check
+    // and restore as a record with every field null — "identified, details
+    // unknown" rather than the absent context a corrupt key really means.
+    for (const payload of ['[]', '["Test",36]']) {
+      it(`discards the array payload ${payload} instead of restoring empty demographics`, () => {
+        persistDemographics(payload);
+        expect(freshStore().demographics()).toBeNull();
+      });
+    }
+  });
+
+  describe('validates ids handed in at runtime, not just rehydrated ones', () => {
+    // beneficiaryGuard admits any non-null beneficiaryId, so an unusable value
+    // reaching the signal would open a workspace with no patient behind it for
+    // the rest of the session — the reload path already rejects these.
+    for (const invalid of [Number.NaN, 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 2]) {
+      it(`treats beneficiaryId ${invalid} as no beneficiary`, () => {
+        const store = freshStore();
+        store.startCall({ cli: '9876543210', sessionId: '1' });
+        store.setBeneficiaryId(invalid, 54);
+
+        expect(store.beneficiaryId()).toBeNull();
+        expect(store.districtID()).toBeNull();
+        expect(sessionStorage.getItem(CALL_STORAGE_KEYS.beneficiaryId)).toBeNull();
+      });
+    }
+
+    it('drops the demographics of the patient it replaces when the new id is invalid', () => {
+      const store = freshStore();
+      store.startCall({ cli: '9876543210', sessionId: '1' });
+      store.setBeneficiaryId(5006622, 54);
+      store.setDemographics(demographicsOf('Patient A'));
+
+      store.setBeneficiaryId(Number.NaN);
+
+      expect(store.demographics()).toBeNull();
+      expect(freshStore().demographics()).toBeNull();
+    });
+
+    it('keeps a valid beneficiary while discarding an unusable district', () => {
+      const store = freshStore();
+      store.startCall({ cli: '9876543210', sessionId: '1' });
+      store.setBeneficiaryId(5006622, -1);
+
+      expect(store.beneficiaryId()).toBe(5006622);
+      expect(store.districtID()).toBeNull();
+      expect(sessionStorage.getItem(CALL_STORAGE_KEYS.districtId)).toBeNull();
+    });
   });
 });

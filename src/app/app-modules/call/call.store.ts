@@ -182,12 +182,21 @@ export class CallStore {
    * beneficiary-scoped, so clearing the beneficiary (passing null) also clears it.
    */
   setBeneficiaryId(beneficiaryId: number | null, districtID: number | null = null): void {
+    // Ids arrive straight from backend payloads, so they get the same validation
+    // as a rehydrated key: an unusable id (NaN from a missing field, zero,
+    // negative, fractional) must not reach beneficiaryGuard, which admits any
+    // non-null value as an identified caller. Without this the store would also
+    // contradict itself — such an id survives the current session but is
+    // rejected by readStoredId on the next reload.
+    const id = toId(beneficiaryId);
+    const district = toId(districtID);
     const previous = this._beneficiaryId();
-    this._beneficiaryId.set(beneficiaryId);
-    this._districtID.set(beneficiaryId === null ? null : districtID);
+
+    this._beneficiaryId.set(id);
+    this._districtID.set(id === null ? null : district);
     // Demographics only make sense while a beneficiary is set; clearing the id
     // (e.g. "Back to RO") drops the stale patient context too.
-    if (beneficiaryId === null) {
+    if (id === null) {
       this._demographics.set(null);
       this.clearBeneficiaryStorage();
       return;
@@ -197,15 +206,15 @@ export class CallStore {
     // demographics. Drop them here rather than trusting every caller to follow
     // up with setDemographics(): a name/age/gender left over from the previous
     // patient would otherwise be shown as this one's.
-    if (previous !== beneficiaryId) {
+    if (previous !== id) {
       this.setDemographics(null);
     }
 
-    this.storage.setItem(CALL_STORAGE_KEYS.beneficiaryId, String(beneficiaryId));
-    if (districtID === null) {
+    this.storage.setItem(CALL_STORAGE_KEYS.beneficiaryId, String(id));
+    if (district === null) {
       this.storage.removeItem(CALL_STORAGE_KEYS.districtId);
     } else {
-      this.storage.setItem(CALL_STORAGE_KEYS.districtId, String(districtID));
+      this.storage.setItem(CALL_STORAGE_KEYS.districtId, String(district));
     }
   }
 
@@ -289,7 +298,11 @@ function readStoredDemographics(raw: string | null): CallerDemographics | null {
   }
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (parsed === null || typeof parsed !== 'object') {
+    // Arrays are objects to `typeof`, so they are excluded explicitly: `[]` would
+    // otherwise restore as a non-null demographics record with every field null,
+    // which reads downstream as "patient identified, details unknown" instead of
+    // the absent context a corrupt key actually means.
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
       return null;
     }
     // Every field is re-validated rather than trusted: the payload is only as
