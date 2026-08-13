@@ -1317,6 +1317,12 @@ export const hi: Record<TranslationKey, string> = {
   'supKm.uploadFailed': 'फ़ाइल अपलोड करने में विफल',
   'supKm.noCategory': 'कोई श्रेणी नहीं मिली',
 
+  // Login
+  'login.captchaLabel': 'सुरक्षा जांच',
+  'login.captchaFailed':
+    'सुरक्षा जांच लोड नहीं हो सकी। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
+  'login.captchaRetry': 'सुरक्षा जांच पुनः आज़माएं',
+
   // SMS templates
   'supSms.listTitle': 'एसएमएस टेम्पलेट सूची',
   'supSms.createTitle': 'एसएमएस टेम्पलेट बनाएं',

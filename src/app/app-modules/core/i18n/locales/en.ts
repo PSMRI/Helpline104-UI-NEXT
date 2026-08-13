@@ -1316,6 +1316,12 @@ export const en = {
   'supKm.uploadFailed': 'Failed to upload file',
   'supKm.noCategory': 'No category found',
 
+  // Login
+  'login.captchaLabel': 'Security check',
+  'login.captchaFailed':
+    'The security check could not be loaded. Check your connection and try again.',
+  'login.captchaRetry': 'Retry security check',
+
   // SMS templates
   'supSms.listTitle': 'SMS Template List',
   'supSms.createTitle': 'Create SMS Template',
