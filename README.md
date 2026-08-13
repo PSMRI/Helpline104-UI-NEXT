@@ -69,6 +69,16 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+### Bundle budgets
+
+The production build enforces an initial-bundle budget (`angular.json` › `budgets`), currently **1 MB warning / 1.25 MB error** against a raw initial bundle of ~960 kB (~188 kB over the wire). `angular.json` is strict JSON and cannot carry the reasoning inline, so it lives here:
+
+- The CLI scaffold defaults (500 kB / 1 MB) were never sized for this app and failed the build on arrival — not a regression anyone introduced.
+- That ~960 kB is the framework floor: the Angular runtime, router, forms, CDK, the zard UI primitives, `ng-icons`, and the AES/PBKDF2 primitives `SessionStorageService` needs during bootstrap. **Every route is already lazy** (see `src/app/app.routes.ts`), so there is no feature code left to defer out of it.
+- The warning sits just above today's measurement so eager growth gets noticed in review; the error leaves ~30% headroom so it only fires on a genuine regression — typically a heavy dependency reaching `core` and becoming eager.
+
+If the warning starts firing, prefer shrinking the eager graph over raising the number. Import CommonJS packages per primitive rather than through their barrel (`crypto-js/aes`, not `crypto-js`) — barrels of CJS packages cannot be tree-shaken, so the whole library ships.
+
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
