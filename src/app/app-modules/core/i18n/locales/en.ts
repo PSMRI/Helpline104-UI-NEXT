@@ -1316,6 +1316,25 @@ export const en = {
   'supKm.uploadFailed': 'Failed to upload file',
   'supKm.noCategory': 'No category found',
 
+  // Supervisor agent status
+  'supervisor.agentStatus.title': 'Agent Status',
+  'supervisor.agentStatus.autoRefresh': 'Refreshes automatically every 30 seconds',
+  'supervisor.agentStatus.lastUpdated': 'Last updated',
+  'supervisor.agentStatus.refresh': 'Refresh',
+  'supervisor.agentStatus.loading': 'Loading agent status…',
+  'supervisor.agentStatus.agentId': 'Agent ID',
+  'supervisor.agentStatus.name': 'Name',
+  'supervisor.agentStatus.extension': 'Extension',
+  'supervisor.agentStatus.status': 'Status',
+  'supervisor.agentStatus.unknown': 'Unknown',
+  'supervisor.agentStatus.noAgents': 'No agents are currently online.',
+  'supervisor.agentStatus.loadError': 'Unable to load agent status. Please try again.',
+  // Login
+  'login.captchaLabel': 'Security check',
+  'login.captchaFailed':
+    'The security check could not be loaded. Check your connection and try again.',
+  'login.captchaRetry': 'Retry security check',
+
   // SMS templates
   'supSms.listTitle': 'SMS Template List',
   'supSms.createTitle': 'Create SMS Template',

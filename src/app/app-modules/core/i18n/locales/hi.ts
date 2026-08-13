@@ -1317,6 +1317,25 @@ export const hi: Record<TranslationKey, string> = {
   'supKm.uploadFailed': 'फ़ाइल अपलोड करने में विफल',
   'supKm.noCategory': 'कोई श्रेणी नहीं मिली',
 
+  // Supervisor agent status
+  'supervisor.agentStatus.title': 'एजेंट स्थिति',
+  'supervisor.agentStatus.autoRefresh': 'हर 30 सेकंड में अपने आप रीफ़्रेश होता है',
+  'supervisor.agentStatus.lastUpdated': 'अंतिम अद्यतन',
+  'supervisor.agentStatus.refresh': 'रीफ़्रेश करें',
+  'supervisor.agentStatus.loading': 'एजेंट स्थिति लोड हो रही है…',
+  'supervisor.agentStatus.agentId': 'एजेंट आईडी',
+  'supervisor.agentStatus.name': 'नाम',
+  'supervisor.agentStatus.extension': 'एक्सटेंशन',
+  'supervisor.agentStatus.status': 'स्थिति',
+  'supervisor.agentStatus.unknown': 'अज्ञात',
+  'supervisor.agentStatus.noAgents': 'वर्तमान में कोई एजेंट ऑनलाइन नहीं है।',
+  'supervisor.agentStatus.loadError': 'एजेंट स्थिति लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
+  // Login
+  'login.captchaLabel': 'सुरक्षा जांच',
+  'login.captchaFailed':
+    'सुरक्षा जांच लोड नहीं हो सकी। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
+  'login.captchaRetry': 'सुरक्षा जांच पुनः आज़माएं',
+
   // SMS templates
   'supSms.listTitle': 'एसएमएस टेम्पलेट सूची',
   'supSms.createTitle': 'एसएमएस टेम्पलेट बनाएं',

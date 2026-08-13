@@ -20,7 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -40,8 +40,12 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { AuthStore } from '../core/auth/auth.store';
 import { LoginResponse, Privilege } from '../core/auth/auth.models';
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { CzentrixService } from '../core/services/czentrix.service';
 import { AccountRecoveryStore } from '../account-recovery/account-recovery.store';
+import { CaptchaComponent } from './captcha.component';
+import { isCaptchaConfigured } from './captcha.service';
 import { LoginError, LoginService } from './login.service';
 import { encryptPassword } from './password-crypto';
 
@@ -59,8 +63,14 @@ const CONCURRENT_SESSION_CODE = 5002;
  * privilege -> AuthStore.setSession() -> CTI handshake (fire-and-forget) ->
  * navigate to role selection.
  *
- * Deferred from this P1 (clear TODOs): captcha, auto-resume of an existing
- * session, and the concurrent-session "kick & re-auth" flow.
+ * Deferred from this P1 (clear TODOs): auto-resume of an existing session.
+ *
+ * Captcha (Cloudflare Turnstile, as in the legacy login) is wired but inert:
+ * it renders — and lazily loads the challenge script — only when
+ * `environment.enableCaptcha` is true AND a `siteKey` AND a
+ * `captchaChallengeURL` are configured. With the current empty prod
+ * placeholders nothing loads; filling the environment values activates it
+ * with no code change.
  */
 @Component({
   selector: 'app-login',
@@ -75,6 +85,8 @@ const CONCURRENT_SESSION_CODE = 5002;
     ZardFormControlComponent,
     ZardFormLabelComponent,
     ZardFormMessageComponent,
+    CaptchaComponent,
+    TranslatePipe,
   ],
   viewProviders: [provideIcons({ lucideEye, lucideEyeOff, lucideUser, lucideLock })],
   templateUrl: './login.component.html',
@@ -87,6 +99,7 @@ export class LoginComponent {
   private readonly recoveryStore = inject(AccountRecoveryStore);
   private readonly router = inject(Router);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly i18n = inject(I18nService);
 
   /** Credentials of the in-flight attempt, reused for the concurrent-session retry. */
   private lastUserID = '';
@@ -109,14 +122,55 @@ export class LoginComponent {
   readonly errorMessage = signal('');
   readonly showPassword = signal(false);
   readonly year = new Date().getFullYear();
+  readonly lang = this.i18n.language;
+
+  /**
+   * Whether the Turnstile captcha is active. All parts are deploy-time
+   * constants, so this is fixed for the lifetime of the app: the flag must be
+   * on AND a site key AND a challenge URL must exist (prod currently ships
+   * empty placeholders, so the widget renders nothing and the challenge
+   * script is never loaded).
+   */
+  readonly captchaEnabled = isCaptchaConfigured();
+
+  /** Latest solved Turnstile token; empty while unsolved/expired/reset. */
+  readonly captchaToken = signal('');
+
+  /** True when the widget failed to initialise; shows the error + retry UI. */
+  readonly captchaFailed = signal(false);
+
+  private readonly captchaCmp = viewChild(CaptchaComponent);
 
   togglePassword(): void {
     this.showPassword.update((v) => !v);
   }
 
+  onCaptchaToken(token: string): void {
+    this.captchaToken.set(token);
+  }
+
+  onCaptchaFailed(): void {
+    this.captchaFailed.set(true);
+  }
+
+  /**
+   * Re-mounts the captcha widget after an init failure (the @if in the
+   * template destroys and recreates the component, which re-runs the load —
+   * the service clears its cached promise on failure, so this is a real
+   * retry, not a replay of the rejection).
+   */
+  retryCaptcha(): void {
+    this.captchaFailed.set(false);
+  }
+
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    // The button is disabled until the challenge is solved; this guards
+    // programmatic/Enter-key submits the same way.
+    if (this.captchaEnabled && !this.captchaToken()) {
       return;
     }
 
@@ -134,14 +188,37 @@ export class LoginComponent {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    this.loginService.authenticateUser(this.lastUserID, this.lastEncryptedPassword, doLogout).subscribe({
-      next: (response) => this.onSuccess(response, this.lastUserID),
-      error: (error: LoginError) => this.onError(error),
-    });
+    this.loginService
+      .authenticateUser(
+        this.lastUserID,
+        this.lastEncryptedPassword,
+        doLogout,
+        // Same contract as legacy: the token rides on the login body only when
+        // captcha is active and solved (the service drops falsy tokens).
+        this.captchaEnabled ? this.captchaToken() || undefined : undefined,
+      )
+      .subscribe({
+        next: (response) => this.onSuccess(response, this.lastUserID),
+        error: (error: LoginError) => this.onError(error),
+      });
+  }
+
+  /**
+   * Discard the used challenge and demand a fresh one. Turnstile tokens are
+   * single-use, so this runs after every authentication attempt (success or
+   * failure), mirroring the legacy `resetCaptcha()` placement.
+   */
+  private resetCaptcha(): void {
+    if (!this.captchaEnabled) {
+      return;
+    }
+    this.captchaToken.set('');
+    this.captchaCmp()?.reset();
   }
 
   private onSuccess(response: LoginResponse, userID: string): void {
     this.loading.set(false);
+    this.resetCaptcha();
 
     const privileges104: Privilege[] = (response.previlegeObj ?? []).filter(
       (privilege) => privilege?.serviceName === SERVICE_104,
@@ -190,6 +267,7 @@ export class LoginComponent {
 
   private onError(error: LoginError): void {
     this.loading.set(false);
+    this.resetCaptcha();
 
     // 5002: the account is already signed in on another device. Offer to log
     // that session out and continue, instead of dead-ending on an error string.
