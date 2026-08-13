@@ -24,7 +24,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { SessionStorageService } from '../core/services/session-storage.service';
-import { CallStore } from './call.store';
+import { CALL_STORAGE_KEYS, CallStore } from './call.store';
 
 /**
  * Rehydration contract for the persisted call state.
@@ -114,9 +114,24 @@ describe('CallStore beneficiary persistence', () => {
   it('drops every persisted key on endCall', () => {
     const seeding = freshStore();
     seeding.startCall({ cli: '9876543210', sessionId: '1' });
+    seeding.setCallId('4242');
     seeding.setBeneficiaryId(5006622, 54);
     seeding.setDemographics(demographicsOf('Test'));
+
+    // Every key the store owns is populated before the call ends, so the
+    // assertion below cannot pass simply because a key was never written.
+    for (const key of Object.values(CALL_STORAGE_KEYS)) {
+      expect(sessionStorage.getItem(key)).withContext(`seeded ${key}`).not.toBeNull();
+    }
+
     seeding.endCall();
+
+    // Asserting over the key map rather than a hand-listed subset: a key added
+    // to the store but not cleared here fails this test instead of slipping
+    // through and leaking one call's context into the next.
+    for (const key of Object.values(CALL_STORAGE_KEYS)) {
+      expect(sessionStorage.getItem(key)).withContext(`cleared ${key}`).toBeNull();
+    }
 
     const reloaded = freshStore();
 

@@ -24,8 +24,13 @@ import { Injectable, inject, signal } from '@angular/core';
 
 import { SessionStorageService } from '../core/services/session-storage.service';
 
-/** Storage keys for the live-call state, mirroring the legacy `onCall` flags. */
-const CALL_STORAGE_KEYS = {
+/**
+ * Storage keys for the live-call state, mirroring the legacy `onCall` flags.
+ *
+ * Exported so the specs can assert that `endCall` leaves none of them behind
+ * without restating the list — a key added here is covered automatically.
+ */
+export const CALL_STORAGE_KEYS = {
   onCall: 'onCall',
   cli: 'CLI',
   sessionId: 'session_id',
