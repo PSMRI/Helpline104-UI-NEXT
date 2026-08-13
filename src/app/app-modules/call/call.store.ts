@@ -137,6 +137,18 @@ export class CallStore {
     // details alongside a different beneficiary.
     if (this._beneficiaryId() === null) {
       this.clearBeneficiaryStorage();
+      return;
+    }
+    // The beneficiary survived, but a child key of its own can still be corrupt
+    // (rejected above by readStoredId/readStoredDemographics). The signal is
+    // already null; drop the key too so the bad value is not re-parsed on every
+    // subsequent reload, and so a later write of the sibling key cannot pair a
+    // fresh value with this stale one.
+    if (this._districtID() === null) {
+      this.storage.removeItem(CALL_STORAGE_KEYS.districtId);
+    }
+    if (this._demographics() === null) {
+      this.storage.removeItem(CALL_STORAGE_KEYS.demographics);
     }
   }
 
@@ -220,11 +232,17 @@ export class CallStore {
 
   /** Record the resolved beneficiary's demographics (persisted with the call). */
   setDemographics(demographics: CallerDemographics | null): void {
-    this._demographics.set(demographics);
-    if (demographics === null) {
+    // Demographics belong to a beneficiary. Written without one — before the
+    // caller is identified, or after setBeneficiaryId(null) released them —
+    // they would sit in storage under no owner until some later reload cleaned
+    // them up, and until then the store would report patient details for a
+    // caller it has no patient for. Clear rather than persist.
+    if (demographics === null || this._beneficiaryId() === null) {
+      this._demographics.set(null);
       this.storage.removeItem(CALL_STORAGE_KEYS.demographics);
       return;
     }
+    this._demographics.set(demographics);
     this.storage.setItem(CALL_STORAGE_KEYS.demographics, JSON.stringify(demographics));
   }
 

@@ -167,6 +167,32 @@ describe('CallStore beneficiary persistence', () => {
       expect(store.demographics()?.firstName).toBe('Patient A');
     });
 
+    // Demographics written with no beneficiary have no owner: they would linger
+    // in storage until some later reload swept them up, and until then the store
+    // would report patient details for a caller it has not identified.
+    it('refuses demographics offered before the caller is identified', () => {
+      const store = freshStore();
+      store.startCall({ cli: '9876543210', sessionId: '1' });
+
+      store.setDemographics(demographicsOf('Unidentified'));
+
+      expect(store.demographics()).toBeNull();
+      expect(sessionStorage.getItem(CALL_STORAGE_KEYS.demographics)).toBeNull();
+      expect(freshStore().demographics()).toBeNull();
+    });
+
+    it('refuses demographics offered after the beneficiary is released', () => {
+      const store = freshStore();
+      store.startCall({ cli: '9876543210', sessionId: '1' });
+      store.setBeneficiaryId(5006622, 54);
+      store.setBeneficiaryId(null);
+
+      store.setDemographics(demographicsOf('Orphan'));
+
+      expect(store.demographics()).toBeNull();
+      expect(sessionStorage.getItem(CALL_STORAGE_KEYS.demographics)).toBeNull();
+    });
+
     it('does not restore demographics or district when the beneficiary id is missing', () => {
       persist('callDemographics', JSON.stringify(demographicsOf('Orphan')));
       persist('callDistrictId', '54');
@@ -183,6 +209,38 @@ describe('CallStore beneficiary persistence', () => {
       persist('callDemographics', JSON.stringify(demographicsOf('Orphan')));
 
       expect(freshStore().demographics()).toBeNull();
+    });
+
+    // A corrupt child key restores as null but, left in storage, would be
+    // re-parsed on every reload — and could later be paired with a freshly
+    // written sibling as if the two belonged together.
+    it('removes a corrupt district key even when the beneficiary survives', () => {
+      persist('callBeneficiaryId', '5006622');
+      persist('callDistrictId', '-1');
+      persist('callDemographics', JSON.stringify(demographicsOf('Test')));
+
+      const store = freshStore();
+
+      expect(store.beneficiaryId()).toBe(5006622);
+      expect(store.districtID()).toBeNull();
+      expect(sessionStorage.getItem(CALL_STORAGE_KEYS.districtId)).toBeNull();
+      // The intact sibling is untouched: only the rejected key is purged.
+      expect(store.demographics()?.firstName).toBe('Test');
+      expect(sessionStorage.getItem(CALL_STORAGE_KEYS.demographics)).not.toBeNull();
+    });
+
+    it('removes a corrupt demographics key even when the beneficiary survives', () => {
+      persist('callBeneficiaryId', '5006622');
+      persist('callDistrictId', '54');
+      persist('callDemographics', '{not json');
+
+      const store = freshStore();
+
+      expect(store.beneficiaryId()).toBe(5006622);
+      expect(store.demographics()).toBeNull();
+      expect(sessionStorage.getItem(CALL_STORAGE_KEYS.demographics)).toBeNull();
+      expect(store.districtID()).toBe(54);
+      expect(sessionStorage.getItem(CALL_STORAGE_KEYS.districtId)).not.toBeNull();
     });
 
     it('purges the orphaned keys so a later reload cannot resurrect them', () => {
