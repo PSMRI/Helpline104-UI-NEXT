@@ -327,6 +327,15 @@ export const routes: Routes = [
           ).then((m) => m.DiseasesSummaryConfigComponent),
       },
       {
+        // SMS templates: list/view the service's SMS templates and create new
+        // ones with $$PARAMETER$$ placeholders mapped to backend values.
+        path: 'sms-templates',
+        loadComponent: () =>
+          import('./app-modules/supervisor/config/sms-templates/sms-templates.component').then(
+            (m) => m.SmsTemplatesComponent,
+          ),
+      },
+      {
         // Live CZentrix agent status (online agents, auto-refreshing).
         path: 'agent-status',
         loadComponent: () =>
@@ -334,16 +343,6 @@ export const routes: Routes = [
             (m) => m.AgentStatusComponent,
           ),
       },
-      ...[
-        ['sms-templates', 'supervisor.nav.smsTemplates'],
-      ].map(([path, titleKey]) => ({
-        path,
-        data: { titleKey },
-        loadComponent: () =>
-          import('./app-modules/supervisor/supervisor-placeholder.component').then(
-            (m) => m.SupervisorPlaceholderComponent,
-          ),
-      })),
     ],
   },
   {
