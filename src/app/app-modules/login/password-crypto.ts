@@ -20,7 +20,12 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import * as CryptoJS from 'crypto-js';
+// Per-primitive imports, not the `crypto-js` barrel — see the note in
+// `core/crypto/pbkdf2.util`.
+import { enc, lib } from 'crypto-js/core';
+import AES from 'crypto-js/aes';
+// Side-effect import: registers Base64 on the `enc` registry above.
+import 'crypto-js/enc-base64';
 
 import { generateKey } from '../core/crypto/pbkdf2.util';
 
@@ -41,10 +46,10 @@ const PASSPHRASE = 'Piramal12Piramal';
 
 function encryptWithIvSalt(salt: string, iv: string, passPhrase: string, plainText: string): string {
   const key = generateKey(salt, passPhrase);
-  const encrypted = CryptoJS.AES.encrypt(plainText, key, {
-    iv: CryptoJS.enc.Hex.parse(iv),
+  const encrypted = AES.encrypt(plainText, key, {
+    iv: enc.Hex.parse(iv),
   });
-  return encrypted.ciphertext.toString(CryptoJS.enc.Base64);
+  return encrypted.ciphertext.toString(enc.Base64);
 }
 
 /**
@@ -52,8 +57,8 @@ function encryptWithIvSalt(salt: string, iv: string, passPhrase: string, plainTe
  * the 104 backend expects.
  */
 export function encryptPassword(plainText: string): string {
-  const iv = CryptoJS.lib.WordArray.random(IV_SIZE / 8).toString(CryptoJS.enc.Hex);
-  const salt = CryptoJS.lib.WordArray.random(KEY_SIZE / 8).toString(CryptoJS.enc.Hex);
+  const iv = lib.WordArray.random(IV_SIZE / 8).toString(enc.Hex);
+  const salt = lib.WordArray.random(KEY_SIZE / 8).toString(enc.Hex);
   const ciphertext = encryptWithIvSalt(salt, iv, PASSPHRASE, plainText);
   return salt + iv + ciphertext;
 }

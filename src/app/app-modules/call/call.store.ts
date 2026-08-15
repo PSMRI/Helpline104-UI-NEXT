@@ -24,13 +24,21 @@ import { Injectable, inject, signal } from '@angular/core';
 
 import { SessionStorageService } from '../core/services/session-storage.service';
 
-/** Storage keys for the live-call state, mirroring the legacy `onCall` flags. */
-const CALL_STORAGE_KEYS = {
+/**
+ * Storage keys for the live-call state, mirroring the legacy `onCall` flags.
+ *
+ * Exported so the specs can assert that `endCall` leaves none of them behind
+ * without restating the list — a key added here is covered automatically.
+ */
+export const CALL_STORAGE_KEYS = {
   onCall: 'onCall',
   cli: 'CLI',
   sessionId: 'session_id',
   callId: 'callId',
   startedAt: 'callStartedAt',
+  beneficiaryId: 'callBeneficiaryId',
+  districtId: 'callDistrictId',
+  demographics: 'callDemographics',
 } as const;
 
 /** Sentinel the legacy app wrote to `sessionStorage.onCall` for a live call. */
@@ -64,9 +72,12 @@ export interface CallerDemographics {
  *
  * Holds the state the on-call workspace is built from: whether a call is active
  * (`onCall`), the caller's number (`cli`), the CZentrix session id and the
- * resolved AMRIT call/beneficiary ids. `onCall`, `cli`, `sessionId` and `callId`
- * are persisted to `sessionStorage` (as in the legacy app) so the guarded
- * `/innerpage` route survives a page reload while a call is connected.
+ * resolved AMRIT call/beneficiary ids. All of it is persisted to
+ * `sessionStorage` (as in the legacy app) so the guarded `/innerpage` route
+ * survives a page reload while a call is connected — including the identified
+ * beneficiary, without which the role workspaces would reload into a dead end
+ * (no patient context, nothing saveable). {@link beneficiaryGuard} covers the
+ * case where a workspace is reached with a live call but still no beneficiary.
  *
  * Replaces the legacy `sessionStorage.onCall/CLI/session_id` juggling and the
  * `AuthGuard2` that read it directly.
@@ -82,9 +93,21 @@ export class CallStore {
   private readonly _startedAt = signal<number | null>(
     readStoredTimestamp(this.storage.getItem(CALL_STORAGE_KEYS.startedAt)),
   );
-  private readonly _beneficiaryId = signal<number | null>(null);
-  private readonly _districtID = signal<number | null>(null);
-  private readonly _demographics = signal<CallerDemographics | null>(null);
+  private readonly _beneficiaryId = signal<number | null>(
+    readStoredId(this.storage.getItem(CALL_STORAGE_KEYS.beneficiaryId)),
+  );
+  // District and demographics are beneficiary-scoped: they are restored only
+  // when the beneficiary itself survived. Rehydrating them on their own would
+  // leave one patient's details in the store under no owner — and the next
+  // caller identified in this call would inherit them.
+  private readonly _districtID = signal<number | null>(
+    this._beneficiaryId() === null ? null : readStoredId(this.storage.getItem(CALL_STORAGE_KEYS.districtId)),
+  );
+  private readonly _demographics = signal<CallerDemographics | null>(
+    this._beneficiaryId() === null
+      ? null
+      : readStoredDemographics(this.storage.getItem(CALL_STORAGE_KEYS.demographics)),
+  );
 
   /** True while an inbound call is connected; gates the on-call workspace. */
   readonly onCall = this._onCall.asReadonly();
@@ -106,6 +129,28 @@ export class CallStore {
   readonly demographics = this._demographics.asReadonly();
   /** Epoch ms when the active call connected, or null when not on a call. */
   readonly startedAt = this._startedAt.asReadonly();
+
+  constructor() {
+    // A beneficiary that did not survive rehydration (key absent, or corrupt and
+    // rejected by readStoredId) leaves its district and demographics orphaned in
+    // storage. Purge them now so a later reload cannot resurrect one patient's
+    // details alongside a different beneficiary.
+    if (this._beneficiaryId() === null) {
+      this.clearBeneficiaryStorage();
+      return;
+    }
+    // The beneficiary survived, but a child key of its own can still be corrupt
+    // (rejected above by readStoredId/readStoredDemographics). The signal is
+    // already null; drop the key too so the bad value is not re-parsed on every
+    // subsequent reload, and so a later write of the sibling key cannot pair a
+    // fresh value with this stale one.
+    if (this._districtID() === null) {
+      this.storage.removeItem(CALL_STORAGE_KEYS.districtId);
+    }
+    if (this._demographics() === null) {
+      this.storage.removeItem(CALL_STORAGE_KEYS.demographics);
+    }
+  }
 
   /**
    * Seed the store from an inbound CTI event and mark the agent on-call.
@@ -132,6 +177,9 @@ export class CallStore {
     this.storage.setItem(CALL_STORAGE_KEYS.sessionId, seed.sessionId);
     this.storage.setItem(CALL_STORAGE_KEYS.startedAt, String(startedAt));
     this.storage.removeItem(CALL_STORAGE_KEYS.callId);
+    // The persisted beneficiary must be dropped with the signals above, or the
+    // new caller would inherit the previous call's patient after a reload.
+    this.clearBeneficiaryStorage();
   }
 
   /** Record the AMRIT call id once the call is registered with the backend. */
@@ -141,23 +189,61 @@ export class CallStore {
   }
 
   /**
-   * Record the beneficiary resolved for the caller, and their district
-   * (in-memory only). The district is beneficiary-scoped, so clearing the
-   * beneficiary (passing null) also clears it.
+   * Record the beneficiary resolved for the caller, and their district.
+   * Persisted so a reload mid-call keeps the patient context. The district is
+   * beneficiary-scoped, so clearing the beneficiary (passing null) also clears it.
    */
   setBeneficiaryId(beneficiaryId: number | null, districtID: number | null = null): void {
-    this._beneficiaryId.set(beneficiaryId);
-    this._districtID.set(beneficiaryId === null ? null : districtID);
+    // Ids arrive straight from backend payloads, so they get the same validation
+    // as a rehydrated key: an unusable id (NaN from a missing field, zero,
+    // negative, fractional) must not reach beneficiaryGuard, which admits any
+    // non-null value as an identified caller. Without this the store would also
+    // contradict itself — such an id survives the current session but is
+    // rejected by readStoredId on the next reload.
+    const id = toId(beneficiaryId);
+    const district = toId(districtID);
+    const previous = this._beneficiaryId();
+
+    this._beneficiaryId.set(id);
+    this._districtID.set(id === null ? null : district);
     // Demographics only make sense while a beneficiary is set; clearing the id
     // (e.g. "Back to RO") drops the stale patient context too.
-    if (beneficiaryId === null) {
+    if (id === null) {
       this._demographics.set(null);
+      this.clearBeneficiaryStorage();
+      return;
+    }
+
+    // Switching to a different beneficiary invalidates the previous patient's
+    // demographics. Drop them here rather than trusting every caller to follow
+    // up with setDemographics(): a name/age/gender left over from the previous
+    // patient would otherwise be shown as this one's.
+    if (previous !== id) {
+      this.setDemographics(null);
+    }
+
+    this.storage.setItem(CALL_STORAGE_KEYS.beneficiaryId, String(id));
+    if (district === null) {
+      this.storage.removeItem(CALL_STORAGE_KEYS.districtId);
+    } else {
+      this.storage.setItem(CALL_STORAGE_KEYS.districtId, String(district));
     }
   }
 
-  /** Record the resolved beneficiary's demographics (in-memory only). */
+  /** Record the resolved beneficiary's demographics (persisted with the call). */
   setDemographics(demographics: CallerDemographics | null): void {
+    // Demographics belong to a beneficiary. Written without one — before the
+    // caller is identified, or after setBeneficiaryId(null) released them —
+    // they would sit in storage under no owner until some later reload cleaned
+    // them up, and until then the store would report patient details for a
+    // caller it has no patient for. Clear rather than persist.
+    if (demographics === null || this._beneficiaryId() === null) {
+      this._demographics.set(null);
+      this.storage.removeItem(CALL_STORAGE_KEYS.demographics);
+      return;
+    }
     this._demographics.set(demographics);
+    this.storage.setItem(CALL_STORAGE_KEYS.demographics, JSON.stringify(demographics));
   }
 
   /** Clear all live-call state (signals + persisted keys) on call close. */
@@ -176,6 +262,14 @@ export class CallStore {
     this.storage.removeItem(CALL_STORAGE_KEYS.sessionId);
     this.storage.removeItem(CALL_STORAGE_KEYS.callId);
     this.storage.removeItem(CALL_STORAGE_KEYS.startedAt);
+    this.clearBeneficiaryStorage();
+  }
+
+  /** Drop every persisted beneficiary key (id, district, demographics). */
+  private clearBeneficiaryStorage(): void {
+    this.storage.removeItem(CALL_STORAGE_KEYS.beneficiaryId);
+    this.storage.removeItem(CALL_STORAGE_KEYS.districtId);
+    this.storage.removeItem(CALL_STORAGE_KEYS.demographics);
   }
 }
 
@@ -186,4 +280,76 @@ function readStoredTimestamp(raw: string | null): number | null {
   }
   const value = Number(raw);
   return Number.isFinite(value) ? value : null;
+}
+
+/**
+ * Parse a stored record id (beneficiary, district, gender).
+ *
+ * Ids are positive whole numbers, so anything else — negative, fractional, beyond
+ * safe-integer precision, empty — is discarded rather than restored. Without this,
+ * a corrupt key could seed a bogus id that {@link beneficiaryGuard} would accept
+ * as an identified caller (it only tests for non-null), admitting a workspace with
+ * no valid patient behind it. No upper bound is imposed: the real ids are issued
+ * by the backend and range from small district ids to 12-digit registration ids.
+ */
+function readStoredId(raw: string | null): number | null {
+  if (raw === null || raw.trim() === '') {
+    return null;
+  }
+  return toId(Number(raw));
+}
+
+/** Narrow an already-parsed value to a positive whole id, or null. */
+function toId(value: unknown): number | null {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : null;
+}
+
+/**
+ * Parse stored demographics. A malformed or non-object payload is discarded
+ * rather than thrown: the store is constructed during app bootstrap, so a bad
+ * key must never break startup — the workspace simply reloads without patient
+ * context and {@link beneficiaryGuard} routes the agent back to re-identify.
+ */
+function readStoredDemographics(raw: string | null): CallerDemographics | null {
+  if (raw === null) {
+    return null;
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    // Arrays are objects to `typeof`, so they are excluded explicitly: `[]` would
+    // otherwise restore as a non-null demographics record with every field null,
+    // which reads downstream as "patient identified, details unknown" instead of
+    // the absent context a corrupt key actually means.
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return null;
+    }
+    // Every field is re-validated rather than trusted: the payload is only as
+    // good as the stored key, and a wrong-typed value would violate
+    // CallerDemographics for every consumer downstream (CDSS, prescription
+    // header, screening age bands).
+    const value = parsed as Record<keyof CallerDemographics, unknown>;
+    return {
+      firstName: readString(value.firstName),
+      lastName: readString(value.lastName),
+      age: readAge(value.age),
+      genderId: toId(value.genderId),
+      genderName: readString(value.genderName),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Accept only a genuine string; anything else restores as absent. */
+function readString(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+/**
+ * Whole-unit age in years per {@link CallerDemographics}. Zero is legitimate (an
+ * infant registered in months reports 0 years), so the bound is non-negative
+ * rather than positive; fractional and negative values are discarded.
+ */
+function readAge(value: unknown): number | null {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
 }

@@ -20,7 +20,17 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import * as CryptoJS from 'crypto-js';
+// Imported per primitive rather than through the `crypto-js` barrel. The
+// package is CommonJS, so the barrel cannot be tree-shaken: importing it pulls
+// every cipher and digest it ships (SHA-3, RIPEMD-160, Triple-DES, Blowfish,
+// Rabbit, RC4, all block modes and paddings) into the eager bundle, for the two
+// primitives used here. `core` carries the shared `lib`/`enc`/`algo` registries
+// that the submodules below extend in place.
+import { algo, enc, lib } from 'crypto-js/core';
+import PBKDF2 from 'crypto-js/pbkdf2';
+// Side-effect import: registers SHA-512 on the `algo` registry above. It has no
+// binding of its own to use — `algo.SHA512` is what the hasher option needs.
+import 'crypto-js/sha512';
 
 /**
  * Shared PBKDF2 primitive (SHA-512, 1989 iterations, 256-bit key), ported
@@ -36,9 +46,9 @@ const KEY_SIZE = 256;
 const ITERATION_COUNT = 1989;
 
 /** PBKDF2 key derivation. `salt` is a hex string. */
-export function generateKey(salt: string, passPhrase: string): CryptoJS.lib.WordArray {
-  return CryptoJS.PBKDF2(passPhrase, CryptoJS.enc.Hex.parse(salt), {
-    hasher: CryptoJS.algo.SHA512,
+export function generateKey(salt: string, passPhrase: string): lib.WordArray {
+  return PBKDF2(passPhrase, enc.Hex.parse(salt), {
+    hasher: algo.SHA512,
     keySize: KEY_SIZE / 32,
     iterations: ITERATION_COUNT,
   });

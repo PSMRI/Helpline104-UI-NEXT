@@ -21,7 +21,14 @@
  */
 
 import { Injectable } from '@angular/core';
-import * as CryptoJS from 'crypto-js';
+// Per-primitive imports, not the `crypto-js` barrel — see the note in
+// `core/crypto/pbkdf2.util`. This service is root-provided and runs during
+// bootstrap, so whatever it imports lands in the eager bundle.
+import { enc, lib } from 'crypto-js/core';
+import AES from 'crypto-js/aes';
+import HmacSHA256 from 'crypto-js/hmac-sha256';
+// Side-effect import: registers Base64 on the `enc` registry above.
+import 'crypto-js/enc-base64';
 import { environment } from '@env/environment';
 import { generateKey } from '../crypto/pbkdf2.util';
 
@@ -66,10 +73,10 @@ const ENC_FALLBACK_PASSPHRASE = 'Helpline104UI@SessionStore';
  * is too slow to run per call — `getItem` runs repeatedly during store
  * rehydration on every reload.
  */
-let cachedKey: CryptoJS.lib.WordArray | null = null;
-let cachedMacKey: CryptoJS.lib.WordArray | null = null;
+let cachedKey: lib.WordArray | null = null;
+let cachedMacKey: lib.WordArray | null = null;
 
-function storageKey(): CryptoJS.lib.WordArray {
+function storageKey(): lib.WordArray {
   if (cachedKey === null) {
     cachedKey = generateKey(ENC_SALT_HEX, environment.encKey || ENC_FALLBACK_PASSPHRASE);
   }
@@ -77,7 +84,7 @@ function storageKey(): CryptoJS.lib.WordArray {
 }
 
 /** Separate derived key for the HMAC — encryption keys are never reused for authentication. */
-function macKey(): CryptoJS.lib.WordArray {
+function macKey(): lib.WordArray {
   if (cachedMacKey === null) {
     cachedMacKey = generateKey(ENC_SALT_HEX, (environment.encKey || ENC_FALLBACK_PASSPHRASE) + ':mac');
   }
@@ -85,17 +92,17 @@ function macKey(): CryptoJS.lib.WordArray {
 }
 
 function computeMac(ivHex: string, cipherB64: string): string {
-  return CryptoJS.HmacSHA256(ivHex + ':' + cipherB64, macKey()).toString(CryptoJS.enc.Hex);
+  return HmacSHA256(ivHex + ':' + cipherB64, macKey()).toString(enc.Hex);
 }
 
 /** Encrypt a plaintext value into the `104enc.v1:ivHex:cipherB64:macHex` format. */
 function encryptValue(plainText: string): string {
-  const iv = CryptoJS.lib.WordArray.random(16);
-  const encrypted = CryptoJS.AES.encrypt(ENC_MARKER + plainText, storageKey(), {
+  const iv = lib.WordArray.random(16);
+  const encrypted = AES.encrypt(ENC_MARKER + plainText, storageKey(), {
     iv,
   });
-  const ivHex = iv.toString(CryptoJS.enc.Hex);
-  const cipherB64 = encrypted.ciphertext.toString(CryptoJS.enc.Base64);
+  const ivHex = iv.toString(enc.Hex);
+  const cipherB64 = encrypted.ciphertext.toString(enc.Base64);
   return ENC_MARKER + ivHex + ':' + cipherB64 + ':' + computeMac(ivHex, cipherB64);
 }
 
@@ -119,9 +126,9 @@ function decryptValue(stored: string): string | null {
     if (computeMac(ivHex, cipherB64) !== macHex) {
       return null;
     }
-    const decrypted = CryptoJS.AES.decrypt(cipherB64, storageKey(), {
-      iv: CryptoJS.enc.Hex.parse(ivHex),
-    }).toString(CryptoJS.enc.Utf8);
+    const decrypted = AES.decrypt(cipherB64, storageKey(), {
+      iv: enc.Hex.parse(ivHex),
+    }).toString(enc.Utf8);
     // The inner marker proves the decrypt round-tripped with the right key.
     if (!decrypted.startsWith(ENC_MARKER)) {
       return null;
