@@ -53,9 +53,27 @@ const defaultEnvValues = {
   ENABLE_CAPTCHA: false,
 };
 
-// Generate output data, letting real process.env values (injected by the
-// deploy pipeline per target environment) override the defaults above.
-const output = ejs.render(environmentTemplate, Object.assign({}, defaultEnvValues, process.env));
+// Let real process.env values (injected by the deploy pipeline per target
+// environment) override the defaults above. process.env entries are always
+// strings, so ENABLE_CAPTCHA is normalized to an actual boolean below rather
+// than passed through as the string "true"/"false"/"".
+const rawEnvValues = Object.assign({}, defaultEnvValues, process.env);
+
+const stringEnvKeys = Object.keys(defaultEnvValues).filter((key) => key !== 'ENABLE_CAPTCHA');
+
+// The template inserts these via EJS's raw `<%- %>` tag (not the escaping
+// `<%= %>` tag), so pre-serialize here: JSON.stringify gives each string a
+// valid, self-quoting TS string literal (preserving `&`/quotes in URLs
+// untouched), and ENABLE_CAPTCHA becomes a bare `true`/`false` literal.
+const templateValues = {};
+for (const key of stringEnvKeys) {
+  templateValues[key] = JSON.stringify(String(rawEnvValues[key]));
+}
+templateValues.ENABLE_CAPTCHA =
+  rawEnvValues.ENABLE_CAPTCHA === true || rawEnvValues.ENABLE_CAPTCHA === 'true';
+
+// Generate output data
+const output = ejs.render(environmentTemplate, templateValues);
 // Write environment file
 fs.writeFileSync(path.join(environmentFilesDirectory, targetEnvironmentFileName), output);
 

@@ -24,19 +24,23 @@
 // result to `environment.ci.ts` (git-ignored), which is then used as the build
 // environment. Do not put real secrets in this committed template.
 
-const sessionStorageEncKey = '<%= SESSION_STORAGE_ENC_KEY %>';
-const commonAPI = '<%= COMMON_API_BASE %>';
-const tmAPI = '<%= TM_API_BASE %>';
-const mmuAPI = '<%= MMU_API_BASE %>';
-const adminAPI = '<%= ADMIN_API_BASE %>';
-const telephoneServer = '<%= TELEPHONE_SERVER %>';
-const fhirAPI = '<%= FHIR_API_BASE %>';
-const openKmBaseUrl = '<%= OPENKM_BASE_URL %>';
-const API1097 = '<%= API_1097_BASE %>';
-const API104 = '<%= API_104_BASE %>';
-const siteKey = '<%= SITE_KEY %>';
-const captchaChallengeURL = '<%= CAPTCHA_CHALLENGE_URL %>';
-const enableCaptcha = <%= ENABLE_CAPTCHA %>;
+// Values below are pre-serialized (JSON.stringify'd strings, real booleans)
+// by ci-prebuild.js and inserted via EJS's raw `<%- %>` tag — the escaped
+// `<%= %>` tag would HTML-entity-escape `&`/quotes inside URLs and would
+// break the boolean literal for enableCaptcha.
+const sessionStorageEncKey = <%- SESSION_STORAGE_ENC_KEY %>;
+const commonAPI = <%- COMMON_API_BASE %>;
+const tmAPI = <%- TM_API_BASE %>;
+const mmuAPI = <%- MMU_API_BASE %>;
+const adminAPI = <%- ADMIN_API_BASE %>;
+const telephoneServer = <%- TELEPHONE_SERVER %>;
+const fhirAPI = <%- FHIR_API_BASE %>;
+const openKmBaseUrl = <%- OPENKM_BASE_URL %>;
+const API1097 = <%- API_1097_BASE %>;
+const API104 = <%- API_104_BASE %>;
+const siteKey = <%- SITE_KEY %>;
+const captchaChallengeURL = <%- CAPTCHA_CHALLENGE_URL %>;
+const enableCaptcha = <%- ENABLE_CAPTCHA %>;
 
 export const environment = {
   production: true,
