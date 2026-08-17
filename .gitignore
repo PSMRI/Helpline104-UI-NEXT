@@ -46,10 +46,6 @@ __screenshots__/
 # Local test artifacts and docs (auth-flows UAT testing)
 /screenshots/
 /docs/
-/*.png
-/inbound-shell-screenshots/
-/proxy.config.js
-/proxy.config.json
 
 # System files
 .DS_Store
