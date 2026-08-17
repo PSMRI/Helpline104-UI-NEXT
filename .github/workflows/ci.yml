@@ -30,18 +30,12 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Provide build environment file
-        # The development build reads src/environments/environment.ts
-        # (git-ignored). Use the committed CI template as a stand-in.
-        # The template's string tokens ('<%= ... %>') compile fine as
-        # literal strings, but ENABLE_CAPTCHA is a bare token that is
-        # not valid TypeScript, so substitute a boolean for it.
-        run: |
-          cp src/environments/environment.ci.ts.template src/environments/environment.ts
-          sed -i 's/<%= ENABLE_CAPTCHA %>/false/' src/environments/environment.ts
-
-      - name: Build (development)
-        run: npx ng build --configuration=development
+      - name: Build (CI env injection + production)
+        # Runs the same prebuild script the deploy pipeline uses: it renders
+        # environment.ci.ts from environment.ci.ts.template via process.env
+        # (empty-string defaults here, since no real secrets are set on PR
+        # builds), then builds with the ci environment layered on production.
+        run: npm run build-ci
 
       # The lint script lands in a separate open PR; --if-present keeps
       # CI green on branches cut before it merges.

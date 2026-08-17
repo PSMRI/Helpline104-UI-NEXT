@@ -20,7 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-// CI template. The pipeline substitutes the <%= VAR %> tokens and writes the
+// CI template. The pipeline substitutes the EJS tokens below and writes the
 // result to `environment.ci.ts` (git-ignored), which is then used as the build
 // environment. Do not put real secrets in this committed template.
 

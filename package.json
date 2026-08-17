@@ -6,6 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
+    "build-ci": "node scripts/ci-prebuild.js && ng build --configuration=production,ci",
     "test": "ng test",
     "lint": "eslint src",
     "format": "prettier --write src"
@@ -41,6 +42,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/jasmine": "~5.1.0",
     "angular-eslint": "^20.7.0",
+    "ejs": "^3.1.10",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "jasmine-core": "~5.9.0",
