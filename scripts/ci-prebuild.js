@@ -77,4 +77,15 @@ const output = ejs.render(environmentTemplate, templateValues);
 // Write environment file
 fs.writeFileSync(path.join(environmentFilesDirectory, targetEnvironmentFileName), output);
 
+// The `ci` build configuration's fileReplacements entry swaps
+// environment.ts's content for environment.ci.ts's at bundle time, but
+// TypeScript resolves the `@env/environment` path alias to environment.ts
+// before that swap happens, so the file must exist on disk (its content is
+// irrelevant — it's replaced before compilation reads it). It's git-ignored,
+// so a fresh checkout otherwise has no such file at all.
+const placeholderEnvironmentPath = path.join(environmentFilesDirectory, 'environment.ts');
+if (!fs.existsSync(placeholderEnvironmentPath)) {
+  fs.writeFileSync(placeholderEnvironmentPath, '');
+}
+
 process.exit(0);
