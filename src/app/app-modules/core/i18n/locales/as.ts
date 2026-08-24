@@ -209,6 +209,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.validation.idInvalid': 'বৈধ পৰিচয় নম্বৰ দিয়ক।',
   'registration.validation.pincode': 'বৈধ ৬-অংকীয় পিনক’ড দিয়ক।',
   'registration.validation.dobInvalid': 'বৈধ জন্ম তাৰিখ দিয়ক (ভৱিষ্যতৰ নহয়)।',
+  'registration.validation.incompletePage1': 'আগবাঢ়াৰ আগতে অনুগ্ৰহ কৰি প্ৰয়োজনীয় ফীল্ডসমূহ (* চিহ্নিত) পূৰণ কৰক।',
 
   // Case sheet — SNOMED CT chief-complaint search
   'snomed.search.placeholder': 'মুখ্য অভিযোগ বিচাৰক (SNOMED CT)…',

@@ -208,6 +208,7 @@ export const hi: Record<TranslationKey, string> = {
   'registration.validation.idInvalid': 'मान्य पहचान संख्या दर्ज करें।',
   'registration.validation.pincode': 'मान्य 6-अंकीय पिनकोड दर्ज करें।',
   'registration.validation.dobInvalid': 'मान्य जन्म तिथि दर्ज करें (भविष्य की नहीं)।',
+  'registration.validation.incompletePage1': 'आगे बढ़ने से पहले कृपया आवश्यक फ़ील्ड (* से चिह्नित) भरें।',
 
   // Case sheet — SNOMED CT chief-complaint search
   'snomed.search.placeholder': 'मुख्य शिकायत खोजें (SNOMED CT)…',

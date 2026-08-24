@@ -123,7 +123,7 @@ const ID_VALIDATION_DEFAULT = { maxLength: 14, pattern: /^\d{4}\s\d{4}\s\d{4}$/ 
 
 /** Shared Tailwind classes for native `<select>` controls (no custom CSS). */
 const SELECT_CLASS =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
+  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20';
 
 /**
  * Minimum-length validator that ignores surrounding whitespace, so a value of
@@ -1385,6 +1385,8 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     }
     if (valid) {
       this.page.set(2);
+    } else {
+      toast.error(this.i18n.instant('registration.validation.incompletePage1'));
     }
   }
 
