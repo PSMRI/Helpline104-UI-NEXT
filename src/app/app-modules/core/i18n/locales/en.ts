@@ -206,6 +206,7 @@ export const en = {
   'registration.validation.idInvalid': 'Enter a valid ID number.',
   'registration.validation.pincode': 'Enter a valid 6-digit pincode.',
   'registration.validation.dobInvalid': 'Enter a valid date of birth (not in the future).',
+  'registration.validation.incompletePage1': 'Please fill in the required fields (marked with *) before continuing.',
 
   // Case sheet — SNOMED CT chief-complaint search
   'snomed.search.placeholder': 'Search chief complaint (SNOMED CT)…',
