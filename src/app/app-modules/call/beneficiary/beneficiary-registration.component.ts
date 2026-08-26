@@ -1523,38 +1523,33 @@ export class BeneficiaryRegistrationComponent implements OnInit {
         providerServiceMapID: role?.providerServiceMapID ?? null,
         firstName: v.firstName.trim(),
         lastName: v.lastName.trim(),
-        // Send local-midnight IST (matches legacy's moment(...).format('...Z')
-        // local-offset contract). A bare UTC `Z` shifts the date back a day for
-        // IST agents (e.g. 1990-01-01 -> 1989-12-31T18:30:00Z).
-        dOB: v.dob ? `${v.dob}T00:00:00.000+05:30` : undefined,
+        dOB: v.dob ? `${v.dob}T00:00:00.000Z` : undefined,
         ageUnits: v.ageUnit,
-        // Father's name and spouse's name are captured in separate optional
-        // fields, matching legacy (never routed to lastName).
-        fatherName: v.fatherName.trim() || null,
-        spouseName: v.spouseName.trim() || null,
+        fatherName: v.fatherName.trim(),
+        spouseName: v.spouseName.trim(),
         beneficiaryIdentities: [
           {
-            govtIdentityNo: v.govtIdentityNo.trim() || null,
-            govtIdentityTypeID: v.identityType,
+            govtIdentityNo: v.govtIdentityNo.trim(),
+            govtIdentityTypeID: v.identityType ?? '',
           },
         ],
         emergencyRegistration: v.isEmergency,
         createdBy,
         titleId: v.titleId,
-        maritalStatusID: v.maritalStatusID,
+        maritalStatusID: v.maritalStatusID ?? '',
         genderID: v.genderID,
         genderName,
         vanID: role?.serviceID ?? null,
         i_bendemographics: {
-          educationID: v.educationID,
+          educationID: v.educationID ?? '',
           healthCareWorkerID: v.isHealthcareWorker ? v.healthCareWorkerID : null,
           communityID: v.communityID,
           districtID: v.districtID,
           stateID: v.stateID,
-          pinCode: v.pincode.trim() || null,
+          pinCode: v.pincode.trim(),
           blockID: v.subDistrictID,
           districtBranchID: v.villageID,
-          addressLine1: v.houseNumber.trim() || null,
+          addressLine1: v.houseNumber.trim(),
           createdBy,
         },
         benPhoneMaps,

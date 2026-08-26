@@ -129,7 +129,7 @@ export interface BenPhoneMap {
 
 /** Demographic block sent on create (legacy `i_bendemographics`). */
 export interface BenDemographics {
-  educationID?: number | null;
+  educationID?: number | string | null;
   occupationID?: number | null;
   healthCareWorkerID?: number | null;
   communityID?: number | null;
@@ -145,7 +145,7 @@ export interface BenDemographics {
 /** One government identity entry sent on create (legacy `beneficiaryIdentities`). */
 export interface BeneficiaryIdentity {
   govtIdentityNo?: string | null;
-  govtIdentityTypeID?: number | null;
+  govtIdentityTypeID?: number | string | null;
 }
 
 /**
@@ -168,7 +168,7 @@ export interface RegisterBeneficiaryRequest {
   titleId?: number | string | null;
   statusID?: number | null;
   registeredServiceID?: number | null;
-  maritalStatusID?: number | null;
+  maritalStatusID?: number | string | null;
   genderID: number;
   genderName: string;
   vanID?: number | null;
