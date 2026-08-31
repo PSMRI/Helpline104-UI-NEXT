@@ -120,6 +120,6 @@ export class InboundCtiService {
       cli: inbound.cli,
       sessionId: inbound.sessionId,
     });
-    void this.router.navigate(['/innerpage']);
+    void this.router.navigate(['/innerpage', 'registration']);
   }
 }
