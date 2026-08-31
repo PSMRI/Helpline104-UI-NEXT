@@ -120,6 +120,9 @@ export class InboundCtiService {
       cli: inbound.cli,
       sessionId: inbound.sessionId,
     });
-    void this.router.navigate(['/innerpage']);
+    // A fresh inbound call has no beneficiary yet, so caller identification is
+    // always the first stop — go straight there instead of the dispatcher
+    // placeholder (legacy auto-showed the registration/search screen too).
+    void this.router.navigate(['/innerpage', 'registration']);
   }
 }
