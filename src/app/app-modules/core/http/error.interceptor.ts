@@ -53,7 +53,8 @@ const POLLING_URLS: readonly string[] = [
  * `onError` callbacks. Force-logout triggers:
  *  - HTTP 401, and
  *  - HTTP 200 whose body carries `statusCode === 5002` (104's "logged in
- *    elsewhere" / invalid-session signal).
+ *    elsewhere" / invalid-session signal) — EXCEPT from a `cti/*` endpoint,
+ *    see `isCtiRequest` below.
  *
  * HTTP 403 is NOT session expiry: it is a per-service authorization failure
  * (e.g. mmu-api rejecting the common-api token) and force-logging the agent
@@ -83,6 +84,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     url.includes('user/getsecurityquetions') ||
     url.includes('user/saveusersecurityquesans');
 
+  // CZentrix CTI endpoints are proxied through Common-API but answer 200 with
+  // the same `statusCode === 5002` envelope when the *telephony* side is
+  // unhappy (e.g. the agent isn't logged into the dialer) — a signal about the
+  // CTI session, not the portal auth session (see the KeepaliveService doc
+  // comment for the same hazard). Treating it as session-expiry force-logs the
+  // whole portal out over a telephony hiccup, seconds after login.
+  const isCtiRequest = url.includes('/cti/');
+
   // Background polls are not agent activity — see POLLING_URLS.
   const isPollingRequest = POLLING_URLS.some((path) => url.includes(path));
 
@@ -92,7 +101,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         return;
       }
       const body = event.body as { statusCode?: number; errorMessage?: string } | null;
-      if (body && body.statusCode === 5002) {
+      if (body && body.statusCode === 5002 && !isCtiRequest) {
         const msg =
           typeof body.errorMessage === 'string' && body.errorMessage.trim()
             ? body.errorMessage
