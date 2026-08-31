@@ -246,29 +246,36 @@ function validDob(control: AbstractControl): ValidationErrors | null {
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <!-- Action bar: Search / Register new. The registrations list for this
-           number shows by default (no tab); these buttons switch to a sub-view
-           and toggle back to the list when their view is already active. -->
+           number shows by default (no tab); these buttons switch to a sub-view.
+           Hidden once a sub-view is active (search or register in progress),
+           replaced by a single "Back" control so the agent isn't stranded. -->
       <div class="mb-5 flex flex-wrap items-center justify-end gap-2">
-        <button
-          z-button
-          type="button"
-          [zType]="activeView() === 'search' ? 'default' : 'outline'"
-          [attr.aria-pressed]="activeView() === 'search'"
-          (click)="showView('search')"
-        >
-          <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
-          {{ 'registration.tab.search' | translate: lang() }}
-        </button>
-        <button
-          z-button
-          type="button"
-          [zType]="activeView() === 'register' ? 'default' : 'outline'"
-          [attr.aria-pressed]="activeView() === 'register'"
-          (click)="showView('register')"
-        >
-          <ng-icon name="lucideUserPlus" size="16" aria-hidden="true" />
-          {{ 'registration.tab.register' | translate: lang() }}
-        </button>
+        @if (activeView() === 'list') {
+          <button
+            z-button
+            type="button"
+            zType="outline"
+            [attr.aria-pressed]="false"
+            (click)="showView('search')"
+          >
+            <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
+            {{ 'registration.tab.search' | translate: lang() }}
+          </button>
+          <button
+            z-button
+            type="button"
+            zType="outline"
+            [attr.aria-pressed]="false"
+            (click)="showView('register')"
+          >
+            <ng-icon name="lucideUserPlus" size="16" aria-hidden="true" />
+            {{ 'registration.tab.register' | translate: lang() }}
+          </button>
+        } @else {
+          <button z-button type="button" zType="outline" (click)="backToList()">
+            {{ 'registration.action.back' | translate: lang() }}
+          </button>
+        }
       </div>
 
       <!-- Default view: registrations for this number, auto-loaded by CLI on init -->
@@ -1103,6 +1110,11 @@ export class BeneficiaryRegistrationComponent implements OnInit {
    */
   showView(view: 'search' | 'register'): void {
     this.activeView.set(this.activeView() === view ? 'list' : view);
+  }
+
+  /** Return to the default registrations list from an active search/register flow. */
+  backToList(): void {
+    this.activeView.set('list');
   }
 
   ngOnInit(): void {
