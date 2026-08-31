@@ -21,7 +21,8 @@
  */
 
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -34,6 +35,8 @@ import { LOGIN_ROUTE } from '../core/core.constants';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TranslationKey } from '../core/i18n/locales';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
+import { FeedbackCategory } from './feedback.models';
+import { FeedbackService } from './feedback.service';
 
 const MAX_COMMENT_LENGTH = 2000;
 
@@ -49,15 +52,6 @@ const RATING_OPTIONS: readonly RatingOption[] = [
   { value: 3, labelKey: 'feedback.ratingOkay' },
   { value: 4, labelKey: 'feedback.ratingGood' },
   { value: 5, labelKey: 'feedback.ratingGreat' },
-];
-
-const CATEGORY_KEYS: readonly TranslationKey[] = [
-  'feedback.catCallCenter',
-  'feedback.catFacilityCleanliness',
-  'feedback.catMedicineAvailability',
-  'feedback.catPatientCare',
-  'feedback.catStaffBehavior',
-  'feedback.catWaitTime',
 ];
 
 /**
@@ -126,15 +120,19 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
             id="feedback-category"
             class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             [value]="category()"
+            [disabled]="categoriesLoading()"
             (change)="onCategoryChange($event)"
           >
             <option value="" disabled>
               {{ 'feedback.selectCategory' | translate: lang() }}
             </option>
-            @for (key of categoryKeys; track key) {
-              <option [value]="key">{{ key | translate: lang() }}</option>
+            @for (cat of categories(); track cat.categoryId) {
+              <option [value]="cat.slug">{{ cat.label }}</option>
             }
           </select>
+          @if (categoriesError()) {
+            <p class="mt-1 text-xs text-destructive" role="alert">{{ categoriesError() }}</p>
+          }
         </div>
 
         <div class="mb-4">
@@ -153,11 +151,15 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
           {{ 'feedback.anonymousNote' | translate: lang() }}
         </p>
 
+        @if (submitError()) {
+          <p class="mb-3 text-xs text-destructive" role="alert">{{ submitError() }}</p>
+        }
+
         <div class="flex justify-end gap-2">
           <button z-button type="button" zType="outline" (click)="close()">
             {{ 'feedback.close' | translate: lang() }}
           </button>
-          <button z-button type="button" [zDisabled]="!canSubmit()" (click)="submit()">
+          <button z-button type="button" [zDisabled]="!canSubmit() || submitting()" (click)="submit()">
             {{ 'feedback.okay' | translate: lang() }}
           </button>
         </div>
@@ -168,18 +170,49 @@ const CATEGORY_KEYS: readonly TranslationKey[] = [
 export class FeedbackComponent {
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
+  private readonly feedbackService = inject(FeedbackService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly lang = this.i18n.language;
   readonly ratings = RATING_OPTIONS;
-  readonly categoryKeys = CATEGORY_KEYS;
   readonly maxCommentLength = MAX_COMMENT_LENGTH;
 
   readonly rating = signal(0);
   readonly category = signal('');
   readonly comment = signal('');
 
+  readonly categories = signal<FeedbackCategory[]>([]);
+  readonly categoriesLoading = signal(false);
+  readonly categoriesError = signal('');
+
+  readonly submitting = signal(false);
+  readonly submitError = signal('');
+
   /** Okay is enabled only once a star rating has been chosen. */
   readonly canSubmit = computed(() => this.rating() > 0);
+
+  constructor() {
+    this.loadCategories();
+  }
+
+  private loadCategories(): void {
+    this.categoriesLoading.set(true);
+    this.categoriesError.set('');
+    this.feedbackService
+      .getCategories()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (categories) => {
+          this.categoriesLoading.set(false);
+          this.categories.set(categories);
+        },
+        error: (err: { errorMessage?: string }) => {
+          this.categoriesLoading.set(false);
+          this.categories.set([]);
+          this.categoriesError.set(err.errorMessage || this.i18n.instant('feedback.categoriesError'));
+        },
+      });
+  }
 
   selectRating(value: number): void {
     this.rating.set(value);
@@ -194,12 +227,24 @@ export class FeedbackComponent {
   }
 
   submit(): void {
-    if (!this.canSubmit()) {
+    if (!this.canSubmit() || this.submitting()) {
       return;
     }
-    // The 104 feedback API is not yet wired; an anonymous submission simply
-    // returns the agent to the login screen.
-    void this.router.navigate([LOGIN_ROUTE]);
+    this.submitting.set(true);
+    this.submitError.set('');
+    this.feedbackService
+      .submit(this.rating(), this.category(), this.comment())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.submitting.set(false);
+          void this.router.navigate([LOGIN_ROUTE]);
+        },
+        error: (err: { errorMessage?: string }) => {
+          this.submitting.set(false);
+          this.submitError.set(err.errorMessage || this.i18n.instant('feedback.submitError'));
+        },
+      });
   }
 
   close(): void {
