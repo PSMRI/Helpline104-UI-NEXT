@@ -52,6 +52,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallerDemographics, CallStore } from '../call.store';
+import { resolveDispatchPath } from '../role-workspace/role-screens.util';
 import { BeneficiaryService } from './beneficiary.service';
 import {
   BeneficiaryError,
@@ -1632,7 +1633,9 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     this.callStore.setBeneficiaryId(beneficiaryRegID, districtID);
     this.callStore.setDemographics(demographics);
     toast.success(this.i18n.instant(toastKey));
-    void this.router.navigate(['/innerpage']);
+    const featureCode = this.authStore.currentRole()?.featureCode;
+    const path = resolveDispatchPath(featureCode, this.authStore.privileges());
+    void this.router.navigate(path ? ['/innerpage', path] : ['/innerpage']);
   }
 
   // --- Age <-> DOB math ---------------------------------------------------
