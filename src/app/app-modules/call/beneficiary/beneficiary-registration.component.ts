@@ -21,7 +21,7 @@
  */
 
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -46,6 +46,7 @@ import {
   ZardFormMessageComponent,
 } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
+import { ZardPaginationImports } from '@common-ui/ui/pagination';
 import { ZardTableImports } from '@common-ui/ui/table';
 
 import { AuthStore } from '../../core/auth/auth.store';
@@ -74,6 +75,9 @@ import {
 
 /** Which identification view is showing (the registrations list by default). */
 type RegistrationView = 'list' | 'search' | 'register';
+
+/** Rows per page for the registration-history and search results tables. */
+const RESULTS_PAGE_SIZE = 10;
 
 /** Indian mobile number: exactly 10 digits. */
 const PHONE_PATTERN = /^[0-9]{10}$/;
@@ -241,6 +245,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
     ZardFormLabelComponent,
     ZardFormMessageComponent,
     ...ZardTableImports,
+    ...ZardPaginationImports,
   ],
   viewProviders: [provideIcons({ lucideSearch, lucideUserPlus })],
   template: `
@@ -290,7 +295,18 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               {{ 'registration.history.empty' | translate: lang() }}
             </p>
           } @else {
-            <ng-container [ngTemplateOutlet]="resultsTable" [ngTemplateOutletContext]="{ rows: historyResults() }" />
+            <ng-container
+              [ngTemplateOutlet]="resultsTable"
+              [ngTemplateOutletContext]="{ rows: pagedHistoryResults() }"
+            />
+            @if (historyTotalPages() > 1) {
+              <z-pagination
+                class="mt-4"
+                [zTotal]="historyTotalPages()"
+                [(zPageIndex)]="historyPageIndex"
+                [zAriaLabel]="'registration.history.heading' | translate: lang()"
+              />
+            }
           }
         </div>
       }
@@ -378,7 +394,18 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 {{ 'registration.search.empty' | translate: lang() }}
               </p>
             } @else {
-              <ng-container [ngTemplateOutlet]="resultsTable" [ngTemplateOutletContext]="{ rows: searchResults() }" />
+              <ng-container
+                [ngTemplateOutlet]="resultsTable"
+                [ngTemplateOutletContext]="{ rows: pagedSearchResults() }"
+              />
+              @if (searchTotalPages() > 1) {
+                <z-pagination
+                  class="mt-4"
+                  [zTotal]="searchTotalPages()"
+                  [(zPageIndex)]="searchPageIndex"
+                  [zAriaLabel]="'registration.action.search' | translate: lang()"
+                />
+              }
             }
           </div>
         </form>
@@ -920,9 +947,19 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
   readonly historyResults = signal<BeneficiaryRecord[]>([]);
   readonly historyLoading = signal(false);
+  /** Current page (1-indexed) of {@link historyResults}. */
+  readonly historyPageIndex = signal(1);
+  readonly historyTotalPages = computed(() =>
+    Math.max(1, Math.ceil(this.historyResults().length / RESULTS_PAGE_SIZE)),
+  );
+  readonly pagedHistoryResults = computed(() => paginate(this.historyResults(), this.historyPageIndex()));
 
   readonly searchResults = signal<BeneficiaryRecord[]>([]);
   readonly searchLoading = signal(false);
+  /** Current page (1-indexed) of {@link searchResults}. */
+  readonly searchPageIndex = signal(1);
+  readonly searchTotalPages = computed(() => Math.max(1, Math.ceil(this.searchResults().length / RESULTS_PAGE_SIZE)));
+  readonly pagedSearchResults = computed(() => paginate(this.searchResults(), this.searchPageIndex()));
   readonly searchAttempted = signal(false);
   readonly searchCriteriaError = signal(false);
   /** True when the last search request failed with a non-retryable error. */
@@ -1164,6 +1201,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     this.beneficiary.searchByPhone(cli).subscribe({
       next: (rows) => {
         this.historyResults.set(rows);
+        this.historyPageIndex.set(1);
         this.historyLoading.set(false);
         this.detectParentBeneficiary(rows);
       },
@@ -1398,6 +1436,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     const hasCriteria = !!(firstName.trim() || lastName.trim() || beneficiaryID.trim());
     if (!hasCriteria) {
       this.searchResults.set([]);
+      this.searchPageIndex.set(1);
       this.searchAttempted.set(false);
       this.searchCriteriaError.set(true);
       this.searchError.set(false);
@@ -1431,6 +1470,7 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     this.searchError.set(false);
     this.searchTimedOut.set(false);
     this.searchLoading.set(true);
+    this.searchPageIndex.set(1);
 
     this.beneficiary
       .searchBeneficiary(criteria)
@@ -1707,4 +1747,10 @@ type RegisterControlName =
 function readDistrictID(value: unknown): number | null {
   const id = typeof value === 'string' ? Number(value) : value;
   return typeof id === 'number' && Number.isFinite(id) ? id : null;
+}
+
+/** Slice `rows` to the given 1-indexed page of {@link RESULTS_PAGE_SIZE} rows. */
+function paginate<T>(rows: readonly T[], pageIndex: number): T[] {
+  const start = (pageIndex - 1) * RESULTS_PAGE_SIZE;
+  return rows.slice(start, start + RESULTS_PAGE_SIZE);
 }
