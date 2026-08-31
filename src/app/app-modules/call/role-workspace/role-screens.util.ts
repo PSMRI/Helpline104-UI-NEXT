@@ -25,6 +25,9 @@ import { Privilege } from '../../core/auth/auth.models';
 /** The 104 service whose role screens gate the service tabs. */
 export const SERVICE_104 = '104';
 
+/** Screen that means the agent also holds the RO (registration) role. */
+export const SCREEN_HEALTH_ADVICE = 'Health_Advice';
+
 /**
  * Maps a role's {@link CurrentRole.featureCode} to its on-call workspace child
  * route under `/innerpage`. `RO` (registration-only) has no service workspace —
@@ -49,6 +52,28 @@ export function roleWorkspacePath(featureCode: string | null | undefined): strin
     return null;
   }
   return WORKSPACE_PATH_BY_FEATURE[featureCode] ?? null;
+}
+
+/**
+ * The `/innerpage` child path to send an identified caller to, given the
+ * agent's current-role feature code and full privilege set. Mirrors
+ * {@link roleWorkspacePath}, plus the hybrid RO+HAO fallback: an agent whose
+ * selected role is `RO` but who also holds a `Health_Advice` screen mapping
+ * (legacy `checkROHAOPrivilege`) is sent to `hao`. Returns `null` when the
+ * role has no dedicated workspace (plain RO, or an unrecognised code).
+ */
+export function resolveDispatchPath(
+  featureCode: string | null | undefined,
+  privileges: readonly Privilege[],
+): string | null {
+  const path = roleWorkspacePath(featureCode);
+  if (path !== null) {
+    return path;
+  }
+  if (featureCode === 'RO' && collectServiceScreens(privileges, SERVICE_104).includes(SCREEN_HEALTH_ADVICE)) {
+    return 'hao';
+  }
+  return null;
 }
 
 /**

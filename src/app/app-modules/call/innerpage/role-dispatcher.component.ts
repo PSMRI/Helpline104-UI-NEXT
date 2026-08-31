@@ -32,10 +32,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
-import { SERVICE_104, collectServiceScreens, roleWorkspacePath } from '../role-workspace/role-screens.util';
-
-/** Screen whose presence marks a hybrid RO+HAO agent (see ngOnInit). */
-const SCREEN_HEALTH_ADVICE = 'Health_Advice';
+import { resolveDispatchPath } from '../role-workspace/role-screens.util';
 
 /**
  * Placeholder for the on-call role dispatcher.
@@ -95,14 +92,7 @@ export class RoleDispatcherComponent implements OnInit {
       return;
     }
     const featureCode = this.authStore.currentRole()?.featureCode;
-    let path = roleWorkspacePath(featureCode);
-    if (
-      path === null &&
-      featureCode === 'RO' &&
-      collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes(SCREEN_HEALTH_ADVICE)
-    ) {
-      path = 'hao';
-    }
+    const path = resolveDispatchPath(featureCode, this.authStore.privileges());
     if (path) {
       void this.router.navigate(['/innerpage', path]);
     }
