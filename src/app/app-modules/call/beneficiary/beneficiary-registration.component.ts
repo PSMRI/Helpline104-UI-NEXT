@@ -34,7 +34,7 @@ import {
 import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideSearch, lucideUserPlus } from '@ng-icons/lucide';
+import { lucideLoaderCircle, lucideSearch, lucideUserPlus } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 import { TimeoutError, catchError, throwError, timeout } from 'rxjs';
 
@@ -248,7 +248,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
     ...ZardTableImports,
     ...ZardPaginationImports,
   ],
-  viewProviders: [provideIcons({ lucideSearch, lucideUserPlus })],
+  viewProviders: [provideIcons({ lucideSearch, lucideUserPlus, lucideLoaderCircle })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <!-- Action bar: Search / Register new. The registrations list for this
@@ -295,8 +295,25 @@ function validDob(control: AbstractControl): ValidationErrors | null {
           </h3>
 
           @if (historyLoading()) {
-            <p class="py-6 text-center text-sm text-muted-foreground">
+            <div class="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+              <ng-icon name="lucideLoaderCircle" size="16" class="animate-spin" aria-hidden="true" />
               {{ 'registration.history.loading' | translate: lang() }}
+            </div>
+          } @else if (historyTimedOut()) {
+            <div class="rounded-md border border-dashed border-destructive/50 px-4 py-8 text-center" role="alert">
+              <p class="text-sm font-medium text-destructive">
+                {{ 'registration.history.timeout' | translate: lang() }}
+              </p>
+              <button z-button type="button" zType="outline" class="mt-4" (click)="retryHistory()">
+                {{ 'registration.action.retry' | translate: lang() }}
+              </button>
+            </div>
+          } @else if (historyError()) {
+            <p
+              class="rounded-md border border-dashed border-destructive/50 py-8 text-center text-sm font-medium text-destructive"
+              role="alert"
+            >
+              {{ 'registration.history.error' | translate: lang() }}
             </p>
           } @else if (historyResults().length === 0) {
             <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
@@ -955,6 +972,10 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
   readonly historyResults = signal<BeneficiaryRecord[]>([]);
   readonly historyLoading = signal(false);
+  /** True when the last history load failed with a non-retryable error. */
+  readonly historyError = signal(false);
+  /** True when the last history load failed with a timeout/5xx — shows Retry. */
+  readonly historyTimedOut = signal(false);
   /** Current page (1-indexed) of {@link historyResults}. */
   readonly historyPageIndex = signal(1);
   readonly historyTotalPages = computed(() =>
@@ -1211,18 +1232,44 @@ export class BeneficiaryRegistrationComponent implements OnInit {
 
   private loadHistory(cli: string): void {
     this.historyLoading.set(true);
-    this.beneficiary.searchByPhone(cli).subscribe({
-      next: (rows) => {
-        this.historyResults.set(rows);
-        this.historyPageIndex.set(1);
-        this.historyLoading.set(false);
-        this.detectParentBeneficiary(rows);
-      },
-      error: (err: BeneficiaryError) => {
-        this.historyLoading.set(false);
-        toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
-      },
-    });
+    this.historyError.set(false);
+    this.historyTimedOut.set(false);
+    this.beneficiary
+      .searchByPhone(cli)
+      .pipe(
+        timeout(SEARCH_TIMEOUT_MS),
+        catchError((err: unknown) =>
+          throwError(() =>
+            err instanceof TimeoutError ? ({ status: 0, errorMessage: '' } satisfies BeneficiaryError) : err,
+          ),
+        ),
+      )
+      .subscribe({
+        next: (rows) => {
+          this.historyResults.set(rows);
+          this.historyPageIndex.set(1);
+          this.historyLoading.set(false);
+          this.detectParentBeneficiary(rows);
+        },
+        error: (err: BeneficiaryError) => {
+          this.historyLoading.set(false);
+          const retryable = !err || err.status === 0 || err.status >= 500;
+          this.historyTimedOut.set(retryable);
+          this.historyError.set(!retryable);
+          if (!retryable) {
+            toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
+          }
+        },
+      });
+  }
+
+  /** Re-fire the initial registration-history load (Retry button). */
+  retryHistory(): void {
+    const cli = this.callStore.cli();
+    if (!cli) {
+      return;
+    }
+    this.loadHistory(cli);
   }
 
   /**

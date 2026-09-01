@@ -134,6 +134,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.history.heading': 'इस नंबर के लिए पंजीकरण',
   'registration.history.loading': 'पंजीकरण लोड हो रहे हैं…',
   'registration.history.empty': 'इस नंबर के लिए कोई पंजीकरण नहीं मिला।',
+  'registration.history.timeout': 'लोड होने में समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
+  'registration.history.error': 'इस नंबर के लिए पंजीकरण लोड नहीं हो सके। कृपया पुनः प्रयास करें।',
   'registration.search.empty': 'आपकी खोज से कोई लाभार्थी मेल नहीं खाता।',
   'registration.search.prompt': 'नाम या पंजीकरण आईडी दर्ज करें, फिर खोजें।',
   'registration.search.error': 'खोज पूरी नहीं हो सकी — शायद समय समाप्त हो गया। कृपया पुनः प्रयास करें।',

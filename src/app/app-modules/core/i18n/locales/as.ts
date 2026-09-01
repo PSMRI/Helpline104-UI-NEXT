@@ -134,6 +134,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.history.heading': 'এই নম্বৰৰ বাবে পঞ্জীয়ন',
   'registration.history.loading': 'পঞ্জীয়ন ল’ড হৈ আছে…',
   'registration.history.empty': 'এই নম্বৰৰ বাবে কোনো পঞ্জীয়ন পোৱা নগ’ল।',
+  'registration.history.timeout': "ল’ড হোৱাৰ সময়সীমা উকলি গ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+  'registration.history.error': 'এই নম্বৰৰ বাবে পঞ্জীয়ন ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'registration.search.empty': 'আপোনাৰ সন্ধানৰ সৈতে কোনো হিতাধিকাৰী মিলা নাই।',
   'registration.search.prompt': 'নাম বা পঞ্জীয়ন আইডি দিয়ক, তাৰ পিছত সন্ধান কৰক।',
   'registration.search.error': "সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
