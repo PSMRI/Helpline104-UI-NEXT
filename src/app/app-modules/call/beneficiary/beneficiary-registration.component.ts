@@ -260,7 +260,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
           <button
             z-button
             type="button"
-            zType="outline"
+            zType="secondary"
             [attr.aria-pressed]="false"
             (click)="showView('search')"
           >
@@ -270,7 +270,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
           <button
             z-button
             type="button"
-            zType="outline"
+            zType="default"
             [attr.aria-pressed]="false"
             (click)="showView('register')"
           >
