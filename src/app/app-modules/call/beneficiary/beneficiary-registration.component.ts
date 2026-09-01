@@ -324,27 +324,27 @@ function validDob(control: AbstractControl): ValidationErrors | null {
         <form [formGroup]="searchForm" (ngSubmit)="doSearch()" autocomplete="off">
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <z-form-field>
-              <label z-form-label>{{ 'registration.field.firstName' | translate: lang() }}</label>
+              <label z-form-label for="search-firstName">{{ 'registration.field.firstName' | translate: lang() }}</label>
               <z-form-control>
-                <input z-input formControlName="firstName" />
+                <input z-input id="search-firstName" formControlName="firstName" />
               </z-form-control>
             </z-form-field>
             <z-form-field>
-              <label z-form-label>{{ 'registration.field.lastName' | translate: lang() }}</label>
+              <label z-form-label for="search-lastName">{{ 'registration.field.lastName' | translate: lang() }}</label>
               <z-form-control>
-                <input z-input formControlName="lastName" />
+                <input z-input id="search-lastName" formControlName="lastName" />
               </z-form-control>
             </z-form-field>
             <z-form-field>
-              <label z-form-label>{{ 'registration.field.benId' | translate: lang() }}</label>
+              <label z-form-label for="search-benId">{{ 'registration.field.benId' | translate: lang() }}</label>
               <z-form-control>
-                <input z-input formControlName="beneficiaryID" inputmode="numeric" />
+                <input z-input id="search-benId" formControlName="beneficiaryID" inputmode="numeric" />
               </z-form-control>
             </z-form-field>
             <z-form-field>
-              <label z-form-label>{{ 'registration.field.gender' | translate: lang() }}</label>
+              <label z-form-label for="search-genderID">{{ 'registration.field.gender' | translate: lang() }}</label>
               <z-form-control>
-                <select formControlName="genderID" [class]="selectClass">
+                <select id="search-genderID" formControlName="genderID" [class]="selectClass">
                   <option [ngValue]="null">
                     {{ 'registration.field.genderPlaceholder' | translate: lang() }}
                   </option>
@@ -501,9 +501,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               @if (isHealthcareWorker()) {
                 <z-form-field>
-                  <label z-form-label>{{ 'registration.field.hcwType' | translate: lang() }}</label>
+                  <label z-form-label for="healthCareWorkerID">{{
+                    'registration.field.hcwType' | translate: lang()
+                  }}</label>
                   <z-form-control>
-                    <select formControlName="healthCareWorkerID" [class]="selectClass">
+                    <select id="healthCareWorkerID" formControlName="healthCareWorkerID" [class]="selectClass">
                       <option [ngValue]="null">
                         {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                       </option>
@@ -518,9 +520,9 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               }
 
               <z-form-field>
-                <label z-form-label>{{ 'registration.field.title' | translate: lang() }}</label>
+                <label z-form-label for="titleId">{{ 'registration.field.title' | translate: lang() }}</label>
                 <z-form-control>
-                  <select formControlName="titleId" [class]="selectClass" (change)="onTitleChange()">
+                  <select id="titleId" formControlName="titleId" [class]="selectClass" (change)="onTitleChange()">
                     <option [ngValue]="null">
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -532,9 +534,16 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{ 'registration.field.firstName' | translate: lang() }}</label>
+                <label z-form-label zRequired for="firstName">{{
+                  'registration.field.firstName' | translate: lang()
+                }}</label>
                 <z-form-control>
-                  <input z-input formControlName="firstName" [attr.aria-invalid]="ariaInvalid('firstName')" />
+                  <input
+                    z-input
+                    id="firstName"
+                    formControlName="firstName"
+                    [attr.aria-invalid]="ariaInvalid('firstName')"
+                  />
                 </z-form-control>
                 @if (showError('firstName', 'required')) {
                   <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
@@ -545,9 +554,14 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label>{{ 'registration.field.lastName' | translate: lang() }}</label>
+                <label z-form-label for="lastName">{{ 'registration.field.lastName' | translate: lang() }}</label>
                 <z-form-control>
-                  <input z-input formControlName="lastName" [attr.aria-invalid]="ariaInvalid('lastName')" />
+                  <input
+                    z-input
+                    id="lastName"
+                    formControlName="lastName"
+                    [attr.aria-invalid]="ariaInvalid('lastName')"
+                  />
                 </z-form-control>
                 @if (showError('lastName', 'whitespace')) {
                   <z-form-message>{{ 'registration.validation.whitespace' | translate: lang() }}</z-form-message>
@@ -555,9 +569,12 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{ 'registration.field.gender' | translate: lang() }}</label>
+                <label z-form-label zRequired for="genderID">{{
+                  'registration.field.gender' | translate: lang()
+                }}</label>
                 <z-form-control>
                   <select
+                    id="genderID"
                     formControlName="genderID"
                     [class]="selectClass"
                     [attr.aria-invalid]="ariaInvalid('genderID')"
@@ -576,10 +593,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label>{{ 'registration.field.dob' | translate: lang() }}</label>
+                <label z-form-label for="dob">{{ 'registration.field.dob' | translate: lang() }}</label>
                 <z-form-control>
                   <input
                     z-input
+                    id="dob"
                     type="date"
                     formControlName="dob"
                     [attr.min]="minDob"
@@ -594,10 +612,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{ 'registration.field.age' | translate: lang() }}</label>
+                <label z-form-label zRequired for="age">{{ 'registration.field.age' | translate: lang() }}</label>
                 <z-form-control>
                   <input
                     z-input
+                    id="age"
                     type="number"
                     formControlName="age"
                     inputmode="numeric"
@@ -614,9 +633,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{ 'registration.field.ageUnit' | translate: lang() }}</label>
+                <label z-form-label zRequired for="ageUnit">{{
+                  'registration.field.ageUnit' | translate: lang()
+                }}</label>
                 <z-form-control>
-                  <select formControlName="ageUnit" [class]="selectClass" (change)="onAgeUnitChange()">
+                  <select id="ageUnit" formControlName="ageUnit" [class]="selectClass" (change)="onAgeUnitChange()">
                     <option value="years">
                       {{ 'registration.ageUnit.years' | translate: lang() }}
                     </option>
@@ -633,12 +654,12 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               <!-- Relationship to the existing beneficiary on this number -->
               @if (parentBenName()) {
                 <z-form-field>
-                  <label z-form-label
+                  <label z-form-label for="relationshipTypeID"
                     >{{ 'registration.field.relationship' | translate: lang() }}
                     <span class="text-muted-foreground">· {{ parentBenName() }}</span>
                   </label>
                   <z-form-control>
-                    <select formControlName="relationshipTypeID" [class]="selectClass">
+                    <select id="relationshipTypeID" formControlName="relationshipTypeID" [class]="selectClass">
                       @for (r of relationships(); track r.benRelationshipID) {
                         <option [ngValue]="r.benRelationshipID">
                           {{ r.benRelationshipType }}
@@ -654,9 +675,9 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             @if (!isEmergency()) {
               <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <z-form-field>
-                  <label z-form-label>{{ 'registration.field.caste' | translate: lang() }}</label>
+                  <label z-form-label for="communityID">{{ 'registration.field.caste' | translate: lang() }}</label>
                   <z-form-control>
-                    <select formControlName="communityID" [class]="selectClass">
+                    <select id="communityID" formControlName="communityID" [class]="selectClass">
                       <option [ngValue]="null">
                         {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                       </option>
@@ -668,9 +689,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{ 'registration.field.maritalStatus' | translate: lang() }}</label>
+                  <label z-form-label for="maritalStatusID">{{
+                    'registration.field.maritalStatus' | translate: lang()
+                  }}</label>
                   <z-form-control>
-                    <select formControlName="maritalStatusID" [class]="selectClass">
+                    <select id="maritalStatusID" formControlName="maritalStatusID" [class]="selectClass">
                       <option [ngValue]="null">
                         {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                       </option>
@@ -682,23 +705,29 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{ 'registration.field.fatherName' | translate: lang() }}</label>
+                  <label z-form-label for="fatherName">{{
+                    'registration.field.fatherName' | translate: lang()
+                  }}</label>
                   <z-form-control>
-                    <input z-input formControlName="fatherName" />
+                    <input z-input id="fatherName" formControlName="fatherName" />
                   </z-form-control>
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{ 'registration.field.spouseName' | translate: lang() }}</label>
+                  <label z-form-label for="spouseName">{{
+                    'registration.field.spouseName' | translate: lang()
+                  }}</label>
                   <z-form-control>
-                    <input z-input formControlName="spouseName" />
+                    <input z-input id="spouseName" formControlName="spouseName" />
                   </z-form-control>
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{ 'registration.field.education' | translate: lang() }}</label>
+                  <label z-form-label for="educationID">{{
+                    'registration.field.education' | translate: lang()
+                  }}</label>
                   <z-form-control>
-                    <select formControlName="educationID" [class]="selectClass">
+                    <select id="educationID" formControlName="educationID" [class]="selectClass">
                       <option [ngValue]="null">
                         {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                       </option>
@@ -710,9 +739,14 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{ 'registration.field.idType' | translate: lang() }}</label>
+                  <label z-form-label for="identityType">{{ 'registration.field.idType' | translate: lang() }}</label>
                   <z-form-control>
-                    <select formControlName="identityType" [class]="selectClass" (change)="onIdTypeChange()">
+                    <select
+                      id="identityType"
+                      formControlName="identityType"
+                      [class]="selectClass"
+                      (change)="onIdTypeChange()"
+                    >
                       <option [ngValue]="null">
                         {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                       </option>
@@ -726,9 +760,16 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 </z-form-field>
 
                 <z-form-field>
-                  <label z-form-label>{{ 'registration.field.idNumber' | translate: lang() }}</label>
+                  <label z-form-label for="govtIdentityNo">{{
+                    'registration.field.idNumber' | translate: lang()
+                  }}</label>
                   <z-form-control>
-                    <input z-input formControlName="govtIdentityNo" [attr.maxlength]="idMaxLength()" />
+                    <input
+                      z-input
+                      id="govtIdentityNo"
+                      formControlName="govtIdentityNo"
+                      [attr.maxlength]="idMaxLength()"
+                    />
                   </z-form-control>
                   @if (showError('govtIdentityNo', 'pattern')) {
                     <z-form-message>{{ 'registration.validation.idInvalid' | translate: lang() }}</z-form-message>
@@ -760,9 +801,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
           <div [hidden]="page() !== 2 || isEmergency()">
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <z-form-field>
-                <label z-form-label zRequired>{{ 'registration.field.state' | translate: lang() }}</label>
+                <label z-form-label zRequired for="stateID">{{
+                  'registration.field.state' | translate: lang()
+                }}</label>
                 <z-form-control>
-                  <select formControlName="stateID" [class]="selectClass" (change)="onStateChange()">
+                  <select id="stateID" formControlName="stateID" [class]="selectClass" (change)="onStateChange()">
                     <option [ngValue]="null" disabled>
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -777,9 +820,16 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{ 'registration.field.district' | translate: lang() }}</label>
+                <label z-form-label zRequired for="districtID">{{
+                  'registration.field.district' | translate: lang()
+                }}</label>
                 <z-form-control>
-                  <select formControlName="districtID" [class]="selectClass" (change)="onDistrictChange()">
+                  <select
+                    id="districtID"
+                    formControlName="districtID"
+                    [class]="selectClass"
+                    (change)="onDistrictChange()"
+                  >
                     <option [ngValue]="null" disabled>
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -794,9 +844,16 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{ 'registration.field.subDistrict' | translate: lang() }}</label>
+                <label z-form-label zRequired for="subDistrictID">{{
+                  'registration.field.subDistrict' | translate: lang()
+                }}</label>
                 <z-form-control>
-                  <select formControlName="subDistrictID" [class]="selectClass" (change)="onSubDistrictChange()">
+                  <select
+                    id="subDistrictID"
+                    formControlName="subDistrictID"
+                    [class]="selectClass"
+                    (change)="onSubDistrictChange()"
+                  >
                     <option [ngValue]="null" disabled>
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -811,9 +868,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label zRequired>{{ 'registration.field.village' | translate: lang() }}</label>
+                <label z-form-label zRequired for="villageID">{{
+                  'registration.field.village' | translate: lang()
+                }}</label>
                 <z-form-control>
-                  <select formControlName="villageID" [class]="selectClass">
+                  <select id="villageID" formControlName="villageID" [class]="selectClass">
                     <option [ngValue]="null" disabled>
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -828,16 +887,18 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label>{{ 'registration.field.houseNumber' | translate: lang() }}</label>
+                <label z-form-label for="houseNumber">{{
+                  'registration.field.houseNumber' | translate: lang()
+                }}</label>
                 <z-form-control>
-                  <input z-input formControlName="houseNumber" maxlength="25" />
+                  <input z-input id="houseNumber" formControlName="houseNumber" maxlength="25" />
                 </z-form-control>
               </z-form-field>
 
               <z-form-field>
-                <label z-form-label>{{ 'registration.field.pincode' | translate: lang() }}</label>
+                <label z-form-label for="pincode">{{ 'registration.field.pincode' | translate: lang() }}</label>
                 <z-form-control>
-                  <input z-input formControlName="pincode" inputmode="numeric" maxlength="6" />
+                  <input z-input id="pincode" formControlName="pincode" inputmode="numeric" maxlength="6" />
                 </z-form-control>
                 @if (showError('pincode', 'pattern')) {
                   <z-form-message>{{ 'registration.validation.pincode' | translate: lang() }}</z-form-message>
@@ -849,9 +910,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               @for (ctrl of altPhoneControls; track ctrl.name; let i = $index) {
                 <z-form-field>
-                  <label z-form-label>{{ 'registration.field.alternateNumber' | translate: lang() }} {{ i + 1 }}</label>
+                  <label z-form-label [attr.for]="ctrl.name"
+                    >{{ 'registration.field.alternateNumber' | translate: lang() }} {{ i + 1 }}</label
+                  >
                   <z-form-control>
-                    <input z-input [formControlName]="ctrl.name" inputmode="numeric" maxlength="10" />
+                    <input z-input [id]="ctrl.name" [formControlName]="ctrl.name" inputmode="numeric" maxlength="10" />
                   </z-form-control>
                   @if (registerForm.get(ctrl.name)?.touched && registerForm.get(ctrl.name)?.hasError('pattern')) {
                     <z-form-message>{{ 'registration.validation.phone' | translate: lang() }}</z-form-message>
