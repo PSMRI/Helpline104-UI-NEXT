@@ -1315,17 +1315,7 @@ export const en = {
 
   // Supervisor agent status
   'supervisor.agentStatus.title': 'Agent Status',
-  'supervisor.agentStatus.autoRefresh': 'Refreshes automatically every 30 seconds',
-  'supervisor.agentStatus.lastUpdated': 'Last updated',
-  'supervisor.agentStatus.refresh': 'Refresh',
-  'supervisor.agentStatus.loading': 'Loading agent status…',
-  'supervisor.agentStatus.agentId': 'Agent ID',
-  'supervisor.agentStatus.name': 'Name',
-  'supervisor.agentStatus.extension': 'Extension',
-  'supervisor.agentStatus.status': 'Status',
-  'supervisor.agentStatus.unknown': 'Unknown',
-  'supervisor.agentStatus.noAgents': 'No agents are currently online.',
-  'supervisor.agentStatus.loadError': 'Unable to load agent status. Please try again.',
+  'supervisor.agentStatus.unavailable': 'Agent Status is unavailable right now. Please try logging in again.',
   // Login
   'login.captchaLabel': 'Security check',
   'login.captchaFailed':
