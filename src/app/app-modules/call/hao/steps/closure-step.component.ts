@@ -169,12 +169,7 @@ import { HaoService } from '../hao.service';
 
       <div class="flex flex-col gap-3 rounded-lg border border-border p-4">
         <label class="flex items-center gap-2 text-sm font-medium" [class.cursor-not-allowed]="disconnectedByCaller()" [class.cursor-pointer]="!disconnectedByCaller()">
-          <input
-            type="checkbox"
-            class="h-4 w-4 accent-primary"
-            formControlName="doTransfer"
-            [attr.disabled]="disconnectedByCaller() ? true : null"
-          />
+          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="doTransfer" />
           {{ 'hao.closure.transferCall' | translate: lang() }}
         </label>
         @if (doTransfer()) {
@@ -336,11 +331,14 @@ export class ClosureStepComponent {
     this.loadCallTypes();
 
     // The caller hung up — there is no live call left to transfer. Clear any
-    // in-progress transfer selection (legacy `patchValue({transferCall: ''})`);
-    // the template disables the checkbox so it cannot be re-enabled.
+    // in-progress transfer selection (legacy `patchValue({transferCall: ''})`)
+    // and disable the control itself (not just its DOM attribute) so the form
+    // model and the checkbox stay in sync; `getRawValue()` still includes a
+    // disabled control's value, so the payload is unaffected.
     effect(() => {
       if (this.disconnectedByCaller()) {
         this.form.controls.doTransfer.setValue(false);
+        this.form.controls.doTransfer.disable();
       }
     });
 

@@ -152,6 +152,28 @@ describe('CallWrapupService', () => {
     drainCountdown();
   });
 
+  it('falls back to the 30s default when the backend reports a non-positive wrap-up time', () => {
+    connectCall();
+    service.handleCallerDisconnect('1786464598330');
+    respondWrapupTime(true, 0);
+    expect(service.secondsRemaining()).toBe(30);
+
+    jasmine.clock().tick(30000);
+    drainCountdown();
+  });
+
+  it('falls back to the 30s default when the backend reports a non-numeric wrap-up time', () => {
+    connectCall();
+    service.handleCallerDisconnect('1786464598330');
+    http
+      .expectOne((req) => req.url.includes(`user/role/${ROLE_ID}`))
+      .flush({ data: { isWrapUpTime: true, wrapUpTime: Number.NaN } });
+    expect(service.secondsRemaining()).toBe(30);
+
+    jasmine.clock().tick(30000);
+    drainCountdown();
+  });
+
   it('ignores a repeat disconnect event for a call already being wrapped up', () => {
     connectCall('1786464598330');
     service.handleCallerDisconnect('1786464598330');
@@ -206,6 +228,31 @@ describe('CallWrapupService', () => {
     // here it needs an explicit flush to observe synchronously.
     TestBed.flushEffects();
     expect(service.disconnectedByCaller()).toBe(false);
+  });
+
+  it('does not auto-close if the agent manually ends the call while the call-types lookup is in flight', () => {
+    connectCall('1786464598330');
+    service.handleCallerDisconnect('1786464598330');
+    respondWrapupTime(true, 5);
+
+    jasmine.clock().tick(5000);
+    const callTypesReq = http.expectOne((req) => req.url.includes('getCallTypesV1'));
+
+    // The agent submits a manual disposition (elsewhere in the app) before
+    // this in-flight lookup resolves.
+    callStore.endCall();
+
+    // The lookup now resolves — auto-close must not fire for a call that has
+    // already ended, and must not send a second closeCall for it.
+    callTypesReq.flush({
+      data: [
+        {
+          callGroupType: 'Wrapup Exceeds',
+          callTypes: [{ callTypeID: 28, callTypeDesc: 'For Wrapup Exceeds', callGroupType: 'Wrapup Exceeds' }],
+        },
+      ],
+    });
+    http.expectNone((req) => req.url.includes('closeCall'));
   });
 
   it('resets the wrap-up state once the call ends, by any path', () => {

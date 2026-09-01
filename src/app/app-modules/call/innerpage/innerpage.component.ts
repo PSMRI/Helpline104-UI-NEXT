@@ -71,7 +71,7 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
             <app-call-duration-timer />
 
             @if (wrapupSecondsRemaining() > 0) {
-              <span class="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive" role="alert">
+              <span class="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive" role="status">
                 {{ 'innerpage.wrapupTimeRemaining' | translate: lang() }}: <strong>{{ wrapupSecondsRemaining() }}</strong>
               </span>
             }

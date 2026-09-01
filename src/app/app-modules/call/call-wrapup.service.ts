@@ -143,7 +143,13 @@ export class CallWrapupService {
       roleID === null
         ? of(DEFAULT_WRAPUP_SECONDS)
         : this.getRoleBasedWrapupTime(roleID).pipe(
-            map((t) => (t.isWrapUpTime ? t.wrapUpTime : DEFAULT_WRAPUP_SECONDS)),
+            // A malformed backend value (0, negative, NaN) would otherwise
+            // auto-close the call within the first tick with no warning shown.
+            map((t) =>
+              t.isWrapUpTime && Number.isFinite(t.wrapUpTime) && t.wrapUpTime > 0
+                ? t.wrapUpTime
+                : DEFAULT_WRAPUP_SECONDS,
+            ),
             catchError(() => of(DEFAULT_WRAPUP_SECONDS)),
           );
     seconds$.subscribe((seconds) => this.runCountdown(seconds));
@@ -170,7 +176,16 @@ export class CallWrapupService {
       return;
     }
     this.haoService.getCallTypes(serviceID, true).subscribe({
-      next: (types) => this.submitAutoClose(resolveWrapupExceedsCallTypeID(types)),
+      next: (types) => {
+        // The agent may have submitted a manual disposition while this
+        // lookup was in flight — recheck before auto-closing, matching the
+        // guard handleCallerDisconnect uses, or a stale timer double-closes
+        // (or closes a since-ended) call.
+        if (!this.callStore.onCall()) {
+          return;
+        }
+        this.submitAutoClose(resolveWrapupExceedsCallTypeID(types));
+      },
       // Leave disconnectedByCaller true: the agent still sees the forced
       // closure UI and can close manually even though auto-close failed.
       error: () => undefined,
