@@ -218,4 +218,23 @@ describe('HaoService call-lifecycle envelope handling', () => {
       });
     }
   });
+
+  // Every method in this file was missing a request timeout — a hung backend
+  // left the caller (and its loading spinner) stuck forever. The app is
+  // zoneless, so `fakeAsync`/`tick` (zone.js) are not available; the 20s
+  // deadline is driven with `jasmine.clock()` instead.
+  describe('request timeout', () => {
+    beforeEach(() => jasmine.clock().install());
+    afterEach(() => jasmine.clock().uninstall());
+
+    it('closeCall errors instead of hanging past the 20s deadline', () => {
+      let failure: Error | undefined;
+      service.closeCall(closeRequest()).subscribe({ error: (err: Error) => (failure = err) });
+
+      expectOne('call/closeCall');
+      jasmine.clock().tick(20001);
+
+      expect(failure).toBeDefined();
+    });
+  });
 });
