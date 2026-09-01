@@ -51,7 +51,7 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
       <header class="border-b border-border bg-card">
-        <div class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+        <div class="mx-auto flex w-full max-w-full flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div class="flex items-center gap-3">
             <span class="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
               <ng-icon name="lucidePhoneIncoming" size="22" aria-hidden="true" />
@@ -80,7 +80,7 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
       </header>
 
       <main class="flex-1 bg-muted/40 py-6">
-        <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
+        <div class="mx-auto w-full max-w-full px-4 sm:px-6">
           <router-outlet />
         </div>
       </main>
