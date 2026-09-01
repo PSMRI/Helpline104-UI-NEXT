@@ -70,6 +70,8 @@ describe('HaoService call-lifecycle envelope handling', () => {
     skill: null,
     agentIPAddress: null,
     benCallID: '1786464598330',
+    callType: 'Valid',
+    callTypeID: 28,
   });
 
   function expectOne(urlFragment: string) {
@@ -142,11 +144,32 @@ describe('HaoService call-lifecycle envelope handling', () => {
         skill_transfer_flag: false,
         agentIPAddress: null,
         benCallID: '1786464598330',
+        callType: 'Valid',
+        callTypeID: 28,
       });
       req.flush({ statusCode: 200, status: 'Success' });
 
       expect(outcome.error).not.toHaveBeenCalled();
       expect(outcome.next).toHaveBeenCalled();
+    });
+
+    it('sends callType/callTypeID on a skill-based transfer too, not only on the default transfer', () => {
+      service
+        .transferCall({ ...transferRequest(), skillTransferFlag: true, skill: 'Hindi' })
+        .subscribe({ next: () => undefined, error: () => undefined });
+
+      const req = expectOne('cti/transferCall');
+      expect(req.request.body).toEqual({
+        transfer_from: 2145,
+        transfer_campaign_info: 'H_104_Hybrid_MO',
+        skill_transfer_flag: true,
+        skill: 'Hindi',
+        agentIPAddress: null,
+        benCallID: '1786464598330',
+        callType: 'Valid',
+        callTypeID: 28,
+      });
+      req.flush({ statusCode: 200, status: 'Success' });
     });
 
     // The envelope check has two independent triggers — a non-200 statusCode and

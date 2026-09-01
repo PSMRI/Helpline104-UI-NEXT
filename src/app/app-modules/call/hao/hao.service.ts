@@ -245,7 +245,8 @@ export class HaoService {
   /**
    * Transfer the active call to the chosen campaign (and optional skill). The
    * snake_case body mirrors the legacy `transferToCampaign` contract; `skill`
-   * is omitted unless a skill was chosen.
+   * is omitted unless a skill was chosen, but `callType`/`callTypeID` are
+   * always sent.
    *
    * A rejected transfer is reported inside a 200 envelope, so the response is
    * checked before the caller hands the call off — see
@@ -260,6 +261,8 @@ export class HaoService {
         ...(request.skillTransferFlag && request.skill ? { skill: request.skill } : {}),
         agentIPAddress: request.agentIPAddress ?? null,
         benCallID: request.benCallID,
+        callType: request.callType,
+        callTypeID: request.callTypeID,
       })
       .pipe(map((res) => assertCallActionSucceeded(res, 'transferCall')));
   }
