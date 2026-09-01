@@ -23,6 +23,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucidePhone } from '@ng-icons/lucide';
+
 import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { AuthStore } from '@/app-modules/core/auth/auth.store';
@@ -48,10 +51,18 @@ const SUPERVISOR_FEATURE_CODE = 'Supervisor';
   selector: 'app-cti-panel',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ZardButtonComponent],
+  imports: [ZardButtonComponent, NgIcon],
+  viewProviders: [provideIcons({ lucidePhone })],
   template: `
     @if (showCzentrix()) {
-      <button z-button type="button" zSize="sm" class="fixed bottom-12 right-4 z-50 shadow-lg" (click)="toggleCti()">
+      <button
+        z-button
+        type="button"
+        zSize="lg"
+        class="fixed bottom-12 right-4 z-50 h-12 gap-2 px-5 text-base font-semibold shadow-xl"
+        (click)="toggleCti()"
+      >
+        <ng-icon name="lucidePhone" size="20" aria-hidden="true" />
         {{ czentrixLabel }}
       </button>
 
@@ -59,7 +70,7 @@ const SUPERVISOR_FEATURE_CODE = 'Supervisor';
         <iframe
           [src]="src"
           [title]="czentrixLabel"
-          class="fixed bottom-24 right-4 z-50 h-[380px] w-[230px] rounded-md border border-border bg-card shadow-lg"
+          class="fixed bottom-28 right-4 z-50 h-[380px] w-[230px] rounded-md border border-border bg-card shadow-lg"
         ></iframe>
       }
     }
