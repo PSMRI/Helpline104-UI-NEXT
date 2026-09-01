@@ -99,28 +99,28 @@ export const routes: Routes = [
       {
         // HAO (Health Assistant Officer) service workspace.
         path: 'hao',
-        canActivate: [roleWorkspaceGuard, beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/hao/hao-workspace.component').then((m) => m.HaoWorkspaceComponent),
       },
       {
         // MO (Medical Officer) case-sheet workspace.
         path: 'mo',
-        canActivate: [roleWorkspaceGuard, beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/mo-workspace.component').then((m) => m.MoWorkspaceComponent),
       },
       {
         // CO (Counselling Officer) case-sheet workspace.
         path: 'co',
-        canActivate: [roleWorkspaceGuard, beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/co-workspace.component').then((m) => m.CoWorkspaceComponent),
       },
       {
         // Counsellor (mental-health) case-sheet workspace.
         path: 'counsellor',
-        canActivate: [roleWorkspaceGuard, beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/counsellor-workspace.component').then(
             (m) => m.CounsellorWorkspaceComponent,
@@ -137,7 +137,7 @@ export const routes: Routes = [
       {
         // Surveyor workspace (call-type reports host).
         path: 'surveyor',
-        canActivate: [roleWorkspaceGuard, beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/surveyor-workspace.component').then(
             (m) => m.SurveyorWorkspaceComponent,
@@ -146,7 +146,7 @@ export const routes: Routes = [
       {
         // PD (Psychiatrist / Programme Division) case-sheet workspace.
         path: 'pd',
-        canActivate: [roleWorkspaceGuard, beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/pd-workspace.component').then((m) => m.PdWorkspaceComponent),
       },
