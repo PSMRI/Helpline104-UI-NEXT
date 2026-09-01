@@ -47,6 +47,8 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 import { AppFooterComponent } from '@/shared/components/layout/app-footer.component';
 import { AppHeaderComponent } from '@/shared/components/layout/app-header.component';
 
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { LOGIN_ROUTE } from '../core/core.constants';
 import { encryptPassword } from '../login/password-crypto';
 import { AccountRecoveryService } from './account-recovery.service';
@@ -88,6 +90,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
     ZardFormMessageComponent,
     AppHeaderComponent,
     AppFooterComponent,
+    TranslatePipe,
   ],
   viewProviders: [provideIcons({ lucideEye, lucideEyeOff, lucideLock })],
   templateUrl: './set-password.component.html',
@@ -96,7 +99,9 @@ export class SetPasswordComponent implements OnInit {
   private readonly recovery = inject(AccountRecoveryService);
   private readonly store = inject(AccountRecoveryStore);
   private readonly router = inject(Router);
+  private readonly i18n = inject(I18nService);
 
+  readonly lang = this.i18n.language;
   readonly loading = signal(false);
   readonly errorMessage = signal('');
   readonly showPassword = signal(false);
@@ -152,12 +157,12 @@ export class SetPasswordComponent implements OnInit {
       next: () => {
         this.loading.set(false);
         this.store.clear();
-        toast.success('Password changed successfully. Please sign in.');
+        toast.success(this.i18n.instant('accountRecovery.setPassword.success'));
         void this.router.navigate([LOGIN_ROUTE]);
       },
       error: (error: RecoveryError) => {
         this.loading.set(false);
-        this.errorMessage.set(error?.errorMessage || 'Unable to change password. Please try again.');
+        this.errorMessage.set(error?.errorMessage || this.i18n.instant('accountRecovery.setPassword.error'));
       },
     });
   }
