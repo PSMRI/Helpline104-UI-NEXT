@@ -517,9 +517,6 @@ export const en = {
   'supervisor.home.blockUnblockHint': 'Manage blacklisted caller numbers.',
   'supervisor.home.outboundAllocationHint': 'Allocate unassigned outbound calls to agents.',
   'supervisor.home.outboundReallocationHint': 'Move allocated outbound calls between agents.',
-  'supervisor.placeholder.title': 'Coming soon',
-  'supervisor.placeholder.body':
-    'This supervisor section has not been migrated yet. Please use the legacy application for now.',
 
   // Supervisor reports hub + report screens
   'supReports.title': 'Supervisor Reports',

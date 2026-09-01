@@ -48,7 +48,6 @@ const PATHS = {
   disconnectCall: 'cti/disconnectCall',
   switchToInbound: 'cti/switchToInbound',
   switchToOutbound: 'cti/switchToOutbound',
-  getTransferCampaigns: 'cti/getTransferCampaigns',
   getCampaignSkills: 'cti/getCampaignSkills',
   transferCall: 'cti/transferCall',
 } as const;
@@ -286,15 +285,6 @@ export class CzentrixService {
   }
 
   // --- Transfer -------------------------------------------------------------
-
-  /** Campaigns the active call may be transferred to. */
-  getTransferCampaigns(agentID: number): Observable<CtiPayload> {
-    return this.http
-      .post<ApiResponse<CtiPayload>>(this.baseCommon + PATHS.getTransferCampaigns, {
-        agent_id: agentID,
-      })
-      .pipe(map((res) => res.data ?? {}));
-  }
 
   /** Skills available within a transfer campaign (keyed by name). */
   getCampaignSkills(campaignName: string): Observable<CtiPayload> {
