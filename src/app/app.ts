@@ -25,6 +25,7 @@ import { RouterOutlet } from '@angular/router';
 
 import { ZardToastComponent } from '@common-ui/ui/toast';
 
+import { CallUnloadWarningService } from '@/app-modules/call/call-unload-warning.service';
 import { InboundCtiService } from '@/app-modules/call/inbound-cti.service';
 import { CtiPanelComponent } from '@/shared/components/layout/cti-panel.component';
 
@@ -38,4 +39,7 @@ export class App {
   // Instantiated here so the inbound-call postMessage listener is registered
   // for the whole app lifetime, matching the root-level persistent CTI iframe.
   private readonly inboundCti = inject(InboundCtiService);
+  // Same reasoning: the beforeunload listener must cover every screen an
+  // active call could be on, not just the call workspace routes.
+  private readonly callUnloadWarning = inject(CallUnloadWarningService);
 }
