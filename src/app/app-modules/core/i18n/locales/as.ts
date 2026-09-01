@@ -1331,6 +1331,18 @@ export const as: Record<TranslationKey, string> = {
   'supervisor.agentStatus.loadError':
     'এজেণ্টৰ স্থিতি ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   // Login
+  'login.title': 'AMRIT 104 হেল্পলাইন',
+  'login.subtitle': 'অব্যাহত ৰাখিবলৈ আপোনাৰ একাউণ্টত ছাইন ইন কৰক',
+  'login.userName': 'ব্যৱহাৰকাৰীৰ নাম',
+  'login.userNamePlaceholder': 'ব্যৱহাৰকাৰীৰ নাম দিয়ক',
+  'login.userNameRequired': 'ব্যৱহাৰকাৰীৰ নাম প্ৰয়োজন।',
+  'login.password': 'পাছৱৰ্ড',
+  'login.passwordPlaceholder': 'পাছৱৰ্ড দিয়ক',
+  'login.passwordRequired': 'পাছৱৰ্ড প্ৰয়োজন।',
+  'login.showPassword': 'পাছৱৰ্ড দেখুৱাওক',
+  'login.hidePassword': 'পাছৱৰ্ড লুকুৱাওক',
+  'login.forgotPassword': 'পাছৱৰ্ড পাহৰিছে?',
+  'login.submit': 'লগইন',
   'login.captchaLabel': 'সুৰক্ষা পৰীক্ষা',
   'login.captchaFailed':
     'সুৰক্ষা পৰীক্ষা ল’ড কৰিব পৰা নগ’ল। আপোনাৰ সংযোগ পৰীক্ষা কৰি পুনৰ চেষ্টা কৰক।',

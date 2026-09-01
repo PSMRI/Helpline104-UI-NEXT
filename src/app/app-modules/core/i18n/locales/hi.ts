@@ -1328,6 +1328,18 @@ export const hi: Record<TranslationKey, string> = {
   'supervisor.agentStatus.noAgents': 'वर्तमान में कोई एजेंट ऑनलाइन नहीं है।',
   'supervisor.agentStatus.loadError': 'एजेंट स्थिति लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
   // Login
+  'login.title': 'AMRIT 104 हेल्पलाइन',
+  'login.subtitle': 'जारी रखने के लिए अपने खाते में साइन इन करें',
+  'login.userName': 'उपयोगकर्ता नाम',
+  'login.userNamePlaceholder': 'उपयोगकर्ता नाम दर्ज करें',
+  'login.userNameRequired': 'उपयोगकर्ता नाम आवश्यक है।',
+  'login.password': 'पासवर्ड',
+  'login.passwordPlaceholder': 'पासवर्ड दर्ज करें',
+  'login.passwordRequired': 'पासवर्ड आवश्यक है।',
+  'login.showPassword': 'पासवर्ड दिखाएं',
+  'login.hidePassword': 'पासवर्ड छुपाएं',
+  'login.forgotPassword': 'पासवर्ड भूल गए?',
+  'login.submit': 'लॉगिन',
   'login.captchaLabel': 'सुरक्षा जांच',
   'login.captchaFailed':
     'सुरक्षा जांच लोड नहीं हो सकी। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
