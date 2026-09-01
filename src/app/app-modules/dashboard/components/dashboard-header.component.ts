@@ -34,6 +34,7 @@ import { AppHeaderComponent } from '@/shared/components/layout/app-header.compon
 
 import { APP_VERSION } from '../../core/app-version';
 import { AuthStore } from '../../core/auth/auth.store';
+import { ConfigService } from '../../core/services/config.service';
 import { CzentrixService } from '../../core/services/czentrix.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -41,7 +42,8 @@ import { EmergencyContactsViewComponent } from '../../call/emergency-contacts/em
 
 const FEEDBACK_ROUTE = '/feedback';
 const SERVICE_104 = '104';
-const LICENSE_URL = 'https://uatamrit.piramalswasthya.org/common-api/license.html';
+/** Relative to {@link ConfigService.getCommonBaseURLLicense}. */
+const LICENSE_PATH = 'license.html';
 
 /** Title aliases — empty: each role displays its own code (HAO shows as HAO Dashboard). */
 const TITLE_ROLE_ALIASES: Record<string, string> = {};
@@ -163,6 +165,7 @@ const TITLE_ROLE_ALIASES: Record<string, string> = {};
 })
 export class DashboardHeaderComponent {
   private readonly authStore = inject(AuthStore);
+  private readonly config = inject(ConfigService);
   private readonly czentrix = inject(CzentrixService);
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
@@ -171,7 +174,8 @@ export class DashboardHeaderComponent {
 
   readonly user = this.authStore.user;
   readonly lang = this.i18n.language;
-  readonly licenseUrl = LICENSE_URL;
+  /** Built from the per-environment host so a prod build never links to UAT. */
+  readonly licenseUrl = this.config.getCommonBaseURLLicense() + LICENSE_PATH;
 
   private readonly profileOpen_ = signal(false);
   private readonly helpOpen_ = signal(false);
