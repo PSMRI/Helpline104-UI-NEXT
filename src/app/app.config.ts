@@ -21,7 +21,12 @@
  */
 
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  ErrorHandler,
+  provideBrowserGlobalErrorListeners,
+  provideZonelessChangeDetection,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -30,6 +35,7 @@ import { authInterceptor } from '@/app-modules/core/http/auth.interceptor';
 import { errorInterceptor } from '@/app-modules/core/http/error.interceptor';
 import { errorSanitizerInterceptor } from '@/app-modules/core/http/error-sanitizer.interceptor';
 import { loaderInterceptor } from '@/app-modules/core/http/loader.interceptor';
+import { GlobalErrorHandler } from '@/app-modules/core/services/global-error-handler';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -37,6 +43,9 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideZard(),
+    // Catches errors Angular's own change-detection/event-handling cycle
+    // throws, which provideBrowserGlobalErrorListeners() above never sees.
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
     // Order matters: loader wraps everything (show/hide), auth adds credentials,
     // error handles 401/403/5002 on the response. The sanitizer sits closest to
     // the backend so every earlier interceptor (and all services) only ever see

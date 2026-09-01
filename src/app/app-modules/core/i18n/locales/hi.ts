@@ -27,6 +27,13 @@ import { TranslationKey } from './en';
  * missing or stray key fails the build rather than silently falling back.
  */
 export const hi: Record<TranslationKey, string> = {
+  // App-wide
+  'app.unexpectedError': 'कुछ गलत हो गया। कृपया पृष्ठ को रीफ़्रेश करें और पुनः प्रयास करें।',
+
+  // CTI (CZentrix soft-phone) panel
+  'cti.unavailable': 'सॉफ्टफोन अभी उपलब्ध नहीं है।',
+  'cti.retry': 'पुनः प्रयास करें',
+
   // Header
   'dashboard.header.logoAlt': 'पिरामल स्वास्थ्य',
   'dashboard.header.titleSuffix': 'डैशबोर्ड',
