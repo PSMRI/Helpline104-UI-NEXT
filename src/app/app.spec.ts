@@ -41,7 +41,8 @@ describe('App', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       // HttpClient is needed transitively: the CTI panel's InboundCtiService
-      // depends on CallWrapupService, which calls the wrap-up-time endpoint.
+      // depends on CallWrapupService and CallLifecycleService, which call the
+      // wrap-up-time endpoint and register the call on connect respectively.
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
