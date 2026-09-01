@@ -96,9 +96,9 @@ export const as: Record<TranslationKey, string> = {
   // Activity for this week panel
   'dashboard.activity.title': 'এই সপ্তাহৰ কাৰ্যকলাপ',
   'dashboard.activity.trainingResources': 'প্ৰশিক্ষণ সম্পদ',
-  'dashboard.activity.more': 'সকলো চাওক →',
   'dashboard.activity.kmDocsTitle': 'কেএম নথি',
   'dashboard.activity.noKmDocs': 'কোনো কেএম নথি পোৱা নগ’ল',
+  'dashboard.activity.viewDocument': 'নথি চাওক',
 
   // Rating panel
   'dashboard.rating.title': 'মূল্যাংকন',

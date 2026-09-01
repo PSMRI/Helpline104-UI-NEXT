@@ -50,13 +50,6 @@ const CAMPAIGN_FEATURE_CODES: readonly string[] = ['MO', 'CO', 'SIO', 'HAO', 'PD
 const SERVICE_104 = '104';
 const SCREEN_HEALTH_ADVICE = 'Health_Advice';
 
-/** Training-resource badge count by role, mirroring the legacy dashboard. */
-const ACTIVITY_BADGE_BY_FEATURE: Record<string, number> = {
-  MO: 6,
-  CO: 4,
-  Supervisor: 1,
-};
-
 /** How often the agent's telephony state is refreshed (legacy: 15 s). */
 const AGENT_STATUS_POLL_MS = 15_000;
 
@@ -118,7 +111,7 @@ const ON_CALL_STATES: readonly string[] = ['INCALL', 'CLOSURE'];
             </div>
 
             <div class="grid gap-6 lg:grid-cols-2">
-              <app-activity-panel [count]="activityCount()" />
+              <app-activity-panel />
               <app-rating-panel />
             </div>
           </div>
@@ -237,10 +230,5 @@ export class DashboardComponent {
       return false;
     }
     return (code !== null && CAMPAIGN_FEATURE_CODES.includes(code)) || this.hasHealthAdvicePrivilege();
-  });
-
-  readonly activityCount = computed(() => {
-    const code = this.featureCode();
-    return code ? (ACTIVITY_BADGE_BY_FEATURE[code] ?? 0) : 0;
   });
 }
