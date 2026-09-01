@@ -1332,6 +1332,11 @@ export const en = {
     'The security check could not be loaded. Check your connection and try again.',
   'login.captchaRetry': 'Retry security check',
 
+  // Role selection
+  'roleSelection.title': 'Select your role',
+  'roleSelection.noRoles': 'No roles available for this service.',
+  'roleSelection.unauthorized': 'You are not authorised to access any 104 services.',
+
   // SMS templates
   'supSms.listTitle': 'SMS Template List',
   'supSms.createTitle': 'Create SMS Template',

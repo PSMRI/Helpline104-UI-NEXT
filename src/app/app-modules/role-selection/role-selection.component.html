@@ -1,13 +1,13 @@
 <div class="flex min-h-screen flex-col bg-background text-foreground">
-  <app-shell-header title="Select your role" [userName]="user()?.userName ?? null">
+  <app-shell-header [title]="'roleSelection.title' | translate: lang()" [userName]="user()?.userName ?? null">
     <button
       z-button
       type="button"
       zType="ghost"
       zSize="sm"
       class="text-destructive hover:bg-white/15 hover:text-destructive"
-      title="Logout"
-      aria-label="Logout"
+      [title]="'dashboard.header.logout' | translate: lang()"
+      [attr.aria-label]="'dashboard.header.logout' | translate: lang()"
       (click)="logout()"
     >
       <ng-icon name="lucidePower" size="18" aria-hidden="true" />
@@ -43,7 +43,9 @@
                   </button>
                 </li>
               } @empty {
-                <li class="text-center text-sm text-muted-foreground">No roles available for this service.</li>
+                <li class="text-center text-sm text-muted-foreground">
+                  {{ 'roleSelection.noRoles' | translate: lang() }}
+                </li>
               }
             </ul>
           </section>
@@ -51,7 +53,7 @@
       </div>
     } @else {
       <p class="text-center text-lg text-muted-foreground" role="alert">
-        You are not authorised to access any 104 services.
+        {{ 'roleSelection.unauthorized' | translate: lang() }}
       </p>
     }
   </main>

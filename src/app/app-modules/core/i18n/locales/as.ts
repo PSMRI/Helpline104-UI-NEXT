@@ -1336,6 +1336,11 @@ export const as: Record<TranslationKey, string> = {
     'সুৰক্ষা পৰীক্ষা ল’ড কৰিব পৰা নগ’ল। আপোনাৰ সংযোগ পৰীক্ষা কৰি পুনৰ চেষ্টা কৰক।',
   'login.captchaRetry': 'সুৰক্ষা পৰীক্ষা পুনৰ চেষ্টা কৰক',
 
+  // Role selection
+  'roleSelection.title': 'আপোনাৰ ভূমিকা বাছক',
+  'roleSelection.noRoles': 'এই সেৱাৰ বাবে কোনো ভূমিকা উপলব্ধ নাই।',
+  'roleSelection.unauthorized': 'আপুনি কোনো 104 সেৱা প্ৰৱেশ কৰিবলৈ অনুমোদিত নহয়।',
+
   // SMS templates
   'supSms.listTitle': 'এছএমএছ টেমপ্লেট তালিকা',
   'supSms.createTitle': 'এছএমএছ টেমপ্লেট সৃষ্টি কৰক',

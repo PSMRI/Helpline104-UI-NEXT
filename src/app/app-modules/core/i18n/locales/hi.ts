@@ -1333,6 +1333,11 @@ export const hi: Record<TranslationKey, string> = {
     'सुरक्षा जांच लोड नहीं हो सकी। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
   'login.captchaRetry': 'सुरक्षा जांच पुनः आज़माएं',
 
+  // Role selection
+  'roleSelection.title': 'अपनी भूमिका चुनें',
+  'roleSelection.noRoles': 'इस सेवा के लिए कोई भूमिका उपलब्ध नहीं है।',
+  'roleSelection.unauthorized': 'आपको किसी भी 104 सेवा तक पहुंचने की अनुमति नहीं है।',
+
   // SMS templates
   'supSms.listTitle': 'एसएमएस टेम्पलेट सूची',
   'supSms.createTitle': 'एसएमएस टेम्पलेट बनाएं',

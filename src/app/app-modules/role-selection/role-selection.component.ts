@@ -33,7 +33,10 @@ import { AppHeaderComponent } from '@/shared/components/layout/app-header.compon
 
 import { AuthStore } from '../core/auth/auth.store';
 import { Privilege, Role } from '../core/auth/auth.models';
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { CzentrixService } from '../core/services/czentrix.service';
+import { SessionStorageService } from '../core/services/session-storage.service';
 
 const DASHBOARD_ROUTE = '/dashboard';
 const FEEDBACK_ROUTE = '/feedback';
@@ -75,7 +78,7 @@ const SCREEN_HEALTH_ADVICE = 'Health_Advice';
   selector: 'app-role-selection',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, ZardButtonComponent, AppHeaderComponent, AppFooterComponent],
+  imports: [NgIcon, ZardButtonComponent, AppHeaderComponent, AppFooterComponent, TranslatePipe],
   viewProviders: [provideIcons({ lucidePhone, lucidePower })],
   templateUrl: './role-selection.component.html',
 })
@@ -83,7 +86,10 @@ export class RoleSelectionComponent {
   private readonly authStore = inject(AuthStore);
   private readonly czentrix = inject(CzentrixService);
   private readonly router = inject(Router);
+  private readonly i18n = inject(I18nService);
+  private readonly storage = inject(SessionStorageService);
 
+  readonly lang = this.i18n.language;
   readonly user = this.authStore.user;
   readonly privileges = this.authStore.privileges;
 
@@ -126,6 +132,11 @@ export class RoleSelectionComponent {
     // Release the agent from the CZentrix dialer (best-effort, non-blocking).
     this.czentrix.endCtiSession();
     this.authStore.clear();
+    // Full wipe, matching the forced-logout path (session.service.ts) and the
+    // dashboard header's manual logout — this screen's own Logout button had
+    // the same gap: an agent who reached role-selection with call/beneficiary
+    // storage keys still populated could leave them behind on a shared browser.
+    this.storage.clear();
     void this.router.navigate([FEEDBACK_ROUTE], { queryParams: { sl: '104' } });
   }
 
