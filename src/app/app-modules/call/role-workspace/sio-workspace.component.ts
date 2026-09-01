@@ -21,7 +21,7 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -32,6 +32,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
+import { CallWrapupService } from '../call-wrapup.service';
 import { HaoStepperComponent } from '../hao/hao-stepper.component';
 import { ClosureStepComponent } from '../hao/steps/closure-step.component';
 import { ServiceDeliveryStepComponent } from '../hao/steps/service-delivery-step.component';
@@ -113,6 +114,7 @@ import { SERVICE_104, collectServiceScreens } from './role-screens.util';
 export class SioWorkspaceComponent {
   private readonly callStore = inject(CallStore);
   private readonly authStore = inject(AuthStore);
+  private readonly callWrapup = inject(CallWrapupService);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
@@ -122,6 +124,18 @@ export class SioWorkspaceComponent {
   private readonly stepper = viewChild.required(HaoStepperComponent);
 
   readonly stepIndex = signal(0);
+
+  constructor() {
+    // The caller hung up mid-service — force the wizard to the closure step
+    // so the agent records a disposition (legacy `jQuery("#myCarousel").carousel(1)`
+    // on the `callDisconnected` broadcast). Idempotent: once stepIndex reaches
+    // 1 the guard stops re-issuing `next()`.
+    effect(() => {
+      if (this.callWrapup.disconnectedByCaller() && this.stepIndex() !== 1) {
+        this.stepper().next();
+      }
+    });
+  }
 
   private readonly _serviceAvailed = signal(false);
   readonly serviceAvailed = this._serviceAvailed.asReadonly();

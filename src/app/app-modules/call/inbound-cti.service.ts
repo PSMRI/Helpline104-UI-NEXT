@@ -27,7 +27,8 @@ import { environment } from '@env/environment';
 import { AuthStore } from '../core/auth/auth.store';
 
 import { CallStore } from './call.store';
-import { parseInboundCtiMessage } from './cti-message';
+import { CallWrapupService } from './call-wrapup.service';
+import { parseDisconnectCtiMessage, parseInboundCtiMessage } from './cti-message';
 
 /** Feature code of the supervising role, which has no personal agent line. */
 const SUPERVISOR_FEATURE_CODE = 'Supervisor';
@@ -49,10 +50,12 @@ function safeOrigin(url: string): string {
  * App-scoped listener for inbound CTI events from the CZentrix soft-phone.
  *
  * The CZentrix CTI iframe announces inbound calls to the host window via
- * postMessage ("Accept|<CLI>|<sessionId>|INBOUND"). The iframe lives in the
- * root-level CTI panel and persists across every route, so the listener must
- * be app-scoped too — an inbound call must seed the {@link CallStore} and route
- * into the guarded on-call workspace no matter which screen the agent is on.
+ * postMessage ("Accept|<CLI>|<sessionId>|INBOUND"), and a caller hanging up
+ * mid-call the same way ("CustDisconnect|<callID>|..."). The iframe lives in
+ * the root-level CTI panel and persists across every route, so the listener
+ * must be app-scoped too — an inbound call must seed the {@link CallStore} and
+ * route into the guarded on-call workspace no matter which screen the agent
+ * is on, and a disconnect must reach {@link CallWrapupService} the same way.
  *
  * Instantiated once by the root `App` component; the listener stays registered
  * for the lifetime of the application.
@@ -61,6 +64,7 @@ function safeOrigin(url: string): string {
 export class InboundCtiService {
   private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
+  private readonly callWrapup = inject(CallWrapupService);
   private readonly router = inject(Router);
 
   /** Origin of the CZentrix telephony server, the only trusted CTI sender. */
@@ -105,21 +109,28 @@ export class InboundCtiService {
     return featureCode !== null && featureCode !== SUPERVISOR_FEATURE_CODE;
   }
 
-  /** Parse a CTI payload; on a fresh inbound call, seed state and navigate. */
+  /**
+   * Parse a CTI payload. On a fresh inbound call, seed state and navigate; on
+   * the caller hanging up mid-call, start the wrap-up grace period.
+   */
   private handleCtiMessage(data: unknown): void {
     const inbound = parseInboundCtiMessage(data);
-    if (!inbound) {
-      return;
-    }
-    // De-dupe: the iframe may re-post the same event for one connected call.
-    if (this.callStore.onCall() && this.callStore.sessionId() === inbound.sessionId) {
+    if (inbound) {
+      // De-dupe: the iframe may re-post the same event for one connected call.
+      if (this.callStore.onCall() && this.callStore.sessionId() === inbound.sessionId) {
+        return;
+      }
+      this.callStore.startCall({
+        cli: inbound.cli,
+        sessionId: inbound.sessionId,
+      });
+      void this.router.navigate(['/innerpage', 'registration']);
       return;
     }
 
-    this.callStore.startCall({
-      cli: inbound.cli,
-      sessionId: inbound.sessionId,
-    });
-    void this.router.navigate(['/innerpage', 'registration']);
+    const disconnect = parseDisconnectCtiMessage(data);
+    if (disconnect) {
+      this.callWrapup.handleCallerDisconnect(disconnect.callId);
+    }
   }
 }

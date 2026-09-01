@@ -127,6 +127,7 @@ export const hi: Record<TranslationKey, string> = {
   'innerpage.dispatcherHint':
     'कॉल करने वाले की पहचान होते ही भूमिका कार्यक्षेत्र (पंजीकरण, सेवा और समापन) यहाँ खुलेगा।',
   'innerpage.identifyCaller': 'कॉलर की पहचान करें',
+  'innerpage.wrapupTimeRemaining': 'शेष समय',
 
   // Beneficiary registration / caller identification
   'registration.tab.search': 'खोजें',
@@ -760,6 +761,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.followUpDate': 'अनुवर्ती तिथि',
   'hao.closure.followUpDateRequired': 'अनुवर्ती तिथि आवश्यक है।',
   'hao.closure.remarks': 'टिप्पणियां',
+  'hao.closure.callerDisconnectedNotice':
+    'कॉलर ने कॉल काट दिया है। रैप-अप समय समाप्त होने से पहले कृपया इस कॉल को बंद करें।',
   'hao.closure.transferCall': 'कॉल स्थानांतरित करें',
   'hao.closure.transferCampaign': 'अभियान',
   'hao.closure.selectCampaign': 'अभियान चुनें',

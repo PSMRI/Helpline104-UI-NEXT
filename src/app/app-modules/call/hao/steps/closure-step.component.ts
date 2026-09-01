@@ -20,7 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -33,6 +33,7 @@ import { AuthStore } from '../../../core/auth/auth.store';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
+import { CallWrapupService } from '../../call-wrapup.service';
 import { ScheduleAppointmentComponent } from '../../schedule-appointment/schedule-appointment.component';
 import { CallSubType, CallType, CampaignSkill, CloseCallRequest, TransferCampaign } from '../hao.models';
 import { HaoService } from '../hao.service';
@@ -60,6 +61,12 @@ import { HaoService } from '../hao.service';
   imports: [ReactiveFormsModule, TranslatePipe, ZardButtonComponent, ZardInputDirective, ScheduleAppointmentComponent],
   template: `
     <form class="flex flex-col gap-5" [formGroup]="form" novalidate>
+      @if (disconnectedByCaller()) {
+        <p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
+          {{ 'hao.closure.callerDisconnectedNotice' | translate: lang() }}
+        </p>
+      }
+
       <fieldset class="flex flex-wrap gap-6">
         <label class="flex cursor-pointer items-center gap-2 text-sm">
           <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isEmergency" />
@@ -161,8 +168,13 @@ import { HaoService } from '../hao.service';
       </div>
 
       <div class="flex flex-col gap-3 rounded-lg border border-border p-4">
-        <label class="flex cursor-pointer items-center gap-2 text-sm font-medium">
-          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="doTransfer" />
+        <label class="flex items-center gap-2 text-sm font-medium" [class.cursor-not-allowed]="disconnectedByCaller()" [class.cursor-pointer]="!disconnectedByCaller()">
+          <input
+            type="checkbox"
+            class="h-4 w-4 accent-primary"
+            formControlName="doTransfer"
+            [attr.disabled]="disconnectedByCaller() ? true : null"
+          />
           {{ 'hao.closure.transferCall' | translate: lang() }}
         </label>
         @if (doTransfer()) {
@@ -248,10 +260,14 @@ export class ClosureStepComponent {
   private readonly haoService = inject(HaoService);
   private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
+  private readonly callWrapup = inject(CallWrapupService);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly lang = this.i18n.language;
+
+  /** True once the caller has hung up — Transfer is disabled, there is no live call left to hand off. */
+  readonly disconnectedByCaller = this.callWrapup.disconnectedByCaller;
 
   /** Whether any service was saved during the call (marks the call valid). */
   readonly serviceAvailed = input(false);
@@ -318,6 +334,15 @@ export class ClosureStepComponent {
 
   constructor() {
     this.loadCallTypes();
+
+    // The caller hung up — there is no live call left to transfer. Clear any
+    // in-progress transfer selection (legacy `patchValue({transferCall: ''})`);
+    // the template disables the checkbox so it cannot be re-enabled.
+    effect(() => {
+      if (this.disconnectedByCaller()) {
+        this.form.controls.doTransfer.setValue(false);
+      }
+    });
 
     const c = this.form.controls;
 

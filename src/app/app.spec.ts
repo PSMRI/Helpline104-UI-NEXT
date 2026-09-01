@@ -20,6 +20,8 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
@@ -38,7 +40,9 @@ describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideZonelessChangeDetection()],
+      // HttpClient is needed transitively: the CTI panel's InboundCtiService
+      // depends on CallWrapupService, which calls the wrap-up-time endpoint.
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 

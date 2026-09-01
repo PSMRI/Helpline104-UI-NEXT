@@ -31,6 +31,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { KeepaliveService } from '../../core/services/keepalive.service';
 import { CallStore } from '../call.store';
+import { CallWrapupService } from '../call-wrapup.service';
 import { CallDurationTimerComponent } from './call-duration-timer.component';
 
 /**
@@ -69,6 +70,12 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
           <div class="flex items-center gap-6">
             <app-call-duration-timer />
 
+            @if (wrapupSecondsRemaining() > 0) {
+              <span class="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive" role="alert">
+                {{ 'innerpage.wrapupTimeRemaining' | translate: lang() }}: <strong>{{ wrapupSecondsRemaining() }}</strong>
+              </span>
+            }
+
             <span
               class="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-600"
             >
@@ -93,9 +100,15 @@ export class InnerpageComponent {
   // Instantiate the backend-session keepalive with the on-call shell; the
   // service then reacts to CallStore.onCall() on its own (see its docs).
   protected readonly keepalive = inject(KeepaliveService);
+  // Instantiate the wrap-up service with the on-call shell for the same
+  // reason — a caller disconnect must be tracked no matter which on-call
+  // screen the agent is on, and this badge is where the countdown shows.
+  private readonly callWrapup = inject(CallWrapupService);
 
   readonly lang = this.i18n.language;
 
   /** The caller's phone number, or a dash when unavailable. */
   readonly callerNumber = computed(() => this.callStore.cli() ?? '—');
+  /** Seconds left in the caller-disconnect grace period, or 0 when none is active. */
+  readonly wrapupSecondsRemaining = this.callWrapup.secondsRemaining;
 }
