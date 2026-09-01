@@ -62,33 +62,17 @@ function resolveWrapupExceedsCallTypeID(types: CallType[]): number | null {
 }
 
 /**
- * Caller-disconnect wrap-up flow (legacy `innerpage.component`'s
- * `startCallWraupup`/`roleBasedCallWrapupTime`/`closeCall("wrapup exceeded")`).
+ * Caller-disconnect wrap-up flow: when CZentrix reports the caller hung up
+ * (`CustDisconnect|...`, see {@link parseDisconnectCtiMessage}), a grace
+ * period starts ({@link disconnectedByCaller} / {@link secondsRemaining})
+ * instead of ending the call immediately. `ClosureStepComponent` disables
+ * Transfer while it is active, and `HaoWorkspaceComponent` /
+ * `RoleWorkspaceComponent` / `SioWorkspaceComponent` force-navigate their
+ * stepper to the closure step. If no disposition is submitted before the
+ * grace period elapses, the call is auto-closed with the "Wrapup Exceeds"
+ * call type.
  *
- * When the CZentrix iframe reports the caller hung up (`CustDisconnect|...`,
- * see {@link parseDisconnectCtiMessage}), the agent is not immediately kicked
- * off the call — that would silently discard whatever they were mid-entering.
- * Instead a grace period starts ({@link disconnectedByCaller} / {@link
- * secondsRemaining}), the caller-facing actions still available to the agent
- * (`ClosureStepComponent`'s Transfer, which needs a live call) are disabled,
- * and if the agent has not submitted a disposition by the time the grace
- * period elapses, the call is auto-closed with the "Wrapup Exceeds" call type
- * — mirroring the legacy `closeCall("wrapup exceeded")` payload exactly.
- *
- * `disconnectedByCaller` replaces the legacy `dataService.callDisconnected`
- * RxJS `Subject` the role workspaces and `ClosureComponent` subscribed to; as
- * an Angular signal, `HaoWorkspaceComponent`/`RoleWorkspaceComponent`/
- * `SioWorkspaceComponent` react to it with an `effect()` that force-navigates
- * the stepper to the closure step, matching the legacy
- * `jQuery("#myCarousel").carousel(1)` behaviour without the imperative DOM.
- *
- * A repeat disconnect event for a call already being wrapped up is a no-op —
- * the timer is not restarted — matching the legacy `ignoreListner` guard.
- * Unlike legacy, that guard is cleared once the call ends (via the `effect()`
- * in the constructor reacting to {@link CallStore.onCall}), not left set for
- * the rest of the session — the legacy `ignoreListner` is never reset, and
- * the dead `callIDOfCallDisconnect` guard it pairs with is never assigned, so
- * neither is reproduced literally here.
+ * A repeat disconnect event for a call already being wrapped up is a no-op.
  */
 @Injectable({ providedIn: 'root' })
 export class CallWrapupService {
@@ -111,8 +95,6 @@ export class CallWrapupService {
   readonly secondsRemaining = this._secondsRemaining.asReadonly();
 
   constructor() {
-    // The call ended (by any path — agent close, transfer, or this service's
-    // own auto-close) — drop any wrap-up state so the next call starts clean.
     effect(() => {
       if (!this.callStore.onCall()) {
         this.reset();
@@ -143,8 +125,7 @@ export class CallWrapupService {
       roleID === null
         ? of(DEFAULT_WRAPUP_SECONDS)
         : this.getRoleBasedWrapupTime(roleID).pipe(
-            // A malformed backend value (0, negative, NaN) would otherwise
-            // auto-close the call within the first tick with no warning shown.
+            // Guards against a malformed backend value near-instantly auto-closing the call.
             map((t) =>
               t.isWrapUpTime && Number.isFinite(t.wrapUpTime) && t.wrapUpTime > 0
                 ? t.wrapUpTime
@@ -177,17 +158,12 @@ export class CallWrapupService {
     }
     this.haoService.getCallTypes(serviceID, true).subscribe({
       next: (types) => {
-        // The agent may have submitted a manual disposition while this
-        // lookup was in flight — recheck before auto-closing, matching the
-        // guard handleCallerDisconnect uses, or a stale timer double-closes
-        // (or closes a since-ended) call.
+        // The agent may have closed the call manually while this was in flight.
         if (!this.callStore.onCall()) {
           return;
         }
         this.submitAutoClose(resolveWrapupExceedsCallTypeID(types));
       },
-      // Leave disconnectedByCaller true: the agent still sees the forced
-      // closure UI and can close manually even though auto-close failed.
       error: () => undefined,
     });
   }
@@ -225,7 +201,6 @@ export class CallWrapupService {
         this.callStore.endCall();
         void this.router.navigate(['/dashboard']);
       },
-      // Leave disconnectedByCaller true so the agent can still close manually.
       error: () => undefined,
     });
   }

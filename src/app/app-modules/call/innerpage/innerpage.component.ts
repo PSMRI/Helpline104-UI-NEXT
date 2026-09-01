@@ -100,9 +100,6 @@ export class InnerpageComponent {
   // Instantiate the backend-session keepalive with the on-call shell; the
   // service then reacts to CallStore.onCall() on its own (see its docs).
   protected readonly keepalive = inject(KeepaliveService);
-  // Instantiate the wrap-up service with the on-call shell for the same
-  // reason — a caller disconnect must be tracked no matter which on-call
-  // screen the agent is on, and this badge is where the countdown shows.
   private readonly callWrapup = inject(CallWrapupService);
 
   readonly lang = this.i18n.language;

@@ -253,6 +253,7 @@ describe('CallWrapupService', () => {
       ],
     });
     http.expectNone((req) => req.url.includes('closeCall'));
+    expect(callStore.onCall()).toBe(false);
   });
 
   it('resets the wrap-up state once the call ends, by any path', () => {

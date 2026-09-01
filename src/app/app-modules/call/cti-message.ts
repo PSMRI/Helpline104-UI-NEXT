@@ -84,12 +84,7 @@ export function parseInboundCtiMessage(data: unknown): InboundCtiMessage | null 
 /**
  * Parse a raw `postMessage` payload into a {@link DisconnectCtiMessage}.
  *
- * CZentrix posts `CustDisconnect|<callID>|...` when the caller hangs up. The
- * legacy app matched the action case-insensitively and read the call id at a
- * fixed index without a field-count check; this parser keeps that comparison
- * but requires a non-empty call id, so a malformed/truncated payload is
- * ignored rather than passed on as an empty id.
- *
+ * CZentrix posts `CustDisconnect|<callID>|...` when the caller hangs up.
  * Returns `null` for anything that is not a well-formed disconnect event.
  */
 export function parseDisconnectCtiMessage(data: unknown): DisconnectCtiMessage | null {

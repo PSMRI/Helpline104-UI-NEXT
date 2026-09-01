@@ -330,11 +330,8 @@ export class ClosureStepComponent {
   constructor() {
     this.loadCallTypes();
 
-    // The caller hung up — there is no live call left to transfer. Clear any
-    // in-progress transfer selection (legacy `patchValue({transferCall: ''})`)
-    // and disable the control itself (not just its DOM attribute) so the form
-    // model and the checkbox stay in sync; `getRawValue()` still includes a
-    // disabled control's value, so the payload is unaffected.
+    // The caller hung up — there is no live call left to transfer.
+    // getRawValue() still includes a disabled control's value.
     effect(() => {
       if (this.disconnectedByCaller()) {
         this.form.controls.doTransfer.setValue(false);

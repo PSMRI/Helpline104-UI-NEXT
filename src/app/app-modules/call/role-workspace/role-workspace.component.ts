@@ -147,10 +147,7 @@ export class RoleWorkspaceComponent implements OnInit {
   readonly callId = this.callStore.callId;
 
   constructor() {
-    // The caller hung up mid-service — force the wizard to the closure step
-    // so the agent records a disposition (legacy `jQuery("#myCarousel").carousel(1)`
-    // on the `callDisconnected` broadcast). Idempotent: once stepIndex reaches
-    // 1 the guard stops re-issuing `next()`.
+    // Idempotent: once stepIndex reaches 1 the guard stops re-issuing next().
     effect(() => {
       if (this.callWrapup.disconnectedByCaller() && this.stepIndex() !== 1) {
         this.stepper().next();
