@@ -34,7 +34,7 @@ import { environment } from '@env/environment';
 export class ConfigService {
   // --- API base URLs -------------------------------------------------------
   getCommonBaseURL(): string {
-    return environment.commonAPI;
+    return this.upgradeToHttps(environment.commonAPI);
   }
 
   /** Licensing calls historically share the common API host. */
@@ -44,7 +44,7 @@ export class ConfigService {
 
   /** Open (unauthenticated) endpoints share the common API host. */
   getOpenCommonBaseURL(): string {
-    return environment.commonAPI;
+    return this.upgradeToHttps(environment.commonAPI);
   }
 
   get104BaseURL(): string {
@@ -73,7 +73,7 @@ export class ConfigService {
   }
 
   getTelephonyServerURL(): string {
-    return environment.telephoneServer;
+    return this.upgradeToHttps(environment.telephoneServer);
   }
 
   /**
@@ -109,5 +109,16 @@ export class ConfigService {
 
   isCaptchaEnabled(): boolean {
     return environment.enableCaptcha;
+  }
+
+  private upgradeToHttps(url: string): string {
+    if (!url.startsWith('http://')) {
+      return url;
+    }
+    const host = url.slice('http://'.length);
+    if (host === 'localhost' || host.startsWith('localhost:') || host.startsWith('localhost/') || host.startsWith('127.0.0.1')) {
+      return url;
+    }
+    return `https://${host}`;
   }
 }

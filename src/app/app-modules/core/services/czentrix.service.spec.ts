@@ -92,4 +92,16 @@ describe('CzentrixService.startCtiSession', () => {
     expect(errored).toBe(false);
     expect(result).toBe(false);
   });
+
+  it('cancels an in-flight getLoginKey request when endCtiSession() runs before it resolves, so a late response cannot resurrect stale session state', () => {
+    let result: boolean | undefined;
+    service.startCtiSession('dimpi', 'encrypted-pw', null).subscribe((r) => (result = r));
+    const req = http.expectOne((r) => r.url.includes('cti/getLoginKey'));
+
+    service.endCtiSession();
+
+    expect(req.cancelled).toBe(true);
+    expect(result).toBeUndefined();
+    expect(service.loginKey()).toBeNull();
+  });
 });

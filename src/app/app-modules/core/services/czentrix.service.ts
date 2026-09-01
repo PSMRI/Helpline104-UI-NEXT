@@ -22,7 +22,7 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
+import { Observable, Subject, catchError, map, of, switchMap, takeUntil, tap } from 'rxjs';
 
 import { SessionStorageService } from './session-storage.service';
 import { ConfigService } from './config.service';
@@ -133,6 +133,13 @@ export class CzentrixService {
   /** Agent id the CTI handshake was completed for; null when logged out. */
   readonly agentID = this._agentID.asReadonly();
 
+  /**
+   * Emits when {@link endCtiSession} runs, cutting off any {@link startCtiSession}
+   * handshake still in flight so a late `getLoginKey`/`getAgentIPAddress`/
+   * `doAgentLogin` response can't resurrect session state after logout.
+   */
+  private readonly sessionEnded$ = new Subject<void>();
+
   // --- Login handshake ------------------------------------------------------
 
   /**
@@ -211,6 +218,7 @@ export class CzentrixService {
         );
       }),
       catchError(() => of(false)),
+      takeUntil(this.sessionEnded$),
     );
   }
 
@@ -221,6 +229,7 @@ export class CzentrixService {
    * fire-and-forget `agentLogout` call sites.
    */
   endCtiSession(): void {
+    this.sessionEnded$.next();
     const agentID = this._agentID();
     this.clearCtiSession();
     if (agentID === null) {
