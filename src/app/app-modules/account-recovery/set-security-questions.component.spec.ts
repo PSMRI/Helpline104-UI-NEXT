@@ -78,4 +78,22 @@ describe('SetSecurityQuestionsComponent', () => {
 
     expect(el.textContent).toContain('सुरक्षा प्रश्न सेट करें');
   });
+
+  it('shows a required message under Answer 1 once it is touched and left empty', () => {
+    const fixture = render();
+    fixture.componentInstance.form.controls.answer1.markAsTouched();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('An answer is required.');
+  });
+
+  it('shows a whitespace-only message under Answer 1 when it is spaces only', () => {
+    const fixture = render();
+    const control = fixture.componentInstance.form.controls.answer1;
+    control.setValue('   ');
+    control.markAsTouched();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Cannot be only spaces.');
+  });
 });

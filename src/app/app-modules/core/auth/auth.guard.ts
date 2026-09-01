@@ -28,9 +28,11 @@ import { AuthStore } from './auth.store';
 /**
  * Guards routes that require an authenticated session (role selection,
  * dashboards). Allows activation when {@link AuthStore} holds a token;
- * otherwise redirects to the login screen.
+ * otherwise redirects to the login screen, carrying the originally requested
+ * URL as `returnUrl` so a successful login can round-trip back to it instead
+ * of always landing on role selection.
  */
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = (_route, state) => {
   const authStore = inject(AuthStore);
   const router = inject(Router);
 
@@ -38,5 +40,5 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
 
-  return router.createUrlTree(['/login']);
+  return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };

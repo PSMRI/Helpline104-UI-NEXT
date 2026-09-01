@@ -52,6 +52,12 @@
                 autocomplete="off"
               />
             </z-form-control>
+            @if (form.controls.answer1.touched && form.controls.answer1.hasError('required')) {
+              <z-form-message>{{ 'accountRecovery.setup.answerRequired' | translate: lang() }}</z-form-message>
+            }
+            @if (form.controls.answer1.touched && form.controls.answer1.hasError('whitespace')) {
+              <z-form-message>{{ 'registration.validation.whitespace' | translate: lang() }}</z-form-message>
+            }
           </z-form-field>
         </div>
 
@@ -90,6 +96,12 @@
                 autocomplete="off"
               />
             </z-form-control>
+            @if (form.controls.answer2.touched && form.controls.answer2.hasError('required')) {
+              <z-form-message>{{ 'accountRecovery.setup.answerRequired' | translate: lang() }}</z-form-message>
+            }
+            @if (form.controls.answer2.touched && form.controls.answer2.hasError('whitespace')) {
+              <z-form-message>{{ 'registration.validation.whitespace' | translate: lang() }}</z-form-message>
+            }
           </z-form-field>
         </div>
 
@@ -128,6 +140,12 @@
                 autocomplete="off"
               />
             </z-form-control>
+            @if (form.controls.answer3.touched && form.controls.answer3.hasError('required')) {
+              <z-form-message>{{ 'accountRecovery.setup.answerRequired' | translate: lang() }}</z-form-message>
+            }
+            @if (form.controls.answer3.touched && form.controls.answer3.hasError('whitespace')) {
+              <z-form-message>{{ 'registration.validation.whitespace' | translate: lang() }}</z-form-message>
+            }
           </z-form-field>
         </div>
 
