@@ -237,19 +237,19 @@ type RiskLevel = 'low' | 'medium' | 'high';
                 </thead>
                 <tbody>
                   <tr class="border-t border-border">
-                    <td class="px-2 py-1">HbA1c</td>
+                    <td class="px-2 py-1">{{ 'screening.diabetic.hba1c' | translate: lang() }}</td>
                     <td class="px-2 py-1">&lt;5.7%</td>
                     <td class="px-2 py-1">5.7–6.4%</td>
                     <td class="px-2 py-1">≥6.5%</td>
                   </tr>
                   <tr class="border-t border-border">
-                    <td class="px-2 py-1">Fasting plasma glucose</td>
+                    <td class="px-2 py-1">{{ 'screening.diabetic.fastingGlucose' | translate: lang() }}</td>
                     <td class="px-2 py-1">&lt;100 mg/dl</td>
                     <td class="px-2 py-1">100–125 mg/dl</td>
                     <td class="px-2 py-1">≥126 mg/dl</td>
                   </tr>
                   <tr class="border-t border-border">
-                    <td class="px-2 py-1">OGTT (75 g)</td>
+                    <td class="px-2 py-1">{{ 'screening.diabetic.ogtt' | translate: lang() }}</td>
                     <td class="px-2 py-1">&lt;140 mg/dl</td>
                     <td class="px-2 py-1">140–199 mg/dl</td>
                     <td class="px-2 py-1">≥200 mg/dl</td>
@@ -267,15 +267,15 @@ type RiskLevel = 'low' | 'medium' | 'high';
                 </thead>
                 <tbody>
                   <tr class="border-t border-border">
-                    <td class="px-2 py-1">No risk factor, glucose normal</td>
-                    <td class="px-2 py-1">Retest in 1–2 years; healthy lifestyle</td>
+                    <td class="px-2 py-1">{{ 'screening.diabetic.conditionNoRisk' | translate: lang() }}</td>
+                    <td class="px-2 py-1">{{ 'screening.diabetic.actionRetest' | translate: lang() }}</td>
                   </tr>
                   <tr class="border-t border-border">
-                    <td class="px-2 py-1">Risk factor present, glucose normal/unknown</td>
-                    <td class="px-2 py-1">Lifestyle advice; if unknown, get tested</td>
+                    <td class="px-2 py-1">{{ 'screening.diabetic.conditionRiskUnknown' | translate: lang() }}</td>
+                    <td class="px-2 py-1">{{ 'screening.diabetic.actionLifestyle' | translate: lang() }}</td>
                   </tr>
                   <tr class="border-t border-border">
-                    <td class="px-2 py-1">Risk factor present &amp; glucose high</td>
+                    <td class="px-2 py-1">{{ 'screening.diabetic.conditionRiskHigh' | translate: lang() }}</td>
                     <td class="px-2 py-1">{{ 'screening.transferToMo' | translate: lang() }}</td>
                   </tr>
                 </tbody>
