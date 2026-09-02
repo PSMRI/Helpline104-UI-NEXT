@@ -47,9 +47,8 @@ const EMPTY_CALL_STATISTICS: CallStatistics = {
  * Signal store for the dashboard shell: the active inbound/outbound campaign
  * and the agent's call statistics.
  *
- * Statistics start at zero and the campaign defaults to inbound. The telephony
- * (CZentrix) feed that pushes live metrics and confirms campaign switches is
- * integrated separately; this store owns the client-side state it binds to.
+ * Statistics start at zero and the campaign defaults to inbound until the
+ * first call-statistics / agent-status poll resolves.
  */
 @Injectable()
 export class DashboardStore {
@@ -64,5 +63,10 @@ export class DashboardStore {
   /** Select the inbound or outbound campaign. */
   setCampaign(campaign: Campaign): void {
     this._campaign.set(campaign);
+  }
+
+  /** Replace the current shift's call metrics with a freshly-polled snapshot. */
+  setCallStatistics(statistics: CallStatistics): void {
+    this._callStatistics.set(statistics);
   }
 }

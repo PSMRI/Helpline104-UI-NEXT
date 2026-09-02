@@ -28,6 +28,7 @@ import { catchError, filter, of, switchMap, timer } from 'rxjs';
 
 import { AuthStore } from '../core/auth/auth.store';
 import { AgentState, AgentStatusService } from './agent-status.service';
+import { CallStatisticsService } from './call-statistics.service';
 import { AgentIdComponent } from './components/agent-id.component';
 import { AlertsPanelComponent } from './components/alerts-panel.component';
 import { ActivityPanelComponent } from './components/activity-panel.component';
@@ -59,6 +60,9 @@ const ACTIVITY_BADGE_BY_FEATURE: Record<string, number> = {
 
 /** How often the agent's telephony state is refreshed (legacy: 15 s). */
 const AGENT_STATUS_POLL_MS = 15_000;
+
+/** How often the call-statistics tile is refreshed (legacy: 60 s). */
+const CALL_STATISTICS_POLL_MS = 60_000;
 
 /** States whose type suffix the legacy dashboard suppressed. */
 const ON_CALL_STATES: readonly string[] = ['INCALL', 'CLOSURE'];
@@ -142,6 +146,7 @@ const ON_CALL_STATES: readonly string[] = ['INCALL', 'CLOSURE'];
 export class DashboardComponent {
   private readonly authStore = inject(AuthStore);
   private readonly agentStatusApi = inject(AgentStatusService);
+  private readonly callStatisticsApi = inject(CallStatisticsService);
   private readonly dashboardStore = inject(DashboardStore);
 
   /** Hides the dev-only inbound-call simulator from production builds. */
@@ -168,6 +173,24 @@ export class DashboardComponent {
         ),
       )
       .subscribe((state) => this.applyAgentState(state));
+
+    // Poll the agent's shift call statistics (legacy CallStatisticsComponent:
+    // immediate call + every 60 s). Supervisors have no personal call metrics
+    // (the tile renders blank for them), so they are never polled; a failed
+    // poll is swallowed and retried on the next tick rather than zeroing out
+    // metrics already on screen.
+    timer(0, CALL_STATISTICS_POLL_MS)
+      .pipe(
+        takeUntilDestroyed(),
+        filter(() => !this.isSupervisor() && this.authStore.user()?.agentID != null),
+        switchMap(() =>
+          this.callStatisticsApi
+            .getCallStatistics(this.authStore.user()?.agentID ?? 0)
+            .pipe(catchError(() => of(null))),
+        ),
+        filter((statistics) => statistics !== null),
+      )
+      .subscribe((statistics) => this.dashboardStore.setCallStatistics(statistics));
   }
 
   /** Fold one polled CTI state into the status line and campaign selector. */
