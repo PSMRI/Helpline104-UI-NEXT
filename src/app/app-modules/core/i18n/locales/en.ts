@@ -25,6 +25,13 @@
  * {@link TranslationKey}, which every other locale must implement in full.
  */
 export const en = {
+  // App-wide
+  'app.unexpectedError': 'Something went wrong. Please refresh the page and try again.',
+
+  // CTI (CZentrix soft-phone) panel
+  'cti.unavailable': 'Softphone unavailable right now.',
+  'cti.retry': 'Retry',
+
   // Header
   'dashboard.header.logoAlt': 'Piramal Swasthya',
   'dashboard.header.titleSuffix': 'Dashboard',
