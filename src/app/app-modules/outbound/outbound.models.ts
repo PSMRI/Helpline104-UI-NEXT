@@ -61,6 +61,14 @@ export interface OutboundBeneficiary {
   benPhoneMaps?: BenPhoneMap[];
 }
 
+/** The non-empty alternate phone numbers on a beneficiary (all but index 0). */
+export function alternatePhoneNumbers(ben: OutboundBeneficiary | undefined): string[] {
+  return (ben?.benPhoneMaps ?? [])
+    .slice(1)
+    .map((p) => p.phoneNo?.trim() ?? '')
+    .filter((phoneNo) => phoneNo.length > 0);
+}
+
 /** One outbound call request row (worklist / unallocated / per-agent). */
 export interface OutboundCallRecord {
   outboundCallReqID?: number;

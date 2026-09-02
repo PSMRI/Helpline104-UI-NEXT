@@ -35,7 +35,7 @@ import { AuthStore } from '../core/auth/auth.store';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { OutboundAllocateComponent } from './outbound-allocate.component';
-import { OutboundCallRecord, OutboundError } from './outbound.models';
+import { OutboundCallRecord, OutboundError, alternatePhoneNumbers } from './outbound.models';
 import { OutboundService } from './outbound.service';
 import { RoleBucket, bucketRecords, dayRangeIso } from './outbound.util';
 
@@ -147,7 +147,12 @@ function today(): string {
                     @for (row of bucket.records; track row.outboundCallReqID; let i = $index) {
                       <tr class="border-t border-border align-top">
                         <td class="px-3 py-2">{{ i + 1 }}</td>
-                        <td class="px-3 py-2">{{ phoneOf(row) || '—' }}</td>
+                        <td class="px-3 py-2">
+                          <div>{{ phoneOf(row) || '—' }}</div>
+                          @if (alternatePhonesOf(row); as alt) {
+                            <div class="text-xs text-muted-foreground">{{ alt }}</div>
+                          }
+                        </td>
                         <td class="px-3 py-2">{{ nameOf(row) || '—' }}</td>
                         <td class="px-3 py-2">
                           {{ (row.prefferedDateTime | date: 'dd/MM/yyyy') || '—' }}
@@ -211,6 +216,10 @@ export class OutboundSearchComponent implements OnInit {
 
   phoneOf(row: OutboundCallRecord): string {
     return row.beneficiary?.benPhoneMaps?.[0]?.phoneNo ?? '';
+  }
+
+  alternatePhonesOf(row: OutboundCallRecord): string {
+    return alternatePhoneNumbers(row.beneficiary).join(', ');
   }
 
   nameOf(row: OutboundCallRecord): string {
