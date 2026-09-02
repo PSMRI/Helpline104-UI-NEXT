@@ -482,6 +482,17 @@ export class ClosureStepComponent {
       return;
     }
 
+    // Transfer sends callType/callTypeID from the same mandatory Call Type /
+    // Call Sub-Type selection submit() uses (legacy transferCallToCampaign
+    // reads them off the same closure form values as closeCall).
+    const subType = this.subTypes().find((s) => s.callTypeID === this.form.getRawValue().callSubTypeID);
+    if (!subType) {
+      this.form.controls.callSubTypeID.setValidators([Validators.required]);
+      this.form.controls.callSubTypeID.updateValueAndValidity();
+      this.form.markAllAsTouched();
+      return;
+    }
+
     const skill = this.form.controls.skill.value;
     // Transferring hands off the live call — confirm first, like close/continue.
     this.confirming.set(true);
@@ -506,6 +517,8 @@ export class ClosureStepComponent {
             skill,
             agentIPAddress: null,
             benCallID,
+            callType: subType.callGroupType,
+            callTypeID: subType.callTypeID,
           })
           .subscribe({
             next: () => {
