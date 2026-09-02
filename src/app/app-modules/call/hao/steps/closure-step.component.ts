@@ -406,13 +406,11 @@ export class ClosureStepComponent {
       return;
     }
 
-    // Legacy sends prefferedDateTime as a full ISO datetime: the picked date
-    // shifted by the timezone offset, then serialized with toJSON().
-    let prefferedDateTime: string | null = null;
-    if (value.isFollowupRequired && value.followUpDate) {
-      const d = new Date(value.followUpDate);
-      prefferedDateTime = new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000).toJSON();
-    }
+    // followUpDate is already a validated YYYY-MM-DD string (native date
+    // input); append a literal midnight-Z suffix rather than round-tripping
+    // through a Date object, matching the dOB field's format.
+    const prefferedDateTime: string | null =
+      value.isFollowupRequired && value.followUpDate ? `${value.followUpDate}T00:00:00.000Z` : null;
 
     const request: CloseCallRequest = {
       benCallID,

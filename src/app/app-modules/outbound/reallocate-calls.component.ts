@@ -184,7 +184,7 @@ const EXCLUDED_SCREENS = new Set(['supervising', 'registration', 'surveyor']);
                     </td>
                     <td class="px-3 py-2">{{ nameOf(row) || '—' }}</td>
                     <td class="px-3 py-2">
-                      {{ (row.prefferedDateTime | date: 'dd/MM/yyyy') || '—' }}
+                      {{ (row.prefferedDateTime | date: 'dd/MM/yyyy':'UTC') || '—' }}
                     </td>
                     <td class="px-3 py-2">{{ row.requestedFeature || '—' }}</td>
                   </tr>
