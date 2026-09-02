@@ -139,6 +139,8 @@ export const en = {
   'registration.history.heading': 'Registrations for this number',
   'registration.history.loading': 'Loading registrations…',
   'registration.history.empty': 'No existing registrations for this number.',
+  'registration.history.timeout': 'Loading timed out. Please try again.',
+  'registration.history.error': 'Could not load registrations for this number. Please try again.',
   'registration.search.empty': 'No beneficiaries match your search.',
   'registration.search.prompt': 'Enter a name or registration ID, then search.',
   'registration.search.error': 'The search could not be completed — it may have timed out. Please try again.',
