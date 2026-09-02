@@ -115,4 +115,33 @@ describe('CallStatisticsService', () => {
       totalCalls: 0,
     });
   });
+
+  it('rejects out-of-range and negative HH:MM:SS components as zero', () => {
+    let result: CallStatistics | undefined;
+    service.getCallStatistics(2145).subscribe((res) => (result = res));
+
+    http.expectOne((req) => req.url.includes('cti/getAgentCallStats')).flush({
+      data: { total_call_duration: '00:60:00', total_free_time: '00:00:-1', total_break_time: '01:02:03.5' },
+    });
+
+    expect(result).toEqual({
+      callDurationSeconds: 0,
+      breakTimeSeconds: 0,
+      freeTimeSeconds: 0,
+      totalCalls: 0,
+    });
+  });
+
+  it('rejects a negative or fractional total_calls as zero', () => {
+    let first: CallStatistics | undefined;
+    let second: CallStatistics | undefined;
+    service.getCallStatistics(2145).subscribe((res) => (first = res));
+    http.expectOne((req) => req.url.includes('cti/getAgentCallStats')).flush({ data: { total_calls: '-3' } });
+
+    service.getCallStatistics(2145).subscribe((res) => (second = res));
+    http.expectOne((req) => req.url.includes('cti/getAgentCallStats')).flush({ data: { total_calls: '2.5' } });
+
+    expect(first?.totalCalls).toBe(0);
+    expect(second?.totalCalls).toBe(0);
+  });
 });

@@ -58,14 +58,22 @@ const ZERO_STATISTICS: CallStatistics = {
   totalCalls: 0,
 };
 
+const HMS_PATTERN = /^(\d+):([0-5]\d):([0-5]\d)$/;
+
 /** Parse a legacy `HH:MM:SS` duration string to whole seconds. Malformed input yields 0. */
 function parseHmsToSeconds(value: string | undefined): number {
-  const parts = (value ?? '').split(':').map(Number);
-  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) {
+  const match = HMS_PATTERN.exec(value ?? '');
+  if (!match) {
     return 0;
   }
-  const [hours, minutes, seconds] = parts;
-  return hours * 3600 + minutes * 60 + seconds;
+  const [, hours, minutes, seconds] = match;
+  return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
+}
+
+/** Parse a decimal count string to a non-negative integer. Malformed input yields 0. */
+function toNonNegativeInteger(value: string | undefined): number {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 0 ? n : 0;
 }
 
 /**
@@ -96,7 +104,7 @@ export class CallStatisticsService {
       callDurationSeconds: parseHmsToSeconds(data.total_call_duration),
       breakTimeSeconds: parseHmsToSeconds(data.total_break_time),
       freeTimeSeconds: parseHmsToSeconds(data.total_free_time),
-      totalCalls: Number(data.total_calls) || 0,
+      totalCalls: toNonNegativeInteger(data.total_calls),
     };
   }
 }
