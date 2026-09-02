@@ -132,6 +132,7 @@ export const en = {
   'innerpage.dispatcherHint':
     'The role workspace (registration, service and closure) will open here once the caller is identified.',
   'innerpage.identifyCaller': 'Identify caller',
+  'innerpage.wrapupTimeRemaining': 'Time remaining',
 
   // Beneficiary registration / caller identification
   'registration.tab.search': 'Search',
@@ -773,6 +774,8 @@ export const en = {
   'hao.closure.followUpDate': 'Follow-up Date',
   'hao.closure.followUpDateRequired': 'Follow-up date is required.',
   'hao.closure.remarks': 'Remarks',
+  'hao.closure.callerDisconnectedNotice':
+    'The caller has disconnected. Please close this call before the wrap-up time runs out.',
   'hao.closure.transferCall': 'Transfer call',
   'hao.closure.transferCampaign': 'Campaign',
   'hao.closure.selectCampaign': 'Select campaign',

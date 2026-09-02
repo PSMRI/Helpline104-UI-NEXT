@@ -134,6 +134,7 @@ export const as: Record<TranslationKey, string> = {
   'innerpage.dispatcherHint':
     'কলাৰ চিনাক্ত হোৱাৰ লগে লগে ভূমিকা কৰ্মক্ষেত্ৰ (পঞ্জীয়ন, সেৱা আৰু সমাপ্তি) ইয়াত খোল খাব।',
   'innerpage.identifyCaller': 'কলাৰ চিনাক্ত কৰক',
+  'innerpage.wrapupTimeRemaining': 'বাকী সময়',
 
   // Beneficiary registration / caller identification
   'registration.tab.search': 'সন্ধান কৰক',
@@ -776,6 +777,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.followUpDate': 'অনুসৰণৰ তাৰিখ',
   'hao.closure.followUpDateRequired': 'অনুসৰণৰ তাৰিখ আৱশ্যক।',
   'hao.closure.remarks': 'মন্তব্য',
+  'hao.closure.callerDisconnectedNotice':
+    'কলাৰে কল সংযোগ বিচ্ছিন্ন কৰিছে। ৰেপ-আপ সময় শেষ হোৱাৰ আগতে অনুগ্ৰহ কৰি এই কলটো বন্ধ কৰক।',
   'hao.closure.transferCall': 'কল স্থানান্তৰ কৰক',
   'hao.closure.transferCampaign': 'অভিযান',
   'hao.closure.selectCampaign': 'অভিযান বাছনি কৰক',
