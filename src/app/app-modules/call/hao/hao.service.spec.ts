@@ -232,8 +232,11 @@ describe('HaoService call-lifecycle envelope handling', () => {
       service.closeCall(closeRequest()).subscribe({ error: (err: Error) => (failure = err) });
 
       expectOne('call/closeCall');
-      jasmine.clock().tick(20001);
 
+      jasmine.clock().tick(19999);
+      expect(failure).toBeUndefined();
+
+      jasmine.clock().tick(2);
       expect(failure).toBeDefined();
     });
   });

@@ -60,8 +60,11 @@ describe('BeneficiaryService request timeout', () => {
       .subscribe({ error: (err: BeneficiaryError) => (failure = err) });
 
     http.expectOne((req) => req.url.includes('beneficiary/create'));
-    jasmine.clock().tick(20001);
 
+    jasmine.clock().tick(19999);
+    expect(failure).toBeUndefined();
+
+    jasmine.clock().tick(2);
     expect(failure?.status).toBe(0);
     expect(failure?.errorMessage).toBe('The request timed out. Please check your connection and try again.');
   });
