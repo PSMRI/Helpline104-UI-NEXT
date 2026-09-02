@@ -1327,6 +1327,18 @@ export const en = {
   'supervisor.agentStatus.noAgents': 'No agents are currently online.',
   'supervisor.agentStatus.loadError': 'Unable to load agent status. Please try again.',
   // Login
+  'login.title': 'AMRIT 104 Helpline',
+  'login.subtitle': 'Sign in to your account to continue',
+  'login.userName': 'User Name',
+  'login.userNamePlaceholder': 'Enter user name',
+  'login.userNameRequired': 'User name is required.',
+  'login.password': 'Password',
+  'login.passwordPlaceholder': 'Enter password',
+  'login.passwordRequired': 'Password is required.',
+  'login.showPassword': 'Show password',
+  'login.hidePassword': 'Hide password',
+  'login.forgotPassword': 'Forgot Password?',
+  'login.submit': 'Login',
   'login.captchaLabel': 'Security check',
   'login.captchaFailed':
     'The security check could not be loaded. Check your connection and try again.',
