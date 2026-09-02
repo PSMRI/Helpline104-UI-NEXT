@@ -37,6 +37,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { ConfigService } from '../../core/services/config.service';
 import { CzentrixService } from '../../core/services/czentrix.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { SessionStorageService } from '../../core/services/session-storage.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { EmergencyContactsViewComponent } from '../../call/emergency-contacts/emergency-contacts-view.component';
 
@@ -168,6 +169,7 @@ export class DashboardHeaderComponent {
   private readonly config = inject(ConfigService);
   private readonly czentrix = inject(CzentrixService);
   private readonly i18n = inject(I18nService);
+  private readonly storage = inject(SessionStorageService);
   private readonly router = inject(Router);
   private readonly dialog = inject(ZardDialogService);
   private readonly confirmDialog = inject(ConfirmDialogService);
@@ -244,6 +246,11 @@ export class DashboardHeaderComponent {
     // Release the agent from the CZentrix dialer (best-effort, non-blocking).
     this.czentrix.endCtiSession();
     this.authStore.clear();
+    // Full wipe, matching the forced-logout path (session.service.ts) — a
+    // manual logout otherwise left call/beneficiary storage keys behind
+    // whenever call state was populated, exposing patient data to the next
+    // person who logged in on the same browser.
+    this.storage.clear();
     void this.router.navigate([FEEDBACK_ROUTE], { queryParams: { sl: '104' } });
   }
 }

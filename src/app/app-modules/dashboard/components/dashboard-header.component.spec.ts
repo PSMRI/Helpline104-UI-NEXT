@@ -26,7 +26,9 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
+import { AuthStore } from '../../core/auth/auth.store';
 import { ConfigService } from '../../core/services/config.service';
+import { CzentrixService } from '../../core/services/czentrix.service';
 import { DashboardHeaderComponent } from './dashboard-header.component';
 
 /**
@@ -51,5 +53,40 @@ describe('DashboardHeaderComponent licenseUrl', () => {
 
     const fixture = TestBed.createComponent(DashboardHeaderComponent);
     expect(fixture.componentInstance.licenseUrl).toBe('https://prod.example.org/common-api/license.html');
+  });
+});
+
+/**
+ * A manual logout previously only cleared auth keys — unlike the forced-logout
+ * path (session.service.ts, idle-timeout/401/403/5002), which does a full
+ * `storage.clear()`. If call/beneficiary storage keys were still populated
+ * (e.g. an agent hit logout mid-call), that patient data survived a normal
+ * logout on a shared browser. This pins that both paths now match.
+ */
+describe('DashboardHeaderComponent logout', () => {
+  it('fully clears sessionStorage, not just auth keys', () => {
+    sessionStorage.clear();
+    sessionStorage.setItem('someUnrelatedCallStorageKey', 'still-here');
+
+    TestBed.configureTestingModule({
+      imports: [DashboardHeaderComponent],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    });
+    TestBed.overrideProvider(CzentrixService, { useValue: { endCtiSession: () => undefined } });
+
+    const fixture = TestBed.createComponent(DashboardHeaderComponent);
+    const authStore = TestBed.inject(AuthStore);
+    spyOn(authStore, 'clear');
+
+    fixture.componentInstance.logout();
+
+    expect(authStore.clear).toHaveBeenCalled();
+    expect(sessionStorage.getItem('someUnrelatedCallStorageKey')).toBeNull();
+    sessionStorage.clear();
   });
 });
