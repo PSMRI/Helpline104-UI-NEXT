@@ -94,9 +94,9 @@ export const en = {
   // Activity for this week panel
   'dashboard.activity.title': 'Activity for this week',
   'dashboard.activity.trainingResources': 'Training Resources',
-  'dashboard.activity.more': 'View All →',
   'dashboard.activity.kmDocsTitle': 'KM Docs',
   'dashboard.activity.noKmDocs': 'No KM Docs documents found',
+  'dashboard.activity.viewDocument': 'View document',
 
   // Rating panel
   'dashboard.rating.title': 'Rating',

@@ -59,6 +59,17 @@ export interface NotificationCount {
   }[];
 }
 
+/**
+ * A KM (Knowledge Management) file attached to a notification. Same entity
+ * the supervisor KM upload screen lists (`KmFileEntry`) — `fileUID` is what
+ * `ConfigService.getOpenKmBaseURL()` downloads by there too.
+ */
+export interface NotificationKmFile {
+  fileUID?: string;
+  fileName?: string;
+  fileExtension?: string;
+}
+
 /** The notification content nested on a user-notification map entry. */
 export interface NotificationContent {
   notificationID?: number;
@@ -66,7 +77,7 @@ export interface NotificationContent {
   notificationDesc?: string;
   validFrom?: string;
   validTill?: string;
-  kmFileManager?: { fileName?: string };
+  kmFileManager?: NotificationKmFile;
 }
 
 /** One of the agent's messages (`getAlertsAndNotificationDetail`). */
