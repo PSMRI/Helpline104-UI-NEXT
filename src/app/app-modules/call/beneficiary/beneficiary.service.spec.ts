@@ -26,7 +26,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { BeneficiaryService } from './beneficiary.service';
-import { RegisterBeneficiaryRequest } from './beneficiary.models';
+import { BeneficiaryError, RegisterBeneficiaryRequest } from './beneficiary.models';
 
 /**
  * `create()` (`beneficiary/create`, the registration submit) had no request
@@ -54,14 +54,15 @@ describe('BeneficiaryService request timeout', () => {
   });
 
   it('create() errors instead of hanging past the 20s deadline', () => {
-    let failure: Error | undefined;
+    let failure: BeneficiaryError | undefined;
     service
       .create({} as RegisterBeneficiaryRequest)
-      .subscribe({ error: (err: Error) => (failure = err) });
+      .subscribe({ error: (err: BeneficiaryError) => (failure = err) });
 
     http.expectOne((req) => req.url.includes('beneficiary/create'));
     jasmine.clock().tick(20001);
 
-    expect(failure).toBeDefined();
+    expect(failure?.status).toBe(0);
+    expect(failure?.errorMessage).toBe('The request timed out. Please check your connection and try again.');
   });
 });
