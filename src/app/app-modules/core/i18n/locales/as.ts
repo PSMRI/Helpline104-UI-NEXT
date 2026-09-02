@@ -173,6 +173,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.register.dismiss': 'বন্ধ কৰক',
   'registration.toast.noCli': 'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নহয়।',
   'registration.toast.masterError': 'কিছুমান ফৰ্ম বিকল্প ল’ড কৰিব পৰা নগ’ল।',
+  'registration.toast.statesError': 'ৰাজ্যৰ তালিকা ল\'ড কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'registration.notice.noCli': 'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নোহোৱাৰ বাবে পঞ্জীয়ন উপলব্ধ নহয়।',
   'registration.section.identity': 'ব্যক্তিগত বিৱৰণ',
   'registration.section.address': 'ঠিকনা আৰু যোগাযোগ',
@@ -642,6 +643,9 @@ export const as: Record<TranslationKey, string> = {
   'hao.workspace.proceedConfirm': 'এই কলৰ বাবে সমাপনলৈ আগবাঢ়িব নে?',
   'hao.workspace.cancelTitle': 'বাতিল কৰক',
   'hao.workspace.cancelConfirm': 'সেৱা আগবঢ়োৱালৈ উভতি যাব নে?',
+  'hao.workspace.backToRoTitle': 'RO লৈ ঘূৰি যাওক',
+  'hao.workspace.backToRoConfirm':
+    'পঞ্জীয়নলৈ ঘূৰি যাব নে? এই কলাৰৰ বাবে সংৰক্ষণ নকৰা যিকোনো কেছ-শ্বীট অগ্ৰগতি হেৰাই যাব।',
 
   // Role workspaces (MO / CO / Counsellor) shell
   'roleWorkspace.stepService': 'কেছ শ্বীট',
@@ -743,6 +747,7 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.healthAdvice': 'স্বাস্থ্য পৰামৰ্শ',
   'hao.caseSheet.healthAdvicePlaceholder': 'কলাৰক দিয়া পৰামৰ্শ',
   'hao.caseSheet.remarks': 'মন্তব্য',
+  'hao.caseSheet.diseasesError': 'নিদান তালিকা ল\'ড কৰিব পৰা নগ\'ল। আপুনি এতিয়াও হাতেৰে মুখ্য অভিযোগ লিখিব পাৰে।',
   'hao.caseSheet.save': 'কেছ শ্বীট সংৰক্ষণ কৰক',
   'hao.caseSheet.viewDiseaseSummary': 'ৰোগৰ সাৰাংশ চাওক',
   'hao.caseSheet.diseaseSummaryError': 'ৰোগৰ সাৰাংশ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
@@ -1331,6 +1336,13 @@ export const as: Record<TranslationKey, string> = {
   'supervisor.agentStatus.loadError':
     'এজেণ্টৰ স্থিতি ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   // Login
+  'login.genericError': 'আভ্যন্তৰীণ সমস্যা, অনুগ্ৰহ কৰি পাছত পুনৰ চেষ্টা কৰক।',
+  'login.alreadyLoggedInTitle': 'ইতিমধ্যে লগইন হৈ আছে',
+  'login.alreadyLoggedInMessage':
+    'আপুনি ইতিমধ্যে লগইন হৈ আছে। আপুনি আন ডিভাইচৰ পৰা লগআউট কৰি ইয়াত লগইন কৰিব বিচাৰে নেকি?',
+  'login.alreadyLoggedInConfirm': 'হয়, লগআউট কৰক',
+  'login.cancel': 'বাতিল কৰক',
+  'login.concurrentLogoutError': 'আনটো ছেশ্বন লগআউট কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'login.captchaLabel': 'সুৰক্ষা পৰীক্ষা',
   'login.captchaFailed':
     'সুৰক্ষা পৰীক্ষা ল’ড কৰিব পৰা নগ’ল। আপোনাৰ সংযোগ পৰীক্ষা কৰি পুনৰ চেষ্টা কৰক।',
@@ -1385,6 +1397,7 @@ export const as: Record<TranslationKey, string> = {
   'accountRecovery.setup.answer2': 'উত্তৰ 2',
   'accountRecovery.setup.answer3': 'উত্তৰ 3',
   'accountRecovery.setup.answerPlaceholder': 'আপোনাৰ উত্তৰ দিয়ক',
+  'accountRecovery.setup.answerRequired': 'উত্তৰ প্ৰয়োজন।',
   'accountRecovery.setup.duplicateQuestion': 'অনুগ্ৰহ কৰি তিনিটা পৃথক প্ৰশ্ন বাছক।',
   'accountRecovery.setup.submit': 'ছেভ কৰক আৰু আগবাঢ়ক',
   'accountRecovery.setup.questionsLoadError': 'সুৰক্ষা প্ৰশ্ন ল\'ড কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',

@@ -170,6 +170,7 @@ export const en = {
   'registration.register.dismiss': 'Close',
   'registration.toast.noCli': 'No caller number is available for this call.',
   'registration.toast.masterError': 'Could not load some form options.',
+  'registration.toast.statesError': 'Could not load the list of states. Please try again.',
   'registration.notice.noCli': 'Registration is unavailable because no caller number is available for this call.',
   'registration.section.identity': 'Personal details',
   'registration.section.address': 'Address & contact',
@@ -639,6 +640,9 @@ export const en = {
   'hao.workspace.proceedConfirm': 'Proceed to closure for this call?',
   'hao.workspace.cancelTitle': 'Cancel',
   'hao.workspace.cancelConfirm': 'Return to providing a service?',
+  'hao.workspace.backToRoTitle': 'Back to RO',
+  'hao.workspace.backToRoConfirm':
+    'Return to registration? Any unsaved case-sheet progress for this caller will be lost.',
 
   // Role workspaces (MO / CO / Counsellor) shell
   'roleWorkspace.stepService': 'Case sheet',
@@ -740,6 +744,7 @@ export const en = {
   'hao.caseSheet.healthAdvice': 'Health Advice',
   'hao.caseSheet.healthAdvicePlaceholder': 'Advice given to the caller',
   'hao.caseSheet.remarks': 'Remarks',
+  'hao.caseSheet.diseasesError': 'Could not load the diagnosis list. You can still type a chief complaint by hand.',
   'hao.caseSheet.save': 'Save Case Sheet',
   'hao.caseSheet.viewDiseaseSummary': 'View disease summary',
   'hao.caseSheet.diseaseSummaryError': 'Unable to load the disease summary. Please try again.',
@@ -1327,6 +1332,13 @@ export const en = {
   'supervisor.agentStatus.noAgents': 'No agents are currently online.',
   'supervisor.agentStatus.loadError': 'Unable to load agent status. Please try again.',
   // Login
+  'login.genericError': 'Internal issue, please try again later.',
+  'login.alreadyLoggedInTitle': 'Already logged in',
+  'login.alreadyLoggedInMessage':
+    'You are already logged in. Do you want to logout from other device and login here?',
+  'login.alreadyLoggedInConfirm': 'Yes, logout',
+  'login.cancel': 'Cancel',
+  'login.concurrentLogoutError': 'Unable to log out the other session. Please try again.',
   'login.captchaLabel': 'Security check',
   'login.captchaFailed':
     'The security check could not be loaded. Check your connection and try again.',
@@ -1381,6 +1393,7 @@ export const en = {
   'accountRecovery.setup.answer2': 'Answer 2',
   'accountRecovery.setup.answer3': 'Answer 3',
   'accountRecovery.setup.answerPlaceholder': 'Enter your answer',
+  'accountRecovery.setup.answerRequired': 'An answer is required.',
   'accountRecovery.setup.duplicateQuestion': 'Please choose three different questions.',
   'accountRecovery.setup.submit': 'Save & Continue',
   'accountRecovery.setup.questionsLoadError': 'Unable to load security questions. Please try again.',

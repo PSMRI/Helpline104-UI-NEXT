@@ -24,6 +24,8 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, ou
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { toast } from 'ngx-sonner';
+
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
@@ -358,8 +360,12 @@ export class CaseSheetComponent {
     this.haoService.getAvailableDiseases().subscribe({
       next: (diseases) => this.diseases.set(diseases),
       // A missing catalogue must not block free-text complaints/advice; the
-      // diagnosis selector simply stays empty.
-      error: () => this.diseases.set([]),
+      // diagnosis selector simply stays empty, but silently doing so left no
+      // indication the selector was degraded rather than just "no matches".
+      error: () => {
+        this.diseases.set([]);
+        toast.error(this.i18n.instant('hao.caseSheet.diseasesError'));
+      },
     });
 
     // Prefill from any case sheet already saved for the caller, so re-entering

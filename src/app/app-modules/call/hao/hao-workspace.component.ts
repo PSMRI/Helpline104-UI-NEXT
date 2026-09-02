@@ -195,9 +195,26 @@ export class HaoWorkspaceComponent {
     this.stepper().previous();
   }
 
-  /** Hand the call back to the RO (registration) workspace. */
+  /**
+   * Hand the call back to the RO (registration) workspace after confirming —
+   * matches the confirm-first pattern its siblings (proceedToClosure,
+   * cancelToService) already use. Silently discards the identified
+   * beneficiary and any unsaved case-sheet progress, so a stray click
+   * shouldn't be able to do that with no confirmation at all.
+   */
   backToRo(): void {
-    this.callStore.setBeneficiaryId(null);
-    void this.router.navigate(['/innerpage']);
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('hao.workspace.backToRoTitle'),
+        message: this.i18n.instant('hao.workspace.backToRoConfirm'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.callStore.setBeneficiaryId(null);
+          void this.router.navigate(['/innerpage']);
+        }
+      });
   }
 }

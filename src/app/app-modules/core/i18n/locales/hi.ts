@@ -172,6 +172,7 @@ export const hi: Record<TranslationKey, string> = {
   'registration.register.dismiss': 'बंद करें',
   'registration.toast.noCli': 'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध नहीं है।',
   'registration.toast.masterError': 'कुछ फ़ॉर्म विकल्प लोड नहीं हो सके।',
+  'registration.toast.statesError': 'राज्यों की सूची लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
   'registration.notice.noCli': 'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध न होने के कारण पंजीकरण उपलब्ध नहीं है।',
   'registration.section.identity': 'व्यक्तिगत विवरण',
   'registration.section.address': 'पता और संपर्क',
@@ -640,6 +641,9 @@ export const hi: Record<TranslationKey, string> = {
   'hao.workspace.proceedConfirm': 'इस कॉल के लिए समापन की ओर बढ़ें?',
   'hao.workspace.cancelTitle': 'रद्द करें',
   'hao.workspace.cancelConfirm': 'सेवा प्रदान करने पर वापस जाएं?',
+  'hao.workspace.backToRoTitle': 'RO पर वापस जाएं',
+  'hao.workspace.backToRoConfirm':
+    'पंजीकरण पर वापस जाएं? इस कॉलर के लिए कोई भी असहेजी गई केस-शीट प्रगति खो जाएगी।',
 
   // Role workspaces (MO / CO / Counsellor) shell
   'roleWorkspace.stepService': 'केस शीट',
@@ -741,6 +745,7 @@ export const hi: Record<TranslationKey, string> = {
   'hao.caseSheet.healthAdvice': 'स्वास्थ्य सलाह',
   'hao.caseSheet.healthAdvicePlaceholder': 'कॉल करने वाले को दी गई सलाह',
   'hao.caseSheet.remarks': 'टिप्पणियां',
+  'hao.caseSheet.diseasesError': 'निदान सूची लोड नहीं हो सकी। आप अभी भी मुख्य शिकायत हाथ से टाइप कर सकते हैं।',
   'hao.caseSheet.save': 'केस शीट सहेजें',
   'hao.caseSheet.viewDiseaseSummary': 'रोग सारांश देखें',
   'hao.caseSheet.diseaseSummaryError': 'रोग सारांश लोड नहीं हो सका। कृपया पुनः प्रयास करें।',
@@ -1328,6 +1333,13 @@ export const hi: Record<TranslationKey, string> = {
   'supervisor.agentStatus.noAgents': 'वर्तमान में कोई एजेंट ऑनलाइन नहीं है।',
   'supervisor.agentStatus.loadError': 'एजेंट स्थिति लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
   // Login
+  'login.genericError': 'आंतरिक समस्या, कृपया बाद में पुनः प्रयास करें।',
+  'login.alreadyLoggedInTitle': 'पहले से लॉग इन है',
+  'login.alreadyLoggedInMessage':
+    'आप पहले से ही लॉग इन हैं। क्या आप दूसरे डिवाइस से लॉगआउट करके यहां लॉगिन करना चाहते हैं?',
+  'login.alreadyLoggedInConfirm': 'हां, लॉगआउट करें',
+  'login.cancel': 'रद्द करें',
+  'login.concurrentLogoutError': 'दूसरे सत्र को लॉगआउट करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'login.captchaLabel': 'सुरक्षा जांच',
   'login.captchaFailed':
     'सुरक्षा जांच लोड नहीं हो सकी। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
@@ -1382,6 +1394,7 @@ export const hi: Record<TranslationKey, string> = {
   'accountRecovery.setup.answer2': 'उत्तर 2',
   'accountRecovery.setup.answer3': 'उत्तर 3',
   'accountRecovery.setup.answerPlaceholder': 'अपना उत्तर दर्ज करें',
+  'accountRecovery.setup.answerRequired': 'उत्तर आवश्यक है।',
   'accountRecovery.setup.duplicateQuestion': 'कृपया तीन अलग-अलग प्रश्न चुनें।',
   'accountRecovery.setup.submit': 'सहेजें और जारी रखें',
   'accountRecovery.setup.questionsLoadError': 'सुरक्षा प्रश्न लोड करने में असमर्थ। कृपया पुनः प्रयास करें।',

@@ -22,7 +22,7 @@
 
 import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideEye, lucideEyeOff, lucideLock, lucideUser } from '@ng-icons/lucide';
@@ -98,6 +98,7 @@ export class LoginComponent {
   private readonly czentrix = inject(CzentrixService);
   private readonly recoveryStore = inject(AccountRecoveryStore);
   private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly i18n = inject(I18nService);
 
@@ -247,7 +248,7 @@ export class LoginComponent {
       if (agentID !== null) {
         this.czentrix.startCtiSession(userID, this.lastEncryptedPassword, agentID).subscribe();
       }
-      void this.router.navigate([ROLE_SELECTION_ROUTE]);
+      void this.router.navigateByUrl(this.resolveReturnUrl());
     } else if (response.isAuthenticated && response.Status === 'New') {
       // First-login: the user must set security questions before a session is
       // established. We deliberately do NOT call authStore.setSession() here, so
@@ -278,7 +279,7 @@ export class LoginComponent {
       return;
     }
 
-    this.errorMessage.set(error?.errorMessage || 'Internal issue, please try again later.');
+    this.errorMessage.set(error?.errorMessage || this.i18n.instant('login.genericError'));
   }
 
   /**
@@ -289,10 +290,10 @@ export class LoginComponent {
   private promptConcurrentLogout(): void {
     this.confirmDialog
       .confirm({
-        title: 'Already logged in',
-        message: 'You are already logged in. Do you want to logout from other device and login here?',
-        okText: 'Yes, logout',
-        cancelText: 'Cancel',
+        title: this.i18n.instant('login.alreadyLoggedInTitle'),
+        message: this.i18n.instant('login.alreadyLoggedInMessage'),
+        okText: this.i18n.instant('login.alreadyLoggedInConfirm'),
+        cancelText: this.i18n.instant('login.cancel'),
       })
       .subscribe((confirmed) => {
         if (!confirmed) {
@@ -306,10 +307,27 @@ export class LoginComponent {
           next: () => this.authenticate(true),
           error: (error: LoginError) => {
             this.loading.set(false);
-            this.errorMessage.set(error?.errorMessage || 'Unable to log out the other session. Please try again.');
+            this.errorMessage.set(error?.errorMessage || this.i18n.instant('login.concurrentLogoutError'));
           },
         });
       });
+  }
+
+  /**
+   * Where to land after a successful login. `authGuard` attaches the
+   * originally requested URL as `returnUrl` on its redirect to `/login`, so a
+   * deep link (e.g. a bookmarked report) round-trips back instead of always
+   * landing on role selection. Only an internal, single-leading-slash path is
+   * honoured — a `returnUrl` starting with `//` (protocol-relative) or
+   * anything else is rejected, so this can't be turned into an open redirect
+   * via a crafted query string.
+   */
+  private resolveReturnUrl(): string {
+    const returnUrl = this.activatedRoute.snapshot.queryParamMap.get('returnUrl');
+    if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+      return returnUrl;
+    }
+    return ROLE_SELECTION_ROUTE;
   }
 }
 

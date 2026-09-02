@@ -1205,7 +1205,11 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     const serviceProviderID = this.authStore.currentRole()?.serviceProviderID ?? null;
     this.beneficiary.getProviderStates(serviceProviderID).subscribe({
       next: (states) => this.states.set(states),
-      error: () => undefined,
+      // State is Validators.required for non-emergency registration, so a
+      // silent failure here blocked normal registration with no explanation
+      // — only the Emergency path stayed usable. Surface a non-blocking note,
+      // matching loadMasterData's pattern.
+      error: () => toast.error(this.i18n.instant('registration.toast.statesError')),
     });
   }
 
