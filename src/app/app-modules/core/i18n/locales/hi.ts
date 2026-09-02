@@ -525,9 +525,6 @@ export const hi: Record<TranslationKey, string> = {
   'supervisor.home.blockUnblockHint': 'ब्लैकलिस्ट किए गए कॉलर नंबर प्रबंधित करें।',
   'supervisor.home.outboundAllocationHint': 'अनासाइन की गई आउटबाउंड कॉल एजेंटों को आवंटित करें।',
   'supervisor.home.outboundReallocationHint': 'आवंटित आउटबाउंड कॉल एजेंटों के बीच स्थानांतरित करें।',
-  'supervisor.placeholder.title': 'जल्द आ रहा है',
-  'supervisor.placeholder.body':
-    'यह पर्यवेक्षक अनुभाग अभी माइग्रेट नहीं हुआ है। कृपया अभी के लिए लीगेसी एप्लिकेशन का उपयोग करें।',
 
   // Supervisor reports hub + report screens
   'supReports.title': 'पर्यवेक्षक रिपोर्ट',
