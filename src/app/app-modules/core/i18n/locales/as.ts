@@ -811,6 +811,7 @@ export const as: Record<TranslationKey, string> = {
 
   // Outbound — workspace
   'outbound.workspace.unknownCaller': 'অজ্ঞাত কলাৰ',
+  'outbound.workspace.alternateNumbers': 'বৈকল্পিক নম্বৰ',
   'outbound.workspace.callTime': 'কল সময়',
   'outbound.workspace.stepCaseSheet': 'কেছ শ্বীট',
   'outbound.workspace.stepClosure': 'সমাপন',

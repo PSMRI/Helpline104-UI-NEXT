@@ -809,6 +809,7 @@ export const en = {
 
   // Outbound — workspace
   'outbound.workspace.unknownCaller': 'Unknown caller',
+  'outbound.workspace.alternateNumbers': 'Alternate numbers',
   'outbound.workspace.callTime': 'Call time',
   'outbound.workspace.stepCaseSheet': 'Case Sheet',
   'outbound.workspace.stepClosure': 'Closure',
