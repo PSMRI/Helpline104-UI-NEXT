@@ -20,7 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -67,7 +67,7 @@ const TITLE_ROLE_ALIASES: Record<string, string> = {};
       lucidePower,
     }),
   ],
-  host: { '(document:click)': 'closeMenus()' },
+  host: { '(document:click)': 'closeMenus()', '(document:keydown.escape)': 'onEscape()' },
   template: `
     <app-shell-header [title]="roleTitle()" [userName]="user()?.userName ?? null">
       <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
@@ -86,6 +86,7 @@ const TITLE_ROLE_ALIASES: Record<string, string> = {};
 
         <div class="relative">
           <button
+            #profileTrigger
             z-button
             type="button"
             zType="ghost"
@@ -113,6 +114,7 @@ const TITLE_ROLE_ALIASES: Record<string, string> = {};
 
         <div class="relative">
           <button
+            #helpTrigger
             z-button
             type="button"
             zType="ghost"
@@ -127,16 +129,20 @@ const TITLE_ROLE_ALIASES: Record<string, string> = {};
           </button>
           @if (helpOpen()) {
             <div
+              role="menu"
+              [attr.aria-label]="'dashboard.header.help' | translate: lang()"
               class="absolute right-0 z-50 mt-1 w-48 rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-md"
             >
               <button
                 type="button"
+                role="menuitem"
                 class="block w-full px-3 py-2 text-left text-sm hover:bg-muted"
                 (click)="showVersion()"
               >
                 {{ 'dashboard.header.version' | translate: lang() }}
               </button>
               <a
+                role="menuitem"
                 [href]="licenseUrl"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -184,6 +190,9 @@ export class DashboardHeaderComponent {
   readonly profileOpen = this.profileOpen_.asReadonly();
   readonly helpOpen = this.helpOpen_.asReadonly();
 
+  private readonly profileTrigger = viewChild('profileTrigger', { read: ElementRef<HTMLButtonElement> });
+  private readonly helpTrigger = viewChild('helpTrigger', { read: ElementRef<HTMLButtonElement> });
+
   /** Role code for the title, e.g. "RO" for the HAO/RO hybrid role. */
   private readonly roleCode = computed(() => {
     const code = this.authStore.currentRole()?.featureCode ?? '';
@@ -219,6 +228,21 @@ export class DashboardHeaderComponent {
   closeMenus(): void {
     this.profileOpen_.set(false);
     this.helpOpen_.set(false);
+  }
+
+  /**
+   * Escape closes whichever dropdown is open and returns focus to the button
+   * that opened it — without this, focus would fall back to the document
+   * body once the dropdown's DOM is removed.
+   */
+  onEscape(): void {
+    if (this.profileOpen_()) {
+      this.closeMenus();
+      this.profileTrigger()?.nativeElement.focus();
+    } else if (this.helpOpen_()) {
+      this.closeMenus();
+      this.helpTrigger()?.nativeElement.focus();
+    }
   }
 
   showVersion(): void {

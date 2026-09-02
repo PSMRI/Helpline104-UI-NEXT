@@ -90,3 +90,62 @@ describe('DashboardHeaderComponent logout', () => {
     sessionStorage.clear();
   });
 });
+
+/**
+ * The profile/help dropdowns had no (keydown.escape) handler and the help
+ * dropdown (the one with real actionable items — Version, License Info) had
+ * no role="menu"/"menuitem" structure. The profile dropdown is left without
+ * a menu role deliberately: it shows static user info with no actionable
+ * items, so the ARIA menu pattern doesn't apply to it.
+ */
+describe('DashboardHeaderComponent dropdown keyboard handling', () => {
+  function render() {
+    TestBed.configureTestingModule({
+      imports: [DashboardHeaderComponent],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    });
+    const fixture = TestBed.createComponent(DashboardHeaderComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('marks the help dropdown as a menu with menuitem children', () => {
+    const fixture = render();
+    fixture.componentInstance.toggleHelp(new Event('click'));
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const menu = el.querySelector('[role="menu"]');
+    expect(menu).not.toBeNull();
+    expect(menu?.querySelectorAll('[role="menuitem"]').length).toBe(2);
+  });
+
+  it('Escape closes the open dropdown and returns focus to its trigger button', () => {
+    const fixture = render();
+    const el = fixture.nativeElement as HTMLElement;
+    const trigger = el.querySelector('[aria-label="Help"]') as HTMLButtonElement;
+
+    trigger.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.helpOpen()).toBe(true);
+
+    fixture.componentInstance.onEscape();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.helpOpen()).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('Escape does nothing when no dropdown is open', () => {
+    const fixture = render();
+
+    expect(() => fixture.componentInstance.onEscape()).not.toThrow();
+    expect(fixture.componentInstance.profileOpen()).toBe(false);
+    expect(fixture.componentInstance.helpOpen()).toBe(false);
+  });
+});
