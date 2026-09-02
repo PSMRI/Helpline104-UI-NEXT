@@ -54,6 +54,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallerDemographics, CallStore } from '../call.store';
 import { resolveDispatchPath } from '../role-workspace/role-screens.util';
+import { HasUnsavedChanges } from '../unsaved-changes.guard';
 import { BeneficiaryService } from './beneficiary.service';
 import {
   BeneficiaryError,
@@ -934,7 +935,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
     </ng-template>
   `,
 })
-export class BeneficiaryRegistrationComponent implements OnInit {
+export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChanges {
   private readonly i18n = inject(I18nService);
   private readonly beneficiary = inject(BeneficiaryService);
   private readonly callStore = inject(CallStore);
@@ -1676,12 +1677,17 @@ export class BeneficiaryRegistrationComponent implements OnInit {
     );
   }
 
+  hasUnsavedChanges(): boolean {
+    return this.activeView() === 'register' && this.registerForm.dirty;
+  }
+
   private resolveBeneficiary(
     beneficiaryRegID: number,
     toastKey: 'registration.toast.selected' | 'registration.toast.registered',
     districtID: number | null,
     demographics: CallerDemographics,
   ): void {
+    this.registerForm.markAsPristine();
     this.callStore.setBeneficiaryId(beneficiaryRegID, districtID);
     this.callStore.setDemographics(demographics);
     toast.success(this.i18n.instant(toastKey));

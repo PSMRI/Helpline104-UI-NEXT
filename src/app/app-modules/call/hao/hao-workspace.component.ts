@@ -33,6 +33,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
 import { SERVICE_104, collectServiceScreens } from '../role-workspace/role-screens.util';
+import { HasUnsavedChanges } from '../unsaved-changes.guard';
 import { HaoStepperComponent } from './hao-stepper.component';
 import { ClosureStepComponent } from './steps/closure-step.component';
 import { ServiceDeliveryStepComponent } from './steps/service-delivery-step.component';
@@ -120,7 +121,7 @@ const SCREEN_REGISTRATION = 'Registration';
     </section>
   `,
 })
-export class HaoWorkspaceComponent {
+export class HaoWorkspaceComponent implements HasUnsavedChanges {
   private readonly callStore = inject(CallStore);
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
@@ -150,6 +151,10 @@ export class HaoWorkspaceComponent {
   /** Mark the call valid when a service is saved (legacy `serviceAvailed`). */
   onServiceAvailed(): void {
     this._serviceAvailed.set(true);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.stepIndex() === 0 && !this.serviceAvailed();
   }
 
   /** Move to the closure step after confirming (legacy "Close Call" button). */

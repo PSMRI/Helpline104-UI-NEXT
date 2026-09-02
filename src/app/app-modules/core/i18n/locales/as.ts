@@ -119,6 +119,9 @@ export const as: Record<TranslationKey, string> = {
   'dashboard.dialog.ok': 'ঠিক আছে',
   'dashboard.dialog.cancel': 'বাতিল',
 
+  'unsavedChanges.title': 'অসংৰক্ষিত পৰিৱৰ্তন',
+  'unsavedChanges.message': 'এই পৃষ্ঠাত আপোনাৰ পৰিৱৰ্তনসমূহ সংৰক্ষণ কৰা হোৱা নাই। যদি আপুনি এতিয়া এৰি যায়, সেইবোৰ হেৰাই যাব।',
+
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'কলাৰৰ নম্বৰ',
   'innerpage.timer.ariaLabel': 'কলৰ ম্যাদ',

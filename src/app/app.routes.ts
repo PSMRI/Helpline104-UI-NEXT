@@ -27,6 +27,7 @@ import { supervisorGuard } from './app-modules/core/auth/supervisor.guard';
 import { beneficiaryGuard } from './app-modules/call/beneficiary.guard';
 import { inboundGuard } from './app-modules/call/inbound.guard';
 import { sioGuard } from './app-modules/call/sio.guard';
+import { unsavedChangesGuard } from './app-modules/call/unsaved-changes.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -84,6 +85,7 @@ export const routes: Routes = [
       {
         // Caller identification / beneficiary registration (RO workspace step 1).
         path: 'registration',
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./app-modules/call/beneficiary/beneficiary-registration.component').then(
             (m) => m.BeneficiaryRegistrationComponent,
@@ -97,6 +99,7 @@ export const routes: Routes = [
         // HAO (Health Assistant Officer) service workspace.
         path: 'hao',
         canActivate: [beneficiaryGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./app-modules/call/hao/hao-workspace.component').then((m) => m.HaoWorkspaceComponent),
       },

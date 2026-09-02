@@ -117,6 +117,10 @@ export const en = {
   'dashboard.dialog.ok': 'Ok',
   'dashboard.dialog.cancel': 'Cancel',
 
+  // Unsaved-changes navigation guard
+  'unsavedChanges.title': 'Unsaved changes',
+  'unsavedChanges.message': 'You have unsaved changes on this page. If you leave now, they will be lost.',
+
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'Caller number',
   'innerpage.timer.ariaLabel': 'Call duration',
