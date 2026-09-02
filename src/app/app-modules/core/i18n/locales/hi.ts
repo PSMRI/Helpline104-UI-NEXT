@@ -1331,17 +1331,7 @@ export const hi: Record<TranslationKey, string> = {
 
   // Supervisor agent status
   'supervisor.agentStatus.title': 'एजेंट स्थिति',
-  'supervisor.agentStatus.autoRefresh': 'हर 30 सेकंड में अपने आप रीफ़्रेश होता है',
-  'supervisor.agentStatus.lastUpdated': 'अंतिम अद्यतन',
-  'supervisor.agentStatus.refresh': 'रीफ़्रेश करें',
-  'supervisor.agentStatus.loading': 'एजेंट स्थिति लोड हो रही है…',
-  'supervisor.agentStatus.agentId': 'एजेंट आईडी',
-  'supervisor.agentStatus.name': 'नाम',
-  'supervisor.agentStatus.extension': 'एक्सटेंशन',
-  'supervisor.agentStatus.status': 'स्थिति',
-  'supervisor.agentStatus.unknown': 'अज्ञात',
-  'supervisor.agentStatus.noAgents': 'वर्तमान में कोई एजेंट ऑनलाइन नहीं है।',
-  'supervisor.agentStatus.loadError': 'एजेंट स्थिति लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
+  'supervisor.agentStatus.unavailable': 'एजेंट स्थिति अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
   // Login
   'login.title': 'AMRIT 104 हेल्पलाइन',
   'login.subtitle': 'जारी रखने के लिए अपने खाते में साइन इन करें',

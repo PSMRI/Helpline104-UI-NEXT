@@ -22,7 +22,7 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
+import { Observable, Subject, catchError, map, of, switchMap, takeUntil, tap } from 'rxjs';
 
 import { SessionStorageService } from './session-storage.service';
 import { ConfigService } from './config.service';
@@ -132,6 +132,13 @@ export class CzentrixService {
   /** Agent id the CTI handshake was completed for; null when logged out. */
   readonly agentID = this._agentID.asReadonly();
 
+  /**
+   * Emits when {@link endCtiSession} runs, cutting off any {@link startCtiSession}
+   * handshake still in flight so a late `getLoginKey`/`getAgentIPAddress`/
+   * `doAgentLogin` response can't resurrect session state after logout.
+   */
+  private readonly sessionEnded$ = new Subject<void>();
+
   // --- Login handshake ------------------------------------------------------
 
   /**
@@ -183,19 +190,34 @@ export class CzentrixService {
    * Complete the CTI login handshake after a successful portal login:
    * `getLoginKey` → `getAgentIPAddress` → `doAgentLogin`, storing each result.
    *
-   * Emits `true` when the agent landed on the dialer, `false` on any failure —
-   * it never errors, because the legacy app also let the portal login proceed
-   * when CTI was unreachable (the softphone simply stays dark).
+   * A user with no dialer id (`agentID` null — e.g. a supervisor) still needs
+   * the login key: it is what the supervisor Agent Status screen embeds
+   * CZentrix's own admin console with. That user has no personal agent line
+   * to register, so the handshake stops after the login key with the dialer
+   * steps skipped, rather than calling {@link getAgentIPAddress}/
+   * {@link doAgentLogin} with a null id.
+   *
+   * Emits `true` when the handshake completed (dialer registration included,
+   * for an id-bearing agent), `false` on any failure — it never errors,
+   * because the legacy app also let the portal login proceed when CTI was
+   * unreachable (the softphone simply stays dark).
    */
-  startCtiSession(username: string, encryptedPassword: string, agentID: number): Observable<boolean> {
+  startCtiSession(username: string, encryptedPassword: string, agentID: number | null): Observable<boolean> {
     return this.getLoginKey(username, encryptedPassword).pipe(
       tap((key) => this.setLoginKey(key.login_key ?? null)),
-      switchMap(() => this.getAgentIPAddress(agentID)),
-      tap((ip) => this.setAgentIP(ip)),
-      switchMap((ip) => this.doAgentLogin(agentID, ip)),
-      tap(() => this.setAgentID(agentID)),
-      map(() => true),
+      switchMap(() => {
+        if (agentID === null) {
+          return of(true);
+        }
+        return this.getAgentIPAddress(agentID).pipe(
+          tap((ip) => this.setAgentIP(ip)),
+          switchMap((ip) => this.doAgentLogin(agentID, ip)),
+          tap(() => this.setAgentID(agentID)),
+          map(() => true),
+        );
+      }),
       catchError(() => of(false)),
+      takeUntil(this.sessionEnded$),
     );
   }
 
@@ -206,6 +228,7 @@ export class CzentrixService {
    * fire-and-forget `agentLogout` call sites.
    */
   endCtiSession(): void {
+    this.sessionEnded$.next();
     const agentID = this._agentID();
     this.clearCtiSession();
     if (agentID === null) {
