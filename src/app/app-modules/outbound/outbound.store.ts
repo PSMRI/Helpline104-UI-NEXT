@@ -22,7 +22,7 @@
 
 import { Injectable, computed, signal } from '@angular/core';
 
-import { OutboundCallRecord } from './outbound.models';
+import { OutboundCallRecord, alternatePhoneNumbers } from './outbound.models';
 
 /** The subset of an outbound record the workspace works from. */
 export interface OutboundSelection {
@@ -30,6 +30,7 @@ export interface OutboundSelection {
   beneficiaryRegID: number | null;
   beneficiaryName: string;
   phoneNo: string;
+  alternatePhoneNumbers: string[];
   requestedFeature: string;
   isSelf: boolean;
 }
@@ -61,6 +62,7 @@ export class OutboundStore {
       beneficiaryRegID: ben?.beneficiaryRegID ?? null,
       beneficiaryName: [ben?.firstName, ben?.lastName].filter((p) => !!p && p.trim().length > 0).join(' '),
       phoneNo: ben?.benPhoneMaps?.[0]?.phoneNo ?? '',
+      alternatePhoneNumbers: alternatePhoneNumbers(ben),
       requestedFeature: record.requestedFeature ?? '',
       isSelf: record.isSelf ?? false,
     });

@@ -244,9 +244,11 @@ export class LoginComponent {
       // CTI handshake: getLoginKey -> getAgentIPAddress -> doAgentLogin. Fired
       // in the background (as the legacy app did) so a dark softphone never
       // blocks the portal login; the service stores the key/IP for later use.
-      if (agentID !== null) {
-        this.czentrix.startCtiSession(userID, this.lastEncryptedPassword, agentID).subscribe();
-      }
+      // Always run it, even with no agentID (e.g. a supervisor) — the login
+      // key it captures is also what the supervisor Agent Status screen
+      // needs, and CzentrixService itself skips the dialer-registration
+      // steps for a null id.
+      this.czentrix.startCtiSession(userID, this.lastEncryptedPassword, agentID).subscribe();
       void this.router.navigate([ROLE_SELECTION_ROUTE]);
     } else if (response.isAuthenticated && response.Status === 'New') {
       // First-login: the user must set security questions before a session is

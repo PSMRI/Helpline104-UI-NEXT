@@ -22,7 +22,7 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, throwError } from 'rxjs';
+import { Observable, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import { DiseaseSummaryDetail } from '../case-sheet/disease-summary.models';
@@ -61,6 +61,9 @@ const PATHS = {
  * second dialog on top of that logout, so it is passed through untouched.
  */
 const SESSION_EXPIRED_STATUS = 5002;
+
+/** Applied to every request in this file — none of them had one before. */
+const REQUEST_TIMEOUT_MS = 20_000;
 
 /**
  * Reject a call-lifecycle response that reports failure inside an HTTP 200.
@@ -120,7 +123,10 @@ export class HaoService {
   getAvailableDiseases(): Observable<AvailableDisease[]> {
     return this.http
       .post<ApiResponse<AvailableDisease[]>>(this.base104 + PATHS.availableDiseases, {})
-      .pipe(map((res) => res.data ?? []));
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? []),
+      );
   }
 
   /**
@@ -131,7 +137,10 @@ export class HaoService {
   getDiseaseSummaryDetail(disease: AvailableDisease): Observable<DiseaseSummaryDetail> {
     return this.http
       .post<ApiResponse<DiseaseSummaryDetail>>(this.base104 + PATHS.diseaseByID, disease)
-      .pipe(map((res) => res.data ?? {}));
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? {}),
+      );
   }
 
   /**
@@ -144,14 +153,20 @@ export class HaoService {
         beneficiaryRegID,
         benFlowID: benFlowID ?? null,
       })
-      .pipe(map((res) => res.data ?? null));
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? null),
+      );
   }
 
   /** Persist the Health Advisory case sheet for the active beneficiary. */
   saveCaseSheet(request: CaseSheetRequest): Observable<CaseSheetResponse> {
     return this.http
       .post<ApiResponse<CaseSheetResponse>>(this.base104 + PATHS.saveCaseSheet, request)
-      .pipe(map((res) => res.data ?? {}));
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? {}),
+      );
   }
 
   // --- Closure ------------------------------------------------------------
@@ -180,6 +195,7 @@ export class HaoService {
         ...(isInbound ? { isInbound: true } : { isOutbound: true }),
       })
       .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
         // Call types are mandatory for closure: an absent payload (null /
         // undefined) is a legitimate empty catalogue, but any other non-array
         // shape is malformed and must hit the caller's error path (visible to
@@ -202,9 +218,10 @@ export class HaoService {
    * {@link assertCallActionSucceeded}.
    */
   closeCall(request: CloseCallRequest): Observable<void> {
-    return this.http
-      .post<ApiResponse<unknown>>(this.baseCommon + PATHS.closeCall, request)
-      .pipe(map((res) => assertCallActionSucceeded(res, 'closeCall')));
+    return this.http.post<ApiResponse<unknown>>(this.baseCommon + PATHS.closeCall, request).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
+      map((res) => assertCallActionSucceeded(res, 'closeCall')),
+    );
   }
 
   // --- Transfer (CTI) -----------------------------------------------------
@@ -223,6 +240,7 @@ export class HaoService {
         { agent_id: agentID },
       )
       .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
         map((res) => {
           const arr = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.campaign) ? res.data.campaign : [];
           return arr.map((c: any) => ({
@@ -239,13 +257,17 @@ export class HaoService {
       .post<ApiResponse<CampaignSkill[]>>(this.baseCommon + PATHS.campaignSkills, {
         campaign_name: campaignName,
       })
-      .pipe(map((res) => (Array.isArray(res.data) ? res.data : [])));
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
   }
 
   /**
    * Transfer the active call to the chosen campaign (and optional skill). The
    * snake_case body mirrors the legacy `transferToCampaign` contract; `skill`
-   * is omitted unless a skill was chosen.
+   * is omitted unless a skill was chosen, but `callType`/`callTypeID` are
+   * always sent.
    *
    * A rejected transfer is reported inside a 200 envelope, so the response is
    * checked before the caller hands the call off — see
@@ -260,7 +282,12 @@ export class HaoService {
         ...(request.skillTransferFlag && request.skill ? { skill: request.skill } : {}),
         agentIPAddress: request.agentIPAddress ?? null,
         benCallID: request.benCallID,
+        callType: request.callType,
+        callTypeID: request.callTypeID,
       })
-      .pipe(map((res) => assertCallActionSucceeded(res, 'transferCall')));
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => assertCallActionSucceeded(res, 'transferCall')),
+      );
   }
 }

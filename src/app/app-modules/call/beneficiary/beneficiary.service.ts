@@ -22,7 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -58,6 +58,8 @@ const HCW_TYPES_PATH = 'beneficiary/get/healthCareWorkerTypes';
 const HISTORY_PAGE_SIZE = 1000;
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
+const REQUEST_TIMEOUT_MS = 20_000;
 
 /**
  * Beneficiary identity/registration API for the inbound-call flow.
@@ -87,6 +89,7 @@ export class BeneficiaryService {
       rowsPerPage: HISTORY_PAGE_SIZE,
     };
     return this.http.post<ApiResponse<BeneficiaryRecord[]>>(this.baseUrl + SEARCH_BY_PHONE_PATH, body).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readList(res)),
       catchError((err: unknown) => throwError(() => this.toError(err))),
     );
@@ -95,6 +98,7 @@ export class BeneficiaryService {
   /** Search beneficiaries by name and/or registration ID and gender. */
   searchBeneficiary(criteria: BeneficiarySearchRequest): Observable<BeneficiaryRecord[]> {
     return this.http.post<ApiResponse<BeneficiaryRecord[]>>(this.baseUrl + SEARCH_BENEFICIARY_PATH, criteria).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readList(res)),
       catchError((err: unknown) => throwError(() => this.toError(err))),
     );
@@ -105,6 +109,7 @@ export class BeneficiaryService {
     return this.http
       .post<ApiResponse<RegisterBeneficiaryResponse>>(this.baseUrl + CREATE_BENEFICIARY_PATH, payload)
       .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
         map((res) => {
           if ((res.statusCode && res.statusCode !== 200) || !res.data) {
             throw this.toError(res);
@@ -124,6 +129,7 @@ export class BeneficiaryService {
     return this.http
       .post<ApiResponse<RegistrationMasterData>>(this.baseUrl + REGISTRATION_DATA_PATH, { providerServiceMapID })
       .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
         map((res) => this.readData(res)),
         catchError((err: unknown) => throwError(() => this.toError(err))),
       );
@@ -132,6 +138,7 @@ export class BeneficiaryService {
   /** Healthcare-worker types (104 API), loaded when registering a HCW. */
   getHealthCareWorkerTypes(): Observable<HealthCareWorkerType[]> {
     return this.http.post<ApiResponse<HealthCareWorkerType[]>>(this.config.get104BaseURL() + HCW_TYPES_PATH, {}).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
       catchError((err: unknown) => throwError(() => this.toError(err))),
     );
@@ -142,6 +149,7 @@ export class BeneficiaryService {
     return this.http
       .post<ApiResponse<StateOption[]>>(this.config.getAdminBaseURL() + PROVIDER_STATES_PATH, { serviceProviderID })
       .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
         catchError((err: unknown) => throwError(() => this.toError(err))),
       );
@@ -150,6 +158,7 @@ export class BeneficiaryService {
   /** Districts for a state (common API, GET). */
   getDistricts(stateID: number): Observable<DistrictOption[]> {
     return this.http.get<ApiResponse<DistrictOption[]>>(this.baseUrl + DISTRICTS_PATH + stateID).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
       catchError((err: unknown) => throwError(() => this.toError(err))),
     );
@@ -158,6 +167,7 @@ export class BeneficiaryService {
   /** Sub-districts / blocks for a district (common API, GET). */
   getSubDistricts(districtID: number): Observable<BlockOption[]> {
     return this.http.get<ApiResponse<BlockOption[]>>(this.baseUrl + SUB_DISTRICTS_PATH + districtID).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
       catchError((err: unknown) => throwError(() => this.toError(err))),
     );
@@ -166,6 +176,7 @@ export class BeneficiaryService {
   /** Villages for a sub-district (common API, GET). */
   getVillages(subDistrictID: number): Observable<VillageOption[]> {
     return this.http.get<ApiResponse<VillageOption[]>>(this.baseUrl + VILLAGES_PATH + subDistrictID).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
       catchError((err: unknown) => throwError(() => this.toError(err))),
     );
@@ -199,6 +210,10 @@ export class BeneficiaryService {
    * {@link BeneficiaryError} with the backend message when available.
    */
   private toError(err: unknown): BeneficiaryError {
+    if (err instanceof TimeoutError) {
+      return { status: 0, errorMessage: TIMEOUT_ERROR };
+    }
+
     if (
       err &&
       typeof (err as BeneficiaryError).status === 'number' &&

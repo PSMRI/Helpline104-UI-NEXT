@@ -70,6 +70,8 @@ describe('HaoService call-lifecycle envelope handling', () => {
     skill: null,
     agentIPAddress: null,
     benCallID: '1786464598330',
+    callType: 'Valid',
+    callTypeID: 28,
   });
 
   function expectOne(urlFragment: string) {
@@ -142,11 +144,32 @@ describe('HaoService call-lifecycle envelope handling', () => {
         skill_transfer_flag: false,
         agentIPAddress: null,
         benCallID: '1786464598330',
+        callType: 'Valid',
+        callTypeID: 28,
       });
       req.flush({ statusCode: 200, status: 'Success' });
 
       expect(outcome.error).not.toHaveBeenCalled();
       expect(outcome.next).toHaveBeenCalled();
+    });
+
+    it('sends callType/callTypeID on a skill-based transfer too, not only on the default transfer', () => {
+      service
+        .transferCall({ ...transferRequest(), skillTransferFlag: true, skill: 'Hindi' })
+        .subscribe({ next: () => undefined, error: () => undefined });
+
+      const req = expectOne('cti/transferCall');
+      expect(req.request.body).toEqual({
+        transfer_from: 2145,
+        transfer_campaign_info: 'H_104_Hybrid_MO',
+        skill_transfer_flag: true,
+        skill: 'Hindi',
+        agentIPAddress: null,
+        benCallID: '1786464598330',
+        callType: 'Valid',
+        callTypeID: 28,
+      });
+      req.flush({ statusCode: 200, status: 'Success' });
     });
 
     // The envelope check has two independent triggers — a non-200 statusCode and
@@ -217,5 +240,27 @@ describe('HaoService call-lifecycle envelope handling', () => {
         expect(outcome.next).toHaveBeenCalled();
       });
     }
+  });
+
+  // Every method in this file was missing a request timeout — a hung backend
+  // left the caller (and its loading spinner) stuck forever. The app is
+  // zoneless, so `fakeAsync`/`tick` (zone.js) are not available; the 20s
+  // deadline is driven with `jasmine.clock()` instead.
+  describe('request timeout', () => {
+    beforeEach(() => jasmine.clock().install());
+    afterEach(() => jasmine.clock().uninstall());
+
+    it('closeCall errors instead of hanging past the 20s deadline', () => {
+      let failure: Error | undefined;
+      service.closeCall(closeRequest()).subscribe({ error: (err: Error) => (failure = err) });
+
+      expectOne('call/closeCall');
+
+      jasmine.clock().tick(19999);
+      expect(failure).toBeUndefined();
+
+      jasmine.clock().tick(2);
+      expect(failure).toBeDefined();
+    });
   });
 });

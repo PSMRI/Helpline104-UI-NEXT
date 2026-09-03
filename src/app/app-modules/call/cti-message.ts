@@ -36,10 +36,20 @@ const INBOUND_DIRECTION = 'INBOUND';
 /** Field count of a well-formed inbound payload. */
 const INBOUND_FIELD_COUNT = 4;
 
+/** The action prefix CZentrix sends when the caller hangs up ("CustDisconnect|<callID>|..."). */
+const DISCONNECT_ACTION = 'custdisconnect';
+/** Minimum field count of a well-formed disconnect payload (action, call id). */
+const DISCONNECT_FIELD_COUNT_MIN = 2;
+
 /** A parsed inbound-call CTI event. */
 export interface InboundCtiMessage {
   readonly cli: string;
   readonly sessionId: string;
+}
+
+/** A parsed caller-disconnect CTI event. */
+export interface DisconnectCtiMessage {
+  readonly callId: string;
 }
 
 /**
@@ -69,4 +79,28 @@ export function parseInboundCtiMessage(data: unknown): InboundCtiMessage | null 
   }
 
   return { cli, sessionId };
+}
+
+/**
+ * Parse a raw `postMessage` payload into a {@link DisconnectCtiMessage}.
+ *
+ * CZentrix posts `CustDisconnect|<callID>|...` when the caller hangs up.
+ * Returns `null` for anything that is not a well-formed disconnect event.
+ */
+export function parseDisconnectCtiMessage(data: unknown): DisconnectCtiMessage | null {
+  if (typeof data !== 'string') {
+    return null;
+  }
+
+  const parts = data.split('|').map((part) => part.trim());
+  if (parts.length < DISCONNECT_FIELD_COUNT_MIN) {
+    return null;
+  }
+
+  const [action, callId] = parts;
+  if (action.toLowerCase() !== DISCONNECT_ACTION || !callId) {
+    return null;
+  }
+
+  return { callId };
 }

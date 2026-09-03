@@ -20,20 +20,30 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideActivity, lucideBookOpen } from '@ng-icons/lucide';
 
 import { ZardDialogService } from '@common-ui/ui/dialog';
 
+import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { UserNotification } from '../alerts-notifications.models';
+import { AlertsIdentity, AlertsNotificationsService } from '../alerts-notifications.service';
 import { KmDocsDialogComponent } from './dialogs/km-docs-dialog.component';
 
+/** The notification type name the KM (Knowledge Management) docs carry. */
+const KM_NOTIFICATION_TYPE = 'KM';
+
 /**
- * Activity-for-this-week panel. The Training Resources row opens the KM Docs
- * modal (empty); a count badge shows pending items. "More" is not yet wired.
+ * Activity-for-this-week panel. The Training Resources row shows the unread
+ * count of KM (Knowledge Management) notifications and opens the KM Docs
+ * modal with the agent's actual documents, ported from the legacy
+ * `ActivityThisWeekComponent` (`notification/getNotificationType` filtered to
+ * the `KM` type, then that type's notifications).
  */
 @Component({
   selector: 'app-activity-panel',
@@ -70,34 +80,86 @@ import { KmDocsDialogComponent } from './dialogs/km-docs-dialog.component';
             </span>
           }
         </button>
-
-        <div class="mt-auto pt-2 text-right">
-          <button
-            type="button"
-            class="text-sm font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            {{ 'dashboard.activity.more' | translate: lang() }}
-          </button>
-        </div>
       </div>
     </section>
   `,
 })
-export class ActivityPanelComponent {
+export class ActivityPanelComponent implements OnInit {
+  private readonly alertsService = inject(AlertsNotificationsService);
+  private readonly authStore = inject(AuthStore);
   private readonly i18n = inject(I18nService);
   private readonly dialog = inject(ZardDialogService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly lang = this.i18n.language;
 
-  /** Pending training-resource count shown as a badge (0 hides the badge). */
-  readonly count = input(0);
+  /** Unread KM-notification count shown as a badge (0 hides the badge). */
+  private readonly count_ = signal(0);
+  readonly count = this.count_.asReadonly();
 
+  /** The KM notification type's id once resolved; null until then/if absent. */
+  private readonly kmTypeID = signal<number | null>(null);
+
+  ngOnInit(): void {
+    this.alertsService
+      .getNotificationTypes(this.identity().providerServiceMapID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (types) => {
+          this.kmTypeID.set(types.find((t) => t.notificationType === KM_NOTIFICATION_TYPE)?.notificationTypeID ?? null);
+        },
+        error: () => undefined,
+      });
+    this.refreshCount();
+  }
+
+  /** Refresh the unread badge (legacy `training_resource_count`). */
+  refreshCount(): void {
+    this.alertsService
+      .getCount(this.identity())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (count) => {
+          const unread =
+            count.userNotificationTypeList?.find((item) => item.notificationType === KM_NOTIFICATION_TYPE)
+              ?.notificationTypeUnreadCount ?? 0;
+          this.count_.set(unread);
+        },
+        error: () => undefined,
+      });
+  }
+
+  /** Open the KM Docs modal with the agent's actual documents (legacy `openTrainingDialog`). */
   openKmDocs(): void {
+    const notificationTypeID = this.kmTypeID();
+    if (notificationTypeID == null) {
+      this.openDialog([]);
+      return;
+    }
+    this.alertsService
+      .getNotificationDetails(this.identity(), notificationTypeID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (documents) => this.openDialog(documents.filter((d) => d.notificationState !== 'future')),
+        error: () => this.openDialog([]),
+      });
+  }
+
+  private openDialog(documents: UserNotification[]): void {
     this.dialog.create({
       zTitle: this.i18n.instant('dashboard.activity.kmDocsTitle'),
       zContent: KmDocsDialogComponent,
+      zData: { documents },
       zHideFooter: true,
       zWidth: '32rem',
     });
+  }
+
+  private identity(): AlertsIdentity {
+    return {
+      userID: this.authStore.user()?.userID ?? null,
+      roleID: this.authStore.currentRole()?.roleID ?? null,
+      providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
+    };
   }
 }

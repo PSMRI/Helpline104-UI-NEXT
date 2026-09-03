@@ -31,6 +31,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { KeepaliveService } from '../../core/services/keepalive.service';
 import { CallStore } from '../call.store';
+import { CallWrapupService } from '../call-wrapup.service';
 import { CallDurationTimerComponent } from './call-duration-timer.component';
 
 /**
@@ -51,7 +52,7 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
       <header class="border-b border-border bg-card">
-        <div class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+        <div class="mx-auto flex w-full max-w-full flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div class="flex items-center gap-3">
             <span class="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
               <ng-icon name="lucidePhoneIncoming" size="22" aria-hidden="true" />
@@ -69,6 +70,12 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
           <div class="flex items-center gap-6">
             <app-call-duration-timer />
 
+            @if (wrapupSecondsRemaining() > 0) {
+              <span class="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive" role="status">
+                {{ 'innerpage.wrapupTimeRemaining' | translate: lang() }}: <strong>{{ wrapupSecondsRemaining() }}</strong>
+              </span>
+            }
+
             <span
               class="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-600"
             >
@@ -80,7 +87,7 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
       </header>
 
       <main class="flex-1 bg-muted/40 py-6">
-        <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
+        <div class="mx-auto w-full max-w-full px-4 sm:px-6">
           <router-outlet />
         </div>
       </main>
@@ -93,9 +100,12 @@ export class InnerpageComponent {
   // Instantiate the backend-session keepalive with the on-call shell; the
   // service then reacts to CallStore.onCall() on its own (see its docs).
   protected readonly keepalive = inject(KeepaliveService);
+  private readonly callWrapup = inject(CallWrapupService);
 
   readonly lang = this.i18n.language;
 
   /** The caller's phone number, or a dash when unavailable. */
   readonly callerNumber = computed(() => this.callStore.cli() ?? '—');
+  /** Seconds left in the caller-disconnect grace period, or 0 when none is active. */
+  readonly wrapupSecondsRemaining = this.callWrapup.secondsRemaining;
 }

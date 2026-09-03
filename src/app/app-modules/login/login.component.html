@@ -1,34 +1,35 @@
 <div class="login-wrapper">
-  <form class="login-card" [formGroup]="form" (ngSubmit)="submit()" autocomplete="off">
+  <form class="login-card max-w-2xl!" [formGroup]="form" (ngSubmit)="submit()" autocomplete="off">
     <header class="login-header">
       <img class="login-logo" src="images/piramal-swasthya.png" alt="Piramal Swasthya" width="142" height="65" />
-      <h1 class="login-title">AMRIT 104 Helpline</h1>
-      <p class="login-subtitle text-base!">Sign in to your account to continue</p>
+      <h1 class="login-title">{{ 'login.title' | translate: lang() }}</h1>
+      <p class="login-subtitle text-base!">{{ 'login.subtitle' | translate: lang() }}</p>
     </header>
 
     <z-form-field>
-      <label z-form-label zRequired class="text-base">User Name</label>
+      <label z-form-label zRequired for="userID" class="text-base">{{ 'login.userName' | translate: lang() }}</label>
       <z-form-control>
         <div class="input-affix">
           <ng-icon class="input-icon" name="lucideUser" size="18" aria-hidden="true" />
           <input
             z-input
             zSize="lg"
+            id="userID"
             class="has-leading-icon"
             type="text"
             formControlName="userID"
-            placeholder="Enter user name"
+            [placeholder]="'login.userNamePlaceholder' | translate: lang()"
             autocomplete="username"
           />
         </div>
       </z-form-control>
       @if (form.controls.userID.touched && form.controls.userID.invalid) {
-        <z-form-message class="text-base">User name is required.</z-form-message>
+        <z-form-message class="text-base">{{ 'login.userNameRequired' | translate: lang() }}</z-form-message>
       }
     </z-form-field>
 
     <z-form-field>
-      <label z-form-label zRequired class="text-base">Password</label>
+      <label z-form-label zRequired for="password" class="text-base">{{ 'login.password' | translate: lang() }}</label>
       <z-form-control>
         <div class="password-row">
           <div class="input-affix">
@@ -36,10 +37,11 @@
             <input
               z-input
               zSize="lg"
+              id="password"
               class="has-leading-icon"
               [type]="showPassword() ? 'text' : 'password'"
               formControlName="password"
-              placeholder="Enter password"
+              [placeholder]="'login.passwordPlaceholder' | translate: lang()"
               autocomplete="current-password"
             />
           </div>
@@ -47,7 +49,7 @@
             type="button"
             class="toggle-pwd"
             (click)="togglePassword()"
-            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            [attr.aria-label]="(showPassword() ? 'login.hidePassword' : 'login.showPassword') | translate: lang()"
             [attr.aria-pressed]="showPassword()"
           >
             <ng-icon [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" size="18" />
@@ -55,12 +57,12 @@
         </div>
       </z-form-control>
       @if (form.controls.password.touched && form.controls.password.invalid) {
-        <z-form-message class="text-base">Password is required.</z-form-message>
+        <z-form-message class="text-base">{{ 'login.passwordRequired' | translate: lang() }}</z-form-message>
       }
     </z-form-field>
 
     <div class="forgot-row">
-      <a class="forgot-link text-base!" routerLink="/reset-password">Forgot Password?</a>
+      <a class="forgot-link text-base!" routerLink="/reset-password">{{ 'login.forgotPassword' | translate: lang() }}</a>
     </div>
 
     @if (errorMessage()) {
@@ -95,7 +97,7 @@
       [zLoading]="loading()"
       [zDisabled]="loading() || (captchaEnabled && !captchaToken())"
     >
-      Login
+      {{ 'login.submit' | translate: lang() }}
     </button>
   </form>
 
