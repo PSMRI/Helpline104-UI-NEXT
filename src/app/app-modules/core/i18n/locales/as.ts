@@ -1356,6 +1356,11 @@ export const as: Record<TranslationKey, string> = {
     'সুৰক্ষা পৰীক্ষা ল’ড কৰিব পৰা নগ’ল। আপোনাৰ সংযোগ পৰীক্ষা কৰি পুনৰ চেষ্টা কৰক।',
   'login.captchaRetry': 'সুৰক্ষা পৰীক্ষা পুনৰ চেষ্টা কৰক',
 
+  // Role selection
+  'roleSelection.title': 'আপোনাৰ ভূমিকা বাছক',
+  'roleSelection.noRoles': 'এই সেৱাৰ বাবে কোনো ভূমিকা উপলব্ধ নাই।',
+  'roleSelection.unauthorized': 'আপুনি কোনো 104 সেৱা প্ৰৱেশ কৰিবলৈ অনুমোদিত নহয়।',
+
   // Account recovery (forgot password / first-login security-question setup)
   'accountRecovery.header': 'একাউণ্ট সহায়',
   'accountRecovery.error': 'ত্ৰুটি',
