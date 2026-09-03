@@ -104,23 +104,25 @@ function toDateInput(date: Date): string {
       <form [formGroup]="filterForm" (ngSubmit)="search()" autocomplete="off">
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <z-form-field>
-            <label z-form-label zRequired>{{ 'reports.callType.startDate' | translate: lang() }}</label>
+            <label z-form-label zRequired for="startDate">{{
+              'reports.callType.startDate' | translate: lang()
+            }}</label>
             <z-form-control>
-              <input z-input type="date" formControlName="startDate" [attr.max]="maxDate" />
+              <input z-input id="startDate" type="date" formControlName="startDate" [attr.max]="maxDate" />
             </z-form-control>
           </z-form-field>
 
           <z-form-field>
-            <label z-form-label zRequired>{{ 'reports.callType.endDate' | translate: lang() }}</label>
+            <label z-form-label zRequired for="endDate">{{ 'reports.callType.endDate' | translate: lang() }}</label>
             <z-form-control>
-              <input z-input type="date" formControlName="endDate" [attr.max]="maxDate" />
+              <input z-input id="endDate" type="date" formControlName="endDate" [attr.max]="maxDate" />
             </z-form-control>
           </z-form-field>
 
           <z-form-field>
-            <label z-form-label>{{ 'reports.callType.status' | translate: lang() }}</label>
+            <label z-form-label for="status">{{ 'reports.callType.status' | translate: lang() }}</label>
             <z-form-control>
-              <select formControlName="status" [class]="selectClass">
+              <select id="status" formControlName="status" [class]="selectClass">
                 @for (status of statuses; track status) {
                   <option [value]="status">{{ status }}</option>
                 }
@@ -129,9 +131,9 @@ function toDateInput(date: Date): string {
           </z-form-field>
 
           <z-form-field>
-            <label z-form-label>{{ 'reports.callType.rowsPerPage' | translate: lang() }}</label>
+            <label z-form-label for="pageSize">{{ 'reports.callType.rowsPerPage' | translate: lang() }}</label>
             <z-form-control>
-              <select formControlName="pageSize" [class]="selectClass">
+              <select id="pageSize" formControlName="pageSize" [class]="selectClass">
                 @for (size of pageSizes; track size) {
                   <option [value]="size">{{ size }}</option>
                 }

@@ -27,6 +27,13 @@ import { TranslationKey } from './en';
  * missing or stray key fails the build rather than silently falling back.
  */
 export const as: Record<TranslationKey, string> = {
+  // App-wide
+  'app.unexpectedError': 'কিবা এটা ভুল হ\'ল। অনুগ্ৰহ কৰি পৃষ্ঠাটো ৰিফ্ৰেছ কৰি পুনৰ চেষ্টা কৰক।',
+
+  // CTI (CZentrix soft-phone) panel
+  'cti.unavailable': 'ছফ্টফ\'ন এতিয়া উপলব্ধ নাই।',
+  'cti.retry': 'পুনৰ চেষ্টা কৰক',
+
   // Header
   'dashboard.header.logoAlt': 'পিৰামল স্বাস্থ্য',
   'dashboard.header.titleSuffix': 'ডেশ্ববৰ্ড',
@@ -96,9 +103,9 @@ export const as: Record<TranslationKey, string> = {
   // Activity for this week panel
   'dashboard.activity.title': 'এই সপ্তাহৰ কাৰ্যকলাপ',
   'dashboard.activity.trainingResources': 'প্ৰশিক্ষণ সম্পদ',
-  'dashboard.activity.more': 'সকলো চাওক →',
   'dashboard.activity.kmDocsTitle': 'কেএম নথি',
   'dashboard.activity.noKmDocs': 'কোনো কেএম নথি পোৱা নগ’ল',
+  'dashboard.activity.viewDocument': 'নথি চাওক',
 
   // Rating panel
   'dashboard.rating.title': 'মূল্যাংকন',
@@ -127,6 +134,7 @@ export const as: Record<TranslationKey, string> = {
   'innerpage.dispatcherHint':
     'কলাৰ চিনাক্ত হোৱাৰ লগে লগে ভূমিকা কৰ্মক্ষেত্ৰ (পঞ্জীয়ন, সেৱা আৰু সমাপ্তি) ইয়াত খোল খাব।',
   'innerpage.identifyCaller': 'কলাৰ চিনাক্ত কৰক',
+  'innerpage.wrapupTimeRemaining': 'বাকী সময়',
 
   // Beneficiary registration / caller identification
   'registration.tab.search': 'সন্ধান কৰক',
@@ -134,6 +142,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.history.heading': 'এই নম্বৰৰ বাবে পঞ্জীয়ন',
   'registration.history.loading': 'পঞ্জীয়ন ল’ড হৈ আছে…',
   'registration.history.empty': 'এই নম্বৰৰ বাবে কোনো পঞ্জীয়ন পোৱা নগ’ল।',
+  'registration.history.timeout': "ল’ড হোৱাৰ সময়সীমা উকলি গ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+  'registration.history.error': 'এই নম্বৰৰ বাবে পঞ্জীয়ন ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'registration.search.empty': 'আপোনাৰ সন্ধানৰ সৈতে কোনো হিতাধিকাৰী মিলা নাই।',
   'registration.search.prompt': 'নাম বা পঞ্জীয়ন আইডি দিয়ক, তাৰ পিছত সন্ধান কৰক।',
   'registration.search.error': "সন্ধান সম্পূৰ্ণ কৰিব পৰা নগ'ল — সময় উকলি যাব পাৰে। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
@@ -314,6 +324,14 @@ export const as: Record<TranslationKey, string> = {
   'screening.diabetic.prediabetic': 'প্ৰি-ডায়েবেটিক',
   'screening.diabetic.diabetic': 'ডায়েবেটিক',
   'screening.diabetic.condition': 'অৱস্থা',
+  'screening.diabetic.hba1c': 'HbA1c',
+  'screening.diabetic.fastingGlucose': 'উপবাস প্লাজমা গ্লুকোজ',
+  'screening.diabetic.ogtt': 'OGTT (75 গ্ৰাম)',
+  'screening.diabetic.conditionNoRisk': 'কোনো বিপদৰ কাৰক নাই, গ্লুকোজ স্বাভাৱিক',
+  'screening.diabetic.actionRetest': '1–2 বছৰত পুনৰ পৰীক্ষা কৰক; সুস্থ জীৱনশৈলী',
+  'screening.diabetic.conditionRiskUnknown': 'বিপদৰ কাৰক আছে, গ্লুকোজ স্বাভাৱিক/অজ্ঞাত',
+  'screening.diabetic.actionLifestyle': 'জীৱনশৈলী পৰামৰ্শ; অজ্ঞাত হ\'লে, পৰীক্ষা কৰাওক',
+  'screening.diabetic.conditionRiskHigh': 'বিপদৰ কাৰক আছে আৰু গ্লুকোজ বেছি',
   'screening.bp.title': 'ৰক্তচাপ স্ক্ৰীনিং',
   'screening.bp.category': 'শ্ৰেণী',
   'screening.bp.systolic': 'ছিষ্টলিক (mmHg)',
@@ -519,9 +537,6 @@ export const as: Record<TranslationKey, string> = {
   'supervisor.home.blockUnblockHint': 'ব্লেকলিষ্ট কৰা কলাৰ নম্বৰ পৰিচালনা কৰক।',
   'supervisor.home.outboundAllocationHint': 'আবণ্টন নোহোৱা আউটবাউণ্ড কল এজেণ্টক আবণ্টন কৰক।',
   'supervisor.home.outboundReallocationHint': 'আবণ্টিত আউটবাউণ্ড কল এজেণ্টৰ মাজত স্থানান্তৰ কৰক।',
-  'supervisor.placeholder.title': 'সোনকালে আহি আছে',
-  'supervisor.placeholder.body':
-    'এই তত্ত্বাৱধায়ক অংশটো এতিয়ালৈকে স্থানান্তৰ কৰা হোৱা নাই। অনুগ্ৰহ কৰি এতিয়াৰ বাবে লিগেচী এপ্লিকেচন ব্যৱহাৰ কৰক।',
 
   // Supervisor reports hub + report screens
   'supReports.title': 'তত্ত্বাৱধায়ক প্ৰতিবেদন',
@@ -762,6 +777,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.followUpDate': 'অনুসৰণৰ তাৰিখ',
   'hao.closure.followUpDateRequired': 'অনুসৰণৰ তাৰিখ আৱশ্যক।',
   'hao.closure.remarks': 'মন্তব্য',
+  'hao.closure.callerDisconnectedNotice':
+    'কলাৰে কল সংযোগ বিচ্ছিন্ন কৰিছে। ৰেপ-আপ সময় শেষ হোৱাৰ আগতে অনুগ্ৰহ কৰি এই কলটো বন্ধ কৰক।',
   'hao.closure.transferCall': 'কল স্থানান্তৰ কৰক',
   'hao.closure.transferCampaign': 'অভিযান',
   'hao.closure.selectCampaign': 'অভিযান বাছনি কৰক',
@@ -811,6 +828,7 @@ export const as: Record<TranslationKey, string> = {
 
   // Outbound — workspace
   'outbound.workspace.unknownCaller': 'অজ্ঞাত কলাৰ',
+  'outbound.workspace.alternateNumbers': 'বৈকল্পিক নম্বৰ',
   'outbound.workspace.callTime': 'কল সময়',
   'outbound.workspace.stepCaseSheet': 'কেছ শ্বীট',
   'outbound.workspace.stepClosure': 'সমাপন',
@@ -1318,19 +1336,21 @@ export const as: Record<TranslationKey, string> = {
 
   // Supervisor agent status
   'supervisor.agentStatus.title': 'এজেণ্টৰ স্থিতি',
-  'supervisor.agentStatus.autoRefresh': 'প্ৰতি ৩০ ছেকেণ্ডত স্বয়ংক্ৰিয়ভাৱে ৰিফ্ৰেছ হয়',
-  'supervisor.agentStatus.lastUpdated': 'শেষ আপডেট',
-  'supervisor.agentStatus.refresh': 'ৰিফ্ৰেছ কৰক',
-  'supervisor.agentStatus.loading': 'এজেণ্টৰ স্থিতি ল’ড হৈ আছে…',
-  'supervisor.agentStatus.agentId': 'এজেণ্ট আইডি',
-  'supervisor.agentStatus.name': 'নাম',
-  'supervisor.agentStatus.extension': 'এক্সটেনচন',
-  'supervisor.agentStatus.status': 'স্থিতি',
-  'supervisor.agentStatus.unknown': 'অজ্ঞাত',
-  'supervisor.agentStatus.noAgents': 'বৰ্তমান কোনো এজেণ্ট অনলাইনত নাই।',
-  'supervisor.agentStatus.loadError':
-    'এজেণ্টৰ স্থিতি ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'supervisor.agentStatus.unavailable':
+    'এজেণ্টৰ স্থিতি এতিয়া উপলব্ধ নহয়। অনুগ্ৰহ কৰি পুনৰ লগইন কৰাৰ চেষ্টা কৰক।',
   // Login
+  'login.title': 'AMRIT 104 হেল্পলাইন',
+  'login.subtitle': 'অব্যাহত ৰাখিবলৈ আপোনাৰ একাউণ্টত ছাইন ইন কৰক',
+  'login.userName': 'ব্যৱহাৰকাৰীৰ নাম',
+  'login.userNamePlaceholder': 'ব্যৱহাৰকাৰীৰ নাম দিয়ক',
+  'login.userNameRequired': 'ব্যৱহাৰকাৰীৰ নাম প্ৰয়োজন।',
+  'login.password': 'পাছৱৰ্ড',
+  'login.passwordPlaceholder': 'পাছৱৰ্ড দিয়ক',
+  'login.passwordRequired': 'পাছৱৰ্ড প্ৰয়োজন।',
+  'login.showPassword': 'পাছৱৰ্ড দেখুৱাওক',
+  'login.hidePassword': 'পাছৱৰ্ড লুকুৱাওক',
+  'login.forgotPassword': 'পাছৱৰ্ড পাহৰিছে?',
+  'login.submit': 'লগইন',
   'login.captchaLabel': 'সুৰক্ষা পৰীক্ষা',
   'login.captchaFailed':
     'সুৰক্ষা পৰীক্ষা ল’ড কৰিব পৰা নগ’ল। আপোনাৰ সংযোগ পৰীক্ষা কৰি পুনৰ চেষ্টা কৰক।',
@@ -1340,6 +1360,61 @@ export const as: Record<TranslationKey, string> = {
   'roleSelection.title': 'আপোনাৰ ভূমিকা বাছক',
   'roleSelection.noRoles': 'এই সেৱাৰ বাবে কোনো ভূমিকা উপলব্ধ নাই।',
   'roleSelection.unauthorized': 'আপুনি কোনো 104 সেৱা প্ৰৱেশ কৰিবলৈ অনুমোদিত নহয়।',
+
+  // Account recovery (forgot password / first-login security-question setup)
+  'accountRecovery.header': 'একাউণ্ট সহায়',
+  'accountRecovery.error': 'ত্ৰুটি',
+  'accountRecovery.userName': 'ব্যৱহাৰকাৰীৰ নাম',
+  'accountRecovery.userNamePlaceholder': 'ব্যৱহাৰকাৰীৰ নাম দিয়ক',
+  'accountRecovery.newPassword': 'নতুন পাছৱৰ্ড',
+  'accountRecovery.newPasswordPlaceholder': 'নতুন পাছৱৰ্ড দিয়ক',
+  'accountRecovery.confirmPassword': 'পাছৱৰ্ড নিশ্চিত কৰক',
+  'accountRecovery.confirmPasswordPlaceholder': 'নতুন পাছৱৰ্ড পুনৰ দিয়ক',
+  'accountRecovery.passwordPolicy':
+    'পাছৱৰ্ড 8–12 আখৰৰ হ\'ব লাগিব, য\'ত অতি কমেও 1 টা সংখ্যা, 1 টা ডাঙৰ আখৰ আৰু 1 টা বিশেষ চিহ্ন (!@#$%^&*) থাকিব লাগিব।',
+  'accountRecovery.passwordMismatch': 'পাছৱৰ্ড মিল নাখায়।',
+  'accountRecovery.confirmPasswordRequired': 'অনুগ্ৰহ কৰি আপোনাৰ পাছৱৰ্ড নিশ্চিত কৰক।',
+  'accountRecovery.showPassword': 'পাছৱৰ্ড দেখুৱাওক',
+  'accountRecovery.hidePassword': 'পাছৱৰ্ড লুকুৱাওক',
+
+  'accountRecovery.setPassword.heading': 'নতুন পাছৱৰ্ড ছেট কৰক',
+  'accountRecovery.setPassword.subheading': 'আপোনাৰ একাউণ্ট পুনৰুদ্ধাৰ সম্পূৰ্ণ কৰিবলৈ এটা শক্তিশালী পাছৱৰ্ড বাছক',
+  'accountRecovery.setPassword.submit': 'পাছৱৰ্ড সলনি কৰক',
+  'accountRecovery.setPassword.success': 'পাছৱৰ্ড সফলভাৱে সলনি কৰা হ\'ল। অনুগ্ৰহ কৰি ছাইন ইন কৰক।',
+  'accountRecovery.setPassword.error': 'পাছৱৰ্ড সলনি কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+
+  'accountRecovery.resetPassword.heading': 'আপোনাৰ পাছৱৰ্ড ৰিছেট কৰক',
+  'accountRecovery.resetPassword.subheading': 'পাছৱৰ্ড সলনি/ৰিছেট কৰিবলৈ পদক্ষেপসমূহ অনুসৰণ কৰক',
+  'accountRecovery.resetPassword.userNameRequired': 'ব্যৱহাৰকাৰীৰ নাম প্ৰয়োজন (নূন্যতম 2 আখৰ)।',
+  'accountRecovery.resetPassword.cancel': 'বাতিল কৰক',
+  'accountRecovery.resetPassword.next': 'পৰৱৰ্তী',
+  'accountRecovery.resetPassword.submit': 'দাখিল কৰক',
+  'accountRecovery.resetPassword.questionLabel': 'প্ৰশ্ন',
+  'accountRecovery.resetPassword.ofTotal': 'ৰ',
+  'accountRecovery.resetPassword.answerPlaceholder': 'আপোনাৰ উত্তৰ দিয়ক',
+  'accountRecovery.resetPassword.answerRequired': 'উত্তৰ প্ৰয়োজন।',
+  'accountRecovery.resetPassword.showAnswer': 'উত্তৰ দেখুৱাওক',
+  'accountRecovery.resetPassword.hideAnswer': 'উত্তৰ লুকুৱাওক',
+  'accountRecovery.resetPassword.neutralFallback':
+    'যদি ব্যৱহাৰকাৰীৰ নাম পঞ্জীয়নভুক্ত হয়, আপোনাক এটা সুৰক্ষা প্ৰশ্ন সোধা হ\'ব।',
+  'accountRecovery.resetPassword.answersError': 'আপোনাৰ উত্তৰসমূহ সত্যাপন কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+
+  'accountRecovery.setup.heading': 'সুৰক্ষা প্ৰশ্ন ছেট কৰক',
+  'accountRecovery.setup.subheading':
+    'আপোনাৰ একাউণ্ট ছেটআপ সম্পূৰ্ণ কৰিবলৈ তিনিটা প্ৰশ্ন বাছক আৰু এটা নতুন পাছৱৰ্ড ছেট কৰক',
+  'accountRecovery.setup.question1': 'প্ৰশ্ন 1',
+  'accountRecovery.setup.question2': 'প্ৰশ্ন 2',
+  'accountRecovery.setup.question3': 'প্ৰশ্ন 3',
+  'accountRecovery.setup.selectQuestion': 'এটা প্ৰশ্ন বাছক',
+  'accountRecovery.setup.answer1': 'উত্তৰ 1',
+  'accountRecovery.setup.answer2': 'উত্তৰ 2',
+  'accountRecovery.setup.answer3': 'উত্তৰ 3',
+  'accountRecovery.setup.answerPlaceholder': 'আপোনাৰ উত্তৰ দিয়ক',
+  'accountRecovery.setup.duplicateQuestion': 'অনুগ্ৰহ কৰি তিনিটা পৃথক প্ৰশ্ন বাছক।',
+  'accountRecovery.setup.submit': 'ছেভ কৰক আৰু আগবাঢ়ক',
+  'accountRecovery.setup.questionsLoadError': 'সুৰক্ষা প্ৰশ্ন ল\'ড কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'accountRecovery.setup.success': 'সুৰক্ষা প্ৰশ্নসমূহ সংৰক্ষণ কৰা হ\'ল আৰু পাছৱৰ্ড ছেট কৰা হ\'ল। অনুগ্ৰহ কৰি ছাইন ইন কৰক।',
+  'accountRecovery.setup.error': 'ছেটআপ সম্পূৰ্ণ কৰিব পৰা নগ\'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
 
   // SMS templates
   'supSms.listTitle': 'এছএমএছ টেমপ্লেট তালিকা',

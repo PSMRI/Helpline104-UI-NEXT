@@ -96,6 +96,11 @@ function pad(value: number): string {
                   <span class="ml-2 rounded bg-muted px-1.5 py-0.5">{{ sel.requestedFeature }}</span>
                 }
               </p>
+              @if (sel.alternatePhoneNumbers.length > 0) {
+                <p class="text-xs text-muted-foreground">
+                  {{ 'outbound.workspace.alternateNumbers' | translate: lang() }}: {{ sel.alternatePhoneNumbers.join(', ') }}
+                </p>
+              }
             </div>
           </div>
           <span

@@ -40,6 +40,8 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 import { AppFooterComponent } from '@/shared/components/layout/app-footer.component';
 import { AppHeaderComponent } from '@/shared/components/layout/app-header.component';
 
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { LOGIN_ROUTE } from '../core/core.constants';
 import { AccountRecoveryService } from './account-recovery.service';
 import { AccountRecoveryStore } from './account-recovery.store';
@@ -47,8 +49,6 @@ import { RecoveryError, SecurityAnswer, SecurityQuestion } from './account-recov
 import { noWhitespace } from './recovery-validators';
 
 const SET_PASSWORD_ROUTE = '/set-password';
-/** Privacy-preserving fallback so the user always gets feedback (never a blank notice). */
-const NEUTRAL_FALLBACK = 'If the username is registered, you will be asked a security question.';
 
 /**
  * Account-support / forgot-password screen (legacy `/resetPassword`).
@@ -76,6 +76,7 @@ const NEUTRAL_FALLBACK = 'If the username is registered, you will be asked a sec
     ZardFormMessageComponent,
     AppHeaderComponent,
     AppFooterComponent,
+    TranslatePipe,
   ],
   viewProviders: [provideIcons({ lucideEye, lucideEyeOff })],
   templateUrl: './reset-password.component.html',
@@ -85,7 +86,9 @@ export class ResetPasswordComponent {
   private readonly store = inject(AccountRecoveryStore);
   private readonly router = inject(Router);
   private readonly dialog = inject(ConfirmDialogService);
+  private readonly i18n = inject(I18nService);
 
+  readonly lang = this.i18n.language;
   readonly loginRoute = LOGIN_ROUTE;
 
   /** Which step of the flow is on screen. */
@@ -156,7 +159,7 @@ export class ResetPasswordComponent {
         this.loading.set(false);
         // Stay neutral even on transport failure — never reveal existence, and
         // never render a blank notice (the exact legacy bug from audit §0).
-        this.neutralMessage.set(error?.errorMessage || NEUTRAL_FALLBACK);
+        this.neutralMessage.set(error?.errorMessage || this.i18n.instant('accountRecovery.resetPassword.neutralFallback'));
       },
     });
   }
@@ -201,8 +204,8 @@ export class ResetPasswordComponent {
         this.loading.set(false);
         this.dialog
           .alert({
-            title: 'Error',
-            message: error?.errorMessage || 'Unable to verify your answers. Please try again.',
+            title: this.i18n.instant('accountRecovery.error'),
+            message: error?.errorMessage || this.i18n.instant('accountRecovery.resetPassword.answersError'),
           })
           .subscribe(() => this.restartQuestions());
       },

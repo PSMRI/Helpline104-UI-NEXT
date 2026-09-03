@@ -27,6 +27,13 @@ import { TranslationKey } from './en';
  * missing or stray key fails the build rather than silently falling back.
  */
 export const hi: Record<TranslationKey, string> = {
+  // App-wide
+  'app.unexpectedError': 'कुछ गलत हो गया। कृपया पृष्ठ को रीफ़्रेश करें और पुनः प्रयास करें।',
+
+  // CTI (CZentrix soft-phone) panel
+  'cti.unavailable': 'सॉफ्टफोन अभी उपलब्ध नहीं है।',
+  'cti.retry': 'पुनः प्रयास करें',
+
   // Header
   'dashboard.header.logoAlt': 'पिरामल स्वास्थ्य',
   'dashboard.header.titleSuffix': 'डैशबोर्ड',
@@ -96,9 +103,9 @@ export const hi: Record<TranslationKey, string> = {
   // Activity for this week panel
   'dashboard.activity.title': 'इस सप्ताह के लिए गतिविधि',
   'dashboard.activity.trainingResources': 'प्रशिक्षण संसाधन',
-  'dashboard.activity.more': 'सभी देखें →',
   'dashboard.activity.kmDocsTitle': 'केएम दस्तावेज़',
   'dashboard.activity.noKmDocs': 'कोई केएम दस्तावेज़ नहीं मिला',
+  'dashboard.activity.viewDocument': 'दस्तावेज़ देखें',
 
   // Rating panel
   'dashboard.rating.title': 'रेटिंग',
@@ -127,6 +134,7 @@ export const hi: Record<TranslationKey, string> = {
   'innerpage.dispatcherHint':
     'कॉल करने वाले की पहचान होते ही भूमिका कार्यक्षेत्र (पंजीकरण, सेवा और समापन) यहाँ खुलेगा।',
   'innerpage.identifyCaller': 'कॉलर की पहचान करें',
+  'innerpage.wrapupTimeRemaining': 'शेष समय',
 
   // Beneficiary registration / caller identification
   'registration.tab.search': 'खोजें',
@@ -134,6 +142,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.history.heading': 'इस नंबर के लिए पंजीकरण',
   'registration.history.loading': 'पंजीकरण लोड हो रहे हैं…',
   'registration.history.empty': 'इस नंबर के लिए कोई पंजीकरण नहीं मिला।',
+  'registration.history.timeout': 'लोड होने में समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
+  'registration.history.error': 'इस नंबर के लिए पंजीकरण लोड नहीं हो सके। कृपया पुनः प्रयास करें।',
   'registration.search.empty': 'आपकी खोज से कोई लाभार्थी मेल नहीं खाता।',
   'registration.search.prompt': 'नाम या पंजीकरण आईडी दर्ज करें, फिर खोजें।',
   'registration.search.error': 'खोज पूरी नहीं हो सकी — शायद समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
@@ -313,6 +323,14 @@ export const hi: Record<TranslationKey, string> = {
   'screening.diabetic.prediabetic': 'प्री-डायबिटिक',
   'screening.diabetic.diabetic': 'मधुमेह',
   'screening.diabetic.condition': 'स्थिति',
+  'screening.diabetic.hba1c': 'HbA1c',
+  'screening.diabetic.fastingGlucose': 'उपवास प्लाज्मा ग्लूकोज़',
+  'screening.diabetic.ogtt': 'OGTT (75 ग्राम)',
+  'screening.diabetic.conditionNoRisk': 'कोई जोखिम कारक नहीं, ग्लूकोज़ सामान्य',
+  'screening.diabetic.actionRetest': '1–2 वर्षों में पुनः जाँच करें; स्वस्थ जीवनशैली',
+  'screening.diabetic.conditionRiskUnknown': 'जोखिम कारक मौजूद, ग्लूकोज़ सामान्य/अज्ञात',
+  'screening.diabetic.actionLifestyle': 'जीवनशैली सलाह; यदि अज्ञात है, तो जाँच कराएं',
+  'screening.diabetic.conditionRiskHigh': 'जोखिम कारक मौजूद और ग्लूकोज़ उच्च',
   'screening.bp.title': 'रक्तचाप स्क्रीनिंग',
   'screening.bp.category': 'श्रेणी',
   'screening.bp.systolic': 'सिस्टोलिक (mmHg)',
@@ -518,9 +536,6 @@ export const hi: Record<TranslationKey, string> = {
   'supervisor.home.blockUnblockHint': 'ब्लैकलिस्ट किए गए कॉलर नंबर प्रबंधित करें।',
   'supervisor.home.outboundAllocationHint': 'अनासाइन की गई आउटबाउंड कॉल एजेंटों को आवंटित करें।',
   'supervisor.home.outboundReallocationHint': 'आवंटित आउटबाउंड कॉल एजेंटों के बीच स्थानांतरित करें।',
-  'supervisor.placeholder.title': 'जल्द आ रहा है',
-  'supervisor.placeholder.body':
-    'यह पर्यवेक्षक अनुभाग अभी माइग्रेट नहीं हुआ है। कृपया अभी के लिए लीगेसी एप्लिकेशन का उपयोग करें।',
 
   // Supervisor reports hub + report screens
   'supReports.title': 'पर्यवेक्षक रिपोर्ट',
@@ -760,6 +775,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.followUpDate': 'अनुवर्ती तिथि',
   'hao.closure.followUpDateRequired': 'अनुवर्ती तिथि आवश्यक है।',
   'hao.closure.remarks': 'टिप्पणियां',
+  'hao.closure.callerDisconnectedNotice':
+    'कॉलर ने कॉल काट दिया है। रैप-अप समय समाप्त होने से पहले कृपया इस कॉल को बंद करें।',
   'hao.closure.transferCall': 'कॉल स्थानांतरित करें',
   'hao.closure.transferCampaign': 'अभियान',
   'hao.closure.selectCampaign': 'अभियान चुनें',
@@ -810,6 +827,7 @@ export const hi: Record<TranslationKey, string> = {
 
   // Outbound — workspace
   'outbound.workspace.unknownCaller': 'अज्ञात कॉलर',
+  'outbound.workspace.alternateNumbers': 'वैकल्पिक नंबर',
   'outbound.workspace.callTime': 'कॉल समय',
   'outbound.workspace.stepCaseSheet': 'केस शीट',
   'outbound.workspace.stepClosure': 'समापन',
@@ -1316,18 +1334,20 @@ export const hi: Record<TranslationKey, string> = {
 
   // Supervisor agent status
   'supervisor.agentStatus.title': 'एजेंट स्थिति',
-  'supervisor.agentStatus.autoRefresh': 'हर 30 सेकंड में अपने आप रीफ़्रेश होता है',
-  'supervisor.agentStatus.lastUpdated': 'अंतिम अद्यतन',
-  'supervisor.agentStatus.refresh': 'रीफ़्रेश करें',
-  'supervisor.agentStatus.loading': 'एजेंट स्थिति लोड हो रही है…',
-  'supervisor.agentStatus.agentId': 'एजेंट आईडी',
-  'supervisor.agentStatus.name': 'नाम',
-  'supervisor.agentStatus.extension': 'एक्सटेंशन',
-  'supervisor.agentStatus.status': 'स्थिति',
-  'supervisor.agentStatus.unknown': 'अज्ञात',
-  'supervisor.agentStatus.noAgents': 'वर्तमान में कोई एजेंट ऑनलाइन नहीं है।',
-  'supervisor.agentStatus.loadError': 'एजेंट स्थिति लोड नहीं हो सकी। कृपया पुनः प्रयास करें।',
+  'supervisor.agentStatus.unavailable': 'एजेंट स्थिति अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
   // Login
+  'login.title': 'AMRIT 104 हेल्पलाइन',
+  'login.subtitle': 'जारी रखने के लिए अपने खाते में साइन इन करें',
+  'login.userName': 'उपयोगकर्ता नाम',
+  'login.userNamePlaceholder': 'उपयोगकर्ता नाम दर्ज करें',
+  'login.userNameRequired': 'उपयोगकर्ता नाम आवश्यक है।',
+  'login.password': 'पासवर्ड',
+  'login.passwordPlaceholder': 'पासवर्ड दर्ज करें',
+  'login.passwordRequired': 'पासवर्ड आवश्यक है।',
+  'login.showPassword': 'पासवर्ड दिखाएं',
+  'login.hidePassword': 'पासवर्ड छुपाएं',
+  'login.forgotPassword': 'पासवर्ड भूल गए?',
+  'login.submit': 'लॉगिन',
   'login.captchaLabel': 'सुरक्षा जांच',
   'login.captchaFailed':
     'सुरक्षा जांच लोड नहीं हो सकी। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
@@ -1337,6 +1357,61 @@ export const hi: Record<TranslationKey, string> = {
   'roleSelection.title': 'अपनी भूमिका चुनें',
   'roleSelection.noRoles': 'इस सेवा के लिए कोई भूमिका उपलब्ध नहीं है।',
   'roleSelection.unauthorized': 'आपको किसी भी 104 सेवा तक पहुंचने की अनुमति नहीं है।',
+
+  // Account recovery (forgot password / first-login security-question setup)
+  'accountRecovery.header': 'खाता सहायता',
+  'accountRecovery.error': 'त्रुटि',
+  'accountRecovery.userName': 'उपयोगकर्ता नाम',
+  'accountRecovery.userNamePlaceholder': 'उपयोगकर्ता नाम दर्ज करें',
+  'accountRecovery.newPassword': 'नया पासवर्ड',
+  'accountRecovery.newPasswordPlaceholder': 'नया पासवर्ड दर्ज करें',
+  'accountRecovery.confirmPassword': 'पासवर्ड की पुष्टि करें',
+  'accountRecovery.confirmPasswordPlaceholder': 'नया पासवर्ड पुनः दर्ज करें',
+  'accountRecovery.passwordPolicy':
+    'पासवर्ड 8–12 अक्षरों का होना चाहिए जिसमें कम से कम 1 अंक, 1 बड़ा अक्षर और 1 विशेष चरित्र (!@#$%^&*) हो।',
+  'accountRecovery.passwordMismatch': 'पासवर्ड मेल नहीं खाते।',
+  'accountRecovery.confirmPasswordRequired': 'कृपया अपने पासवर्ड की पुष्टि करें।',
+  'accountRecovery.showPassword': 'पासवर्ड दिखाएं',
+  'accountRecovery.hidePassword': 'पासवर्ड छुपाएं',
+
+  'accountRecovery.setPassword.heading': 'नया पासवर्ड सेट करें',
+  'accountRecovery.setPassword.subheading': 'अपना खाता पुनर्स्थापित करने के लिए एक मजबूत पासवर्ड चुनें',
+  'accountRecovery.setPassword.submit': 'पासवर्ड बदलें',
+  'accountRecovery.setPassword.success': 'पासवर्ड सफलतापूर्वक बदल दिया गया। कृपया साइन इन करें।',
+  'accountRecovery.setPassword.error': 'पासवर्ड बदलने में असमर्थ। कृपया पुनः प्रयास करें।',
+
+  'accountRecovery.resetPassword.heading': 'अपना पासवर्ड रीसेट करें',
+  'accountRecovery.resetPassword.subheading': 'पासवर्ड बदलने/रीसेट करने के लिए चरणों का पालन करें',
+  'accountRecovery.resetPassword.userNameRequired': 'उपयोगकर्ता नाम आवश्यक है (न्यूनतम 2 अक्षर)।',
+  'accountRecovery.resetPassword.cancel': 'रद्द करें',
+  'accountRecovery.resetPassword.next': 'अगला',
+  'accountRecovery.resetPassword.submit': 'सबमिट करें',
+  'accountRecovery.resetPassword.questionLabel': 'प्रश्न',
+  'accountRecovery.resetPassword.ofTotal': 'में से',
+  'accountRecovery.resetPassword.answerPlaceholder': 'अपना उत्तर दर्ज करें',
+  'accountRecovery.resetPassword.answerRequired': 'उत्तर आवश्यक है।',
+  'accountRecovery.resetPassword.showAnswer': 'उत्तर दिखाएं',
+  'accountRecovery.resetPassword.hideAnswer': 'उत्तर छुपाएं',
+  'accountRecovery.resetPassword.neutralFallback':
+    'यदि उपयोगकर्ता नाम पंजीकृत है, तो आपसे एक सुरक्षा प्रश्न पूछा जाएगा।',
+  'accountRecovery.resetPassword.answersError': 'आपके उत्तर सत्यापित करने में असमर्थ। कृपया पुनः प्रयास करें।',
+
+  'accountRecovery.setup.heading': 'सुरक्षा प्रश्न सेट करें',
+  'accountRecovery.setup.subheading':
+    'अपना खाता सेटअप पूरा करने के लिए तीन प्रश्न चुनें और एक नया पासवर्ड सेट करें',
+  'accountRecovery.setup.question1': 'प्रश्न 1',
+  'accountRecovery.setup.question2': 'प्रश्न 2',
+  'accountRecovery.setup.question3': 'प्रश्न 3',
+  'accountRecovery.setup.selectQuestion': 'एक प्रश्न चुनें',
+  'accountRecovery.setup.answer1': 'उत्तर 1',
+  'accountRecovery.setup.answer2': 'उत्तर 2',
+  'accountRecovery.setup.answer3': 'उत्तर 3',
+  'accountRecovery.setup.answerPlaceholder': 'अपना उत्तर दर्ज करें',
+  'accountRecovery.setup.duplicateQuestion': 'कृपया तीन अलग-अलग प्रश्न चुनें।',
+  'accountRecovery.setup.submit': 'सहेजें और जारी रखें',
+  'accountRecovery.setup.questionsLoadError': 'सुरक्षा प्रश्न लोड करने में असमर्थ। कृपया पुनः प्रयास करें।',
+  'accountRecovery.setup.success': 'सुरक्षा प्रश्न सहेजे गए और पासवर्ड सेट किया गया। कृपया साइन इन करें।',
+  'accountRecovery.setup.error': 'सेटअप पूरा करने में असमर्थ। कृपया पुनः प्रयास करें।',
 
   // SMS templates
   'supSms.listTitle': 'एसएमएस टेम्पलेट सूची',
