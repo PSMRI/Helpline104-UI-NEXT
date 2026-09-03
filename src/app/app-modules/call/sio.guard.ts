@@ -24,25 +24,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthStore } from '../core/auth/auth.store';
-import { SERVICE_104, collectServiceScreens } from './role-workspace/role-screens.util';
-
-/**
- * The 104 service screens the SIO workspace exists to serve. They mirror the
- * screen-gated SIO tabs in `service-delivery-step` — an agent holding none of
- * them would land on a workspace with no service tabs at all.
- */
-const SIO_SCREENS: readonly string[] = [
-  'Blood Request',
-  'Directory Information Service',
-  'Epidemic Outbreak Service',
-  'Food safety',
-  'Grievance',
-  'Organ Donation',
-  'Health schemes',
-  'Covid19 for 104 services',
-  'IMR MMR Information',
-  'Bal Vivah',
-];
+import { SERVICE_104, SIO_SCREENS, collectServiceScreens } from './role-workspace/role-screens.util';
 
 /** Feature code the role-selection screen assigns to the SIO role. */
 const FEATURE_SIO = 'SIO';
