@@ -26,8 +26,10 @@ import { environment } from '@env/environment';
 
 import { AuthStore } from '../core/auth/auth.store';
 
+import { CallLifecycleService } from './call-lifecycle.service';
 import { CallStore } from './call.store';
-import { parseInboundCtiMessage } from './cti-message';
+import { CallWrapupService } from './call-wrapup.service';
+import { parseDisconnectCtiMessage, parseInboundCtiMessage } from './cti-message';
 
 /** Feature code of the supervising role, which has no personal agent line. */
 const SUPERVISOR_FEATURE_CODE = 'Supervisor';
@@ -49,10 +51,15 @@ function safeOrigin(url: string): string {
  * App-scoped listener for inbound CTI events from the CZentrix soft-phone.
  *
  * The CZentrix CTI iframe announces inbound calls to the host window via
- * postMessage ("Accept|<CLI>|<sessionId>|INBOUND"). The iframe lives in the
- * root-level CTI panel and persists across every route, so the listener must
- * be app-scoped too — an inbound call must seed the {@link CallStore} and route
- * into the guarded on-call workspace no matter which screen the agent is on.
+ * postMessage ("Accept|<CLI>|<sessionId>|INBOUND"), and a caller hanging up
+ * mid-call the same way ("CustDisconnect|<callID>|..."). The iframe lives in
+ * the root-level CTI panel and persists across every route, so the listener
+ * must be app-scoped too — an inbound call must seed the {@link CallStore},
+ * route into the guarded on-call workspace no matter which screen the agent
+ * is on, and register the call with the backend via {@link CallLifecycleService}
+ * so later requests (`closeCall`, `transferCall`, `saveCaseSheet`) can carry
+ * the real AMRIT call id instead of falling back to the CTI session id; a
+ * disconnect must reach {@link CallWrapupService} the same way.
  *
  * Instantiated once by the root `App` component; the listener stays registered
  * for the lifetime of the application.
@@ -61,6 +68,8 @@ function safeOrigin(url: string): string {
 export class InboundCtiService {
   private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
+  private readonly callWrapup = inject(CallWrapupService);
+  private readonly callLifecycle = inject(CallLifecycleService);
   private readonly router = inject(Router);
 
   /** Origin of the CZentrix telephony server, the only trusted CTI sender. */
@@ -105,21 +114,58 @@ export class InboundCtiService {
     return featureCode !== null && featureCode !== SUPERVISOR_FEATURE_CODE;
   }
 
-  /** Parse a CTI payload; on a fresh inbound call, seed state and navigate. */
+  /**
+   * Parse a CTI payload. On a fresh inbound call, seed state, navigate, and
+   * register the call with the backend; on the caller hanging up mid-call,
+   * start the wrap-up grace period.
+   */
   private handleCtiMessage(data: unknown): void {
     const inbound = parseInboundCtiMessage(data);
-    if (!inbound) {
-      return;
-    }
-    // De-dupe: the iframe may re-post the same event for one connected call.
-    if (this.callStore.onCall() && this.callStore.sessionId() === inbound.sessionId) {
+    if (inbound) {
+      // De-dupe: the iframe may re-post the same event for one connected call.
+      if (this.callStore.onCall() && this.callStore.sessionId() === inbound.sessionId) {
+        return;
+      }
+      this.callStore.startCall({
+        cli: inbound.cli,
+        sessionId: inbound.sessionId,
+      });
+      void this.router.navigate(['/innerpage', 'registration']);
+      this.registerCallStart(inbound.cli, inbound.sessionId);
       return;
     }
 
-    this.callStore.startCall({
-      cli: inbound.cli,
-      sessionId: inbound.sessionId,
-    });
-    void this.router.navigate(['/innerpage', 'registration']);
+    const disconnect = parseDisconnectCtiMessage(data);
+    if (disconnect) {
+      this.callWrapup.handleCallerDisconnect(disconnect.callId);
+    }
+  }
+
+  /**
+   * Register the call with the backend and resolve the real AMRIT call id
+   * (legacy `storeCallID`). Fire-and-forget, like legacy: the agent proceeds
+   * to registration regardless, and every downstream call-lifecycle request
+   * already falls back to the CTI session id when this hasn't resolved yet.
+   */
+  private registerCallStart(cli: string, sessionId: string): void {
+    const user = this.authStore.user();
+    this.callLifecycle
+      .startCall({
+        beneficiaryRegID: this.callStore.beneficiaryId(),
+        callID: sessionId,
+        phoneNo: cli,
+        agentID: user?.agentID ?? null,
+        createdBy: user?.userName ?? '',
+        callReceivedUserID: user?.userID ?? null,
+        isOutbound: false,
+      })
+      .subscribe({
+        next: (response) => {
+          if (this.callStore.sessionId() === sessionId && response.benCallID) {
+            this.callStore.setCallId(response.benCallID);
+          }
+        },
+        error: (err: unknown) => console.warn('startCall failed; falling back to the CTI session id', err),
+      });
   }
 }

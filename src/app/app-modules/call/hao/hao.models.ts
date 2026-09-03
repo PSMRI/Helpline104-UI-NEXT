@@ -226,7 +226,11 @@ export interface CampaignSkill {
 /**
  * Payload for `cti/transferCall`, mirroring the legacy `transferToCampaign`
  * request body (snake_case keys are applied in {@link HaoService}). `skill` is
- * sent only when a skill was chosen ({@link skillTransferFlag}).
+ * sent only when a skill was chosen ({@link skillTransferFlag}). `callType`/
+ * `callTypeID` are always sent, sourced from the same mandatory Call Type /
+ * Call Sub-Type selection as {@link CloseCallRequest} — legacy's
+ * `transferCallToCampaign` reads them off the same closure form values used
+ * to build `closeCall`, unconditionally, not only on a skill transfer.
  */
 export interface TransferCallRequest {
   /** Transferring agent's id (`transfer_from`). */
@@ -240,4 +244,8 @@ export interface TransferCallRequest {
   /** Agent IP, resolved via `cti/getAgentIPAddress`; null when unavailable. */
   agentIPAddress?: string | null;
   benCallID: string;
+  /** Selected call-type group, same value {@link CloseCallRequest.callType} sends. */
+  callType: string;
+  /** Chosen sub-type id, same value {@link CloseCallRequest.callTypeID} sends. */
+  callTypeID: number;
 }

@@ -549,8 +549,8 @@ export class LocationCommunicationComponent implements OnInit {
         providerServiceMapID: this.psmID(),
         notificationTypeID: this.locationTypeID,
         workingLocationIDs: this.allOfficeIDs,
-        validStartDate: start.toISOString(),
-        validEndDate: end.toISOString(),
+        validStartDate: toOffsetIsoString(start),
+        validEndDate: toOffsetIsoString(end),
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -679,8 +679,8 @@ export class LocationCommunicationComponent implements OnInit {
         notificationID: row.notificationID,
         notification: subject.trim() || null,
         notificationDesc: message.trim() || null,
-        validFrom: start.toISOString(),
-        validTill: end.toISOString(),
+        validFrom: toOffsetIsoString(start),
+        validTill: toOffsetIsoString(end),
         deleted: row.deleted,
         modifiedBy: this.authStore.user()?.userName ?? null,
       })

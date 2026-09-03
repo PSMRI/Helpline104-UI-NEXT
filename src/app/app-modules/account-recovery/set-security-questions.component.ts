@@ -49,6 +49,8 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 import { AppFooterComponent } from '@/shared/components/layout/app-footer.component';
 import { AppHeaderComponent } from '@/shared/components/layout/app-header.component';
 
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { LOGIN_ROUTE } from '../core/core.constants';
 import { encryptPassword } from '../login/password-crypto';
 import { AccountRecoveryService } from './account-recovery.service';
@@ -106,6 +108,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
     ZardFormMessageComponent,
     AppHeaderComponent,
     AppFooterComponent,
+    TranslatePipe,
   ],
   viewProviders: [provideIcons({ lucideEye, lucideEyeOff, lucideLock })],
   templateUrl: './set-security-questions.component.html',
@@ -115,7 +118,9 @@ export class SetSecurityQuestionsComponent implements OnInit {
   private readonly store = inject(AccountRecoveryStore);
   private readonly router = inject(Router);
   private readonly dialog = inject(ConfirmDialogService);
+  private readonly i18n = inject(I18nService);
 
+  readonly lang = this.i18n.language;
   readonly loading = signal(false);
   readonly showPassword = signal(false);
   readonly questions = signal<SecurityQuestionOption[]>([]);
@@ -221,8 +226,8 @@ export class SetSecurityQuestionsComponent implements OnInit {
       error: (error: RecoveryError) => {
         this.loading.set(false);
         this.dialog.alert({
-          title: 'Error',
-          message: error?.errorMessage || 'Unable to load security questions. Please try again.',
+          title: this.i18n.instant('accountRecovery.error'),
+          message: error?.errorMessage || this.i18n.instant('accountRecovery.setup.questionsLoadError'),
         });
       },
     });
@@ -285,7 +290,7 @@ export class SetSecurityQuestionsComponent implements OnInit {
       next: () => {
         this.loading.set(false);
         this.store.clear();
-        toast.success('Security questions saved and password set. Please sign in.');
+        toast.success(this.i18n.instant('accountRecovery.setup.success'));
         void this.router.navigate([LOGIN_ROUTE]);
       },
       error: (error: RecoveryError) => this.showSetupError(error),
@@ -295,8 +300,8 @@ export class SetSecurityQuestionsComponent implements OnInit {
   private showSetupError(error: RecoveryError): void {
     this.loading.set(false);
     this.dialog.alert({
-      title: 'Error',
-      message: error?.errorMessage || 'Unable to complete setup. Please try again.',
+      title: this.i18n.instant('accountRecovery.error'),
+      message: error?.errorMessage || this.i18n.instant('accountRecovery.setup.error'),
     });
   }
 

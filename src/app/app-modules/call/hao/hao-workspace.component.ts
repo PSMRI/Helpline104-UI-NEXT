@@ -21,7 +21,7 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -32,6 +32,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
+import { CallWrapupService } from '../call-wrapup.service';
 import { SERVICE_104, collectServiceScreens } from '../role-workspace/role-screens.util';
 import { HasUnsavedChanges } from '../unsaved-changes.guard';
 import { HaoStepperComponent } from './hao-stepper.component';
@@ -124,6 +125,7 @@ const SCREEN_REGISTRATION = 'Registration';
 export class HaoWorkspaceComponent implements HasUnsavedChanges {
   private readonly callStore = inject(CallStore);
   private readonly authStore = inject(AuthStore);
+  private readonly callWrapup = inject(CallWrapupService);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
@@ -134,6 +136,15 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
 
   /** Index of the active wizard step (0 = service, 1 = closure). */
   readonly stepIndex = signal(0);
+
+  constructor() {
+    // Idempotent: once stepIndex reaches 1 the guard stops re-issuing next().
+    effect(() => {
+      if (this.callWrapup.disconnectedByCaller() && this.stepIndex() !== 1) {
+        this.stepper().next();
+      }
+    });
+  }
 
   /** True once any service was saved during the call. */
   private readonly _serviceAvailed = signal(false);

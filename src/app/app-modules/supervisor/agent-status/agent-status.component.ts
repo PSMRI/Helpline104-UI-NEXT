@@ -20,197 +20,80 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-import { Subject, catchError, map, merge, of, switchMap, timer } from 'rxjs';
-
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideRefreshCw } from '@ng-icons/lucide';
-
-import { ZardBadgeComponent } from '@common-ui/ui/badge';
-import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { SupervisorError } from '../shared/supervisor-api';
-import { AgentStatusKind, OnlineAgent } from './agent-status.models';
-import { SupervisorAgentStatusService } from './agent-status.service';
-
-/** Refresh cadence for the online-agents table. */
-const AGENT_STATUS_REFRESH_MS = 30_000;
-
-/** Badge variant per status bucket (available=green, busy=red, break=yellow, offline=gray). */
-const BADGE_TYPE: Record<AgentStatusKind, 'success' | 'destructive' | 'warning' | 'secondary'> = {
-  available: 'success',
-  busy: 'destructive',
-  break: 'warning',
-  offline: 'secondary',
-};
-
-/** One emission of the polling stream: rows on success, an error otherwise. */
-interface PollResult {
-  agents: OnlineAgent[] | null;
-  error: SupervisorError | null;
-}
+import { ConfigService } from '../../core/services/config.service';
+import { CzentrixService } from '../../core/services/czentrix.service';
 
 /**
- * Live agent status (supervisor screen). Replaces the legacy
- * `AgentStatusComponent`, which embedded the CZentrix `remote_login.php`
- * console in an iframe: this version calls the Common-API proxy the legacy
- * service already defined (`cti/getOnlineAgents`) and renders the online
- * agents as a table with colour-coded status badges, auto-refreshing every
- * 30 seconds (same `timer` + `takeUntilDestroyed` pattern as the dashboard's
- * agent-state poll).
+ * Live agent status (supervisor screen). Ported from the legacy
+ * `AgentStatusComponent`, which never called a REST agent-list endpoint —
+ * it embedded CZentrix's own admin console (`remote_login.php`) in an
+ * iframe using the login key captured at portal login, and let CZentrix's
+ * own server-rendered page own the agent list, its scoping and its access
+ * control.
  *
- * Standalone, OnPush + signals, ZardUI + Tailwind only.
+ * An earlier version of this screen called `cti/getOnlineAgents` directly;
+ * that call was ported from legacy source that was itself dead code, never
+ * live in the old app, and it returns a bare failure envelope on this
+ * backend regardless of payload — confirmed against live UAT. This restores
+ * the mechanism legacy actually ran.
  */
 @Component({
   selector: 'app-agent-status',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, NgIcon, TranslatePipe, ZardBadgeComponent, ZardButtonComponent],
-  viewProviders: [provideIcons({ lucideRefreshCw })],
+  imports: [TranslatePipe],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-base font-semibold text-foreground">
-            {{ 'supervisor.agentStatus.title' | translate: lang() }}
-          </h1>
-          <p class="text-xs text-muted-foreground">
-            {{ 'supervisor.agentStatus.autoRefresh' | translate: lang() }}
-            @if (lastUpdated(); as updated) {
-              · {{ 'supervisor.agentStatus.lastUpdated' | translate: lang() }}
-              {{ updated | date: 'HH:mm:ss' }}
-            }
-          </p>
-        </div>
-        <button z-button type="button" zType="outline" zSize="sm" (click)="refresh()">
-          <ng-icon name="lucideRefreshCw" size="16" aria-hidden="true" />
-          {{ 'supervisor.agentStatus.refresh' | translate: lang() }}
-        </button>
-      </div>
+      <h1 class="mb-4 text-base font-semibold text-foreground">
+        {{ 'supervisor.agentStatus.title' | translate: lang() }}
+      </h1>
 
-      @if (errorMessage()) {
-        <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
-      }
-
-      @if (loading()) {
-        <p class="py-8 text-center text-sm text-muted-foreground">
-          {{ 'supervisor.agentStatus.loading' | translate: lang() }}
+      @if (screenUrl(); as url) {
+        <iframe
+          [src]="url"
+          width="100%"
+          height="700"
+          class="rounded-md border border-border"
+          [title]="'supervisor.agentStatus.title' | translate: lang()"
+        ></iframe>
+      } @else {
+        <p class="py-8 text-center text-sm text-muted-foreground" role="alert">
+          {{ 'supervisor.agentStatus.unavailable' | translate: lang() }}
         </p>
-      } @else if (loaded()) {
-        <div class="overflow-x-auto rounded-md border border-border">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-muted/50 text-xs text-muted-foreground">
-              <tr>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'supervisor.agentStatus.agentId' | translate: lang() }}
-                </th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'supervisor.agentStatus.name' | translate: lang() }}
-                </th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'supervisor.agentStatus.extension' | translate: lang() }}
-                </th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'supervisor.agentStatus.status' | translate: lang() }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (agent of agents(); track agent.agentId + '-' + agent.extension) {
-                <tr class="border-t border-border align-top">
-                  <td class="px-3 py-2">{{ agent.agentId || '—' }}</td>
-                  <td class="px-3 py-2">{{ agent.name || '—' }}</td>
-                  <td class="px-3 py-2">{{ agent.extension || '—' }}</td>
-                  <td class="px-3 py-2">
-                    <z-badge [zType]="badgeType(agent.kind)">
-                      {{
-                        agent.status || ('supervisor.agentStatus.unknown' | translate: lang())
-                      }}
-                    </z-badge>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="4" class="px-3 py-8 text-center text-muted-foreground">
-                    {{ 'supervisor.agentStatus.noAgents' | translate: lang() }}
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
       }
     </section>
   `,
 })
 export class AgentStatusComponent {
-  private readonly service = inject(SupervisorAgentStatusService);
   private readonly authStore = inject(AuthStore);
+  private readonly czentrix = inject(CzentrixService);
+  private readonly config = inject(ConfigService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly i18n = inject(I18nService);
 
   readonly lang = this.i18n.language;
 
-  readonly agents = signal<OnlineAgent[]>([]);
-  /** True only until the first poll settles; later polls refresh in place. */
-  readonly loading = signal(true);
   /**
-   * True once a poll has succeeded. Until then the table (and its "no agents"
-   * empty state) stays hidden — after a failed first poll only the error
-   * banner shows, since no response has established that the list is empty.
+   * CZentrix admin-console URL, built from the login key {@link CzentrixService}
+   * already captured during the portal login handshake. Null until that key
+   * has resolved (or if the CTI handshake failed) — the iframe is withheld
+   * rather than pointed at a login URL with no key.
    */
-  readonly loaded = signal(false);
-  readonly errorMessage = signal('');
-  readonly lastUpdated = signal<Date | null>(null);
-
-  private readonly manualRefresh = new Subject<void>();
-
-  constructor() {
-    // Poll the online-agents list immediately and every 30 s (same pattern as
-    // the dashboard's agent-state poll: timer + takeUntilDestroyed). A manual
-    // refresh click merges into the same stream, and switchMap drops any
-    // in-flight poll so a stale response can never overwrite a newer one.
-    // Errors are folded into the emission so one failed poll (CTI outage)
-    // never kills the stream — the next tick retries.
-    merge(timer(0, AGENT_STATUS_REFRESH_MS), this.manualRefresh)
-      .pipe(
-        takeUntilDestroyed(),
-        switchMap(() =>
-          this.service.getOnlineAgents(this.authStore.user()?.agentID ?? null).pipe(
-            map((agents): PollResult => ({ agents, error: null })),
-            catchError((err: SupervisorError) => of<PollResult>({ agents: null, error: err })),
-          ),
-        ),
-      )
-      .subscribe((result) => this.applyPoll(result));
-  }
-
-  refresh(): void {
-    this.manualRefresh.next();
-  }
-
-  badgeType(kind: AgentStatusKind): 'success' | 'destructive' | 'warning' | 'secondary' {
-    return BADGE_TYPE[kind];
-  }
-
-  private applyPoll(result: PollResult): void {
-    this.loading.set(false);
-    if (result.agents !== null) {
-      this.agents.set(result.agents);
-      this.loaded.set(true);
-      this.errorMessage.set('');
-      this.lastUpdated.set(new Date());
-      return;
+  readonly screenUrl = computed<SafeResourceUrl | null>(() => {
+    const key = this.czentrix.loginKey();
+    const userName = this.authStore.user()?.userName;
+    if (!key || !userName) {
+      return null;
     }
-    // Keep the last successful rows visible during a transient failure; the
-    // banner flags that the data may be stale until the next tick succeeds.
-    this.errorMessage.set(
-      result.error?.errorMessage || this.i18n.instant('supervisor.agentStatus.loadError'),
-    );
-  }
+    const url =
+      `${this.config.getTelephonyServerURL()}remote_login.php` +
+      `?username=${encodeURIComponent(userName)}&key=${encodeURIComponent(key)}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  });
 }

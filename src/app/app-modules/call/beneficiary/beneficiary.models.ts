@@ -166,8 +166,6 @@ export interface RegisterBeneficiaryRequest {
   emergencyRegistration: boolean;
   createdBy: string;
   titleId?: number | string | null;
-  statusID?: number | null;
-  registeredServiceID?: number | null;
   maritalStatusID?: number | string | null;
   genderID: number;
   genderName: string;

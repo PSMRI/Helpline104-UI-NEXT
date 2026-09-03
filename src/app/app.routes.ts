@@ -26,6 +26,7 @@ import { authGuard } from './app-modules/core/auth/auth.guard';
 import { supervisorGuard } from './app-modules/core/auth/supervisor.guard';
 import { beneficiaryGuard } from './app-modules/call/beneficiary.guard';
 import { inboundGuard } from './app-modules/call/inbound.guard';
+import { roleWorkspaceGuard } from './app-modules/call/role-workspace.guard';
 import { sioGuard } from './app-modules/call/sio.guard';
 import { unsavedChangesGuard } from './app-modules/call/unsaved-changes.guard';
 
@@ -94,11 +95,13 @@ export const routes: Routes = [
       // The role service workspaces below all need an identified caller, so each
       // carries `beneficiaryGuard`: reaching one without a beneficiary (reload
       // with cleared storage, a typed URL, Back after "Back to RO") bounces to
-      // `registration` to re-identify instead of rendering a dead end.
+      // `registration` to re-identify instead of rendering a dead end. Most also
+      // carry `roleWorkspaceGuard`/`sioGuard` so a typed URL cannot reach another
+      // role's shell.
       {
         // HAO (Health Assistant Officer) service workspace.
         path: 'hao',
-        canActivate: [beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./app-modules/call/hao/hao-workspace.component').then((m) => m.HaoWorkspaceComponent),
@@ -106,21 +109,21 @@ export const routes: Routes = [
       {
         // MO (Medical Officer) case-sheet workspace.
         path: 'mo',
-        canActivate: [beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/mo-workspace.component').then((m) => m.MoWorkspaceComponent),
       },
       {
         // CO (Counselling Officer) case-sheet workspace.
         path: 'co',
-        canActivate: [beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/co-workspace.component').then((m) => m.CoWorkspaceComponent),
       },
       {
         // Counsellor (mental-health) case-sheet workspace.
         path: 'counsellor',
-        canActivate: [beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/counsellor-workspace.component').then(
             (m) => m.CounsellorWorkspaceComponent,
@@ -137,7 +140,7 @@ export const routes: Routes = [
       {
         // Surveyor workspace (call-type reports host).
         path: 'surveyor',
-        canActivate: [beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/surveyor-workspace.component').then(
             (m) => m.SurveyorWorkspaceComponent,
@@ -146,7 +149,7 @@ export const routes: Routes = [
       {
         // PD (Psychiatrist / Programme Division) case-sheet workspace.
         path: 'pd',
-        canActivate: [beneficiaryGuard],
+        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/pd-workspace.component').then((m) => m.PdWorkspaceComponent),
       },
