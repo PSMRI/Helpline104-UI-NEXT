@@ -126,6 +126,9 @@ export const hi: Record<TranslationKey, string> = {
   'dashboard.dialog.ok': 'ठीक है',
   'dashboard.dialog.cancel': 'रद्द करें',
 
+  'unsavedChanges.title': 'असहेजे परिवर्तन',
+  'unsavedChanges.message': 'इस पृष्ठ पर आपके परिवर्तन सहेजे नहीं गए हैं। यदि आप अभी छोड़ते हैं, तो वे खो जाएंगे।',
+
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'कॉल करने वाले का नंबर',
   'innerpage.timer.ariaLabel': 'कॉल अवधि',
