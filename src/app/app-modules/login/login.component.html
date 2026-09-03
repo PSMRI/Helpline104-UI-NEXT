@@ -3,16 +3,17 @@
     <header class="login-header">
       <img class="login-logo" src="images/piramal-swasthya.png" alt="Piramal Swasthya" width="142" height="65" />
       <h1 class="login-title">{{ 'login.title' | translate: lang() }}</h1>
-      <p class="login-subtitle">{{ 'login.subtitle' | translate: lang() }}</p>
+      <p class="login-subtitle text-base!">{{ 'login.subtitle' | translate: lang() }}</p>
     </header>
 
     <z-form-field>
-      <label z-form-label zRequired for="userID">{{ 'login.userName' | translate: lang() }}</label>
+      <label z-form-label zRequired for="userID" class="text-base">{{ 'login.userName' | translate: lang() }}</label>
       <z-form-control>
         <div class="input-affix">
           <ng-icon class="input-icon" name="lucideUser" size="18" aria-hidden="true" />
           <input
             z-input
+            zSize="lg"
             id="userID"
             class="has-leading-icon"
             type="text"
@@ -23,18 +24,19 @@
         </div>
       </z-form-control>
       @if (form.controls.userID.touched && form.controls.userID.invalid) {
-        <z-form-message>{{ 'login.userNameRequired' | translate: lang() }}</z-form-message>
+        <z-form-message class="text-base">{{ 'login.userNameRequired' | translate: lang() }}</z-form-message>
       }
     </z-form-field>
 
     <z-form-field>
-      <label z-form-label zRequired for="password">{{ 'login.password' | translate: lang() }}</label>
+      <label z-form-label zRequired for="password" class="text-base">{{ 'login.password' | translate: lang() }}</label>
       <z-form-control>
         <div class="password-row">
           <div class="input-affix">
             <ng-icon class="input-icon" name="lucideLock" size="18" aria-hidden="true" />
             <input
               z-input
+              zSize="lg"
               id="password"
               class="has-leading-icon"
               [type]="showPassword() ? 'text' : 'password'"
@@ -55,22 +57,22 @@
         </div>
       </z-form-control>
       @if (form.controls.password.touched && form.controls.password.invalid) {
-        <z-form-message>{{ 'login.passwordRequired' | translate: lang() }}</z-form-message>
+        <z-form-message class="text-base">{{ 'login.passwordRequired' | translate: lang() }}</z-form-message>
       }
     </z-form-field>
 
     <div class="forgot-row">
-      <a class="forgot-link" routerLink="/reset-password">{{ 'login.forgotPassword' | translate: lang() }}</a>
+      <a class="forgot-link text-base!" routerLink="/reset-password">{{ 'login.forgotPassword' | translate: lang() }}</a>
     </div>
 
     @if (errorMessage()) {
-      <p class="login-error" role="alert">{{ errorMessage() }}</p>
+      <p class="login-error text-base!" role="alert">{{ errorMessage() }}</p>
     }
 
     @if (captchaEnabled) {
       <div role="group" [attr.aria-label]="'login.captchaLabel' | translate: lang()">
         @if (captchaFailed()) {
-          <p class="login-error" role="alert">
+          <p class="login-error text-base!" role="alert">
             {{ 'login.captchaFailed' | translate: lang() }}
           </p>
           <div class="flex justify-center">
