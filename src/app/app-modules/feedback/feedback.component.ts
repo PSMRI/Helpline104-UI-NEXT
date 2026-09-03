@@ -188,8 +188,8 @@ export class FeedbackComponent {
   readonly submitting = signal(false);
   readonly submitError = signal('');
 
-  /** Okay is enabled only once a star rating has been chosen. */
-  readonly canSubmit = computed(() => this.rating() > 0);
+  /** Okay is enabled only once a star rating and a category have been chosen. */
+  readonly canSubmit = computed(() => this.rating() > 0 && this.category() !== '');
 
   constructor() {
     this.loadCategories();
@@ -204,7 +204,7 @@ export class FeedbackComponent {
       .subscribe({
         next: (categories) => {
           this.categoriesLoading.set(false);
-          this.categories.set(categories);
+          this.categories.set(categories.filter((c) => c.active));
         },
         error: (err: { errorMessage?: string }) => {
           this.categoriesLoading.set(false);
