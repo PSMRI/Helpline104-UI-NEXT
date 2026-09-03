@@ -243,10 +243,12 @@ export class HaoService {
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => {
           const arr = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.campaign) ? res.data.campaign : [];
-          return arr.map((c: any) => ({
-            ...c,
-            campaignName: c.campaignName ?? c.campaign_name ?? '',
-          }));
+          return arr
+            .filter((c: any) => c != null)
+            .map((c: any) => ({
+              ...c,
+              campaignName: c.campaignName ?? c.campaign_name ?? '',
+            }));
         }),
       );
   }
