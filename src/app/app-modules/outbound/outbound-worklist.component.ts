@@ -33,7 +33,7 @@ import { ZardButtonComponent } from '@common-ui/ui/button';
 import { AuthStore } from '../core/auth/auth.store';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
-import { OutboundCallRecord, OutboundError } from './outbound.models';
+import { OutboundCallRecord, OutboundError, alternatePhoneNumbers } from './outbound.models';
 import { OutboundService } from './outbound.service';
 import { OutboundStore } from './outbound.store';
 
@@ -112,12 +112,17 @@ import { OutboundStore } from './outbound.store';
               @for (row of records(); track row.outboundCallReqID; let i = $index) {
                 <tr class="border-t border-border align-top">
                   <td class="px-3 py-2">{{ i + 1 }}</td>
-                  <td class="px-3 py-2">{{ phoneOf(row) || '—' }}</td>
+                  <td class="px-3 py-2">
+                    <div>{{ phoneOf(row) || '—' }}</div>
+                    @if (alternatePhonesOf(row); as alt) {
+                      <div class="text-xs text-muted-foreground">{{ alt }}</div>
+                    }
+                  </td>
                   <td class="px-3 py-2">{{ row.beneficiary?.beneficiaryID || '—' }}</td>
                   <td class="px-3 py-2">{{ nameOf(row) || '—' }}</td>
                   <td class="px-3 py-2">{{ row.requestedFor || '—' }}</td>
                   <td class="px-3 py-2">
-                    {{ (row.prefferedDateTime | date: 'dd/MM/yyyy') || '—' }}
+                    {{ (row.prefferedDateTime | date: 'dd/MM/yyyy':'UTC') || '—' }}
                   </td>
                   <td class="px-3 py-2">{{ row.noOfTrials ?? 0 }}</td>
                   <td class="px-3 py-2">{{ row.requestedFeature || '—' }}</td>
@@ -173,6 +178,10 @@ export class OutboundWorklistComponent implements OnInit {
 
   phoneOf(row: OutboundCallRecord): string {
     return row.beneficiary?.benPhoneMaps?.[0]?.phoneNo ?? '';
+  }
+
+  alternatePhonesOf(row: OutboundCallRecord): string {
+    return alternatePhoneNumbers(row.beneficiary).join(', ');
   }
 
   nameOf(row: OutboundCallRecord): string {

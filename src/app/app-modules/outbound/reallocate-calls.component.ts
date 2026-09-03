@@ -36,7 +36,7 @@ import { AuthStore } from '../core/auth/auth.store';
 import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { OutboundAllocateComponent } from './outbound-allocate.component';
-import { AgentUser, OutboundCallRecord, OutboundError, RoleOption } from './outbound.models';
+import { AgentUser, OutboundCallRecord, OutboundError, RoleOption, alternatePhoneNumbers } from './outbound.models';
 import { OutboundService } from './outbound.service';
 import { dayRangeIso } from './outbound.util';
 
@@ -176,10 +176,15 @@ const EXCLUDED_SCREENS = new Set(['supervising', 'registration', 'surveyor']);
                 @for (row of records(); track row.outboundCallReqID; let i = $index) {
                   <tr class="border-t border-border align-top">
                     <td class="px-3 py-2">{{ i + 1 }}</td>
-                    <td class="px-3 py-2">{{ phoneOf(row) || '—' }}</td>
+                    <td class="px-3 py-2">
+                      <div>{{ phoneOf(row) || '—' }}</div>
+                      @if (alternatePhonesOf(row); as alt) {
+                        <div class="text-xs text-muted-foreground">{{ alt }}</div>
+                      }
+                    </td>
                     <td class="px-3 py-2">{{ nameOf(row) || '—' }}</td>
                     <td class="px-3 py-2">
-                      {{ (row.prefferedDateTime | date: 'dd/MM/yyyy') || '—' }}
+                      {{ (row.prefferedDateTime | date: 'dd/MM/yyyy':'UTC') || '—' }}
                     </td>
                     <td class="px-3 py-2">{{ row.requestedFeature || '—' }}</td>
                   </tr>
@@ -250,6 +255,10 @@ export class ReallocateCallsComponent implements OnInit {
 
   phoneOf(row: OutboundCallRecord): string {
     return row.beneficiary?.benPhoneMaps?.[0]?.phoneNo ?? '';
+  }
+
+  alternatePhonesOf(row: OutboundCallRecord): string {
+    return alternatePhoneNumbers(row.beneficiary).join(', ');
   }
 
   nameOf(row: OutboundCallRecord): string {

@@ -22,7 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import { ApiResponse, SnomedError, SnomedSearchRequest, SnomedSearchResponse, SnomedTerm } from './snomed.models';
@@ -31,6 +31,8 @@ import { ApiResponse, SnomedError, SnomedSearchRequest, SnomedSearchResponse, Sn
 const SNOMED_SEARCH_PATH = 'snomed/getSnomedCTRecordList';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
+const REQUEST_TIMEOUT_MS = 20_000;
 
 /**
  * SNOMED CT term search for the case-sheet chief-complaint picker.
@@ -61,6 +63,7 @@ export class SnomedService {
   search(term: string, pageNo = 0): Observable<SnomedTerm[]> {
     const body: SnomedSearchRequest = { term, pageNo };
     return this.http.post<ApiResponse<SnomedSearchResponse>>(this.baseUrl + SNOMED_SEARCH_PATH, body).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readTerms(res)),
       catchError((err: unknown) => throwError(() => this.toError(err))),
     );
@@ -98,6 +101,10 @@ export class SnomedService {
    * {@link SnomedError} with the backend message when available.
    */
   private toError(err: unknown): SnomedError {
+    if (err instanceof TimeoutError) {
+      return { status: 0, errorMessage: TIMEOUT_ERROR };
+    }
+
     if (
       err &&
       typeof (err as SnomedError).status === 'number' &&

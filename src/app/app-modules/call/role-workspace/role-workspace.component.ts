@@ -21,7 +21,7 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -32,6 +32,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import type { TranslationKey } from '../../core/i18n/locales';
 import { CallStore } from '../call.store';
+import { CallWrapupService } from '../call-wrapup.service';
 import { HaoStepperComponent } from '../hao/hao-stepper.component';
 import { CaseSheetComponent } from '../hao/steps/case-sheet.component';
 import { ClosureStepComponent } from '../hao/steps/closure-step.component';
@@ -111,6 +112,7 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
 })
 export class RoleWorkspaceComponent implements OnInit {
   private readonly callStore = inject(CallStore);
+  private readonly callWrapup = inject(CallWrapupService);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
@@ -143,6 +145,15 @@ export class RoleWorkspaceComponent implements OnInit {
 
   readonly beneficiaryId = this.callStore.beneficiaryId;
   readonly callId = this.callStore.callId;
+
+  constructor() {
+    // Idempotent: once stepIndex reaches 1 the guard stops re-issuing next().
+    effect(() => {
+      if (this.callWrapup.disconnectedByCaller() && this.stepIndex() !== 1) {
+        this.stepper().next();
+      }
+    });
+  }
 
   ngOnInit(): void {
     if (this.requireConsent()) {

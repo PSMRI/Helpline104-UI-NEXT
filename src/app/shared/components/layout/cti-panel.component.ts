@@ -20,7 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -29,6 +29,8 @@ import { lucidePhone } from '@ng-icons/lucide';
 import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { AuthStore } from '@/app-modules/core/auth/auth.store';
+import { I18nService } from '@/app-modules/core/i18n/i18n.service';
+import { TranslatePipe } from '@/app-modules/core/i18n/translate.pipe';
 import { ConfigService } from '@/app-modules/core/services/config.service';
 
 /** Static brand constants for the CTI soft-phone bar (not translatable). */
@@ -37,6 +39,14 @@ const CTI_HANDLER_PATH = 'bar/cti_handler.php';
 
 /** Feature code of the supervising role, which has no personal agent line. */
 const SUPERVISOR_FEATURE_CODE = 'Supervisor';
+
+/**
+ * How long to wait for the CTI iframe to load before treating it as
+ * unavailable. The telephony host is a separate, unmonitored server — a
+ * hang there previously left a blank/broken box with no indication or
+ * retry affordance (audit §40).
+ */
+const LOAD_TIMEOUT_MS = 8_000;
 
 /**
  * Floating CZentrix CTI (telephony soft-phone) panel, rendered once at the app
@@ -51,7 +61,7 @@ const SUPERVISOR_FEATURE_CODE = 'Supervisor';
   selector: 'app-cti-panel',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ZardButtonComponent, NgIcon],
+  imports: [ZardButtonComponent, NgIcon, TranslatePipe],
   viewProviders: [provideIcons({ lucidePhone })],
   template: `
     @if (showCzentrix()) {
@@ -67,11 +77,25 @@ const SUPERVISOR_FEATURE_CODE = 'Supervisor';
       </button>
 
       @if (ctiOpen() && ctiUrl(); as src) {
-        <iframe
-          [src]="src"
-          [title]="czentrixLabel"
-          class="fixed bottom-28 right-4 z-50 h-[380px] w-[230px] rounded-md border border-border bg-card shadow-lg"
-        ></iframe>
+        @if (unavailable()) {
+          <div
+            class="fixed bottom-28 right-4 z-50 w-[230px] rounded-md border border-border bg-card p-3 shadow-lg"
+            role="alert"
+          >
+            <p class="text-sm text-muted-foreground">{{ 'cti.unavailable' | translate: lang() }}</p>
+            <button z-button type="button" zSize="sm" class="mt-2" (click)="retry()">
+              {{ 'cti.retry' | translate: lang() }}
+            </button>
+          </div>
+        } @else {
+          <iframe
+            [src]="src"
+            [title]="czentrixLabel"
+            (load)="onIframeLoad()"
+            (error)="onIframeError()"
+            class="fixed bottom-28 right-4 z-50 h-[380px] w-[230px] rounded-md border border-border bg-card shadow-lg"
+          ></iframe>
+        }
       }
     }
   `,
@@ -80,11 +104,31 @@ export class CtiPanelComponent {
   private readonly config = inject(ConfigService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly authStore = inject(AuthStore);
+  private readonly i18n = inject(I18nService);
 
+  readonly lang = this.i18n.language;
   readonly czentrixLabel = CZENTRIX_LABEL;
 
   private readonly _ctiOpen = signal(false);
   readonly ctiOpen = this._ctiOpen.asReadonly();
+
+  /**
+   * `'loading'` while a load-timeout is pending, `'error'` once it fires or
+   * the iframe reports one. A `load` event only proves *some* content
+   * arrived, not that it's a working soft-phone bar — cross-origin content
+   * can't be inspected, so this is best-effort, not a content oracle.
+   */
+  private readonly loadState = signal<'loading' | 'loaded' | 'error'>('loading');
+  readonly unavailable = computed(() => this.loadState() === 'error');
+
+  /** Bumped on manual retry so the iframe `src` actually changes and reloads. */
+  private readonly retryNonce = signal(0);
+
+  private loadTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.clearLoadTimeout());
+  }
 
   /**
    * Whether the CZentrix toggle is visible: an authenticated session with a
@@ -109,11 +153,52 @@ export class CtiPanelComponent {
     if (id === null) {
       return null;
     }
-    const url = `${this.config.getTelephonyServerURL()}${CTI_HANDLER_PATH}?e=${id}`;
+    const nonce = this.retryNonce();
+    const url =
+      `${this.config.getTelephonyServerURL()}${CTI_HANDLER_PATH}?e=${id}` + (nonce ? `&_retry=${nonce}` : '');
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   });
 
   toggleCti(): void {
-    this._ctiOpen.update((open) => !open);
+    const opening = !this._ctiOpen();
+    this._ctiOpen.set(opening);
+    if (opening) {
+      this.startLoadWatch();
+    } else {
+      this.clearLoadTimeout();
+    }
+  }
+
+  /** Reload the iframe with a fresh URL and restart the load watch. */
+  retry(): void {
+    this.retryNonce.update((n) => n + 1);
+    this.startLoadWatch();
+  }
+
+  onIframeLoad(): void {
+    this.clearLoadTimeout();
+    this.loadState.set('loaded');
+  }
+
+  onIframeError(): void {
+    this.clearLoadTimeout();
+    this.loadState.set('error');
+  }
+
+  private startLoadWatch(): void {
+    this.loadState.set('loading');
+    this.clearLoadTimeout();
+    this.loadTimeoutId = setTimeout(() => {
+      if (this.loadState() === 'loading') {
+        this.loadState.set('error');
+      }
+    }, LOAD_TIMEOUT_MS);
+  }
+
+  private clearLoadTimeout(): void {
+    if (this.loadTimeoutId !== null) {
+      clearTimeout(this.loadTimeoutId);
+      this.loadTimeoutId = null;
+    }
   }
 }

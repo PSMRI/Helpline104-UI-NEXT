@@ -25,6 +25,13 @@
  * {@link TranslationKey}, which every other locale must implement in full.
  */
 export const en = {
+  // App-wide
+  'app.unexpectedError': 'Something went wrong. Please refresh the page and try again.',
+
+  // CTI (CZentrix soft-phone) panel
+  'cti.unavailable': 'Softphone unavailable right now.',
+  'cti.retry': 'Retry',
+
   // Header
   'dashboard.header.logoAlt': 'Piramal Swasthya',
   'dashboard.header.titleSuffix': 'Dashboard',
@@ -94,9 +101,9 @@ export const en = {
   // Activity for this week panel
   'dashboard.activity.title': 'Activity for this week',
   'dashboard.activity.trainingResources': 'Training Resources',
-  'dashboard.activity.more': 'View All →',
   'dashboard.activity.kmDocsTitle': 'KM Docs',
   'dashboard.activity.noKmDocs': 'No KM Docs documents found',
+  'dashboard.activity.viewDocument': 'View document',
 
   // Rating panel
   'dashboard.rating.title': 'Rating',
@@ -125,6 +132,7 @@ export const en = {
   'innerpage.dispatcherHint':
     'The role workspace (registration, service and closure) will open here once the caller is identified.',
   'innerpage.identifyCaller': 'Identify caller',
+  'innerpage.wrapupTimeRemaining': 'Time remaining',
 
   // Beneficiary registration / caller identification
   'registration.tab.search': 'Search',
@@ -132,6 +140,8 @@ export const en = {
   'registration.history.heading': 'Registrations for this number',
   'registration.history.loading': 'Loading registrations…',
   'registration.history.empty': 'No existing registrations for this number.',
+  'registration.history.timeout': 'Loading timed out. Please try again.',
+  'registration.history.error': 'Could not load registrations for this number. Please try again.',
   'registration.search.empty': 'No beneficiaries match your search.',
   'registration.search.prompt': 'Enter a name or registration ID, then search.',
   'registration.search.error': 'The search could not be completed — it may have timed out. Please try again.',
@@ -312,6 +322,14 @@ export const en = {
   'screening.diabetic.prediabetic': 'Prediabetic',
   'screening.diabetic.diabetic': 'Diabetic',
   'screening.diabetic.condition': 'Condition',
+  'screening.diabetic.hba1c': 'HbA1c',
+  'screening.diabetic.fastingGlucose': 'Fasting plasma glucose',
+  'screening.diabetic.ogtt': 'OGTT (75 g)',
+  'screening.diabetic.conditionNoRisk': 'No risk factor, glucose normal',
+  'screening.diabetic.actionRetest': 'Retest in 1–2 years; healthy lifestyle',
+  'screening.diabetic.conditionRiskUnknown': 'Risk factor present, glucose normal/unknown',
+  'screening.diabetic.actionLifestyle': 'Lifestyle advice; if unknown, get tested',
+  'screening.diabetic.conditionRiskHigh': 'Risk factor present & glucose high',
   'screening.bp.title': 'Blood pressure screening',
   'screening.bp.category': 'Category',
   'screening.bp.systolic': 'Systolic (mmHg)',
@@ -517,9 +535,6 @@ export const en = {
   'supervisor.home.blockUnblockHint': 'Manage blacklisted caller numbers.',
   'supervisor.home.outboundAllocationHint': 'Allocate unassigned outbound calls to agents.',
   'supervisor.home.outboundReallocationHint': 'Move allocated outbound calls between agents.',
-  'supervisor.placeholder.title': 'Coming soon',
-  'supervisor.placeholder.body':
-    'This supervisor section has not been migrated yet. Please use the legacy application for now.',
 
   // Supervisor reports hub + report screens
   'supReports.title': 'Supervisor Reports',
@@ -759,6 +774,8 @@ export const en = {
   'hao.closure.followUpDate': 'Follow-up Date',
   'hao.closure.followUpDateRequired': 'Follow-up date is required.',
   'hao.closure.remarks': 'Remarks',
+  'hao.closure.callerDisconnectedNotice':
+    'The caller has disconnected. Please close this call before the wrap-up time runs out.',
   'hao.closure.transferCall': 'Transfer call',
   'hao.closure.transferCampaign': 'Campaign',
   'hao.closure.selectCampaign': 'Select campaign',
@@ -809,6 +826,7 @@ export const en = {
 
   // Outbound — workspace
   'outbound.workspace.unknownCaller': 'Unknown caller',
+  'outbound.workspace.alternateNumbers': 'Alternate numbers',
   'outbound.workspace.callTime': 'Call time',
   'outbound.workspace.stepCaseSheet': 'Case Sheet',
   'outbound.workspace.stepClosure': 'Closure',
@@ -1315,22 +1333,79 @@ export const en = {
 
   // Supervisor agent status
   'supervisor.agentStatus.title': 'Agent Status',
-  'supervisor.agentStatus.autoRefresh': 'Refreshes automatically every 30 seconds',
-  'supervisor.agentStatus.lastUpdated': 'Last updated',
-  'supervisor.agentStatus.refresh': 'Refresh',
-  'supervisor.agentStatus.loading': 'Loading agent status…',
-  'supervisor.agentStatus.agentId': 'Agent ID',
-  'supervisor.agentStatus.name': 'Name',
-  'supervisor.agentStatus.extension': 'Extension',
-  'supervisor.agentStatus.status': 'Status',
-  'supervisor.agentStatus.unknown': 'Unknown',
-  'supervisor.agentStatus.noAgents': 'No agents are currently online.',
-  'supervisor.agentStatus.loadError': 'Unable to load agent status. Please try again.',
+  'supervisor.agentStatus.unavailable': 'Agent Status is unavailable right now. Please try logging in again.',
   // Login
+  'login.title': 'AMRIT 104 Helpline',
+  'login.subtitle': 'Sign in to your account to continue',
+  'login.userName': 'User Name',
+  'login.userNamePlaceholder': 'Enter user name',
+  'login.userNameRequired': 'User name is required.',
+  'login.password': 'Password',
+  'login.passwordPlaceholder': 'Enter password',
+  'login.passwordRequired': 'Password is required.',
+  'login.showPassword': 'Show password',
+  'login.hidePassword': 'Hide password',
+  'login.forgotPassword': 'Forgot Password?',
+  'login.submit': 'Login',
   'login.captchaLabel': 'Security check',
   'login.captchaFailed':
     'The security check could not be loaded. Check your connection and try again.',
   'login.captchaRetry': 'Retry security check',
+
+  // Account recovery (forgot password / first-login security-question setup)
+  'accountRecovery.header': 'Account Support',
+  'accountRecovery.error': 'Error',
+  'accountRecovery.userName': 'User Name',
+  'accountRecovery.userNamePlaceholder': 'Enter user name',
+  'accountRecovery.newPassword': 'New Password',
+  'accountRecovery.newPasswordPlaceholder': 'Enter new password',
+  'accountRecovery.confirmPassword': 'Confirm Password',
+  'accountRecovery.confirmPasswordPlaceholder': 'Re-enter new password',
+  'accountRecovery.passwordPolicy':
+    'Password must be 8–12 characters with at least 1 digit, 1 uppercase letter and 1 special character (!@#$%^&*).',
+  'accountRecovery.passwordMismatch': 'Passwords do not match.',
+  'accountRecovery.confirmPasswordRequired': 'Please confirm your password.',
+  'accountRecovery.showPassword': 'Show password',
+  'accountRecovery.hidePassword': 'Hide password',
+
+  'accountRecovery.setPassword.heading': 'Set a new password',
+  'accountRecovery.setPassword.subheading': 'Choose a strong password to finish resetting your account',
+  'accountRecovery.setPassword.submit': 'Change Password',
+  'accountRecovery.setPassword.success': 'Password changed successfully. Please sign in.',
+  'accountRecovery.setPassword.error': 'Unable to change password. Please try again.',
+
+  'accountRecovery.resetPassword.heading': 'Reset your password',
+  'accountRecovery.resetPassword.subheading': 'Follow the steps to change/reset the password',
+  'accountRecovery.resetPassword.userNameRequired': 'User name is required (minimum 2 characters).',
+  'accountRecovery.resetPassword.cancel': 'Cancel',
+  'accountRecovery.resetPassword.next': 'Next',
+  'accountRecovery.resetPassword.submit': 'Submit',
+  'accountRecovery.resetPassword.questionLabel': 'Question',
+  'accountRecovery.resetPassword.ofTotal': 'of',
+  'accountRecovery.resetPassword.answerPlaceholder': 'Enter your answer',
+  'accountRecovery.resetPassword.answerRequired': 'An answer is required.',
+  'accountRecovery.resetPassword.showAnswer': 'Show answer',
+  'accountRecovery.resetPassword.hideAnswer': 'Hide answer',
+  'accountRecovery.resetPassword.neutralFallback':
+    'If the username is registered, you will be asked a security question.',
+  'accountRecovery.resetPassword.answersError': 'Unable to verify your answers. Please try again.',
+
+  'accountRecovery.setup.heading': 'Set security questions',
+  'accountRecovery.setup.subheading':
+    'Choose three questions and set a new password to finish setting up your account',
+  'accountRecovery.setup.question1': 'Question 1',
+  'accountRecovery.setup.question2': 'Question 2',
+  'accountRecovery.setup.question3': 'Question 3',
+  'accountRecovery.setup.selectQuestion': 'Select a question',
+  'accountRecovery.setup.answer1': 'Answer 1',
+  'accountRecovery.setup.answer2': 'Answer 2',
+  'accountRecovery.setup.answer3': 'Answer 3',
+  'accountRecovery.setup.answerPlaceholder': 'Enter your answer',
+  'accountRecovery.setup.duplicateQuestion': 'Please choose three different questions.',
+  'accountRecovery.setup.submit': 'Save & Continue',
+  'accountRecovery.setup.questionsLoadError': 'Unable to load security questions. Please try again.',
+  'accountRecovery.setup.success': 'Security questions saved and password set. Please sign in.',
+  'accountRecovery.setup.error': 'Unable to complete setup. Please try again.',
 
   // SMS templates
   'supSms.listTitle': 'SMS Template List',

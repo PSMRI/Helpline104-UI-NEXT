@@ -35,7 +35,7 @@ import { AuthStore } from '../../../core/auth/auth.store';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { SupervisorError } from '../../shared/supervisor-api';
-import { SUP_SELECT_CLASS, SUP_TEXTAREA_CLASS } from '../../shared/supervisor-ui';
+import { SUP_SELECT_CLASS, SUP_TEXTAREA_CLASS, toOffsetIsoString } from '../../shared/supervisor-ui';
 import { KmFileManager, NotificationCreateRequest, NotificationRow, ProviderRole } from './notification.models';
 import { SupervisorNotificationService } from './notification.service';
 
@@ -442,8 +442,8 @@ export class TrainingResourcesAdminComponent implements OnInit {
         providerServiceMapID: this.psmID(),
         notificationTypeID: this.notificationTypeID,
         roleIDs: this.allRoleIDs,
-        validStartDate: start.toISOString(),
-        validEndDate: end.toISOString(),
+        validStartDate: toOffsetIsoString(start),
+        validEndDate: toOffsetIsoString(end),
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -565,8 +565,8 @@ export class TrainingResourcesAdminComponent implements OnInit {
     const end = new Date();
     end.setFullYear(end.getFullYear() + 20);
     end.setHours(23, 59, 59, 0);
-    const validFrom = start.toISOString();
-    const validTill = end.toISOString();
+    const validFrom = toOffsetIsoString(start);
+    const validTill = toOffsetIsoString(end);
 
     const base: NotificationCreateRequest = {
       providerServiceMapID: this.psmID(),
