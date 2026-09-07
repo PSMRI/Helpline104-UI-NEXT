@@ -54,9 +54,6 @@ import {
 
 type ViewMode = 'list' | 'create' | 'edit';
 
-/** Fetch the whole catalogue in one page and paginate client-side. */
-const FETCH_PAGE_SIZE = 1000;
-
 /** Page-size choices of the legacy table footer. */
 const PAGE_SIZES = [5, 10, 15, 20];
 
@@ -160,7 +157,7 @@ interface ContentField {
                 </tr>
               </thead>
               <tbody>
-                @for (row of pagedRows(); track row.item.diseasesummaryID ?? $index) {
+                @for (row of rows(); track row.item.diseasesummaryID ?? $index) {
                   <tr class="border-t border-border align-top">
                     <td class="px-3 py-2">{{ pageStartIndex() + $index + 1 }}</td>
                     <td class="px-3 py-2">{{ row.diseaseName || '—' }}</td>
@@ -363,14 +360,9 @@ export class DiseasesSummaryConfigComponent implements OnInit {
   readonly rows = signal<DiseaseRow[]>([]);
   readonly pageNo = signal(1);
   readonly pageSize = signal(PAGE_SIZES[0]);
+  readonly totalPages = signal(1);
 
-  readonly totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.rows().length / this.pageSize())),
-  );
   readonly pageStartIndex = computed(() => (this.pageNo() - 1) * this.pageSize());
-  readonly pagedRows = computed(() =>
-    this.rows().slice(this.pageStartIndex(), this.pageStartIndex() + this.pageSize()),
-  );
 
   /** Duplicate-name guard (legacy `checkExistance`), case-insensitive. */
   readonly nameExists = signal(false);
@@ -426,7 +418,7 @@ export class DiseasesSummaryConfigComponent implements OnInit {
     this.loading.set(true);
     this.errorMessage.set('');
     this.service
-      .getDiseaseSummaryList(1, FETCH_PAGE_SIZE)
+      .getDiseaseSummaryList(this.pageNo(), this.pageSize())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (page) => {
@@ -443,7 +435,7 @@ export class DiseasesSummaryConfigComponent implements OnInit {
               deleted: item['deleted'] === true,
             })),
           );
-          this.pageNo.set(1);
+          this.totalPages.set(Math.max(1, page.totalPages ?? 1));
         },
         error: (err: SupervisorError) => {
           if (reqId !== this.loadReqId) {
@@ -451,6 +443,7 @@ export class DiseasesSummaryConfigComponent implements OnInit {
           }
           this.loading.set(false);
           this.rows.set([]);
+          this.totalPages.set(1);
           this.errorMessage.set(
             err.errorMessage || this.i18n.instant('supDisease.loadError'),
           );
@@ -459,8 +452,9 @@ export class DiseasesSummaryConfigComponent implements OnInit {
   }
 
   setPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages()) {
+    if (page >= 1 && page <= this.totalPages() && page !== this.pageNo()) {
       this.pageNo.set(page);
+      this.load();
     }
   }
 
@@ -469,6 +463,7 @@ export class DiseasesSummaryConfigComponent implements OnInit {
     if (PAGE_SIZES.includes(size)) {
       this.pageSize.set(size);
       this.pageNo.set(1);
+      this.load();
     }
   }
 
@@ -561,6 +556,7 @@ export class DiseasesSummaryConfigComponent implements OnInit {
           this.saving.set(false);
           toast.success(this.i18n.instant('supDisease.saved'));
           this.backToList();
+          this.pageNo.set(1);
           this.load();
         },
         error: (err: SupervisorError) => {
@@ -588,6 +584,7 @@ export class DiseasesSummaryConfigComponent implements OnInit {
           this.saving.set(false);
           toast.success(this.i18n.instant('supDisease.updated'));
           this.backToList();
+          this.pageNo.set(1);
           this.load();
         },
         error: (err: SupervisorError) => {
@@ -626,6 +623,7 @@ export class DiseasesSummaryConfigComponent implements OnInit {
       .subscribe({
         next: () => {
           toast.success(this.i18n.instant('supDisease.statusUpdated'));
+          this.pageNo.set(1);
           this.load();
         },
         error: (err: SupervisorError) => {
