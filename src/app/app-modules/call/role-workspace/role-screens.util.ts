@@ -29,6 +29,25 @@ export const SERVICE_104 = '104';
 export const SCREEN_HEALTH_ADVICE = 'Health_Advice';
 
 /**
+ * The 104 service screens the SIO workspace exists to serve — every
+ * screen-gated tab in `service-delivery-step` except Health Advisory (HAO's
+ * own case sheet). The single source of truth for both that tab list and
+ * {@link sioGuard}, so the two can't silently drift apart.
+ */
+export const SIO_SCREENS: readonly string[] = [
+  'Blood Request',
+  'Directory Information Service',
+  'Epidemic Outbreak Service',
+  'Food safety',
+  'Grievance',
+  'Organ Donation',
+  'Health schemes',
+  'Covid19 for 104 services',
+  'IMR MMR Information',
+  'Bal Vivah',
+];
+
+/**
  * Maps a role's {@link CurrentRole.featureCode} to its on-call workspace child
  * route under `/innerpage`. `RO` (registration-only) has no service workspace —
  * it stays on the dispatcher/registration screen — so it (and any unknown code)

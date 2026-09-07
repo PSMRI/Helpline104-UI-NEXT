@@ -39,7 +39,7 @@ export class ConfigService {
 
   /** Licensing calls historically share the common API host. */
   getCommonBaseURLLicense(): string {
-    return environment.commonAPI;
+    return this.upgradeToHttps(environment.commonAPI);
   }
 
   /** Open (unauthenticated) endpoints share the common API host. */
