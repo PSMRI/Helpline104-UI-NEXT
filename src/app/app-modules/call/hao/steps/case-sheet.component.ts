@@ -24,6 +24,9 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, ou
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideSearch } from '@ng-icons/lucide';
+
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
@@ -48,6 +51,9 @@ import {
   CaseSheetRequest,
   CovidDoseType,
   CovidVaccineType,
+  GuidelineCategory,
+  GuidelineDetail,
+  GuidelineSubCategory,
   PresentCaseSheet,
   SaveCovidVaccinationRequest,
 } from '../hao.models';
@@ -56,6 +62,7 @@ import { HaoService } from '../hao.service';
 type HistoryTab = 'mcts' | 'mmu' | 'tm';
 type ChiefComplaintMode = 'complaint' | 'summary';
 type VaccineStatus = 'YES' | 'NO';
+type WellbeingOrInfo = '1' | '2';
 
 function toCdssGender(genderName: string | null | undefined): CdssGender | null {
   switch (genderName?.trim().charAt(0).toUpperCase()) {
@@ -81,13 +88,19 @@ const MIN_VACCINE_AGE = 12;
     TranslatePipe,
     ZardButtonComponent,
     ZardInputDirective,
+    NgIcon,
     CasesheetHistoryMctsComponent,
     CasesheetHistoryMmuComponent,
     ViewDiseaseSummaryDetailsComponent,
     SnomedSearchComponent,
     CdssComponent,
   ],
+  viewProviders: [provideIcons({ lucideSearch })],
   template: `
+    <h2 class="mb-2 text-base font-semibold text-foreground">
+      {{ (isCo() ? 'hao.caseSheet.counsellingSheet' : 'hao.caseSheet.caseSheet') | translate: lang() }}
+    </h2>
+
     <div class="mb-4 rounded-lg border border-border bg-muted/30 p-3 text-sm">
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-foreground">
         <span class="font-semibold">{{ callerName() || '—' }}</span>
@@ -181,6 +194,96 @@ const MIN_VACCINE_AGE = 12;
         }
       }
 
+      @if (isCo()) {
+        <p class="text-xs text-muted-foreground">{{ 'hao.caseSheet.categoryGuidelineNote' | translate: lang() }}</p>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div class="flex gap-4 text-sm">
+            <label class="flex items-center gap-2">
+              <input type="radio" formControlName="wellbeingOrInfo" value="1" />
+              {{ 'hao.caseSheet.wellBeing' | translate: lang() }}
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" formControlName="wellbeingOrInfo" value="2" />
+              {{ 'hao.caseSheet.information' | translate: lang() }}
+            </label>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-category">
+              {{ 'hao.caseSheet.category' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="hao-cs-category"
+              formControlName="categoryID"
+              class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">{{ 'hao.caseSheet.selectCategory' | translate: lang() }}</option>
+              @for (c of filteredCategories(); track c.categoryID) {
+                <option [ngValue]="c.categoryID">{{ c.categoryName }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-subcategory">
+              {{ 'hao.caseSheet.subCategory' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cs-subcategory"
+              formControlName="subCategoryID"
+              class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">{{ 'hao.caseSheet.selectSubCategory' | translate: lang() }}</option>
+              @for (sc of subCategories(); track sc.subCategoryID) {
+                <option [ngValue]="sc.subCategoryID">{{ sc.subCategoryName }}</option>
+              }
+            </select>
+          </div>
+
+          <button
+            z-button
+            type="button"
+            zType="outline"
+            zSize="sm"
+            [zLoading]="loadingGuidelines()"
+            [zDisabled]="form.controls.categoryID.value === null || loadingGuidelines()"
+            [attr.aria-label]="'hao.caseSheet.getGuidelines' | translate: lang()"
+            (click)="searchGuidelines()"
+          >
+            <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
+          </button>
+        </div>
+
+        @if (guidelineResults(); as results) {
+          <div class="rounded-md border border-dashed border-border p-3 text-sm">
+            @if (results.length > 0 && anyGuidelineFile(results)) {
+              <ul class="flex flex-col gap-1">
+                @for (detail of results; track $index) {
+                  @if (detail.subCatFilePath) {
+                    <li>
+                      <a
+                        [href]="detail.subCatFilePath"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-primary underline-offset-2 hover:underline"
+                      >
+                        {{ detail.subCategoryName }}@if (detail.fileManger?.[0]?.fileName) {
+                          : {{ detail.fileManger?.[0]?.fileName }}
+                        }
+                      </a>
+                    </li>
+                  }
+                }
+              </ul>
+            } @else {
+              <span class="text-muted-foreground">{{ 'hao.caseSheet.noDocumentAvailable' | translate: lang() }}</span>
+            }
+          </div>
+        }
+      }
+
       @if (isHaoOrMo()) {
         <div class="flex gap-4 text-sm">
           <label class="flex items-center gap-2">
@@ -200,16 +303,28 @@ const MIN_VACCINE_AGE = 12;
             {{ 'hao.caseSheet.chiefComplaints' | translate: lang() }}
             <span class="text-destructive" aria-hidden="true">*</span>
           </label>
-          <textarea
-            z-input
-            id="hao-cs-complaints"
-            rows="3"
-            maxlength="2000"
-            formControlName="chiefComplaints"
-            [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
-            [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
-            [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
-          ></textarea>
+          @if (isCo()) {
+            <textarea
+              z-input
+              id="hao-cs-complaints"
+              rows="3"
+              maxlength="800"
+              formControlName="chiefComplaints"
+              [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
+              [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
+            ></textarea>
+          } @else {
+            <textarea
+              z-input
+              id="hao-cs-complaints"
+              rows="3"
+              maxlength="2000"
+              formControlName="chiefComplaints"
+              [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
+              [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
+              [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
+            ></textarea>
+          }
           @if (isInvalid('chiefComplaints')) {
             <p id="hao-cs-complaints-error" class="text-xs font-medium text-destructive" role="alert">
               @if (form.controls.chiefComplaints.hasError('maxlength')) {
@@ -219,45 +334,101 @@ const MIN_VACCINE_AGE = 12;
               }
             </p>
           }
-          <app-snomed-search (selected)="onSnomedSelected($event)" />
+          @if (!isCo()) {
+            <app-snomed-search (selected)="onSnomedSelected($event)" />
+          }
         </div>
 
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium" for="hao-cs-diagnosis">
             {{ 'hao.caseSheet.provisionalDiagnosis' | translate: lang() }}
+            @if (isCo()) {
+              <span class="text-destructive" aria-hidden="true">*</span>
+            }
           </label>
           <textarea
             z-input
             id="hao-cs-diagnosis"
             rows="2"
             maxlength="100"
-            readonly
+            [readonly]="!isCo()"
             formControlName="provisionalDiagnosis"
+            [attr.aria-invalid]="isInvalid('provisionalDiagnosis') || null"
             [placeholder]="'hao.caseSheet.provisionalDiagnosisPlaceholder' | translate: lang()"
           ></textarea>
-        </div>
-
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium" for="hao-cs-recommended-action">
-            {{ 'hao.caseSheet.recommendedAction' | translate: lang() }}
-            @if (isHaoOrMo()) {
-              <span class="text-destructive" aria-hidden="true">*</span>
-            }
-          </label>
-          <textarea
-            z-input
-            id="hao-cs-recommended-action"
-            rows="2"
-            maxlength="300"
-            formControlName="recommendedAction"
-            [attr.aria-invalid]="isInvalid('recommendedAction') || null"
-          ></textarea>
-          @if (isInvalid('recommendedAction')) {
+          @if (isInvalid('provisionalDiagnosis')) {
             <p class="text-xs font-medium text-destructive" role="alert">
-              {{ 'hao.caseSheet.recommendedActionRequired' | translate: lang() }}
+              @if (form.controls.provisionalDiagnosis.hasError('minlength')) {
+                {{ 'hao.caseSheet.provisionalDiagnosisTooShort' | translate: lang() }}
+              } @else {
+                {{ 'hao.caseSheet.provisionalDiagnosisRequired' | translate: lang() }}
+              }
             </p>
           }
         </div>
+
+        @if (isCo()) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-risk-level">
+              {{ 'hao.caseSheet.riskLevel' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cs-risk-level"
+              formControlName="riskLevel"
+              class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">{{ 'hao.caseSheet.riskLevel' | translate: lang() }}</option>
+              <option value="Mild">{{ 'hao.caseSheet.riskLevelMild' | translate: lang() }}</option>
+              <option value="Moderate">{{ 'hao.caseSheet.riskLevelModerate' | translate: lang() }}</option>
+              <option value="High">{{ 'hao.caseSheet.riskLevelHigh' | translate: lang() }}</option>
+            </select>
+          </div>
+        }
+
+        @if (!isCo()) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-recommended-action">
+              {{ 'hao.caseSheet.recommendedAction' | translate: lang() }}
+              @if (isHaoOrMo()) {
+                <span class="text-destructive" aria-hidden="true">*</span>
+              }
+            </label>
+            <textarea
+              z-input
+              id="hao-cs-recommended-action"
+              rows="2"
+              maxlength="300"
+              formControlName="recommendedAction"
+              [attr.aria-invalid]="isInvalid('recommendedAction') || null"
+            ></textarea>
+            @if (isInvalid('recommendedAction')) {
+              <p class="text-xs font-medium text-destructive" role="alert">
+                {{ 'hao.caseSheet.recommendedActionRequired' | translate: lang() }}
+              </p>
+            }
+          </div>
+        } @else {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-treatment-recommendation">
+              {{ 'hao.caseSheet.treatmentRecommendation' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              z-input
+              id="hao-cs-treatment-recommendation"
+              rows="2"
+              minlength="3"
+              maxlength="300"
+              formControlName="treatmentRecommendation"
+              [attr.aria-invalid]="isInvalid('treatmentRecommendation') || null"
+            ></textarea>
+            @if (isInvalid('treatmentRecommendation')) {
+              <p class="text-xs font-medium text-destructive" role="alert">
+                {{ 'hao.caseSheet.treatmentRecommendationRequired' | translate: lang() }}
+              </p>
+            }
+          </div>
+        }
       } @else {
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium" for="hao-cs-disease-summary">
@@ -729,6 +900,11 @@ export class CaseSheetComponent {
   readonly doseTypes = signal<CovidDoseType[]>([]);
   private existingCovidVSID: number | null = null;
 
+  readonly allCategories = signal<GuidelineCategory[]>([]);
+  readonly subCategories = signal<GuidelineSubCategory[]>([]);
+  readonly guidelineResults = signal<GuidelineDetail[] | null>(null);
+  readonly loadingGuidelines = signal(false);
+
   readonly historyOpen = signal(false);
   readonly activeTab = signal<HistoryTab>('mcts');
   readonly selectedVisit = signal<MmuVisitRow | null>(null);
@@ -776,16 +952,31 @@ export class CaseSheetComponent {
     vaccineStatus: this.fb.control<VaccineStatus | null>(null),
     covidVaccineTypeID: this.fb.control<number | null>(null),
     doseTypeID: this.fb.control<number | null>(null),
+    wellbeingOrInfo: this.fb.control<WellbeingOrInfo>('1'),
+    categoryID: this.fb.control<number | null>(null),
+    subCategoryID: this.fb.control<number | null>(null),
+    riskLevel: this.fb.control<string | null>(null),
+    treatmentRecommendation: [''],
   });
 
   readonly complaint = toSignal(this.form.controls.chiefComplaints.valueChanges, {
     initialValue: this.form.controls.chiefComplaints.value,
   });
 
+  private readonly wellbeingOrInfo = toSignal(this.form.controls.wellbeingOrInfo.valueChanges, {
+    initialValue: this.form.controls.wellbeingOrInfo.value,
+  });
+
   readonly roleCode = computed(() => this.authStore.currentRole()?.featureCode ?? '');
   readonly isHao = computed(() => this.roleCode() === 'HAO');
   readonly isMo = computed(() => this.roleCode() === 'MO');
+  readonly isCo = computed(() => this.roleCode() === 'CO');
   readonly isHaoOrMo = computed(() => this.isHao() || this.isMo());
+
+  readonly filteredCategories = computed(() => {
+    const wellBeing = this.wellbeingOrInfo() === '1';
+    return this.allCategories().filter((c) => (wellBeing ? c.isWellBeing === true : !c.isWellBeing));
+  });
 
   readonly callerName = computed(() => {
     const d = this.callStore.demographics();
@@ -831,6 +1022,34 @@ export class CaseSheetComponent {
     return false;
   });
 
+  anyGuidelineFile(results: GuidelineDetail[]): boolean {
+    return results.some((r) => r.subCatFilePath);
+  }
+
+  searchGuidelines(): void {
+    const categoryID = this.form.controls.categoryID.value;
+    if (categoryID === null || this.loadingGuidelines()) {
+      return;
+    }
+    this.loadingGuidelines.set(true);
+    this.haoService
+      .getGuidelineDetails(categoryID, this.form.controls.subCategoryID.value, this.providerServiceMapID())
+      .subscribe({
+        next: (results) => {
+          this.loadingGuidelines.set(false);
+          this.guidelineResults.set(results);
+        },
+        error: () => {
+          this.loadingGuidelines.set(false);
+          this.guidelineResults.set([]);
+        },
+      });
+  }
+
+  private providerServiceMapID(): number | null {
+    return this.authStore.currentRole()?.providerServiceMapID ?? null;
+  }
+
   onSnomedSelected(term: SnomedTerm): void {
     this.form.controls.chiefComplaints.setValue(term.term);
     this.form.controls.chiefComplaints.markAsDirty();
@@ -870,6 +1089,36 @@ export class CaseSheetComponent {
       },
     });
 
+    if (this.isCo()) {
+      this.haoService.getGuidelineCategories(this.providerServiceMapID()).subscribe({
+        next: (categories) => this.allCategories.set(categories),
+        error: () => this.allCategories.set([]),
+      });
+    }
+
+    this.form.controls.wellbeingOrInfo.valueChanges.subscribe(() => {
+      this.form.controls.categoryID.setValue(null);
+      this.form.controls.subCategoryID.setValue(null);
+      this.subCategories.set([]);
+      this.guidelineResults.set(null);
+    });
+
+    this.form.controls.categoryID.valueChanges.subscribe((categoryID) => {
+      this.form.controls.subCategoryID.setValue(null);
+      this.subCategories.set([]);
+      this.guidelineResults.set(null);
+      if (categoryID !== null) {
+        this.haoService.getGuidelineSubCategories(categoryID).subscribe({
+          next: (subCategories) => this.subCategories.set(subCategories),
+          error: () => this.subCategories.set([]),
+        });
+      }
+    });
+
+    this.form.controls.subCategoryID.valueChanges.subscribe(() => {
+      this.guidelineResults.set(null);
+    });
+
     effect(() => {
       const id = this.beneficiaryId();
       if (id !== null && id !== this.prefilledFor) {
@@ -887,24 +1136,38 @@ export class CaseSheetComponent {
 
   private setRoleRequiredValidators(): void {
     const required = this.isHaoOrMo();
+    const isCo = this.isCo();
     const usingComplaint = this.form.controls.chiefComplaintMode.value === 'complaint';
     const complaintsControl = this.form.controls.chiefComplaints;
     const recommendedActionControl = this.form.controls.recommendedAction;
     const actionByRoleControl = this.form.controls.actionByRole;
     const diseaseSummaryControl = this.form.controls.diseaseSummaryID;
+    const provisionalDiagnosisControl = this.form.controls.provisionalDiagnosis;
+    const treatmentRecommendationControl = this.form.controls.treatmentRecommendation;
 
+    const complaintsMaxLength = isCo ? 800 : 2000;
     complaintsControl.setValidators(
-      required && usingComplaint ? [Validators.required, Validators.maxLength(2000)] : [Validators.maxLength(2000)],
+      (required || isCo) && usingComplaint
+        ? [Validators.required, Validators.maxLength(complaintsMaxLength)]
+        : [Validators.maxLength(complaintsMaxLength)],
     );
     recommendedActionControl.setValidators(required && usingComplaint ? [Validators.required] : []);
     actionByRoleControl.setValidators(
       required ? [Validators.required, Validators.minLength(3), Validators.maxLength(200)] : [],
     );
     diseaseSummaryControl.setValidators(required && !usingComplaint ? [Validators.required] : []);
+    provisionalDiagnosisControl.setValidators(
+      isCo ? [Validators.required, Validators.minLength(4), Validators.maxLength(100)] : [],
+    );
+    treatmentRecommendationControl.setValidators(
+      isCo ? [Validators.required, Validators.minLength(3), Validators.maxLength(300)] : [],
+    );
     complaintsControl.updateValueAndValidity();
     recommendedActionControl.updateValueAndValidity();
     actionByRoleControl.updateValueAndValidity();
     diseaseSummaryControl.updateValueAndValidity();
+    provisionalDiagnosisControl.updateValueAndValidity();
+    treatmentRecommendationControl.updateValueAndValidity();
   }
 
   private loadExistingCaseSheet(beneficiaryRegID: number): void {
@@ -942,6 +1205,10 @@ export class CaseSheetComponent {
       recommendedAction: sheet.addedAdvice ?? '',
       actionByRole: (this.isHao() ? sheet.actionByHAO : sheet.actionByMO) ?? '',
       remarks: sheet.remarks ?? null,
+      riskLevel: sheet.riskLevel ?? null,
+      treatmentRecommendation: sheet.treatmentRecommendation ?? '',
+      categoryID: sheet.categoryID ?? null,
+      subCategoryID: sheet.subCategoryID ?? null,
     });
   }
 
@@ -1019,7 +1286,14 @@ export class CaseSheetComponent {
       vaccineStatus: null,
       covidVaccineTypeID: null,
       doseTypeID: null,
+      wellbeingOrInfo: '1',
+      categoryID: null,
+      subCategoryID: null,
+      riskLevel: null,
+      treatmentRecommendation: '',
     });
+    this.subCategories.set([]);
+    this.guidelineResults.set(null);
   }
 
   saveCovidVaccine(): void {
@@ -1125,6 +1399,10 @@ export class CaseSheetComponent {
       COVID19_contact_history: contactHistory || null,
       medical_consultation:
         value.covidSeekMedicalConsult === null ? null : value.covidSeekMedicalConsult ? 'true' : 'false',
+      riskLevel: this.isCo() ? value.riskLevel : null,
+      treatmentRecommendation: this.isCo() ? value.treatmentRecommendation.trim() || null : null,
+      categoryID: this.isCo() ? value.categoryID : null,
+      subCategoryID: this.isCo() ? value.subCategoryID : null,
     };
 
     this.saving.set(true);
