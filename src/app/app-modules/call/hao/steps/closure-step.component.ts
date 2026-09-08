@@ -38,6 +38,7 @@ import { CallStore } from '../../call.store';
 import { CallWrapupService } from '../../call-wrapup.service';
 import { ScheduleAppointmentComponent } from '../../schedule-appointment/schedule-appointment.component';
 import {
+  AvailableService,
   CallSubType,
   CallType,
   CampaignSkill,
@@ -48,8 +49,38 @@ import {
 } from '../hao.models';
 import { HaoService } from '../hao.service';
 
+const ROLE_HAO = 'HAO';
+const ROLE_MO = 'MO';
 const ROLE_CO = 'CO';
 const ROLE_RO = 'RO';
+
+const HEALTH_ADVISORY_SERVICE_NAME = 'Health Advisory Service';
+
+type TransferRole = 'hao' | 'co' | 'mo';
+
+function roleForService(serviceName: string): TransferRole | null {
+  const name = serviceName.toLowerCase();
+  if (name.includes('health advisory')) {
+    return 'hao';
+  }
+  if (name.includes('counselling')) {
+    return 'co';
+  }
+  if (name.includes('medical')) {
+    return 'mo';
+  }
+  return null;
+}
+
+function getCampaignName(campaigns: TransferCampaign[], role: TransferRole): string | undefined {
+  return campaigns.find((c) => c.campaignName.toLowerCase().includes(role))?.campaignName;
+}
+
+const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
+  hao: 'hao.closure.configureHaoCampaign',
+  co: 'hao.closure.configureCoCampaign',
+  mo: 'hao.closure.configureMoCampaign',
+} as const;
 
 /**
  * "Closure" step of the HAO workspace (legacy carousel slide 1 — `<app-closure>`).
@@ -102,13 +133,14 @@ const ROLE_RO = 'RO';
           <select
             id="hao-cl-type"
             formControlName="callGroupType"
-            class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            [disabled]="disableCallType()"
+            class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             [attr.aria-invalid]="isInvalid('callGroupType') || null"
           >
             <option [ngValue]="null">
               {{ 'hao.closure.selectCallType' | translate: lang() }}
             </option>
-            @for (type of callTypes(); track type.callGroupType) {
+            @for (type of visibleCallTypes(); track type.callGroupType) {
               <option [ngValue]="type.callGroupType">{{ type.callGroupType }}</option>
             }
           </select>
@@ -296,20 +328,20 @@ const ROLE_RO = 'RO';
         @if (doTransfer()) {
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium" for="hao-cl-campaign">
-                {{ 'hao.closure.transferCampaign' | translate: lang() }}
+              <label class="text-sm font-medium" for="hao-cl-transfer-service">
+                {{ 'hao.closure.transferService' | translate: lang() }}
                 <span class="text-destructive" aria-hidden="true">*</span>
               </label>
               <select
-                id="hao-cl-campaign"
-                formControlName="campaign"
+                id="hao-cl-transfer-service"
+                formControlName="transferService"
                 class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option [ngValue]="null">
-                  {{ 'hao.closure.selectCampaign' | translate: lang() }}
+                  {{ 'hao.closure.selectTransferService' | translate: lang() }}
                 </option>
-                @for (campaign of campaigns(); track campaign.campaignName) {
-                  <option [ngValue]="campaign.campaignName">{{ campaign.campaignName }}</option>
+                @for (service of transferServices(); track service.subServiceName) {
+                  <option [ngValue]="service.subServiceName">{{ service.subServiceName }}</option>
                 }
               </select>
             </div>
@@ -337,11 +369,11 @@ const ROLE_RO = 'RO';
       </div>
 
       @if (showAppointment()) {
-        <app-schedule-appointment (saved)="showAppointment.set(false)" (cancelled)="showAppointment.set(false)" />
+        <app-schedule-appointment (saved)="onAppointmentSaved()" (cancelled)="onAppointmentCancelled()" />
       }
 
       <div class="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
-        <button z-button type="button" zType="outline" [zDisabled]="actionBusy()" (click)="showAppointment.set(true)">
+        <button z-button type="button" zType="outline" [zDisabled]="actionBusy()" (click)="openAppointmentManually()">
           {{ 'hao.closure.scheduleAppointment' | translate: lang() }}
         </button>
         @if (doTransfer()) {
@@ -361,7 +393,7 @@ const ROLE_RO = 'RO';
           type="button"
           zType="outline"
           [zLoading]="submitting()"
-          [zDisabled]="actionBusy() || doTransfer()"
+          [zDisabled]="actionBusy() || doTransfer() || nuisanceBlock()"
           (click)="submit(true)"
         >
           {{ 'hao.closure.submitContinue' | translate: lang() }}
@@ -414,6 +446,7 @@ export class ClosureStepComponent {
 
   readonly callTypes = signal<CallType[]>([]);
   readonly campaigns = signal<TransferCampaign[]>([]);
+  readonly services = signal<AvailableService[]>([]);
   readonly skills = signal<CampaignSkill[]>([]);
   readonly communities = signal<Community[]>([]);
   readonly educations = signal<Education[]>([]);
@@ -424,6 +457,8 @@ export class ClosureStepComponent {
 
   /** Whether the schedule-appointment form is shown (legacy referral flow). */
   readonly showAppointment = signal(false);
+  private readonly referralAppointment = signal(false);
+  readonly disableCallType = signal(false);
   /** A confirmation dialog is open for a terminal action (close/continue/transfer). */
   readonly confirming = signal(false);
 
@@ -460,9 +495,18 @@ export class ClosureStepComponent {
     institutionID: this.fb.control<number | null>(null),
     instituteName: this.fb.nonNullable.control<string[]>([]),
     doTransfer: [false],
-    campaign: this.fb.control<string | null>(null),
+    transferService: this.fb.control<string | null>(null),
     skill: this.fb.control<string | null>(null),
     remarks: this.fb.control<string | null>(null),
+  });
+
+  readonly visibleCallTypes = computed<CallType[]>(() => {
+    const role = this.currentRole();
+    const groups = this.callTypes();
+    if (role === ROLE_HAO || role === ROLE_MO) {
+      return groups;
+    }
+    return groups.filter((g) => g.callGroupType.toLowerCase() !== 'referral');
   });
 
   /**
@@ -472,7 +516,20 @@ export class ClosureStepComponent {
    */
   readonly subTypes = computed<CallSubType[]>(() => {
     const group = this.selectedCallGroup();
-    return this.callTypes().find((t) => t.callGroupType === group)?.callTypes ?? [];
+    return this.visibleCallTypes().find((t) => t.callGroupType === group)?.callTypes ?? [];
+  });
+
+  readonly transferServices = computed<AvailableService[]>(() => {
+    const list = this.services();
+    if (this.currentRole() === ROLE_RO && !this.hasBeneficiary()) {
+      return list.filter((s) => s.subServiceName === HEALTH_ADVISORY_SERVICE_NAME);
+    }
+    return list;
+  });
+
+  readonly nuisanceBlock = computed(() => {
+    const group = this.selectedCallGroup()?.toLowerCase() ?? null;
+    return group !== null && group !== 'valid' && group !== 'transfer' && group !== 'referral';
   });
 
   constructor() {
@@ -500,6 +557,15 @@ export class ClosureStepComponent {
       c.callSubTypeID.updateValueAndValidity();
       if (value !== 'Valid') {
         c.isFeedbackRequired.setValue(false);
+      }
+      if (value?.toLowerCase() === 'referral') {
+        if (this.hasBeneficiary()) {
+          this.showAppointment.set(true);
+          this.referralAppointment.set(true);
+        } else {
+          this.showError('hao.closure.referralNeedsBeneficiary');
+          c.callGroupType.setValue('Valid');
+        }
       }
     });
 
@@ -532,24 +598,37 @@ export class ClosureStepComponent {
 
     c.doTransfer.valueChanges.pipe(takeUntilDestroyed()).subscribe((on) => {
       this.doTransfer.set(on);
-      if (on && this.campaigns().length === 0) {
-        this.loadCampaigns();
-      }
-      if (!on) {
-        c.campaign.reset(null);
+      if (on) {
+        if (this.campaigns().length === 0) {
+          this.loadCampaigns();
+        }
+        if (this.services().length === 0) {
+          this.loadServices();
+        }
+      } else {
+        c.transferService.reset(null);
         c.skill.reset(null);
         this.skills.set([]);
         this.selectedCampaign.set(null);
       }
     });
 
-    c.campaign.valueChanges.pipe(takeUntilDestroyed()).subscribe((campaign) => {
-      this.selectedCampaign.set(campaign);
+    c.transferService.valueChanges.pipe(takeUntilDestroyed()).subscribe((serviceName) => {
       c.skill.reset(null);
       this.skills.set([]);
-      if (campaign) {
-        this.loadSkills(campaign);
+      this.selectedCampaign.set(null);
+      if (!serviceName) {
+        return;
       }
+      const role = roleForService(serviceName);
+      const campaignName = role ? getCampaignName(this.campaigns(), role) : undefined;
+      if (!campaignName) {
+        this.showError(role ? CONFIGURE_CAMPAIGN_ERROR_KEYS[role] : 'hao.closure.configureCampaignGeneric');
+        c.transferService.setValue(null);
+        return;
+      }
+      this.selectedCampaign.set(campaignName);
+      this.loadSkills(campaignName);
     });
   }
 
@@ -679,6 +758,27 @@ export class ClosureStepComponent {
       .subscribe({ error: () => this.showError('hao.closure.updateCasteError') });
   }
 
+  openAppointmentManually(): void {
+    this.referralAppointment.set(false);
+    this.showAppointment.set(true);
+  }
+
+  onAppointmentSaved(): void {
+    this.showAppointment.set(false);
+    if (this.referralAppointment()) {
+      this.disableCallType.set(true);
+    }
+    this.referralAppointment.set(false);
+  }
+
+  onAppointmentCancelled(): void {
+    this.showAppointment.set(false);
+    if (this.referralAppointment()) {
+      this.form.controls.callGroupType.setValue('Valid');
+    }
+    this.referralAppointment.set(false);
+  }
+
   transfer(): void {
     const campaign = this.selectedCampaign();
     const agentID = this.authStore.user()?.agentID ?? null;
@@ -804,6 +904,14 @@ export class ClosureStepComponent {
       // non-array value (misbehaving backend, stale mock) must never land.
       next: (campaigns) => this.campaigns.set(Array.isArray(campaigns) ? campaigns : []),
       error: () => this.campaigns.set([]),
+    });
+  }
+
+  private loadServices(): void {
+    const serviceID = this.authStore.currentRole()?.serviceID ?? null;
+    this.haoService.getAvailableServices(serviceID, true).subscribe({
+      next: (services) => this.services.set(services),
+      error: () => this.services.set([]),
     });
   }
 
