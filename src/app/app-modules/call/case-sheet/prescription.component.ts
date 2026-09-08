@@ -424,6 +424,7 @@ export class PrescriptionComponent implements OnInit {
   readonly initialDiagnosis = input('');
   /** Label toggle: provisional diagnosis (true) vs "information given" (false). */
   readonly provisionalDiagnosis = input(true);
+  readonly openHistory = input(false);
 
   /** Emits the created prescription id after a successful save. */
   readonly saved = output<number>();
@@ -484,6 +485,7 @@ export class PrescriptionComponent implements OnInit {
 
   ngOnInit(): void {
     this.diagnosis.setValue(this.initialDiagnosis());
+    this.showHistory.set(this.openHistory());
     if (!this.hasContext()) {
       return;
     }

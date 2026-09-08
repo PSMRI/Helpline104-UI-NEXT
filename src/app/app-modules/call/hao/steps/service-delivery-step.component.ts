@@ -28,7 +28,6 @@ import type { TranslationKey } from '../../../core/i18n/locales';
 import { HaoScreenName, HaoServiceId } from '../hao.models';
 import { CallStore } from '../../call.store';
 import { CaseSheetComponent } from './case-sheet.component';
-import { PrescriptionComponent } from '../../case-sheet/prescription.component';
 import { DiabeticScreeningComponent } from '../../screening/diabetic-screening.component';
 import { BpScreeningComponent } from '../../screening/bp-screening.component';
 import { DirectoryServicesComponent } from '../../directory/directory-services.component';
@@ -61,12 +60,10 @@ interface ServiceTab {
  */
 const SERVICE_TABS: readonly ServiceTab[] = [
   { id: 'healthAdvice', labelKey: 'hao.service.healthAdvisory', requiresScreen: 'Health_Advice' },
-  // Prescription and the SMS sender carry no dedicated screen mapping, so they
-  // ride the always-on group (shown for HAO, hidden for SIO via
-  // showAlwaysOnScreenings) alongside the screenings. SNOMED and CDSS are NOT
-  // tabs here — they need a chief complaint, so they live inside the Health
-  // Advisory case sheet.
-  { id: 'prescription', labelKey: 'hao.service.prescription', requiresScreen: null },
+  // The SMS sender carries no dedicated screen mapping, so it rides the
+  // always-on group (shown for HAO, hidden for SIO via showAlwaysOnScreenings)
+  // alongside the screenings. SNOMED and CDSS are NOT tabs here — they need a
+  // chief complaint, so they live inside the Health Advisory case sheet.
   { id: 'diabeticScreening', labelKey: 'hao.service.diabeticScreening', requiresScreen: null },
   { id: 'bpScreening', labelKey: 'hao.service.bpScreening', requiresScreen: null },
   { id: 'sms', labelKey: 'hao.service.sms', requiresScreen: null },
@@ -98,7 +95,6 @@ const SERVICE_TABS: readonly ServiceTab[] = [
   imports: [
     TranslatePipe,
     CaseSheetComponent,
-    PrescriptionComponent,
     DiabeticScreeningComponent,
     BpScreeningComponent,
     DirectoryServicesComponent,
@@ -144,14 +140,6 @@ const SERVICE_TABS: readonly ServiceTab[] = [
               [beneficiaryId]="beneficiaryId()"
               [callId]="callId()"
               (serviceAvailed)="serviceAvailed.emit()"
-            />
-          }
-          @case ('prescription') {
-            <app-prescription
-              [patientName]="patientName()"
-              [age]="age()"
-              [gender]="genderName()"
-              (saved)="serviceAvailed.emit()"
             />
           }
           @case ('diabeticScreening') {
