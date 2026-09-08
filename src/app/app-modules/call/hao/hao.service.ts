@@ -36,6 +36,8 @@ import {
   CloseCallRequest,
   CovidVaccinationDetails,
   CovidVaccineMasterData,
+  InstituteName,
+  InstituteType,
   PresentCaseSheet,
   SaveCovidVaccinationRequest,
   TransferCallRequest,
@@ -60,6 +62,8 @@ const PATHS = {
   covidVaccineMaster: 'covid/master/VaccinationTypeAndDoseTaken',
   covidVaccinationDetails: 'covid/getCovidVaccinationDetails',
   saveCovidVaccination: 'covid/saveCovidVaccinationDetails',
+  instituteTypes: 'institute/getInstituteTypes',
+  instituteNames: 'institute/getInstituteName/',
 } as const;
 
 /**
@@ -329,6 +333,26 @@ export class HaoService {
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => assertCallActionSucceeded(res, 'transferCall')),
+      );
+  }
+
+  getInstituteTypes(providerServiceMapID: number | null): Observable<InstituteType[]> {
+    return this.http
+      .post<ApiResponse<InstituteType[]>>(this.config.getCommonBaseURL() + PATHS.instituteTypes, {
+        providerServiceMapID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
+  }
+
+  getInstituteNames(institutionTypeID: number): Observable<InstituteName[]> {
+    return this.http
+      .get<ApiResponse<InstituteName[]>>(this.config.getCommonBaseURL() + PATHS.instituteNames + institutionTypeID)
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
       );
   }
 }
