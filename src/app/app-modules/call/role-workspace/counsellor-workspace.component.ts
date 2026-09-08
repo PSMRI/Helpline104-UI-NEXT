@@ -28,9 +28,9 @@ import { RoleWorkspaceComponent } from './role-workspace.component';
  * Counsellor on-call workspace (route `/innerpage/counsellor`).
  *
  * Ported from the legacy `104-counsellor`: a counselling case-sheet → closure
- * wizard. The legacy counsellor has a bespoke mental-health case sheet and
- * counselling history; this first cut reuses the shared case sheet, with the
- * mental-health-specific fields and history to be layered on separately.
+ * wizard, with the second "Detailed HIHL CO case sheet" tab (legacy
+ * `<app-104-counsellor>`) now wired in via {@link RoleWorkspaceComponent}'s
+ * `showHihlTab`.
  */
 @Component({
   selector: 'app-counsellor-workspace',
@@ -42,6 +42,7 @@ import { RoleWorkspaceComponent } from './role-workspace.component';
       titleKey="roleWorkspace.counsellor.title"
       subtitleKey="roleWorkspace.counsellor.subtitle"
       [requireConsent]="true"
+      [showHihlTab]="true"
     />
   `,
 })
