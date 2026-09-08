@@ -39,6 +39,7 @@ import { toast } from 'ngx-sonner';
 import { TimeoutError, catchError, throwError, timeout } from 'rxjs';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardDialogService } from '@common-ui/ui/dialog';
 import {
   ZardFormControlComponent,
   ZardFormFieldComponent,
@@ -49,13 +50,21 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 import { ZardPaginationImports } from '@common-ui/ui/pagination';
 import { ZardTableImports } from '@common-ui/ui/table';
 
+import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallerDemographics, CallStore } from '../call.store';
 import { resolveDispatchPath } from '../role-workspace/role-screens.util';
+import { SmsService } from '../sms/sms.service';
 import { HasUnsavedChanges } from '../unsaved-changes.guard';
 import { BeneficiaryService } from './beneficiary.service';
+import {
+  RegistrationSuccessDialogComponent,
+  RegistrationSuccessDialogData,
+  RegistrationSuccessDialogResult,
+} from './registration-success-dialog.component';
 import {
   BeneficiaryError,
   BeneficiaryRecord,
@@ -1028,6 +1037,9 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   private readonly callStore = inject(CallStore);
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
+  private readonly dialog = inject(ZardDialogService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly sms = inject(SmsService);
 
   readonly lang = this.i18n.language;
   readonly cli = this.callStore.cli;
@@ -1728,7 +1740,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       .subscribe({
         next: (created) => {
           this.registerLoading.set(false);
-          this.resolveBeneficiary(created.beneficiaryRegID, 'registration.toast.registered', v.districtID, {
+          this.showRegistrationSuccess(created.beneficiaryRegID, String(created.beneficiaryID ?? created.beneficiaryRegID), v.districtID, {
             firstName: v.firstName.trim() || null,
             lastName: v.lastName.trim() || null,
             // Age captured in years only (the form's default age unit); other
@@ -1811,6 +1823,99 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     const featureCode = this.authStore.currentRole()?.featureCode;
     const path = resolveDispatchPath(featureCode, this.authStore.privileges());
     void this.router.navigate(path ? ['/innerpage', path] : ['/innerpage']);
+  }
+
+  private showRegistrationSuccess(
+    beneficiaryRegID: number,
+    generatedId: string,
+    districtID: number | null,
+    demographics: CallerDemographics,
+  ): void {
+    this.registerForm.markAsPristine();
+    const dialogRef = this.dialog.create<RegistrationSuccessDialogComponent, RegistrationSuccessDialogData>({
+      zTitle: this.i18n.instant('registration.success.title'),
+      zContent: RegistrationSuccessDialogComponent,
+      zData: { registrationId: generatedId },
+      zHideFooter: true,
+      zMaskClosable: false,
+      zWidth: '26rem',
+    });
+    dialogRef.afterClosed().subscribe((result: RegistrationSuccessDialogResult | undefined) => {
+      const proceed = () => this.proceedAfterRegistration(beneficiaryRegID, districtID, demographics);
+      if (result?.sendSms) {
+        this.sendRegistrationSms(beneficiaryRegID, result.alternateNumber, proceed);
+      } else {
+        proceed();
+      }
+    });
+  }
+
+  private sendRegistrationSms(beneficiaryRegID: number, alternateNumber: string | null, onDone: () => void): void {
+    const role = this.authStore.currentRole();
+    const providerServiceMapID = role?.providerServiceMapID ?? null;
+    const serviceID = role?.serviceID ?? null;
+    const createdBy = this.authStore.user()?.userName ?? '';
+    this.sms.getSmsTypes(serviceID).subscribe({
+      next: (types) => {
+        const smsType = types.find((t) => t.smsType.toLowerCase() === 'registration sms');
+        if (!smsType) {
+          onDone();
+          return;
+        }
+        this.sms.getSmsTemplates(providerServiceMapID, smsType.smsTypeID).subscribe({
+          next: (templates) => {
+            const template = templates.find((t) => t.deleted === false);
+            if (!template) {
+              onDone();
+              return;
+            }
+            this.sms
+              .sendSms([
+                {
+                  beneficiaryRegID,
+                  smsTemplateID: template.smsTemplateID,
+                  smsTemplateTypeID: smsType.smsTypeID,
+                  providerServiceMapID,
+                  createdBy,
+                  alternateNo: alternateNumber,
+                  is1097: false,
+                },
+              ])
+              .subscribe({
+                next: () => {
+                  toast.success(this.i18n.instant('registration.success.smsSent'));
+                  onDone();
+                },
+                error: () => onDone(),
+              });
+          },
+          error: () => onDone(),
+        });
+      },
+      error: () => onDone(),
+    });
+  }
+
+  private proceedAfterRegistration(beneficiaryRegID: number, districtID: number | null, demographics: CallerDemographics): void {
+    this.callStore.setBeneficiaryId(beneficiaryRegID, districtID);
+    this.callStore.setDemographics(demographics);
+    toast.success(this.i18n.instant('registration.toast.registered'));
+    const featureCode = this.authStore.currentRole()?.featureCode;
+    const path = resolveDispatchPath(featureCode, this.authStore.privileges());
+    if (path !== 'hao') {
+      void this.router.navigate(path ? ['/innerpage', path] : ['/innerpage']);
+      return;
+    }
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('registration.continueHao.title'),
+        message: this.i18n.instant('registration.continueHao.message'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+      })
+      .subscribe((confirmed) => {
+        void this.router.navigate(confirmed ? ['/innerpage', 'hao'] : ['/innerpage']);
+      });
   }
 
   // --- Age <-> DOB math ---------------------------------------------------
