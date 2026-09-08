@@ -205,6 +205,22 @@ export interface CloseCallRequest {
   /** HAO workspace is the inbound flow. */
   IsOutbound: boolean;
   createdBy: string;
+  isFeedback?: boolean;
+  externalRefferal?: string | null;
+  instTypeId?: number | null;
+  instNames?: string[] | null;
+}
+
+export interface InstituteType {
+  institutionTypeID: number;
+  institutionType: string;
+  [key: string]: unknown;
+}
+
+export interface InstituteName {
+  institutionID?: number;
+  institutionName: string;
+  [key: string]: unknown;
 }
 
 /**

@@ -53,6 +53,7 @@ const VILLAGES_PATH = 'location/village/';
 const PROVIDER_STATES_PATH = 'm/role/state';
 /** Healthcare-worker types live on the 104 API. */
 const HCW_TYPES_PATH = 'beneficiary/get/healthCareWorkerTypes';
+const UPDATE_COMMUNITY_OR_EDUCATION_PATH = 'beneficiary/updateCommunityorEducation';
 
 /** Page size used when pulling a caller's full registration history. */
 const HISTORY_PAGE_SIZE = 1000;
@@ -131,6 +132,23 @@ export class BeneficiaryService {
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => this.readData(res)),
+        catchError((err: unknown) => throwError(() => this.toError(err))),
+      );
+  }
+
+  updateCommunityOrEducation(
+    beneficiaryRegID: number,
+    communityID: number | null,
+    educationID: number | null,
+  ): Observable<void> {
+    return this.http
+      .post<ApiResponse<unknown>>(this.baseUrl + UPDATE_COMMUNITY_OR_EDUCATION_PATH, {
+        beneficiaryRegID,
+        i_bendemographics: { communityID, educationID },
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map(() => undefined),
         catchError((err: unknown) => throwError(() => this.toError(err))),
       );
   }
