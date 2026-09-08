@@ -42,6 +42,9 @@ import type { CdssGender, CdssSelection } from '../../case-sheet/cdss.models';
 import { DiseaseSummaryDetail } from '../../case-sheet/disease-summary.models';
 import { SnomedSearchComponent } from '../../case-sheet/snomed-search.component';
 import type { SnomedTerm } from '../../case-sheet/snomed.models';
+import { PrescriptionComponent } from '../../case-sheet/prescription.component';
+import { PrescriptionRecord } from '../../case-sheet/prescription.models';
+import { PrescriptionService } from '../../case-sheet/prescription.service';
 import { ViewDiseaseSummaryDetailsComponent } from '../../case-sheet/view-disease-summary-details.component';
 import {
   AvailableDisease,
@@ -53,6 +56,11 @@ import {
 } from '../hao.models';
 import { HaoService } from '../hao.service';
 
+const MO_FEATURE_CODE = 'MO';
+
+const RECENT_PRESCRIPTION_WINDOW_MS = 5 * 24 * 60 * 60 * 1000;
+
+/** History tabs shown in the case-sheet history section. */
 type HistoryTab = 'mcts' | 'mmu' | 'tm';
 type ChiefComplaintMode = 'complaint' | 'summary';
 type VaccineStatus = 'YES' | 'NO';
@@ -86,6 +94,7 @@ const MIN_VACCINE_AGE = 12;
     ViewDiseaseSummaryDetailsComponent,
     SnomedSearchComponent,
     CdssComponent,
+    PrescriptionComponent,
   ],
   template: `
     <div class="mb-4 rounded-lg border border-border bg-muted/30 p-3 text-sm">
@@ -610,8 +619,25 @@ const MIN_VACCINE_AGE = 12;
         (selection)="onCdssSelection($event)"
       />
 
-      <div class="flex justify-end gap-2">
-        <button z-button type="button" zType="outline" (click)="clear()">
+      <div class="flex flex-wrap justify-end gap-2">
+        @if (showPrescription()) {
+          <button z-button type="button" zType="outline" class="mr-auto" (click)="togglePrescription()">
+            {{ 'hao.service.prescription' | translate: lang() }}
+          </button>
+          @if (recentPrescription()) {
+            <button
+              z-button
+              type="button"
+              zType="outline"
+              class="-ml-1"
+              [title]="'hao.caseSheet.resendPrescriptionHint' | translate: lang()"
+              (click)="openRecentPrescription()"
+            >
+              {{ 'hao.caseSheet.resendPrescription' | translate: lang() }}
+            </button>
+          }
+        }
+        <button z-button type="button" zType="outline" (click)="resetForm()">
           {{ 'hao.caseSheet.clear' | translate: lang() }}
         </button>
         <button z-button type="submit" [zLoading]="saving()" [zDisabled]="saving() || beneficiaryId() === null">
@@ -619,6 +645,19 @@ const MIN_VACCINE_AGE = 12;
         </button>
       </div>
     </form>
+
+    @if (prescriptionOpen()) {
+      <div class="mt-4">
+        <app-prescription
+          [patientName]="patientDisplayName()"
+          [age]="patientAge()"
+          [gender]="patientGenderName()"
+          [initialDiagnosis]="form.controls.healthAdvice.value ?? ''"
+          [openHistory]="openPrescriptionHistory()"
+          (saved)="onPrescriptionSaved()"
+        />
+      </div>
+    }
 
     @if (beneficiaryId() !== null) {
       <section class="mt-6 border-t border-border pt-4">
@@ -705,6 +744,7 @@ const MIN_VACCINE_AGE = 12;
 export class CaseSheetComponent {
   private readonly fb = inject(FormBuilder);
   private readonly haoService = inject(HaoService);
+  private readonly prescriptionService = inject(PrescriptionService);
   private readonly authStore = inject(AuthStore);
   readonly callStore = inject(CallStore);
   private readonly i18n = inject(I18nService);
@@ -721,6 +761,17 @@ export class CaseSheetComponent {
   readonly saving = signal(false);
   readonly savingVaccine = signal(false);
 
+  readonly showPrescription = computed(() => this.roleCode() === MO_FEATURE_CODE);
+  readonly prescriptionOpen = signal(false);
+  readonly openPrescriptionHistory = signal(false);
+  readonly recentPrescription = signal<PrescriptionRecord | null>(null);
+  readonly patientDisplayName = computed(() => {
+    const d = this.callStore.demographics();
+    return [d?.firstName, d?.lastName].filter(Boolean).join(' ');
+  });
+  readonly patientGenderName = computed(() => this.callStore.demographics()?.genderName ?? '');
+
+  /** Disease-summary detail modal state (null = closed). */
   readonly diseaseDetail = signal<DiseaseSummaryDetail | null>(null);
   readonly loadingDisease = signal(false);
   readonly diseaseError = signal('');
@@ -879,6 +930,9 @@ export class CaseSheetComponent {
           this.loadExistingVaccineStatus(id);
         }
       }
+      if (id !== null && this.showPrescription()) {
+        this.loadRecentPrescription(id);
+      }
     });
 
     this.setRoleRequiredValidators();
@@ -907,6 +961,60 @@ export class CaseSheetComponent {
     diseaseSummaryControl.updateValueAndValidity();
   }
 
+  togglePrescription(): void {
+    this.openPrescriptionHistory.set(false);
+    this.prescriptionOpen.update((open) => !open);
+  }
+
+  openRecentPrescription(): void {
+    this.openPrescriptionHistory.set(true);
+    this.prescriptionOpen.set(true);
+  }
+
+  onPrescriptionSaved(): void {
+    const id = this.beneficiaryId();
+    if (id !== null) {
+      this.loadRecentPrescription(id);
+    }
+  }
+
+  private loadRecentPrescription(beneficiaryRegID: number): void {
+    this.prescriptionService.getPrescriptionList(beneficiaryRegID).subscribe({
+      next: (records) => this.recentPrescription.set(this.mostRecentWithinWindow(records)),
+      error: () => this.recentPrescription.set(null),
+    });
+  }
+
+  private mostRecentWithinWindow(records: PrescriptionRecord[]): PrescriptionRecord | null {
+    const now = Date.now();
+    let latest: PrescriptionRecord | null = null;
+    let latestTime = -Infinity;
+    for (const record of records) {
+      const created = record.createdDate ? Date.parse(record.createdDate) : NaN;
+      if (Number.isNaN(created) || now - created > RECENT_PRESCRIPTION_WINDOW_MS) {
+        continue;
+      }
+      if (created > latestTime) {
+        latest = record;
+        latestTime = created;
+      }
+    }
+    return latest;
+  }
+
+  resetForm(): void {
+    this.form.reset({
+      chiefComplaints: '',
+      provisionalDiagnosisID: null,
+      healthAdvice: null,
+      remarks: null,
+    });
+    this.diseaseDetail.set(null);
+    this.diseaseError.set('');
+    this.prescriptionOpen.set(false);
+  }
+
+  /** Fetch and apply any previously saved case sheet for the beneficiary. */
   private loadExistingCaseSheet(beneficiaryRegID: number): void {
     this.haoService.getPresentCaseSheet(beneficiaryRegID).subscribe({
       next: (sheet) => {

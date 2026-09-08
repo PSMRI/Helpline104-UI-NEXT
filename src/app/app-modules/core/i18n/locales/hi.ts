@@ -769,6 +769,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.caseSheet.remarks': 'टिप्पणियां',
   'hao.caseSheet.save': 'केस शीट सहेजें',
   'hao.caseSheet.clear': 'साफ़ करें',
+  'hao.caseSheet.resendPrescription': 'अंतिम प्रिस्क्रिप्शन पुनः भेजें',
+  'hao.caseSheet.resendPrescriptionHint': 'यदि कोई हो तो पिछले पाँच दिनों का प्रिस्क्रिप्शन',
   'hao.caseSheet.viewDiseaseSummary': 'रोग सारांश देखें',
   'hao.caseSheet.diseaseSummaryError': 'रोग सारांश लोड नहीं हो सका। कृपया पुनः प्रयास करें।',
   'hao.caseSheet.saveSuccess': 'केस शीट सफलतापूर्वक सहेजी गई।',

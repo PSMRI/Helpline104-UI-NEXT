@@ -771,6 +771,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.remarks': 'মন্তব্য',
   'hao.caseSheet.save': 'কেছ শ্বীট সংৰক্ষণ কৰক',
   'hao.caseSheet.clear': 'পৰিষ্কাৰ কৰক',
+  'hao.caseSheet.resendPrescription': 'অন্তিম প্ৰেছক্ৰিপচন পুনৰ পঠিয়াওক',
+  'hao.caseSheet.resendPrescriptionHint': "থাকিলে যোৱা পাঁচদিনৰ প্ৰেছক্ৰিপচন",
   'hao.caseSheet.viewDiseaseSummary': 'ৰোগৰ সাৰাংশ চাওক',
   'hao.caseSheet.diseaseSummaryError': 'ৰোগৰ সাৰাংশ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.caseSheet.saveSuccess': 'কেছ শ্বীট সফলতাৰে সংৰক্ষণ কৰা হ’ল।',
