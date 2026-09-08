@@ -33,9 +33,13 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import type { TranslationKey } from '../../core/i18n/locales';
 import { CallStore } from '../call.store';
 import { CallWrapupService } from '../call-wrapup.service';
+import { HihlCaseSheetComponent } from '../counsellor/hihl-case-sheet.component';
 import { HaoStepperComponent } from '../hao/hao-stepper.component';
 import { CaseSheetComponent } from '../hao/steps/case-sheet.component';
 import { ClosureStepComponent } from '../hao/steps/closure-step.component';
+
+/** Which service-step tab is active, when {@link RoleWorkspaceComponent.showHihlTab} is set (CO / Counsellor only). */
+type ServiceTab = 'caseSheet' | 'hihl';
 
 /**
  * Shared shell for the single-case-sheet role workspaces (MO / CO / Counsellor).
@@ -62,7 +66,15 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
   selector: 'app-role-workspace',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CdkStep, HaoStepperComponent, CaseSheetComponent, ClosureStepComponent, ZardButtonComponent, TranslatePipe],
+  imports: [
+    CdkStep,
+    HaoStepperComponent,
+    CaseSheetComponent,
+    ClosureStepComponent,
+    HihlCaseSheetComponent,
+    ZardButtonComponent,
+    TranslatePipe,
+  ],
   template: `
     <section class="rounded-xl border border-border bg-card p-4 sm:p-6">
       <header class="mb-2 flex flex-col gap-1">
@@ -72,11 +84,47 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
 
       <app-hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
         <cdk-step [label]="'roleWorkspace.stepService' | translate: lang()" [completed]="true">
-          <app-hao-case-sheet
-            [beneficiaryId]="beneficiaryId()"
-            [callId]="callId()"
-            (serviceAvailed)="onServiceAvailed()"
-          />
+          @if (showHihlTab()) {
+            <div class="mb-4 flex gap-2 border-b border-border" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                class="border-b-2 px-3 py-2 text-sm font-medium"
+                [class.border-primary]="serviceTab() === 'caseSheet'"
+                [class.text-foreground]="serviceTab() === 'caseSheet'"
+                [class.border-transparent]="serviceTab() !== 'caseSheet'"
+                [class.text-muted-foreground]="serviceTab() !== 'caseSheet'"
+                [attr.aria-selected]="serviceTab() === 'caseSheet'"
+                (click)="serviceTab.set('caseSheet')"
+              >
+                {{ 'roleWorkspace.counsellingSheetTab' | translate: lang() }}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                class="border-b-2 px-3 py-2 text-sm font-medium"
+                [class.border-primary]="serviceTab() === 'hihl'"
+                [class.text-foreground]="serviceTab() === 'hihl'"
+                [class.border-transparent]="serviceTab() !== 'hihl'"
+                [class.text-muted-foreground]="serviceTab() !== 'hihl'"
+                [attr.aria-selected]="serviceTab() === 'hihl'"
+                (click)="serviceTab.set('hihl')"
+              >
+                {{ 'roleWorkspace.hihlCaseSheetTab' | translate: lang() }}
+              </button>
+            </div>
+          }
+
+          @if (!showHihlTab() || serviceTab() === 'caseSheet') {
+            <app-hao-case-sheet
+              [beneficiaryId]="beneficiaryId()"
+              [callId]="callId()"
+              (serviceAvailed)="onServiceAvailed()"
+            />
+          }
+          @if (showHihlTab() && serviceTab() === 'hihl') {
+            <app-hihl-case-sheet [beneficiaryId]="beneficiaryId()" [callId]="callId()" />
+          }
         </cdk-step>
 
         <cdk-step [label]="'roleWorkspace.stepClosure' | translate: lang()">
@@ -128,6 +176,8 @@ export class RoleWorkspaceComponent implements OnInit {
   readonly switchRoleLabelKey = input<TranslationKey | null>(null);
   /** Read the beneficiary-consent script before counselling (CO / Counsellor). */
   readonly requireConsent = input(false);
+  /** Show the Counselling Sheet / Detailed HIHL case sheet tab strip (legacy `104-co` tab 2, Counsellor only). */
+  readonly showHihlTab = input(false);
 
   /** Emitted when the agent triggers the role switch. */
   readonly switchRole = output<void>();
@@ -136,6 +186,9 @@ export class RoleWorkspaceComponent implements OnInit {
 
   /** Active wizard step (0 = case sheet, 1 = closure). */
   readonly stepIndex = signal(0);
+
+  /** Active service-step tab, when {@link showHihlTab} is set. */
+  readonly serviceTab = signal<ServiceTab>('caseSheet');
 
   private readonly _serviceAvailed = signal(false);
   readonly serviceAvailed = this._serviceAvailed.asReadonly();
