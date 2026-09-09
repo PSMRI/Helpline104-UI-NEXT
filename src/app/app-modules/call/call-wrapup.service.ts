@@ -152,11 +152,13 @@ export class CallWrapupService {
 
   /** The grace period elapsed with no disposition — close the call automatically. */
   private autoCloseOnWrapupExpired(): void {
-    const serviceID = this.authStore.currentRole()?.serviceID ?? null;
-    if (serviceID === null) {
+    // Same providerServiceMapID-not-serviceID fix as ClosureStepComponent's
+    // loadCallTypes() — serviceID keys the wrong (near-empty) catalogue.
+    const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    if (providerServiceMapID === null) {
       return;
     }
-    this.haoService.getCallTypes(serviceID, true).subscribe({
+    this.haoService.getCallTypes(providerServiceMapID, true).subscribe({
       next: (types) => {
         // The agent may have closed the call manually while this was in flight.
         if (!this.callStore.onCall()) {

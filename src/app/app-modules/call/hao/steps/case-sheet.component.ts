@@ -21,7 +21,6 @@
  */
 
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -329,9 +328,15 @@ export class CaseSheetComponent {
   });
 
   /** Live chief-complaint text — the symptom the embedded CDSS advises on. */
-  readonly complaint = toSignal(this.form.controls.chiefComplaints.valueChanges, {
-    initialValue: this.form.controls.chiefComplaints.value,
-  });
+  /**
+   * CDSS symptom input. Mirrors `chiefComplaints` for every normal edit
+   * (typing, loading an existing case sheet, Clear/reset) — but see
+   * {@link onSnomedSelected}, which deliberately keeps this signal on the
+   * agent's own typed text instead of the SNOMED description it writes into
+   * the form control.
+   */
+  private readonly _complaint = signal(this.form.controls.chiefComplaints.value);
+  readonly complaint = this._complaint.asReadonly();
 
   /** Patient context for the embedded clinical tools (from the CallStore). */
   readonly patientAge = computed(() => this.callStore.demographics()?.age ?? null);
@@ -340,9 +345,19 @@ export class CaseSheetComponent {
   readonly roleCode = computed(() => this.authStore.currentRole()?.featureCode ?? '');
 
   /** A picked SNOMED CT term becomes the chief complaint. */
+  /**
+   * A SNOMED CT description ("Fever of unknown origin") is the clinically
+   * correct thing to record, but CDSS's own catalogue keys on plain disease
+   * names ("Fever") and returns nothing for the coded description — so the
+   * case sheet keeps the SNOMED term, while the CDSS symptom input
+   * ({@link complaint}) is deliberately left on whatever the agent had typed
+   * before selecting it.
+   */
   onSnomedSelected(term: SnomedTerm): void {
+    const priorComplaint = this._complaint();
     this.form.controls.chiefComplaints.setValue(term.term);
     this.form.controls.chiefComplaints.markAsDirty();
+    this._complaint.set(priorComplaint);
   }
 
   /** Accepted CDSS advice is written into the health-advice field. */
@@ -355,6 +370,10 @@ export class CaseSheetComponent {
   }
 
   constructor() {
+    this.form.controls.chiefComplaints.valueChanges.subscribe((value) => {
+      this._complaint.set(value);
+    });
+
     this.haoService.getAvailableDiseases().subscribe({
       next: (diseases) => this.diseases.set(diseases),
       // A missing catalogue must not block free-text complaints/advice; the
