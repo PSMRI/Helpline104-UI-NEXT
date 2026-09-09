@@ -25,6 +25,7 @@ import { Router } from '@angular/router';
 import { environment } from '@env/environment';
 
 import { AuthStore } from '../core/auth/auth.store';
+import { ConfigService } from '../core/services/config.service';
 
 import { CallStore } from './call.store';
 import { parseInboundCtiMessage } from './cti-message';
@@ -62,9 +63,17 @@ export class InboundCtiService {
   private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
   private readonly router = inject(Router);
+  private readonly config = inject(ConfigService);
 
-  /** Origin of the CZentrix telephony server, the only trusted CTI sender. */
-  private readonly telephonyOrigin = safeOrigin(environment.telephoneServer);
+  /**
+   * Origin of the CZentrix telephony server, the only trusted CTI sender.
+   * Derived from {@link ConfigService.getTelephonyServerURL}, the same
+   * https-upgraded URL the CTI iframe itself is loaded from (`CtiPanelStore.ctiUrl`)
+   * — deriving it from the raw, non-upgraded `environment.telephoneServer`
+   * instead left this comparing `https://…` (the iframe's real origin) against
+   * `http://…`, so every genuine inbound-call postMessage was silently dropped.
+   */
+  private readonly telephonyOrigin = safeOrigin(this.config.getTelephonyServerURL());
 
   constructor() {
     const onMessage = (event: MessageEvent): void => {
