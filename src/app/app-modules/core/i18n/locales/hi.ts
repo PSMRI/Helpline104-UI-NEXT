@@ -690,8 +690,6 @@ export const hi: Record<TranslationKey, string> = {
   'roleWorkspace.mo.switchToCo': 'CO पर स्विच करें',
   'roleWorkspace.co.title': 'काउंसलिंग ऑफिसर (CO)',
   'roleWorkspace.co.subtitle': 'काउंसलिंग सलाह दर्ज करें, फिर कॉल समाप्त करें।',
-  'roleWorkspace.counsellor.title': 'काउंसलर',
-  'roleWorkspace.counsellor.subtitle': 'काउंसलिंग केस शीट दर्ज करें, फिर कॉल समाप्त करें।',
   'roleWorkspace.counsellingSheetTab': 'काउंसलिंग शीट - वर्तमान विज़िट',
   'roleWorkspace.hihlCaseSheetTab': 'विस्तृत HIHL CO केस शीट',
   'roleWorkspace.sio.title': 'सर्विस इंफॉर्मेशन ऑफिसर (SIO)',

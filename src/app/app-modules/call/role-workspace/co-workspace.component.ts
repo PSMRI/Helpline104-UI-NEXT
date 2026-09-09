@@ -27,11 +27,13 @@ import { RoleWorkspaceComponent } from './role-workspace.component';
 /**
  * Counselling Officer (CO) on-call workspace (route `/innerpage/co`).
  *
- * Ported from the legacy `104-co`: a counselling case-sheet → closure wizard.
- * (The legacy CO also exposed Blood-request / Directory service tabs; those
- * remain the shared service tabs and are wired separately.) The legacy CO
- * auto-opened the beneficiary-consent dialog on entry; `requireConsent`
- * restores that gate.
+ * Ported from the legacy `104-co`: a counselling case-sheet → closure wizard,
+ * plus the full tab strip legacy's `<md-tab-group>` renders on that screen —
+ * the Detailed HIHL case sheet (`showHihlTab`) and the screen-gated SIO
+ * service catalogue — Blood on Call, Directory, Epidemic Outbreak, Food
+ * Safety, Grievance, Organ Donation, Health Schemes (`showSioTabs`). The
+ * legacy CO auto-opened the beneficiary-consent dialog on entry;
+ * `requireConsent` restores that gate.
  */
 @Component({
   selector: 'app-co-workspace',
@@ -43,6 +45,8 @@ import { RoleWorkspaceComponent } from './role-workspace.component';
       titleKey="roleWorkspace.co.title"
       subtitleKey="roleWorkspace.co.subtitle"
       [requireConsent]="true"
+      [showHihlTab]="true"
+      [showSioTabs]="true"
     />
   `,
 })

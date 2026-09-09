@@ -106,12 +106,6 @@ describe('roleWorkspaceGuard', () => {
     expect((result as UrlTree).toString()).toBe('/innerpage');
   });
 
-  it('redirects away from /innerpage/counsellor for every role — no featureCode maps to it today', () => {
-    setRole('CO');
-    const result = run('counsellor');
-    expect(result).not.toBe(true);
-  });
-
   it('allows a hybrid RO+HAO agent (RO role, holds a Health_Advice screen) onto /innerpage/hao', () => {
     // setSession resets currentRole as a fresh-login side effect, so the
     // privileges must be set here, before setCurrentRole — not via setRole().
