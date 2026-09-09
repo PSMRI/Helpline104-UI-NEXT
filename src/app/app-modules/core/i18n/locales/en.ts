@@ -311,6 +311,11 @@ export const en = {
   'prescription.prescriptionId': 'Prescription ID',
   'prescription.createdDate': 'Created',
   'prescription.noHistory': 'No previous prescriptions.',
+  'prescription.resend': 'Resend',
+  'prescription.alternateNumber': 'Alternate number',
+  'prescription.alternateNumberInvalid': 'Enter a 10-digit mobile number.',
+  'prescription.sendSms': 'Send SMS',
+  'prescription.smsSent': 'SMS sent.',
 
   // HAO service tabs — screening (Diabetic + BP)
   'screening.noContext': 'No active call / beneficiary — screening cannot be saved.',

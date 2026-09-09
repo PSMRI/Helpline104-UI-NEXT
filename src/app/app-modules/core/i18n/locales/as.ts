@@ -312,6 +312,11 @@ export const as: Record<TranslationKey, string> = {
   'prescription.prescriptionId': 'প্ৰেছক্ৰিপচন ID',
   'prescription.createdDate': 'সৃষ্টি',
   'prescription.noHistory': 'কোনো পূৰ্বৱৰ্তী প্ৰেছক্ৰিপচন নাই।',
+  'prescription.resend': 'পুনৰ পঠিয়ক',
+  'prescription.alternateNumber': 'বিকল্প নম্বৰ',
+  'prescription.alternateNumberInvalid': '10-অংকৰ মবাইল নম্বৰ দিয়ক।',
+  'prescription.sendSms': 'SMS পঠিয়ক',
+  'prescription.smsSent': 'SMS পঠিওৱা হ\'ল।',
 
   // HAO service tabs — screening (Diabetic + BP)
   'screening.noContext': 'কোনো সক্ৰিয় কল / হিতাধিকাৰী নাই — স্ক্ৰীনিং সংৰক্ষণ কৰিব নোৱাৰি।',

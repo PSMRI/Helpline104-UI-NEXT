@@ -311,6 +311,11 @@ export const hi: Record<TranslationKey, string> = {
   'prescription.prescriptionId': 'प्रिस्क्रिप्शन ID',
   'prescription.createdDate': 'निर्मित',
   'prescription.noHistory': 'कोई पिछला प्रिस्क्रिप्शन नहीं।',
+  'prescription.resend': 'पुनः भेजें',
+  'prescription.alternateNumber': 'वैकल्पिक नंबर',
+  'prescription.alternateNumberInvalid': '10 अंकों का मोबाइल नंबर दर्ज करें।',
+  'prescription.sendSms': 'SMS भेजें',
+  'prescription.smsSent': 'SMS भेज दिया गया।',
 
   // HAO service tabs — screening (Diabetic + BP)
   'screening.noContext': 'कोई सक्रिय कॉल / लाभार्थी नहीं — स्क्रीनिंग सहेजी नहीं जा सकती।',
