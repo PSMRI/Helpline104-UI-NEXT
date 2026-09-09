@@ -841,20 +841,28 @@ export class ClosureStepComponent {
   }
 
   private loadCallTypes(): void {
-    // The backend keys call types off the selected service id (the legacy
-    // closure sent `current_service.serviceID` in the `providerServiceMapID`
-    // field) plus the campaign flag. The HAO workspace is the inbound service
-    // flow, so request inbound call types.
-    const serviceID = this.authStore.currentRole()?.serviceID ?? null;
-    // Without a service id the backend cannot key the catalogue (it would
-    // return an empty list). Stop here and tell the agent rather than firing a
-    // request that silently strands them with no call types and no reason.
-    if (serviceID === null) {
+    // The backend keys call types off the role's providerServiceMapID (every
+    // other catalogue lookup in this module sources it the same way) plus the
+    // campaign flag. The HAO workspace is the inbound service flow, so
+    // request inbound call types.
+    //
+    // This used to send `currentRole()?.serviceID` instead — verified live
+    // that this returns only a single sparse "Wrapup Exceeds" group, while
+    // `providerServiceMapID` returns the full legacy set (Valid/Transfer/
+    // Incomplete/Wrapup Exceeds, each with their real sub-types) — `serviceID`
+    // and `providerServiceMapID` are genuinely different ids on the role
+    // object, and only one of them actually keys this catalogue.
+    const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    // Without a provider-service-map id the backend cannot key the catalogue
+    // (it would return an empty list). Stop here and tell the agent rather
+    // than firing a request that silently strands them with no call types
+    // and no reason.
+    if (providerServiceMapID === null) {
       this.callTypes.set([]);
       this.showError('hao.closure.noServiceError');
       return;
     }
-    this.haoService.getCallTypes(serviceID, true).subscribe({
+    this.haoService.getCallTypes(providerServiceMapID, true).subscribe({
       next: (types) => this.callTypes.set(types),
       // A call type is mandatory to close, so a silent empty list would strand
       // the agent. Surface the failure so they can retry rather than guess.
@@ -908,8 +916,10 @@ export class ClosureStepComponent {
   }
 
   private loadServices(): void {
-    const serviceID = this.authStore.currentRole()?.serviceID ?? null;
-    this.haoService.getAvailableServices(serviceID, true).subscribe({
+    // Same providerServiceMapID-not-serviceID fix as loadCallTypes() above —
+    // verified live: serviceID returns an empty transfer-target list.
+    const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    this.haoService.getAvailableServices(providerServiceMapID, true).subscribe({
       next: (services) => this.services.set(services),
       error: () => this.services.set([]),
     });
