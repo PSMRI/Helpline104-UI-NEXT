@@ -265,6 +265,28 @@ function validDob(control: AbstractControl): ValidationErrors | null {
   viewProviders: [provideIcons({ lucideSearch, lucideUserPlus, lucideLoaderCircle })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
+      <!-- Landing gate (legacy "Have you called earlier?"): nothing else on
+           this screen — table, search, register — shows until answered. -->
+      @if (calledEarlier() === null) {
+        <div class="flex flex-col gap-3">
+          <fieldset class="flex flex-wrap items-center gap-6">
+            <legend class="text-sm font-medium">
+              {{ 'registration.calledEarlier.question' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </legend>
+            <label class="flex cursor-pointer items-center gap-2 text-sm">
+              <input type="radio" class="h-4 w-4 accent-primary" name="calledEarlier" (change)="onCalledEarlier('yes')" />
+              {{ 'registration.field.yes' | translate: lang() }}
+            </label>
+            <label class="flex cursor-pointer items-center gap-2 text-sm">
+              <input type="radio" class="h-4 w-4 accent-primary" name="calledEarlier" (change)="onCalledEarlier('no')" />
+              {{ 'registration.field.no' | translate: lang() }}
+            </label>
+          </fieldset>
+        </div>
+      }
+
+      @if (calledEarlier() !== null) {
       <!-- Action bar: Search / Register new. The registrations list for this
            number shows by default (no tab); these buttons switch to a sub-view.
            Hidden once a sub-view is active (search or register in progress),
@@ -308,6 +330,35 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             }
           </h3>
 
+          @if (calledEarlier() === 'yes') {
+            <div class="mb-4 flex flex-wrap items-center gap-2">
+              <input
+                z-input
+                type="text"
+                class="max-w-xs"
+                [placeholder]="'registration.quickSearch.placeholder' | translate: lang()"
+                [value]="quickSearchTerm()"
+                (input)="quickSearchTerm.set($any($event.target).value)"
+                (keyup.enter)="quickSearchById()"
+              />
+              <button
+                z-button
+                type="button"
+                zType="default"
+                [zLoading]="quickSearchLoading()"
+                [zDisabled]="!quickSearchTerm().trim()"
+                (click)="quickSearchById()"
+              >
+                <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
+              </button>
+              @if (quickSearchResults() !== null) {
+                <button z-button type="button" zType="outline" class="ml-auto" (click)="viewAllHistory()">
+                  {{ 'registration.quickSearch.viewAll' | translate: lang() }}
+                </button>
+              }
+            </div>
+          }
+
           @if (historyLoading()) {
             <div class="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
               <ng-icon name="lucideLoaderCircle" size="16" class="animate-spin" aria-hidden="true" />
@@ -329,7 +380,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             >
               {{ 'registration.history.error' | translate: lang() }}
             </p>
-          } @else if (historyResults().length === 0) {
+          } @else if (displayedHistoryResults().length === 0) {
             <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
               {{ 'registration.history.empty' | translate: lang() }}
             </p>
@@ -1004,6 +1055,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
           </div>
         }
       }
+      }
     </section>
 
     <!-- Shared results table -->
@@ -1076,10 +1128,25 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly historyTimedOut = signal(false);
   /** Current page (1-indexed) of {@link historyResults}. */
   readonly historyPageIndex = signal(1);
+
+  /**
+   * Legacy landing gate ("Have you called earlier?"): `null` shows only the
+   * Yes/No prompt; `'yes'` reveals the registration-history table below (plus
+   * the quick Beneficiary ID/ABHA search); `'no'` jumps straight to the
+   * new-registration form, matching `calledEarlier()`'s two branches.
+   */
+  readonly calledEarlier = signal<'yes' | 'no' | null>(null);
+  readonly quickSearchTerm = signal('');
+  readonly quickSearchLoading = signal(false);
+  /** `null` shows the full CLI history below; set once a quick search runs. */
+  readonly quickSearchResults = signal<BeneficiaryRecord[] | null>(null);
+
+  /** The table shown under "Yes": the quick search's results, else the full CLI history. */
+  readonly displayedHistoryResults = computed(() => this.quickSearchResults() ?? this.historyResults());
   readonly historyTotalPages = computed(() =>
-    Math.max(1, Math.ceil(this.historyResults().length / RESULTS_PAGE_SIZE)),
+    Math.max(1, Math.ceil(this.displayedHistoryResults().length / RESULTS_PAGE_SIZE)),
   );
-  readonly pagedHistoryResults = computed(() => paginate(this.historyResults(), this.historyPageIndex()));
+  readonly pagedHistoryResults = computed(() => paginate(this.displayedHistoryResults(), this.historyPageIndex()));
 
   readonly searchResults = signal<BeneficiaryRecord[]>([]);
   readonly searchLoading = signal(false);
@@ -1430,6 +1497,42 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       return;
     }
     this.loadHistory(cli);
+  }
+
+  /** Legacy `calledEarlier(value)` — the landing gate's Yes/No choice. */
+  onCalledEarlier(value: 'yes' | 'no'): void {
+    this.calledEarlier.set(value);
+    if (value === 'no') {
+      this.activeView.set('register');
+    }
+  }
+
+  /** Legacy `retriveById` — the landing gate's quick Beneficiary ID/ABHA search. */
+  quickSearchById(): void {
+    const term = this.quickSearchTerm().trim();
+    if (!term) {
+      return;
+    }
+    this.quickSearchLoading.set(true);
+    this.beneficiary.searchBeneficiary({ beneficiaryID: term }).subscribe({
+      next: (rows) => {
+        this.quickSearchLoading.set(false);
+        this.quickSearchResults.set(rows);
+        this.historyPageIndex.set(1);
+      },
+      error: (err: BeneficiaryError) => {
+        this.quickSearchLoading.set(false);
+        this.quickSearchResults.set([]);
+        toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
+      },
+    });
+  }
+
+  /** Legacy `revertFullTable()` — drop the quick search, show the full CLI history again. */
+  viewAllHistory(): void {
+    this.quickSearchTerm.set('');
+    this.quickSearchResults.set(null);
+    this.historyPageIndex.set(1);
   }
 
   /**
