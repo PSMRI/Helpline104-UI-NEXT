@@ -164,6 +164,24 @@ describe('HihlCaseSheetComponent', () => {
     expect(component.familyMembersDisabled(row)).toBeTrue();
   });
 
+  it('sends family history rows as the whole selected condition object, matching the legacy payload', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+
+    component.familyDiseaseList.at(0).patchValue({
+      familyCondition: MASTER_DATA.m_104familycondition![1],
+      familyMembers: ['Mother'],
+    });
+    component.form.markAsDirty();
+    component.save();
+
+    const req = http.expectOne((r) => r.url.includes('hihl/save/casesheet'));
+    expect(req.request.body.conditionInFamilyList).toEqual([
+      { familyCondition: MASTER_DATA.m_104familycondition![1], familyMembers: ['Mother'] },
+    ]);
+    req.flush({ data: {} });
+  });
+
   it('saves the HIHL case sheet for the active beneficiary', () => {
     const fixture = render();
     const component = fixture.componentInstance;

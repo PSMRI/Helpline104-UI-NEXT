@@ -166,8 +166,7 @@ export interface PastMedicalConditionSaveRow {
 }
 
 export interface FamilyDiseaseSaveRow {
-  familyCondition: string | null;
-  otherDiseaseType: string | null;
+  familyCondition: FamilyConditionOption | null;
   familyMembers: string[] | null;
 }
 

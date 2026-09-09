@@ -931,6 +931,9 @@ export class HihlCaseSheetComponent {
       })
       .filter((row): row is NonNullable<typeof row> => row !== null);
 
+    // Legacy's mapped conditionInFamilyList (flattened name + otherDiseaseType)
+    // is dead code — the actual POST body sends the raw form array value, i.e.
+    // the whole selected option object under `familyCondition`, not its name.
     const conditionInFamilyList = this.familyDiseaseList.controls
       .map((c) => {
         const condition = c.value.familyCondition as FamilyConditionOption | null;
@@ -938,8 +941,7 @@ export class HihlCaseSheetComponent {
           return null;
         }
         return {
-          familyCondition: condition.familyConditionName,
-          otherDiseaseType: null,
+          familyCondition: condition,
           familyMembers: (c.value.familyMembers as string[] | null) ?? [],
         };
       })
