@@ -120,6 +120,7 @@ export const en = {
 
   // Shared dialog chrome
   'dashboard.dialog.info': 'Info',
+  'dashboard.dialog.success': 'Success',
   'dashboard.dialog.error': 'Error',
   'dashboard.dialog.ok': 'Ok',
   'dashboard.dialog.cancel': 'Cancel',
@@ -902,6 +903,8 @@ export const en = {
   'hao.closure.confirmContinue': 'Submit this disposition and continue the call?',
   'hao.closure.confirmClose': 'Submit this disposition and close the call?',
   'hao.closure.confirmTransfer': 'Transfer this call to the selected campaign?',
+  'hao.closure.closedSuccess': 'Call closed successfully',
+  'hao.closure.transferredToPrefix': 'Call transferred to',
   'hao.closure.noCallError': 'No active call to close.',
   'hao.closure.closeError': 'Unable to close the call. Please try again.',
   'hao.closure.transferError': 'Unable to transfer the call. Please try again.',
