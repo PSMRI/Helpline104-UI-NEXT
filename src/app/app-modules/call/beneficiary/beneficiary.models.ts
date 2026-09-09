@@ -85,14 +85,38 @@ export interface BeneficiaryRecord {
   lastName?: string;
   actualAge?: number;
   ageUnits?: string;
+  dOB?: string;
+  titleId?: number | null;
+  maritalStatusID?: number | null;
+  fatherName?: string | null;
+  spouseName?: string | null;
+  govtIdentityNo?: string | null;
+  govtIdentityTypeID?: number | null;
   m_gender?: { genderID?: number; genderName?: string };
+  maritalStatus?: { maritalStatusID?: number; status?: string };
   benPhoneMaps?: Array<{
     phoneNo?: string;
+    parentBenRegID?: number | null;
+    benRelationshipID?: number | null;
     benRelationshipType?: { benRelationshipType?: string };
     [key: string]: unknown;
   }>;
   i_bendemographics?: {
-    m_district?: { districtName?: string };
+    healthCareWorkerID?: number | null;
+    healthCareWorkerType?: { healthCareWorkerType?: string };
+    educationID?: number | null;
+    educationName?: string;
+    communityID?: number | null;
+    communityName?: string;
+    stateID?: number | null;
+    districtID?: number | null;
+    blockID?: number | null;
+    districtBranchID?: number | null;
+    addressLine1?: string | null;
+    pinCode?: string | null;
+    m_district?: { districtID?: number; districtName?: string };
+    m_state?: { stateID?: number; stateName?: string };
+    m_districtbranchmapping?: { villageName?: string; blockName?: string };
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -172,6 +196,28 @@ export interface RegisterBeneficiaryRequest {
   vanID?: number | null;
   i_bendemographics: BenDemographics;
   benPhoneMaps: BenPhoneMap[];
+}
+
+/**
+ * Request body for POST beneficiary/update, mirroring the legacy
+ * `updateBeneficiary()` object (field names and structure). Sent when the
+ * agent edits an existing beneficiary's details from the confirm/modify step.
+ */
+export interface UpdateBeneficiaryRequest {
+  beneficiaryRegID: number;
+  firstName: string;
+  lastName: string | null;
+  dOB?: string;
+  ageUnits: string;
+  fatherName?: string | null;
+  spouseName?: string | null;
+  beneficiaryIdentities: BeneficiaryIdentity[];
+  createdBy: string;
+  titleId?: number | string | null;
+  maritalStatusID?: number | string | null;
+  genderID: number;
+  vanID?: number | null;
+  i_bendemographics: BenDemographics & { beneficiaryRegID: number };
 }
 
 /** Newly-created beneficiary returned by beneficiary/create. */

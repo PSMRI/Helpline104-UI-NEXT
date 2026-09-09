@@ -332,6 +332,7 @@ const MIN_VACCINE_AGE = 12;
               [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
               [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
               [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
+              (blur)="onComplaintBlur()"
             ></textarea>
           }
           @if (isInvalid('chiefComplaints')) {
@@ -1119,6 +1120,31 @@ export class CaseSheetComponent {
     this.form.controls.chiefComplaints.setValue(term.term);
     this.form.controls.chiefComplaints.markAsDirty();
     this._complaint.set(priorComplaint);
+    this.fillProvisionalDiagnosisFallback(term.term);
+  }
+
+  /**
+   * Legacy always keeps the (HAO/MO-readonly) Provisional Diagnosis in sync
+   * with the chief complaint: it defaults to the complaint text itself, and
+   * only a later CDSS accept (see {@link onCdssSelection}) overwrites it with
+   * a clinically-derived diagnosis. Runs on blur (not every keystroke) so it
+   * doesn't fight the field while the agent is still typing; never clobbers a
+   * value already present (typed default or a prior CDSS accept).
+   */
+  onComplaintBlur(): void {
+    if (this.isCo()) {
+      return;
+    }
+    this.fillProvisionalDiagnosisFallback(this.form.controls.chiefComplaints.value);
+  }
+
+  private fillProvisionalDiagnosisFallback(complaint: string | null): void {
+    const trimmed = complaint?.trim() ?? '';
+    const diagnosisControl = this.form.controls.provisionalDiagnosis;
+    if (trimmed && !diagnosisControl.value?.trim()) {
+      diagnosisControl.setValue(trimmed);
+      diagnosisControl.markAsDirty();
+    }
   }
 
   onCdssSelection(selection: CdssSelection): void {

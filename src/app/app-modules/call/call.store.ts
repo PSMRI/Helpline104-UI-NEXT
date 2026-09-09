@@ -65,6 +65,18 @@ export interface CallerDemographics {
   readonly age: number | null;
   readonly genderId: number | null;
   readonly genderName: string | null;
+  /** Human-facing registration number (legacy `beneficiaryID`), for display only. */
+  readonly displayId: string | null;
+  readonly stateName: string | null;
+  readonly districtName: string | null;
+  readonly subDistrictName: string | null;
+  readonly villageName: string | null;
+  readonly maritalStatus: string | null;
+  /** "General Public" or "Healthcare Worker: <type>" (legacy `selectedBenData.type`). */
+  readonly category: string | null;
+  /** Caste (legacy `selectedBenData.caste` / `communityName`). */
+  readonly communityName: string | null;
+  readonly educationName: string | null;
 }
 
 /**
@@ -257,6 +269,15 @@ export class CallStore {
       age: readAge(demographics.age),
       genderId: toId(demographics.genderId),
       genderName: readString(demographics.genderName),
+      displayId: readString(demographics.displayId),
+      stateName: readString(demographics.stateName),
+      districtName: readString(demographics.districtName),
+      subDistrictName: readString(demographics.subDistrictName),
+      villageName: readString(demographics.villageName),
+      maritalStatus: readString(demographics.maritalStatus),
+      category: readString(demographics.category),
+      communityName: readString(demographics.communityName),
+      educationName: readString(demographics.educationName),
     };
     this._demographics.set(validated);
     this.storage.setItem(CALL_STORAGE_KEYS.demographics, JSON.stringify(validated));
@@ -361,6 +382,15 @@ function readStoredDemographics(raw: string | null): CallerDemographics | null {
       age: readAge(value.age),
       genderId: toId(value.genderId),
       genderName: readString(value.genderName),
+      displayId: readString(value.displayId),
+      stateName: readString(value.stateName),
+      districtName: readString(value.districtName),
+      subDistrictName: readString(value.subDistrictName),
+      villageName: readString(value.villageName),
+      maritalStatus: readString(value.maritalStatus),
+      category: readString(value.category),
+      communityName: readString(value.communityName),
+      educationName: readString(value.educationName),
     };
   } catch {
     return null;
