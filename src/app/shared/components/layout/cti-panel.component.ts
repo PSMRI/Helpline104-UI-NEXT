@@ -36,8 +36,13 @@ import { TranslatePipe } from '@/app-modules/core/i18n/translate.pipe';
 
 import { CtiPanelStore } from './cti-panel.store';
 
-/** Route whose footer docks the CZentrix toggle button itself (see `DashboardFooterComponent`). */
-const DASHBOARD_ROUTE = '/dashboard';
+/**
+ * Route prefixes whose own footer docks the CZentrix toggle button itself
+ * (see `DashboardFooterComponent` / `InnerpageFooterComponent`) — every route
+ * `showCzentrix()` can ever be true on except `/outbound/*`, which has no
+ * shared shell/footer of its own, so the floating toggle still covers that one.
+ */
+const FOOTER_ROUTE_PREFIXES = ['/dashboard', '/innerpage'] as const;
 
 /**
  * How long to wait for the CTI iframe to load before treating it as
@@ -54,18 +59,19 @@ const LOAD_TIMEOUT_MS = 8_000;
  * down by navigation while the agent is on a call. Open/visibility state
  * lives in the shared `CtiPanelStore`, not here.
  *
- * The toggle *button* is docked into the dashboard's footer instead (next to
- * Feedback/Version) since that's the only screen where footer and CZentrix
- * both ever show; everywhere else (call-handling `/innerpage/*` screens have
- * no footer at all) this component still renders its own floating toggle so
- * the panel stays reachable while the agent is on a call.
+ * The toggle *button* is docked into the dashboard's and the on-call
+ * workspace's own footers instead (next to Feedback/Version, or just Version
+ * on `/innerpage/*` — see `InnerpageFooterComponent`) — both to match legacy
+ * (footer + CZentrix in its corner on every screen) and because a `fixed`
+ * floating toggle would otherwise sit on top of whatever a given screen
+ * happens to render in its own bottom-right corner (registration's own
+ * "Next"/"Register beneficiary" button, for instance). `/outbound/*` has no
+ * shared shell/footer of its own, so this still renders the floating toggle
+ * there — the one place it's still needed.
  *
- * Positioned `bottom-12`/`bottom-28`: `app-shell-footer` isn't
- * `position: fixed` and can render flush with the viewport bottom on short
- * pages, but it only ever coexists with this panel on the dashboard route —
- * where the toggle button is docked into the footer itself instead of
- * floating here — so these offsets only need to clear the "Simulate inbound
- * call (dev)" button on `/innerpage/*`, not a footer.
+ * Positioned `bottom-12`/`bottom-28` for that floating fallback: clears the
+ * "Simulate inbound call (dev)" button without needing to clear a footer,
+ * since every route with a footer already docks the toggle instead.
  */
 @Component({
   selector: 'app-cti-panel',
@@ -75,7 +81,7 @@ const LOAD_TIMEOUT_MS = 8_000;
   viewProviders: [provideIcons({ lucidePhone })],
   template: `
     @if (store.showCzentrix()) {
-      @if (!onDashboard()) {
+      @if (!hasFooter()) {
         <button
           z-button
           type="button"
@@ -151,7 +157,7 @@ export class CtiPanelComponent {
     { initialValue: this.router.url },
   );
 
-  readonly onDashboard = computed(() => this.url().startsWith(DASHBOARD_ROUTE));
+  readonly hasFooter = computed(() => FOOTER_ROUTE_PREFIXES.some((prefix) => this.url().startsWith(prefix)));
 
   /**
    * `'loading'` while a load-timeout is pending, `'error'` once it fires or

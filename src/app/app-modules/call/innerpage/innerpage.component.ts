@@ -33,6 +33,7 @@ import { KeepaliveService } from '../../core/services/keepalive.service';
 import { CallStore } from '../call.store';
 import { CallWrapupService } from '../call-wrapup.service';
 import { CallDurationTimerComponent } from './call-duration-timer.component';
+import { InnerpageFooterComponent } from './innerpage-footer.component';
 
 /**
  * On-call workspace shell (`/innerpage`), reached only while a call is connected
@@ -47,7 +48,7 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
   selector: 'app-innerpage',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, NgIcon, TranslatePipe, CallDurationTimerComponent],
+  imports: [RouterOutlet, NgIcon, TranslatePipe, CallDurationTimerComponent, InnerpageFooterComponent],
   viewProviders: [provideIcons({ lucidePhoneIncoming, lucideCircleDot })],
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
@@ -91,6 +92,8 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
           <router-outlet />
         </div>
       </main>
+
+      <app-innerpage-footer />
     </div>
   `,
 })
