@@ -514,6 +514,18 @@ export class ClosureStepComponent {
     return this.visibleCallTypes().find((t) => t.callGroupType === group)?.callTypes ?? [];
   });
 
+  /**
+   * Verified against legacy `closure.component.ts`: `populateTransferDropDown()`
+   * renders the full backend-returned service list for every role with no
+   * role-based `*ngIf`/filter (a code comment there even confirms an explicit
+   * past change request to let HAO transfer directly to CO). The only
+   * transfer-target restriction legacy has at all is RO-without-a-beneficiary,
+   * below — CO is not restricted to MO-only client-side; whatever targets CO
+   * can actually reach is entirely a function of which services the backend
+   * returns for CO's `providerServiceMapID` ({@link loadServices}). Do not add
+   * a CO-specific client-side ban here — that would invent behavior legacy
+   * doesn't have.
+   */
   readonly transferServices = computed<AvailableService[]>(() => {
     const list = this.services();
     if (this.currentRole() === ROLE_RO && !this.hasBeneficiary()) {
