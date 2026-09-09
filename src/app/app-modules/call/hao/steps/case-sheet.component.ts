@@ -823,7 +823,7 @@ const MIN_VACCINE_AGE = 12;
           [patientName]="patientDisplayName()"
           [age]="patientAge()"
           [gender]="patientGenderName()"
-          [initialDiagnosis]="form.controls.healthAdvice.value ?? ''"
+          [initialDiagnosis]="form.controls.informationGiven.value ?? ''"
           [openHistory]="openPrescriptionHistory()"
           (saved)="onPrescriptionSaved()"
         />
@@ -1010,9 +1010,15 @@ export class CaseSheetComponent {
     treatmentRecommendation: [''],
   });
 
-  readonly complaint = toSignal(this.form.controls.chiefComplaints.valueChanges, {
-    initialValue: this.form.controls.chiefComplaints.value,
-  });
+  /**
+   * CDSS symptom input. Mirrors `chiefComplaints` for every normal edit
+   * (typing, loading an existing case sheet, Clear/reset) — but see
+   * {@link onSnomedSelected}, which deliberately keeps this signal on the
+   * agent's own typed text instead of the SNOMED description it writes into
+   * the form control.
+   */
+  private readonly _complaint = signal(this.form.controls.chiefComplaints.value);
+  readonly complaint = this._complaint.asReadonly();
 
   private readonly wellbeingOrInfo = toSignal(this.form.controls.wellbeingOrInfo.valueChanges, {
     initialValue: this.form.controls.wellbeingOrInfo.value,
@@ -1036,7 +1042,6 @@ export class CaseSheetComponent {
     }
     return [d.firstName, d.lastName].filter(Boolean).join(' ');
   });
-  readonly patientGenderName = computed(() => this.callStore.demographics()?.genderName ?? null);
 
   readonly patientAge = computed(() =>
     this.form.controls.isPatientOther.value
@@ -1101,9 +1106,19 @@ export class CaseSheetComponent {
     return this.authStore.currentRole()?.providerServiceMapID ?? null;
   }
 
+  /**
+   * A SNOMED CT description ("Fever of unknown origin") is the clinically
+   * correct thing to record, but CDSS's own catalogue keys on plain disease
+   * names ("Fever") and returns nothing for the coded description — so the
+   * case sheet keeps the SNOMED term, while the CDSS symptom input
+   * ({@link complaint}) is deliberately left on whatever the agent had typed
+   * before selecting it.
+   */
   onSnomedSelected(term: SnomedTerm): void {
+    const priorComplaint = this._complaint();
     this.form.controls.chiefComplaints.setValue(term.term);
     this.form.controls.chiefComplaints.markAsDirty();
+    this._complaint.set(priorComplaint);
   }
 
   onCdssSelection(selection: CdssSelection): void {
@@ -1146,6 +1161,10 @@ export class CaseSheetComponent {
         error: () => this.allCategories.set([]),
       });
     }
+
+    this.form.controls.chiefComplaints.valueChanges.subscribe((value) => {
+      this._complaint.set(value);
+    });
 
     this.form.controls.wellbeingOrInfo.valueChanges.subscribe(() => {
       this.form.controls.categoryID.setValue(null);
@@ -1266,12 +1285,7 @@ export class CaseSheetComponent {
   }
 
   resetForm(): void {
-    this.form.reset({
-      chiefComplaints: '',
-      provisionalDiagnosisID: null,
-      healthAdvice: null,
-      remarks: null,
-    });
+    this.clear();
     this.diseaseDetail.set(null);
     this.diseaseError.set('');
     this.prescriptionOpen.set(false);
