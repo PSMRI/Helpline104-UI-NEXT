@@ -65,6 +65,9 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
 
   afterEach(() => {
     http.verify();
+    // CallStore persists beneficiaryId/districtID to real sessionStorage —
+    // clear it so a prior test's beneficiary doesn't leak into the next.
+    sessionStorage.clear();
   });
 
   function render() {
@@ -78,6 +81,7 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     http.match((req) => req.url.includes('getAvailableDiseases')).forEach((req) => req.flush({ data: [] }));
     http.match((req) => req.url.includes('getPresentCaseSheet')).forEach((req) => req.flush({ data: null }));
     http.match((req) => req.url.includes('prescriptionList')).forEach((req) => req.flush({ data: recentPrescriptions }));
+    http.match((req) => req.url.includes('covid/master/VaccinationTypeAndDoseTaken')).forEach((req) => req.flush({ data: null }));
   }
 
   it('shows Prescription and Resend Last Prescription for MO with a prescription in the last 5 days', () => {
@@ -108,6 +112,7 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     const fixture = render();
     http.match((req) => req.url.includes('getAvailableDiseases')).forEach((req) => req.flush({ data: [] }));
     http.match((req) => req.url.includes('getPresentCaseSheet')).forEach((req) => req.flush({ data: null }));
+    http.match((req) => req.url.includes('covid/master/VaccinationTypeAndDoseTaken')).forEach((req) => req.flush({ data: null }));
     fixture.detectChanges();
 
     expect(fixture.componentInstance.showPrescription()).toBeFalse();
@@ -160,6 +165,7 @@ describe('CaseSheetComponent — CO role', () => {
   afterEach(() => {
     http.match(() => true).forEach((req) => req.flush({ data: [] }));
     http.verify();
+    sessionStorage.clear();
   });
 
   function render() {

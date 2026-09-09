@@ -61,15 +61,34 @@ describe('ClosureStepComponent', () => {
 
   afterEach(() => {
     http.verify();
+    // CallStore persists beneficiaryId/districtID to real sessionStorage (by
+    // design, for page-reload survival) — without clearing it here, a fresh
+    // TestBed-created CallStore in the next test still rehydrates whatever a
+    // prior test left behind, leaking state across tests order-dependently.
+    sessionStorage.clear();
   });
 
-  function render(featureCode: string) {
+  /**
+   * `render()` always triggers the transfer-campaign/service lookups —
+   * legacy's Transfer Call select is populated eagerly, not behind a
+   * checkbox — so tests that need real data there pass it through.
+   */
+  function render(
+    featureCode: string,
+    transferData: { campaigns?: Array<{ campaign_name: string }>; services?: Array<{ subServiceName: string }> } = {},
+  ) {
     authStore.setCurrentRole(currentRole(featureCode));
     const fixture = TestBed.createComponent(ClosureStepComponent);
     fixture.detectChanges();
     http.match((req) => req.url.includes('getCallTypesV1')).forEach((req) => req.flush({ data: [] }));
     http.match((req) => req.url.includes('getRegistrationDataV1')).forEach((req) => req.flush({ data: {} }));
     http.match((req) => req.url.includes('getInstituteTypes')).forEach((req) => req.flush({ data: [] }));
+    http
+      .match((req) => req.url.includes('getTransferCampaigns'))
+      .forEach((req) => req.flush({ data: { campaign: transferData.campaigns ?? [] } }));
+    http
+      .match((req) => req.url.includes('beneficiary/get/services'))
+      .forEach((req) => req.flush({ data: transferData.services ?? [] }));
     fixture.detectChanges();
     return fixture;
   }
@@ -118,25 +137,27 @@ describe('ClosureStepComponent', () => {
     callStore.setBeneficiaryId(null, null);
   });
 
-  it('hides the Skill dropdown for CO even when a transfer is armed and skills are loaded', () => {
-    const fixture = render('CO');
+  it('hides the Skill dropdown for CO even when a transfer service is selected and skills are loaded', () => {
+    const fixture = render('CO', { services: [{ subServiceName: 'Counselling Service' }] });
     const component = fixture.componentInstance;
     component.skills.set([{ skillName: 'General' }]);
-    component.form.controls.doTransfer.setValue(true);
-    fixture.detectChanges();
-    http.match((req) => req.url.includes('getTransferCampaigns')).forEach((req) => req.flush({ data: [] }));
-    http.match((req) => req.url.includes('beneficiary/get/services')).forEach((req) => req.flush({ data: [] }));
+    component.form.controls.transferService.setValue('Counselling Service');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('select[formcontrolname="skill"]')).toBeNull();
   });
 
-  it('disables Submit & Close / Submit & Continue while a transfer is armed', () => {
-    const fixture = render('HAO');
+  it('disables Submit & Close / Submit & Continue while a transfer service is selected', () => {
+    // loadCampaigns() needs a real agentID (no session ⇒ it no-ops and the
+    // campaign list stays empty, regardless of what render() is told to flush).
+    authStore.setSession({ token: 't', user: { userID: 1, agentID: 7, userName: 'agent', status: 'Active' } });
+    const fixture = render('HAO', {
+      campaigns: [{ campaign_name: 'MO_CAMPAIGN' }],
+      services: [{ subServiceName: 'Medical Advisory Service' }],
+    });
     const component = fixture.componentInstance;
-    component.form.controls.doTransfer.setValue(true);
+    component.form.controls.transferService.setValue('Medical Advisory Service');
     fixture.detectChanges();
-    http.match((req) => req.url.includes('getTransferCampaigns')).forEach((req) => req.flush({ data: [] }));
-    http.match((req) => req.url.includes('beneficiary/get/services')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('getCampaignSkills')).forEach((req) => req.flush({ data: [] }));
     fixture.detectChanges();
 
     const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
@@ -145,42 +166,27 @@ describe('ClosureStepComponent', () => {
     expect(submitClose?.disabled).toBeTrue();
     expect(submitContinue?.disabled).toBeTrue();
 
-    component.form.controls.doTransfer.setValue(false);
+    component.form.controls.transferService.setValue(null);
     fixture.detectChanges();
     expect(submitClose?.disabled).toBeFalse();
     expect(submitContinue?.disabled).toBeFalse();
   });
 
   it('filters the transfer-service list to Health Advisory only for RO with no beneficiary selected', () => {
-    const fixture = render('RO');
+    const fixture = render('RO', {
+      services: [{ subServiceName: 'Health Advisory Service' }, { subServiceName: 'Counselling Service' }],
+    });
     const component = fixture.componentInstance;
-    component.form.controls.doTransfer.setValue(true);
-    fixture.detectChanges();
-    http.match((req) => req.url.includes('getTransferCampaigns')).forEach((req) => req.flush({ data: [] }));
-    http
-      .match((req) => req.url.includes('beneficiary/get/services'))
-      .forEach((req) =>
-        req.flush({ data: [{ subServiceName: 'Health Advisory Service' }, { subServiceName: 'Counselling Service' }] }),
-      );
-    fixture.detectChanges();
     expect(component.transferServices()).toEqual([{ subServiceName: 'Health Advisory Service' }]);
   });
 
   it('resolves a selected transfer service to its campaign, and errors + clears the selection when none is configured', () => {
     authStore.setSession({ token: 't', user: { userID: 1, agentID: 7, userName: 'agent', status: 'Active' } });
-    const fixture = render('HAO');
+    const fixture = render('HAO', {
+      campaigns: [{ campaign_name: 'CO_CAMPAIGN' }],
+      services: [{ subServiceName: 'Counselling Service' }, { subServiceName: 'Medical Advisory Service' }],
+    });
     const component = fixture.componentInstance;
-    component.form.controls.doTransfer.setValue(true);
-    fixture.detectChanges();
-    http
-      .match((req) => req.url.includes('getTransferCampaigns'))
-      .forEach((req) => req.flush({ data: { campaign: [{ campaign_name: 'CO_CAMPAIGN' }] } }));
-    http
-      .match((req) => req.url.includes('beneficiary/get/services'))
-      .forEach((req) =>
-        req.flush({ data: [{ subServiceName: 'Counselling Service' }, { subServiceName: 'Medical Advisory Service' }] }),
-      );
-    fixture.detectChanges();
 
     component.form.controls.transferService.setValue('Counselling Service');
     fixture.detectChanges();
