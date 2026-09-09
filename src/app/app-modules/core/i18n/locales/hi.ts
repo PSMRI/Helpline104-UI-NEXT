@@ -132,6 +132,7 @@ export const hi: Record<TranslationKey, string> = {
 
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'कॉल करने वाले का नंबर',
+  'innerpage.yearsSuffix': 'वर्ष',
   'innerpage.timer.ariaLabel': 'कॉल अवधि',
   'innerpage.statusOnCall': 'कॉल पर',
   'innerpage.dispatcherTitle': 'कॉल कार्यक्षेत्र',
@@ -173,6 +174,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.action.search': 'खोजें',
   'registration.action.retry': 'पुनः प्रयास करें',
   'registration.action.register': 'लाभार्थी पंजीकृत करें',
+  'registration.action.modify': 'संशोधित करें',
+  'registration.action.proceed': 'आगे बढ़ें',
   'registration.validation.required': 'यह फ़ील्ड आवश्यक है।',
   'registration.validation.firstNameMin': 'कम से कम 3 अक्षर दर्ज करें।',
   'registration.validation.whitespace': 'केवल रिक्त स्थान नहीं हो सकता।',
@@ -181,6 +184,7 @@ export const hi: Record<TranslationKey, string> = {
   'registration.validation.searchCriteria': 'खोजने के लिए नाम या पंजीकरण आईडी दर्ज करें।',
   'registration.toast.selected': 'इस कॉल के लिए लाभार्थी चुना गया।',
   'registration.toast.registered': 'लाभार्थी पंजीकृत और चयनित किया गया।',
+  'registration.toast.modified': 'लाभार्थी विवरण अपडेट किया गया।',
   'registration.toast.error': 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।',
   'registration.register.error': 'पंजीकरण विफल हुआ। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।',
   'registration.register.dismiss': 'बंद करें',
@@ -748,7 +752,6 @@ export const hi: Record<TranslationKey, string> = {
   'hao.service.snomed': 'SNOMED CT',
   'hao.service.cdss': 'CDSS',
   'hao.service.prescription': 'प्रिस्क्रिप्शन',
-  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'मुख्य शिकायतें',

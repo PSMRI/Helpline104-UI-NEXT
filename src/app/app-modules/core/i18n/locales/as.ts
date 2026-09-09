@@ -132,6 +132,7 @@ export const as: Record<TranslationKey, string> = {
 
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'কলাৰৰ নম্বৰ',
+  'innerpage.yearsSuffix': 'বছৰ',
   'innerpage.timer.ariaLabel': 'কলৰ ম্যাদ',
   'innerpage.statusOnCall': 'কলত আছে',
   'innerpage.dispatcherTitle': 'কল কৰ্মক্ষেত্ৰ',
@@ -174,6 +175,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.action.search': 'সন্ধান কৰক',
   'registration.action.retry': 'পুনৰ চেষ্টা কৰক',
   'registration.action.register': 'হিতাধিকাৰী পঞ্জীয়ন কৰক',
+  'registration.action.modify': 'সংশোধন কৰক',
+  'registration.action.proceed': 'আগবাঢ়ক',
   'registration.validation.required': 'এই ক্ষেত্ৰটো আৱশ্যক।',
   'registration.validation.firstNameMin': 'কমেও ৩টা আখৰ দিয়ক।',
   'registration.validation.whitespace': 'কেৱল ৰিক্ত স্থান হ’ব নোৱাৰে।',
@@ -182,6 +185,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.validation.searchCriteria': 'সন্ধান কৰিবলৈ নাম বা পঞ্জীয়ন আইডি দিয়ক।',
   'registration.toast.selected': 'এই কলৰ বাবে হিতাধিকাৰী বাছনি কৰা হ’ল।',
   'registration.toast.registered': 'হিতাধিকাৰী পঞ্জীয়ন আৰু বাছনি কৰা হ’ল।',
+  'registration.toast.modified': 'হিতাধিকাৰীৰ বিৱৰণ আপডেট কৰা হ’ল।',
   'registration.toast.error': 'কিবা ভুল হ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'registration.register.error': "পঞ্জীয়ন বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।",
   'registration.register.dismiss': 'বন্ধ কৰক',
@@ -750,7 +754,6 @@ export const as: Record<TranslationKey, string> = {
   'hao.service.snomed': 'SNOMED CT',
   'hao.service.cdss': 'CDSS',
   'hao.service.prescription': 'ঔষধপত্ৰ',
-  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'মুখ্য অভিযোগ',

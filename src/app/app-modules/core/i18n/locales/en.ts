@@ -131,6 +131,7 @@ export const en = {
 
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'Caller number',
+  'innerpage.yearsSuffix': 'Years',
   'innerpage.timer.ariaLabel': 'Call duration',
   'innerpage.statusOnCall': 'On call',
   'innerpage.dispatcherTitle': 'Call workspace',
@@ -172,6 +173,8 @@ export const en = {
   'registration.action.search': 'Search',
   'registration.action.retry': 'Retry',
   'registration.action.register': 'Register beneficiary',
+  'registration.action.modify': 'Modify',
+  'registration.action.proceed': 'Proceed',
   'registration.validation.required': 'This field is required.',
   'registration.validation.firstNameMin': 'Enter at least 3 characters.',
   'registration.validation.whitespace': 'Cannot be only spaces.',
@@ -180,6 +183,7 @@ export const en = {
   'registration.validation.searchCriteria': 'Enter a name or registration ID to search.',
   'registration.toast.selected': 'Beneficiary selected for this call.',
   'registration.toast.registered': 'Beneficiary registered and selected.',
+  'registration.toast.modified': 'Beneficiary details updated.',
   'registration.toast.error': 'Something went wrong. Please try again.',
   'registration.register.error': 'Registration failed. Please try again or contact support.',
   'registration.register.dismiss': 'Close',
@@ -748,7 +752,6 @@ export const en = {
   'hao.service.snomed': 'SNOMED CT',
   'hao.service.cdss': 'CDSS',
   'hao.service.prescription': 'Prescription',
-  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'Chief Complaints',

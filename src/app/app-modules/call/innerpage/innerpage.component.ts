@@ -27,12 +27,15 @@ import { RouterOutlet } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCircleDot, lucidePhoneIncoming } from '@ng-icons/lucide';
 
+import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { KeepaliveService } from '../../core/services/keepalive.service';
 import { CallStore } from '../call.store';
 import { CallWrapupService } from '../call-wrapup.service';
 import { CallDurationTimerComponent } from './call-duration-timer.component';
+
+const ROLE_CO = 'CO';
 
 /**
  * On-call workspace shell (`/innerpage`), reached only while a call is connected
@@ -86,6 +89,49 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
         </div>
       </header>
 
+      @if (demographicsView(); as d) {
+        <div class="border-b border-border bg-muted/30 px-4 py-2 text-sm text-foreground sm:px-6" role="status">
+          <span class="flex flex-wrap items-center gap-x-1">
+            @if (d.fullName) {
+              <span class="font-semibold">{{ d.fullName }},</span>
+            }
+            @if (d.displayId) {
+              <span>{{ d.displayId }},</span>
+            }
+            @if (d.genderName) {
+              <span>{{ d.genderName }},</span>
+            }
+            @if (d.ageLabel) {
+              <span>{{ d.ageLabel }},</span>
+            }
+            @if (d.stateName) {
+              <span>{{ d.stateName }},</span>
+            }
+            @if (d.districtName) {
+              <span>{{ d.districtName }},</span>
+            }
+            @if (d.subDistrictName) {
+              <span>{{ d.subDistrictName }},</span>
+            }
+            @if (d.villageName) {
+              <span>{{ d.villageName }},</span>
+            }
+            @if (d.maritalStatus) {
+              <span>{{ d.maritalStatus }},</span>
+            }
+            @if (d.category) {
+              <span>{{ d.category }},</span>
+            }
+            @if (d.communityName) {
+              <span>{{ d.communityName }}{{ d.educationName ? ',' : '' }}</span>
+            }
+            @if (d.educationName) {
+              <span>{{ d.educationName }}</span>
+            }
+          </span>
+        </div>
+      }
+
       <main class="flex-1 bg-muted/40 py-6">
         <div class="mx-auto w-full max-w-full px-4 sm:px-6">
           <router-outlet />
@@ -97,6 +143,7 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
 export class InnerpageComponent {
   private readonly i18n = inject(I18nService);
   private readonly callStore = inject(CallStore);
+  private readonly authStore = inject(AuthStore);
   // Instantiate the backend-session keepalive with the on-call shell; the
   // service then reacts to CallStore.onCall() on its own (see its docs).
   protected readonly keepalive = inject(KeepaliveService);
@@ -108,4 +155,34 @@ export class InnerpageComponent {
   readonly callerNumber = computed(() => this.callStore.cli() ?? '—');
   /** Seconds left in the caller-disconnect grace period, or 0 when none is active. */
   readonly wrapupSecondsRemaining = this.callWrapup.secondsRemaining;
+
+  /**
+   * Persistent beneficiary summary bar, shown once a caller is identified —
+   * legacy's `innerpage.component.html` shell renders the same comma-joined
+   * list (name, reg id, gender, age, state, district, sub-district, village,
+   * marital status, category, caste, and — CO only — education) on every
+   * on-call screen, not just the case sheet.
+   */
+  readonly demographicsView = computed(() => {
+    const d = this.callStore.demographics();
+    if (!d) {
+      return null;
+    }
+    const fullName = [d.firstName, d.lastName].filter(Boolean).join(' ');
+    const isCo = this.authStore.currentRole()?.featureCode === ROLE_CO;
+    return {
+      fullName,
+      displayId: d.displayId,
+      genderName: d.genderName,
+      ageLabel: d.age !== null ? `${d.age} ${this.i18n.instant('innerpage.yearsSuffix')}` : null,
+      stateName: d.stateName,
+      districtName: d.districtName,
+      subDistrictName: d.subDistrictName,
+      villageName: d.villageName,
+      maritalStatus: d.maritalStatus,
+      category: d.category,
+      communityName: d.communityName,
+      educationName: isCo ? d.educationName : null,
+    };
+  });
 }
