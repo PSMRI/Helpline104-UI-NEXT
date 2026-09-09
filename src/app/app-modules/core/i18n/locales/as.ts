@@ -122,6 +122,7 @@ export const as: Record<TranslationKey, string> = {
 
   // Shared dialog chrome
   'dashboard.dialog.info': 'তথ্য',
+  'dashboard.dialog.success': 'সফলতা',
   'dashboard.dialog.error': 'ত্ৰুটি',
   'dashboard.dialog.ok': 'ঠিক আছে',
   'dashboard.dialog.cancel': 'বাতিল',
@@ -795,6 +796,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.confirmContinue': 'এই ডিচপোজিচন দাখিল কৰি কল অব্যাহত ৰাখিব নে?',
   'hao.closure.confirmClose': 'এই ডিচপোজিচন দাখিল কৰি কল বন্ধ কৰিব নে?',
   'hao.closure.confirmTransfer': 'এই কল বাছনি কৰা অভিযানলৈ স্থানান্তৰ কৰিব নে?',
+  'hao.closure.closedSuccess': 'কল সফলতাৰে বন্ধ কৰা হৈছে',
+  'hao.closure.transferredToPrefix': 'কল স্থানান্তৰ কৰা হৈছে',
   'hao.closure.noCallError': 'বন্ধ কৰিবলৈ কোনো সক্ৰিয় কল নাই।',
   'hao.closure.closeError': 'কল বন্ধ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.transferError': 'কল স্থানান্তৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',

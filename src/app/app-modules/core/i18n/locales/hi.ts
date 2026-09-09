@@ -122,6 +122,7 @@ export const hi: Record<TranslationKey, string> = {
 
   // Shared dialog chrome
   'dashboard.dialog.info': 'सूचना',
+  'dashboard.dialog.success': 'सफलता',
   'dashboard.dialog.error': 'त्रुटि',
   'dashboard.dialog.ok': 'ठीक है',
   'dashboard.dialog.cancel': 'रद्द करें',
@@ -793,6 +794,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.confirmContinue': 'यह डिस्पोज़िशन सबमिट करें और कॉल जारी रखें?',
   'hao.closure.confirmClose': 'यह डिस्पोज़िशन सबमिट करें और कॉल बंद करें?',
   'hao.closure.confirmTransfer': 'इस कॉल को चयनित अभियान में स्थानांतरित करें?',
+  'hao.closure.closedSuccess': 'कॉल सफलतापूर्वक बंद हुआ',
+  'hao.closure.transferredToPrefix': 'कॉल को स्थानांतरित किया गया',
   'hao.closure.noCallError': 'बंद करने के लिए कोई सक्रिय कॉल नहीं है।',
   'hao.closure.closeError': 'कॉल बंद करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.transferError': 'कॉल स्थानांतरित करने में असमर्थ। कृपया पुनः प्रयास करें।',
