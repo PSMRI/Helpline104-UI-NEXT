@@ -29,6 +29,7 @@ import { DiseaseSummaryDetail } from '../case-sheet/disease-summary.models';
 import {
   ApiResponse,
   AvailableDisease,
+  AvailableService,
   CallType,
   CampaignSkill,
   CaseSheetRequest,
@@ -48,6 +49,7 @@ const PATHS = {
   diseaseByID: 'diseaseController/getDiseasesByID',
   presentCaseSheet: 'beneficiary/getPresentCaseSheet',
   saveCaseSheet: 'beneficiary/save/benCaseSheet',
+  availableServices: 'beneficiary/get/services',
   // Closure / call lifecycle — common-api
   callTypes: 'call/getCallTypesV1',
   closeCall: 'call/closeCall',
@@ -211,6 +213,21 @@ export class HaoService {
           }
           return res.data;
         }),
+      );
+  }
+
+  getAvailableServices(serviceID: number | null, isInbound: boolean): Observable<AvailableService[]> {
+    if (serviceID === null) {
+      return throwError(() => new Error('getAvailableServices: serviceID is required'));
+    }
+    return this.http
+      .post<ApiResponse<AvailableService[]>>(this.base104 + PATHS.availableServices, {
+        providerServiceMapID: serviceID,
+        ...(isInbound ? { isInbound: true } : { isOutbound: true }),
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
       );
   }
 

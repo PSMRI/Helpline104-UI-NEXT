@@ -125,6 +125,7 @@ describe('ClosureStepComponent', () => {
     component.form.controls.doTransfer.setValue(true);
     fixture.detectChanges();
     http.match((req) => req.url.includes('getTransferCampaigns')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('beneficiary/get/services')).forEach((req) => req.flush({ data: [] }));
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('select[formcontrolname="skill"]')).toBeNull();
   });
@@ -135,6 +136,7 @@ describe('ClosureStepComponent', () => {
     component.form.controls.doTransfer.setValue(true);
     fixture.detectChanges();
     http.match((req) => req.url.includes('getTransferCampaigns')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('beneficiary/get/services')).forEach((req) => req.flush({ data: [] }));
     fixture.detectChanges();
 
     const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
@@ -147,5 +149,121 @@ describe('ClosureStepComponent', () => {
     fixture.detectChanges();
     expect(submitClose?.disabled).toBeFalse();
     expect(submitContinue?.disabled).toBeFalse();
+  });
+
+  it('filters the transfer-service list to Health Advisory only for RO with no beneficiary selected', () => {
+    const fixture = render('RO');
+    const component = fixture.componentInstance;
+    component.form.controls.doTransfer.setValue(true);
+    fixture.detectChanges();
+    http.match((req) => req.url.includes('getTransferCampaigns')).forEach((req) => req.flush({ data: [] }));
+    http
+      .match((req) => req.url.includes('beneficiary/get/services'))
+      .forEach((req) =>
+        req.flush({ data: [{ subServiceName: 'Health Advisory Service' }, { subServiceName: 'Counselling Service' }] }),
+      );
+    fixture.detectChanges();
+    expect(component.transferServices()).toEqual([{ subServiceName: 'Health Advisory Service' }]);
+  });
+
+  it('resolves a selected transfer service to its campaign, and errors + clears the selection when none is configured', () => {
+    authStore.setSession({ token: 't', user: { userID: 1, agentID: 7, userName: 'agent', status: 'Active' } });
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    component.form.controls.doTransfer.setValue(true);
+    fixture.detectChanges();
+    http
+      .match((req) => req.url.includes('getTransferCampaigns'))
+      .forEach((req) => req.flush({ data: { campaign: [{ campaign_name: 'CO_CAMPAIGN' }] } }));
+    http
+      .match((req) => req.url.includes('beneficiary/get/services'))
+      .forEach((req) =>
+        req.flush({ data: [{ subServiceName: 'Counselling Service' }, { subServiceName: 'Medical Advisory Service' }] }),
+      );
+    fixture.detectChanges();
+
+    component.form.controls.transferService.setValue('Counselling Service');
+    fixture.detectChanges();
+    http.match((req) => req.url.includes('getCampaignSkills')).forEach((req) => req.flush({ data: [] }));
+    fixture.detectChanges();
+    expect(component.selectedCampaign()).toBe('CO_CAMPAIGN');
+
+    component.form.controls.transferService.setValue('Medical Advisory Service');
+    fixture.detectChanges();
+    expect(component.selectedCampaign()).toBeNull();
+    expect(component.form.controls.transferService.value).toBeNull();
+  });
+
+  it('auto-opens Schedule Appointment for Referral only when a beneficiary is selected, and reverts to Valid otherwise', () => {
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    component.callTypes.set([
+      {
+        callGroupType: 'Referral',
+        callTypes: [
+          {
+            callTypeID: 2,
+            callTypeDesc: 'Referral',
+            callGroupType: 'Referral',
+            isInbound: true,
+            isOutbound: false,
+            fitToBlock: false,
+            fitForFollowUp: false,
+          },
+        ],
+      },
+    ]);
+    fixture.detectChanges();
+
+    component.form.controls.callGroupType.setValue('Referral');
+    fixture.detectChanges();
+    expect(component.showAppointment()).toBeFalse();
+    expect(component.form.controls.callGroupType.value).toBe('Valid');
+
+    callStore.setBeneficiaryId(123, null);
+    component.form.controls.callGroupType.setValue('Referral');
+    fixture.detectChanges();
+    expect(component.showAppointment()).toBeTrue();
+    callStore.setBeneficiaryId(null, null);
+  });
+
+  it('filters "Referral" out of the call-type list for roles other than HAO/MO', () => {
+    const fixture = render('CO');
+    const component = fixture.componentInstance;
+    component.callTypes.set([
+      { callGroupType: 'Valid', callTypes: [] },
+      { callGroupType: 'Referral', callTypes: [] },
+    ]);
+    fixture.detectChanges();
+    expect(component.visibleCallTypes().map((t) => t.callGroupType)).toEqual(['Valid']);
+  });
+
+  it('blocks Submit & Continue (but not Submit & Close) for call types other than Valid/Transfer/Referral', () => {
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    component.callTypes.set([
+      {
+        callGroupType: 'Incomplete',
+        callTypes: [
+          {
+            callTypeID: 9,
+            callTypeDesc: 'Incomplete',
+            callGroupType: 'Incomplete',
+            isInbound: true,
+            isOutbound: false,
+            fitToBlock: false,
+            fitForFollowUp: false,
+          },
+        ],
+      },
+    ]);
+    component.form.controls.callGroupType.setValue('Incomplete');
+    fixture.detectChanges();
+
+    const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
+    const submitClose = buttons.find((b) => b.textContent?.includes('Submit & Close'));
+    const submitContinue = buttons.find((b) => b.textContent?.includes('Submit & Continue'));
+    expect(submitContinue?.disabled).toBeTrue();
+    expect(submitClose?.disabled).toBeFalse();
   });
 });
