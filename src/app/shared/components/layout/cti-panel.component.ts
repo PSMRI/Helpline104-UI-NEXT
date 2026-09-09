@@ -94,9 +94,21 @@ const LOAD_TIMEOUT_MS = 8_000;
         </button>
       }
 
-      @if (store.ctiOpen() && store.ctiUrl(); as src) {
+      @if (store.ctiUrl(); as src) {
+        <!--
+          Mounted once the agent is eligible and stays mounted for the rest of
+          the session — [hidden] toggles visibility, nothing here ever tears
+          the iframe down while collapsed. It used to be gated on ctiOpen()
+          too, destroying and recreating the iframe on every collapse/expand;
+          once the inbound-postMessage origin fix let real CZentrix messages
+          through (they were previously all silently dropped by a mismatched
+          origin check), a message CZentrix fires when its own iframe
+          unmounts started being read as a genuine "CustDisconnect" — the
+          caller had not actually hung up.
+        -->
         <div
           class="fixed bottom-28 right-4 z-50 flex w-[178px] flex-col overflow-hidden rounded-md border border-border bg-card shadow-lg"
+          [hidden]="!store.ctiOpen()"
         >
           <div class="flex shrink-0 items-center justify-between bg-primary px-2 py-1 text-primary-foreground">
             <span class="text-xs font-semibold">{{ store.czentrixLabel }}</span>
@@ -109,32 +121,34 @@ const LOAD_TIMEOUT_MS = 8_000;
               &times;
             </button>
           </div>
-          @if (unavailable()) {
-            <div class="p-3" role="alert">
-              <p class="text-xs text-muted-foreground">{{ 'cti.unavailable' | translate: lang() }}</p>
-              <button z-button type="button" zSize="xs" class="mt-2" (click)="retry()">
-                {{ 'cti.retry' | translate: lang() }}
-              </button>
-            </div>
-          } @else {
+          <div class="relative h-[285px] w-full overflow-hidden">
+            @if (unavailable()) {
+              <div class="absolute inset-0 flex flex-col items-start bg-card p-3" role="alert">
+                <p class="text-xs text-muted-foreground">{{ 'cti.unavailable' | translate: lang() }}</p>
+                <button z-button type="button" zSize="xs" class="mt-2" (click)="retry()">
+                  {{ 'cti.retry' | translate: lang() }}
+                </button>
+              </div>
+            }
             <!--
               CZentrix's own bar page is a legacy, non-responsive layout (fixed
               ~230x380 content) — shrinking the iframe's own box just clips it
               instead of shrinking its padding/buttons/font. A CSS scale
               transform shrinks the whole rendered page proportionally instead;
               the wrapper is sized to the post-scale footprint and clips any
-              sub-pixel overhang.
+              sub-pixel overhang. The iframe stays rendered (just covered by
+              the panel above) even while unavailable, rather than being
+              swapped out via @if/@else — same "never torn down" reasoning as
+              the outer panel.
             -->
-            <div class="h-[285px] w-full overflow-hidden">
-              <iframe
-                [src]="src"
-                [title]="store.czentrixLabel"
-                (load)="onIframeLoad()"
-                (error)="onIframeError()"
-                class="h-[380px] w-[230px] origin-top-left scale-75 border-0"
-              ></iframe>
-            </div>
-          }
+            <iframe
+              [src]="src"
+              [title]="store.czentrixLabel"
+              (load)="onIframeLoad()"
+              (error)="onIframeError()"
+              class="h-[380px] w-[230px] origin-top-left scale-75 border-0"
+            ></iframe>
+          </div>
         </div>
       }
     }
