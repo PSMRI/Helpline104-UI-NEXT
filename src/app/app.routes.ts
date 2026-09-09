@@ -121,15 +121,6 @@ export const routes: Routes = [
           import('./app-modules/call/role-workspace/co-workspace.component').then((m) => m.CoWorkspaceComponent),
       },
       {
-        // Counsellor (mental-health) case-sheet workspace.
-        path: 'counsellor',
-        canActivate: [beneficiaryGuard, roleWorkspaceGuard],
-        loadComponent: () =>
-          import('./app-modules/call/role-workspace/counsellor-workspace.component').then(
-            (m) => m.CounsellorWorkspaceComponent,
-          ),
-      },
-      {
         // SIO (Service Information Officer) service-catalogue workspace. Gated
         // so a role without SIO screens cannot reach it by typing the URL.
         path: 'sio',
