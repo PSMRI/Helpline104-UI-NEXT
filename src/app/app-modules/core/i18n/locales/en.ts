@@ -673,8 +673,6 @@ export const en = {
   'roleWorkspace.mo.switchToCo': 'Switch to CO',
   'roleWorkspace.co.title': 'Counselling Officer (CO)',
   'roleWorkspace.co.subtitle': 'Record the counselling advisory, then close the call.',
-  'roleWorkspace.counsellor.title': 'Counsellor',
-  'roleWorkspace.counsellor.subtitle': 'Record the counselling case sheet, then close the call.',
   'roleWorkspace.counsellingSheetTab': 'Counselling Sheet - Current Visit',
   'roleWorkspace.hihlCaseSheetTab': 'Detailed HIHL CO case sheet',
   'roleWorkspace.sio.title': 'Service Information Officer (SIO)',
