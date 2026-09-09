@@ -543,6 +543,7 @@ export const en = {
   // Supervisor reports hub + report screens
   'supReports.title': 'Supervisor Reports',
   'supReports.subtitle': 'Generate, preview and export the 104 call and CRM reports.',
+  'supReports.tab.telephony': 'Telephony Reports',
   'supReports.tab.callQuality': 'Call Quality',
   'supReports.tab.qa': 'QA Report',
   'supReports.tab.callSummary': 'Call Summary',
@@ -1338,6 +1339,8 @@ export const en = {
   // Supervisor agent status
   'supervisor.agentStatus.title': 'Agent Status',
   'supervisor.agentStatus.unavailable': 'Agent Status is unavailable right now. Please try logging in again.',
+  'supReports.telephony.title': 'Telephony Reports',
+  'supReports.telephony.unavailable': 'Telephony Reports is unavailable right now. Please try logging in again.',
   // Login
   'login.title': 'AMRIT 104 Helpline',
   'login.subtitle': 'Sign in to your account to continue',

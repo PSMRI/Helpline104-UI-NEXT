@@ -207,6 +207,13 @@ export const routes: Routes = [
         children: [
           { path: '', redirectTo: 'call-quality', pathMatch: 'full' },
           {
+            path: 'telephony',
+            loadComponent: () =>
+              import('./app-modules/supervisor/reports/telephony-reports.component').then(
+                (m) => m.TelephonyReportsComponent,
+              ),
+          },
+          {
             path: 'call-quality',
             loadComponent: () =>
               import('./app-modules/supervisor/reports/call-quality-report.component').then(

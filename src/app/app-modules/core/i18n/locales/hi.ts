@@ -543,6 +543,7 @@ export const hi: Record<TranslationKey, string> = {
   // Supervisor reports hub + report screens
   'supReports.title': 'पर्यवेक्षक रिपोर्ट',
   'supReports.subtitle': '104 कॉल और सीआरएम रिपोर्ट बनाएं, देखें और निर्यात करें।',
+  'supReports.tab.telephony': 'टेलीफोनी रिपोर्ट',
   'supReports.tab.callQuality': 'कॉल गुणवत्ता',
   'supReports.tab.qa': 'क्यूए रिपोर्ट',
   'supReports.tab.callSummary': 'कॉल सारांश',
@@ -1338,6 +1339,8 @@ export const hi: Record<TranslationKey, string> = {
   // Supervisor agent status
   'supervisor.agentStatus.title': 'एजेंट स्थिति',
   'supervisor.agentStatus.unavailable': 'एजेंट स्थिति अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
+  'supReports.telephony.title': 'टेलीफोनी रिपोर्ट',
+  'supReports.telephony.unavailable': 'टेलीफोनी रिपोर्ट अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
   // Login
   'login.title': 'AMRIT 104 हेल्पलाइन',
   'login.subtitle': 'जारी रखने के लिए अपने खाते में साइन इन करें',

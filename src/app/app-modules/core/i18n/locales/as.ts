@@ -544,6 +544,7 @@ export const as: Record<TranslationKey, string> = {
   // Supervisor reports hub + report screens
   'supReports.title': 'তত্ত্বাৱধায়ক প্ৰতিবেদন',
   'supReports.subtitle': '104 কল আৰু চিআৰএম প্ৰতিবেদন সৃষ্টি, চাওক আৰু ৰপ্তানি কৰক।',
+  'supReports.tab.telephony': 'টেলিফোনী প্ৰতিবেদন',
   'supReports.tab.callQuality': 'কলৰ গুণগত মান',
   'supReports.tab.qa': 'কিউএ প্ৰতিবেদন',
   'supReports.tab.callSummary': 'কলৰ সাৰাংশ',
@@ -1341,6 +1342,9 @@ export const as: Record<TranslationKey, string> = {
   'supervisor.agentStatus.title': 'এজেণ্টৰ স্থিতি',
   'supervisor.agentStatus.unavailable':
     'এজেণ্টৰ স্থিতি এতিয়া উপলব্ধ নহয়। অনুগ্ৰহ কৰি পুনৰ লগইন কৰাৰ চেষ্টা কৰক।',
+  'supReports.telephony.title': 'টেলিফোনী প্ৰতিবেদন',
+  'supReports.telephony.unavailable':
+    'টেলিফোনী প্ৰতিবেদন এতিয়া উপলব্ধ নহয়। অনুগ্ৰহ কৰি পুনৰ লগইন কৰাৰ চেষ্টা কৰক।',
   // Login
   'login.title': 'AMRIT 104 হেল্পলাইন',
   'login.subtitle': 'অব্যাহত ৰাখিবলৈ আপোনাৰ একাউণ্টত ছাইন ইন কৰক',

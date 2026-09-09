@@ -35,6 +35,7 @@ interface ReportTab {
 
 /** Tabs mirror the legacy supervisor Reports menu (call + CRM reports). */
 const TABS: readonly ReportTab[] = [
+  { path: 'telephony', labelKey: 'supReports.tab.telephony' },
   { path: 'call-quality', labelKey: 'supReports.tab.callQuality' },
   { path: 'qa-report', labelKey: 'supReports.tab.qa' },
   { path: 'call-summary', labelKey: 'supReports.tab.callSummary' },
