@@ -22,7 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
+import { Observable, TimeoutError, catchError, map, shareReplay, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -78,6 +78,20 @@ export class BeneficiaryService {
     return this.config.getCommonBaseURL();
   }
 
+  // Angular recreates BeneficiaryRegistrationComponent on every route visit,
+  // so without caching this near-static reference data (genders, titles,
+  // communities, marital statuses, educations, provider states) was refetched
+  // from scratch each time an agent navigated into registration. Both service
+  // instances live for the app's lifetime (`providedIn: 'root'`), so caching
+  // the in-flight/completed request here — keyed by the request's own
+  // parameter, since it varies by agent — survives across those
+  // re-instantiations for the rest of the session.
+  private readonly registrationDataCache = new Map<
+    string,
+    Observable<RegistrationMasterData | undefined>
+  >();
+  private readonly providerStatesCache = new Map<string, Observable<StateOption[]>>();
+
   /**
    * Identify an inbound caller: list every beneficiary registered against the
    * caller's phone number (CLI). Resolves to `[]` when none are found.
@@ -126,13 +140,25 @@ export class BeneficiaryService {
    * service. Mirrors the legacy `getUserBeneficaryData` call.
    */
   getRegistrationData(providerServiceMapID: number | null): Observable<RegistrationMasterData | undefined> {
-    return this.http
+    const key = String(providerServiceMapID);
+    const cached = this.registrationDataCache.get(key);
+    if (cached) {
+      return cached;
+    }
+    const request$ = this.http
       .post<ApiResponse<RegistrationMasterData>>(this.baseUrl + REGISTRATION_DATA_PATH, { providerServiceMapID })
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => this.readData(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
+        catchError((err: unknown) => {
+          // Don't cache a failed fetch — let the next component instance retry.
+          this.registrationDataCache.delete(key);
+          return throwError(() => this.toError(err));
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
       );
+    this.registrationDataCache.set(key, request$);
+    return request$;
   }
 
   /** Healthcare-worker types (104 API), loaded when registering a HCW. */
@@ -146,13 +172,25 @@ export class BeneficiaryService {
 
   /** Provider states for the location cascade (admin API). */
   getProviderStates(serviceProviderID: number | null): Observable<StateOption[]> {
-    return this.http
+    const key = String(serviceProviderID);
+    const cached = this.providerStatesCache.get(key);
+    if (cached) {
+      return cached;
+    }
+    const request$ = this.http
       .post<ApiResponse<StateOption[]>>(this.config.getAdminBaseURL() + PROVIDER_STATES_PATH, { serviceProviderID })
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
+        catchError((err: unknown) => {
+          // Don't cache a failed fetch — let the next component instance retry.
+          this.providerStatesCache.delete(key);
+          return throwError(() => this.toError(err));
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
       );
+    this.providerStatesCache.set(key, request$);
+    return request$;
   }
 
   /** Districts for a state (common API, GET). */

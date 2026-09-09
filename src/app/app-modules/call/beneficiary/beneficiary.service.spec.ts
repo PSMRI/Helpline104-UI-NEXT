@@ -69,3 +69,62 @@ describe('BeneficiaryService request timeout', () => {
     expect(failure?.errorMessage).toBe('The request timed out. Please check your connection and try again.');
   });
 });
+
+/**
+ * Angular recreates `BeneficiaryRegistrationComponent` on every route visit,
+ * so registration master data (genders, titles, communities, marital
+ * statuses, educations) and provider states were refetched from scratch each
+ * time an agent navigated into registration. Both are near-static per agent
+ * and now cached for the life of the (root-singleton) service.
+ */
+describe('BeneficiaryService registration master data caching', () => {
+  let service: BeneficiaryService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(BeneficiaryService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  it('getRegistrationData() issues one request for repeated calls with the same key', () => {
+    let calls = 0;
+    service.getRegistrationData(7).subscribe(() => calls++);
+    service.getRegistrationData(7).subscribe(() => calls++);
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ status: 'Success', data: {} });
+    expect(calls).toBe(2);
+  });
+
+  it('getRegistrationData() issues a fresh request for a different key', () => {
+    let calls = 0;
+    service.getRegistrationData(7).subscribe(() => calls++);
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ status: 'Success', data: {} });
+    service.getRegistrationData(9).subscribe(() => calls++);
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ status: 'Success', data: {} });
+    expect(calls).toBe(2);
+  });
+
+  it('getRegistrationData() retries after a failed request instead of replaying the error', () => {
+    let firstFailed = false;
+    service.getRegistrationData(7).subscribe({ error: () => (firstFailed = true) });
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush(null, { status: 500, statusText: 'Server Error' });
+    expect(firstFailed).toBeTrue();
+
+    let secondSucceeded = false;
+    service.getRegistrationData(7).subscribe({ next: () => (secondSucceeded = true) });
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ status: 'Success', data: {} });
+    expect(secondSucceeded).toBeTrue();
+  });
+
+  it('getProviderStates() issues one request for repeated calls with the same key', () => {
+    let calls = 0;
+    service.getProviderStates(3).subscribe(() => calls++);
+    service.getProviderStates(3).subscribe(() => calls++);
+    http.expectOne((req) => req.url.includes('m/role/state')).flush({ status: 'Success', data: [] });
+    expect(calls).toBe(2);
+  });
+});
