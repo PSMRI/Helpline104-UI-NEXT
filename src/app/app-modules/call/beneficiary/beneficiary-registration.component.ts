@@ -59,6 +59,7 @@ import { CallerDemographics, CallStore } from '../call.store';
 import { resolveDispatchPath } from '../role-workspace/role-screens.util';
 import { SmsService } from '../sms/sms.service';
 import { HasUnsavedChanges } from '../unsaved-changes.guard';
+import { AbhaDetailsDialogComponent, AbhaDetailsDialogData } from './abha-details-dialog.component';
 import { BeneficiaryService } from './beneficiary.service';
 import {
   RegistrationSuccessDialogComponent,
@@ -301,6 +302,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
            Hidden once a sub-view is active (search or register in progress),
            replaced by a single "Back" control so the agent isn't stranded. -->
       <div class="mb-5 flex flex-wrap items-center justify-end gap-2">
+        <!-- Legacy 104-RO shell's always-visible "Cancel" — abandons the current
+             sub-view/entry and restarts the landing gate without ending the call. -->
+        <button z-button type="button" zType="outline" class="mr-auto" (click)="cancelToStart()">
+          {{ 'registration.action.cancel' | translate: lang() }}
+        </button>
         @if (activeView() === 'list') {
           <button
             z-button
@@ -441,6 +447,28 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   </option>
                   @for (g of genders(); track g.genderID) {
                     <option [ngValue]="g.genderID">{{ genderDisplay(g) }}</option>
+                  }
+                </select>
+              </z-form-control>
+            </z-form-field>
+            <z-form-field>
+              <label z-form-label for="search-stateID" class="text-base">{{ 'registration.field.state' | translate: lang() }}</label>
+              <z-form-control>
+                <select id="search-stateID" formControlName="stateID" [class]="selectClass" (change)="onSearchStateChange()">
+                  <option [ngValue]="null">{{ 'registration.field.selectPlaceholder' | translate: lang() }}</option>
+                  @for (s of states(); track s.stateID) {
+                    <option [ngValue]="s.stateID">{{ s.stateName }}</option>
+                  }
+                </select>
+              </z-form-control>
+            </z-form-field>
+            <z-form-field>
+              <label z-form-label for="search-districtID" class="text-base">{{ 'registration.field.district' | translate: lang() }}</label>
+              <z-form-control>
+                <select id="search-districtID" formControlName="districtID" [class]="selectClass">
+                  <option [ngValue]="null">{{ 'registration.field.selectPlaceholder' | translate: lang() }}</option>
+                  @for (d of searchDistricts(); track d.districtID) {
+                    <option [ngValue]="d.districtID">{{ d.districtName }}</option>
                   }
                 </select>
               </z-form-control>
@@ -1081,6 +1109,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 {{ 'registration.col.relationship' | translate: lang() }}
               </th>
               <th z-table-head>{{ 'registration.col.district' | translate: lang() }}</th>
+              <th z-table-head>{{ 'registration.col.abhaDetails' | translate: lang() }}</th>
               <th z-table-head class="text-right">
                 {{ 'registration.col.action' | translate: lang() }}
               </th>
@@ -1096,6 +1125,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 <td z-table-cell>{{ relationship(row) }}</td>
                 <td z-table-cell>
                   {{ row.i_bendemographics?.m_district?.districtName ?? '—' }}
+                </td>
+                <td z-table-cell>
+                  <button z-button type="button" zType="outline" zSize="sm" (click)="viewAbhaDetails(row)">
+                    {{ 'registration.abha.view' | translate: lang() }}
+                  </button>
                 </td>
                 <td z-table-cell class="text-right">
                   <button z-button type="button" zType="outline" zSize="sm" (click)="selectBeneficiary(row)">
@@ -1230,6 +1264,11 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   // --- Location cascade ---------------------------------------------------
   readonly states = signal<StateOption[]>([]);
   readonly districts = signal<DistrictOption[]>([]);
+  /** Districts for the search form's own State filter — kept separate from
+   * {@link districts} (the register-form address cascade) so switching views
+   * cannot leave one form's district list showing options for the other's
+   * selected state. */
+  readonly searchDistricts = signal<DistrictOption[]>([]);
   readonly subDistricts = signal<BlockOption[]>([]);
   readonly villages = signal<VillageOption[]>([]);
 
@@ -1248,6 +1287,8 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     lastName: new FormControl('', { nonNullable: true }),
     beneficiaryID: new FormControl('', { nonNullable: true }),
     genderID: new FormControl<number | null>(null),
+    stateID: new FormControl<number | null>(null),
+    districtID: new FormControl<number | null>(null),
   });
 
   readonly registerForm = new FormGroup({
@@ -1374,6 +1415,79 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     if (this.updateMode()) {
       this.exitUpdateMode();
     }
+  }
+
+  /**
+   * Legacy 104-RO shell's "Cancel" button (`openDialog` — "Cancel Call"):
+   * abandons whatever registration entry is in progress and restarts the
+   * landing gate, without ending the call itself (that is the separate
+   * Closure step, reached only once a beneficiary is identified).
+   */
+  cancelToStart(): void {
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('registration.cancel.title'),
+        message: this.i18n.instant('registration.cancel.message'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+        if (this.updateMode()) {
+          this.exitUpdateMode();
+        }
+        this.activeView.set('list');
+        this.calledEarlier.set(null);
+        this.quickSearchTerm.set('');
+        this.quickSearchResults.set(null);
+        this.searchForm.reset({ firstName: '', lastName: '', beneficiaryID: '', genderID: null, stateID: null, districtID: null });
+        this.searchAttempted.set(false);
+        this.searchResults.set([]);
+        this.searchDistricts.set([]);
+      });
+  }
+
+  /** View a selected beneficiary's ABHA linkages, or note there are none (legacy `loadAbhaDetails`). */
+  viewAbhaDetails(row: BeneficiaryRecord): void {
+    if (!row.abhaDetails || row.abhaDetails.length === 0) {
+      this.confirmDialog
+        .alert({
+          title: this.i18n.instant('dashboard.dialog.info'),
+          message: this.i18n.instant('registration.abha.notAvailable'),
+          okText: this.i18n.instant('dashboard.dialog.ok'),
+          status: 'info',
+        })
+        .subscribe();
+      return;
+    }
+    this.dialog.create<AbhaDetailsDialogComponent, AbhaDetailsDialogData>({
+      zTitle: this.i18n.instant('registration.abha.title'),
+      zContent: AbhaDetailsDialogComponent,
+      zData: { abhaDetails: row.abhaDetails },
+      zHideFooter: true,
+      zWidth: '36rem',
+    });
+  }
+
+  /** Load districts for the search form's own State filter (independent of the register-form cascade). */
+  onSearchStateChange(): void {
+    const stateID = this.searchForm.controls.stateID.value;
+    this.searchDistricts.set([]);
+    this.searchForm.controls.districtID.setValue(null);
+    if (stateID == null) {
+      return;
+    }
+    this.beneficiary.getDistricts(stateID).subscribe({
+      next: (rows) => {
+        if (this.searchForm.controls.stateID.value === stateID) {
+          this.searchDistricts.set(rows);
+        }
+      },
+      error: () => undefined,
+    });
   }
 
   /** Clear review/edit-mode state and blank the form back to its new-registration defaults. */
@@ -1767,7 +1881,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     // Bump the request id first so any in-flight response (including one fired
     // before an empty-criteria reset) is treated as stale and dropped below.
     const requestId = ++this.searchRequestId;
-    const { firstName, lastName, beneficiaryID, genderID } = this.searchForm.getRawValue();
+    const { firstName, lastName, beneficiaryID, genderID, stateID, districtID } = this.searchForm.getRawValue();
     const hasCriteria = !!(firstName.trim() || lastName.trim() || beneficiaryID.trim());
     if (!hasCriteria) {
       this.searchResults.set([]);
@@ -1786,6 +1900,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       lastName: lastName.trim() || undefined,
       beneficiaryID: beneficiaryID.trim() || undefined,
       genderID: genderID ?? undefined,
+      ...(stateID != null || districtID != null ? { i_bendemographics: { stateID, districtID } } : {}),
     };
     this.lastSearchCriteria.set(criteria);
     this.runSearch(criteria, requestId);

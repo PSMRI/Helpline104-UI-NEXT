@@ -226,6 +226,12 @@ export interface CloseCallRequest {
   isFollowupRequired: boolean;
   /** Follow-up datetime; present only when {@link isFollowupRequired} (legacy name). */
   prefferedDateTime?: string | null;
+  /**
+   * Feature (screen) the follow-up routes back to; present only when
+   * {@link isFollowupRequired} — the role's own screen, or the agent's
+   * explicit choice when they hold more than one (legacy `requestedFeature`).
+   */
+  requestedFeature?: string | null;
   /** Remarks (legacy field name). */
   requestedFor?: string | null;
   isEmergency: boolean;
