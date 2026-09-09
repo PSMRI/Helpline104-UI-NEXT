@@ -177,6 +177,9 @@ describe('CaseSheetComponent — CO role', () => {
   function flushInit(fixture: ReturnType<typeof render>, categories: unknown[] = []) {
     http.expectOne((req) => req.url.includes('diseaseController/getAvailableDiseases')).flush({ data: [] });
     http.expectOne((req) => req.url.includes('covid/master/VaccinationTypeAndDoseTaken')).flush({ data: null });
+    http
+      .expectOne((req) => req.url.includes('beneficiary/get/services'))
+      .flush({ data: [{ subServiceName: 'Counselling', subServiceID: 9 }] });
     http.expectOne((req) => req.url.includes('service/category')).flush({ data: categories });
     fixture.detectChanges();
   }
@@ -254,6 +257,20 @@ describe('CaseSheetComponent — CO role', () => {
     expect(component.form.controls.chiefComplaints.valid).toBeTrue();
     expect(component.form.controls.provisionalDiagnosis.valid).toBeTrue();
     expect(component.form.controls.treatmentRecommendation.valid).toBeTrue();
+  });
+
+  it("resolves Counselling's subServiceID before requesting guideline categories", () => {
+    const fixture = render();
+    http.expectOne((req) => req.url.includes('diseaseController/getAvailableDiseases')).flush({ data: [] });
+    http.expectOne((req) => req.url.includes('covid/master/VaccinationTypeAndDoseTaken')).flush({ data: null });
+    http
+      .expectOne((req) => req.url.includes('beneficiary/get/services'))
+      .flush({ data: [{ subServiceName: 'Medical Officer' }, { subServiceName: 'Counselling', subServiceID: 42 }] });
+
+    const categoryReq = http.expectOne((req) => req.url.includes('service/category'));
+    expect(categoryReq.request.body).toEqual({ providerServiceMapID: 5, subServiceID: 42 });
+    categoryReq.flush({ data: [] });
+    fixture.detectChanges();
   });
 
   it('does not require Risk Level', () => {

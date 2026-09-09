@@ -1083,6 +1083,31 @@ export class CaseSheetComponent {
     return results.some((r) => r.subCatFilePath);
   }
 
+  /**
+   * Legacy resolves the Counselling Sheet's Category list two-hop: fetch the
+   * role's available sub-services, then match the one named "Counselling" for
+   * its `subServiceID`, which the category lookup keys on alongside
+   * `providerServiceMapID` (`getSubserviceID` → `getCategories`).
+   */
+  private loadGuidelineCategories(): void {
+    const providerServiceMapID = this.providerServiceMapID();
+    this.haoService.getAvailableServices(providerServiceMapID, true).subscribe({
+      next: (services) => {
+        const subServiceID = services.find((s) => s.subServiceName.includes('Counselling'))?.subServiceID ?? null;
+        this.haoService.getGuidelineCategories(providerServiceMapID, subServiceID).subscribe({
+          next: (categories) => this.allCategories.set(categories),
+          error: () => this.allCategories.set([]),
+        });
+      },
+      error: () => {
+        this.haoService.getGuidelineCategories(providerServiceMapID, null).subscribe({
+          next: (categories) => this.allCategories.set(categories),
+          error: () => this.allCategories.set([]),
+        });
+      },
+    });
+  }
+
   searchGuidelines(): void {
     const categoryID = this.form.controls.categoryID.value;
     if (categoryID === null || this.loadingGuidelines()) {
@@ -1182,10 +1207,7 @@ export class CaseSheetComponent {
     });
 
     if (this.isCo()) {
-      this.haoService.getGuidelineCategories(this.providerServiceMapID()).subscribe({
-        next: (categories) => this.allCategories.set(categories),
-        error: () => this.allCategories.set([]),
-      });
+      this.loadGuidelineCategories();
     }
 
     this.form.controls.chiefComplaints.valueChanges.subscribe((value) => {

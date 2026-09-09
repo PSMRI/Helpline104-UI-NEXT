@@ -370,10 +370,14 @@ export class HaoService {
       );
   }
 
-  getGuidelineCategories(providerServiceMapID: number | null): Observable<GuidelineCategory[]> {
+  getGuidelineCategories(
+    providerServiceMapID: number | null,
+    subServiceID: number | null,
+  ): Observable<GuidelineCategory[]> {
     return this.http
       .post<ApiResponse<GuidelineCategory[]>>(this.baseCommon + PATHS.guidelineCategories, {
         providerServiceMapID,
+        subServiceID,
       })
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
