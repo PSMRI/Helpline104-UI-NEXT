@@ -55,7 +55,7 @@ import {
   SavePrescriptionRequest,
 } from './prescription.models';
 import { SmsService } from '../sms/sms.service';
-import { LEGACY_GREEN_BUTTON } from '../legacy-theme';
+import { LEGACY_BLUE_BUTTON, LEGACY_GREEN_BUTTON } from '../legacy-theme';
 
 const PRESCRIPTION_SMS_TYPE = 'prescription sms';
 const ALTERNATE_NUMBER_PATTERN = /^\d{10}$/;
@@ -331,8 +331,19 @@ function optionalMinLength(min: number) {
             }
           </div>
 
-          <div class="flex items-end justify-end">
-            <button z-button type="submit" [class]="legacyGreen" [zDisabled]="lineForm.invalid || !hasContext()">
+          <!-- Legacy's row: "Show Prescription History" pull-left, "Add"
+               pull-right, both primary/blue
+               (prescription.component.html:123-130). The Show button appears
+               only while the history is hidden and there is history to show. -->
+          <div class="flex items-end justify-between gap-2 sm:col-span-2 lg:col-span-3">
+            @if (!showHistory() && history().length > 0) {
+              <button z-button type="button" [class]="legacyBlue" (click)="toggleHistory()">
+                {{ 'prescription.showHistory' | translate: lang() }}
+              </button>
+            } @else {
+              <span></span>
+            }
+            <button z-button type="submit" [class]="legacyBlue" [zDisabled]="lineForm.invalid || !hasContext()">
               {{ 'prescription.addDrug' | translate: lang() }}
             </button>
           </div>
@@ -463,12 +474,14 @@ function optionalMinLength(min: number) {
         }
       </div>
 
-      <!-- History -->
-      <div class="mt-5 border-t border-border pt-4">
-        <button z-button type="button" zType="ghost" (click)="toggleHistory()">
-          {{ (showHistory() ? 'prescription.hideHistory' : 'prescription.showHistory') | translate: lang() }}
-        </button>
-        @if (showHistory()) {
+      <!-- History. Legacy titles this section and closes it with a blue
+           "Hide History" under the table, rather than a toggle above it
+           (prescription.component.html:195-240). -->
+      @if (showHistory()) {
+        <div class="mt-5 border-t border-border pt-4">
+          <h4 class="mb-3 text-sm font-semibold text-foreground">
+            {{ 'prescription.historyTitle' | translate: lang() }}
+          </h4>
           <div class="mt-3">
             @if (history().length === 0) {
               <p class="text-sm text-muted-foreground">{{ 'prescription.noHistory' | translate: lang() }}</p>
@@ -542,7 +555,7 @@ function optionalMinLength(min: number) {
                 <button
                   z-button
                   type="button"
-                  zType="outline"
+                  [class]="legacyGreen"
                   [zLoading]="sendingSms()"
                   [zDisabled]="!canSendResend()"
                   (click)="sendResendSms()"
@@ -551,9 +564,15 @@ function optionalMinLength(min: number) {
                 </button>
               </div>
             }
+
+            <div class="mt-3 flex justify-end">
+              <button z-button type="button" [class]="legacyBlue" (click)="toggleHistory()">
+                {{ 'prescription.hideHistory' | translate: lang() }}
+              </button>
+            </div>
           </div>
-        }
-      </div>
+        </div>
+      }
     </section>
   `,
 })
@@ -584,6 +603,7 @@ export class PrescriptionComponent implements OnInit {
   readonly lang = this.i18n.language;
   readonly selectClass = SELECT_CLASS;
   readonly legacyGreen = LEGACY_GREEN_BUTTON;
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
   readonly diagnosisMax = DIAGNOSIS_MAX;
   readonly strengthNA = STRENGTH_NA;
 
@@ -952,9 +972,13 @@ export class PrescriptionComponent implements OnInit {
         next: (res) => {
           this.saving.set(false);
           const id = res.prescriptionID;
-          toast.success(
-            id != null ? this.i18n.instant('prescription.savedPrefix') + id : this.i18n.instant('prescription.saved'),
-          );
+          // In the dialog, the case sheet announces the save in legacy's green
+          // Success dialog once this one closes — don't also toast it.
+          if (!this.inDialog()) {
+            toast.success(
+              id != null ? this.i18n.instant('prescription.savedPrefix') + id : this.i18n.instant('prescription.saved'),
+            );
+          }
           if (id != null) {
             this.saved.emit(id);
           }

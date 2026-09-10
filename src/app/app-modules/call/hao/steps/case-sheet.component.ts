@@ -116,9 +116,18 @@ const MIN_VACCINE_AGE = 12;
   ],
   viewProviders: [provideIcons({ lucideSearch })],
   template: `
-    <h2 class="mb-2 text-base font-semibold text-foreground">
-      {{ (isCo() ? 'hao.caseSheet.counsellingSheet' : 'hao.caseSheet.caseSheet') | translate: lang() }}
-    </h2>
+    <!-- Legacy puts the green History button at the card's top right, level
+         with the "Case Sheet" heading (104 MO screenshots). -->
+    <div class="mb-2 flex items-start justify-between gap-3">
+      <h2 class="text-base font-semibold text-foreground">
+        {{ (isCo() ? 'hao.caseSheet.counsellingSheet' : 'hao.caseSheet.caseSheet') | translate: lang() }}
+      </h2>
+      @if (beneficiaryId() !== null && !historyOpen()) {
+        <button z-button type="button" [class]="legacyGreen" (click)="toggleHistory()">
+          {{ 'casesheetHistory.show' | translate: lang() }}
+        </button>
+      }
+    </div>
 
     <!-- Legacy lays the case sheet out four fields across on a wide screen
          (Bootstrap col-lg-3), stacking on narrow ones. Blocks that legacy puts
@@ -873,33 +882,41 @@ const MIN_VACCINE_AGE = 12;
       </div>
     </form>
 
-    @if (beneficiaryId() !== null) {
+    @if (beneficiaryId() !== null && historyOpen()) {
       <section class="mt-6 border-t border-border pt-4">
-        <div class="flex items-center justify-between">
+        <!-- Legacy labels this "History" with an ✕ chip that closes it, and
+             renders the tabs as underlined text tabs rather than buttons. -->
+        <div class="flex items-center gap-2">
           <h2 class="text-sm font-semibold text-foreground">
             {{ 'casesheetHistory.sectionTitle' | translate: lang() }}
           </h2>
-          <button z-button type="button" [class]="legacyGreen" (click)="toggleHistory()">
-            {{ (historyOpen() ? 'casesheetHistory.hide' : 'casesheetHistory.show') | translate: lang() }}
+          <button
+            type="button"
+            class="flex size-5 items-center justify-center rounded bg-foreground text-xs font-bold text-background hover:bg-foreground/80"
+            [attr.aria-label]="'casesheetHistory.hide' | translate: lang()"
+            (click)="toggleHistory()"
+          >
+            ✕
           </button>
         </div>
 
-        @if (historyOpen()) {
-          <div class="mt-3 flex flex-wrap gap-2" role="tablist">
-            @for (tab of historyTabs; track tab.id) {
-              <button
-                z-button
-                type="button"
-                [zType]="activeTab() === tab.id ? 'default' : 'outline'"
-                zSize="sm"
-                role="tab"
-                [attr.aria-selected]="activeTab() === tab.id"
-                (click)="selectHistoryTab(tab.id)"
-              >
-                {{ tab.labelKey | translate: lang() }}
-              </button>
-            }
-          </div>
+        <div class="mt-3 flex flex-wrap gap-x-6 border-b border-border" role="tablist">
+          @for (tab of historyTabs; track tab.id) {
+            <button
+              type="button"
+              class="-mb-px border-b-2 px-1 pb-2 text-sm font-semibold"
+              [class.border-primary]="activeTab() === tab.id"
+              [class.text-foreground]="activeTab() === tab.id"
+              [class.border-transparent]="activeTab() !== tab.id"
+              [class.text-muted-foreground]="activeTab() !== tab.id"
+              role="tab"
+              [attr.aria-selected]="activeTab() === tab.id"
+              (click)="selectHistoryTab(tab.id)"
+            >
+              {{ tab.labelKey | translate: lang() }}
+            </button>
+          }
+        </div>
 
           <div class="mt-3">
             @switch (activeTab()) {
@@ -955,8 +972,7 @@ const MIN_VACCINE_AGE = 12;
                 </p>
               </div>
             }
-          </div>
-        }
+        </div>
       </section>
     }
   `,
@@ -1550,9 +1566,19 @@ export class CaseSheetComponent {
     });
 
     ref.afterClosed().subscribe((prescriptionID) => {
-      if (prescriptionID != null) {
-        this.onPrescriptionSaved();
+      if (prescriptionID == null) {
+        return;
       }
+      this.onPrescriptionSaved();
+      // Legacy closes the prescription dialog and then announces the save in a
+      // green Success dialog, not a passing toast (prescription.component.ts:
+      // 323-324, and the 104 MO screenshots).
+      void this.confirmDialog.alert({
+        title: this.i18n.instant('dialog.successTitle'),
+        message: this.i18n.instant('prescription.savedPrefix') + prescriptionID,
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        status: 'success',
+      });
     });
   }
 
