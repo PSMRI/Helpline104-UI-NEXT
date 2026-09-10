@@ -194,6 +194,11 @@ const PHONE_PARAMETER = 'SMS_PHONE_NO';
               <span class="text-destructive">*</span>
             </label>
             <input id="sms-name" z-input class="w-full" maxlength="40" formControlName="templateName" />
+            @if (createForm.controls.templateName.invalid && createForm.controls.templateName.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="sms-type" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -206,6 +211,11 @@ const PHONE_PARAMETER = 'SMS_PHONE_NO';
                 <option [ngValue]="type.smsTypeID">{{ type.smsType }}</option>
               }
             </select>
+            @if (createForm.controls.smsTypeID.invalid && createForm.controls.smsTypeID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div class="sm:col-span-2">
             <label for="sms-template" class="mb-1 block text-xs font-medium text-muted-foreground">

@@ -38,6 +38,7 @@ import { lucideHeartPulse } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../../../core/auth/auth.store';
@@ -65,7 +66,14 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
   selector: 'app-sio-organ-donation',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardFormMessageComponent,
+    ZardInputDirective,
+  ],
   viewProviders: [provideIcons({ lucideHeartPulse })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -89,6 +97,9 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
               {{ 'sio.organ.donorName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input id="organ-donor" z-input class="w-full" type="text" maxlength="25" formControlName="donorName" />
+            @if (showError('donorName', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -105,6 +116,9 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
               max="120"
               formControlName="donorAge"
             />
+            @if (showError('donorAge', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -117,6 +131,9 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
                 <option [ngValue]="g.genderID">{{ g.genderName }}</option>
               }
             </select>
+            @if (showError('donorGenderID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -129,6 +146,9 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
                 <option [ngValue]="t.donationTypeID">{{ t.donationType }}</option>
               }
             </select>
+            @if (showError('donationTypeID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -141,6 +161,9 @@ import { DonatableOrgan, DonationType, OrganDonationRow } from './organ-donation
                 <option [ngValue]="o.donatableOrganID">{{ o.donatableOrgan }}</option>
               }
             </select>
+            @if (showError('donatableOrganID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
@@ -320,6 +343,11 @@ export class OrganDonationComponent implements OnInit {
           toast.error(msg);
         },
       });
+  }
+
+  showError(control: keyof typeof this.form.controls, error: string): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.hasError(error);
   }
 
   private resetForm(): void {

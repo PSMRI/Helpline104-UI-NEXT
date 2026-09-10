@@ -38,6 +38,7 @@ import { lucideUtensils } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../../../core/auth/auth.store';
@@ -69,7 +70,14 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
   selector: 'app-sio-food-safety',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardFormMessageComponent,
+    ZardInputDirective,
+  ],
   viewProviders: [provideIcons({ lucideUtensils })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -93,6 +101,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
               {{ 'sio.food.patientName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input id="food-patient" z-input class="w-full" type="text" maxlength="25" formControlName="patientName" />
+            @if (showError('patientName', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -109,6 +120,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
               max="120"
               formControlName="patientAge"
             />
+            @if (showError('patientAge', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -121,6 +135,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
                 <option [ngValue]="g.genderID">{{ g.genderName }}</option>
               }
             </select>
+            @if (showError('patientGenderID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -133,6 +150,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
                 <option [ngValue]="t">{{ t }}</option>
               }
             </select>
+            @if (showError('complaintType', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -140,6 +160,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
               {{ 'sio.food.historyOfDiet' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input id="food-diet" z-input class="w-full" type="text" maxlength="150" formControlName="historyOfDiet" />
+            @if (showError('historyOfDiet', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -147,6 +170,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
               {{ 'sio.food.typeOfFood' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input id="food-food" z-input class="w-full" type="text" maxlength="150" formControlName="typeOfFood" />
+            @if (showError('typeOfFood', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -161,6 +187,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
               maxlength="25"
               formControlName="foodConsumedFrom"
             />
+            @if (showError('foodConsumedFrom', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -212,6 +241,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
             </select>
+            @if (showError('stateID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -224,6 +256,9 @@ const COMPLAINT_TYPES = ['Adulteration', 'Mid-Day Meal', 'Function Meal', 'Hotel
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
             </select>
+            @if (showError('districtID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -555,5 +590,10 @@ export class FoodSafetyComponent implements OnInit {
 
   private setError(err: SioError): void {
     this.errorMessage.set(err.errorMessage || this.i18n.instant('sio.common.loadError'));
+  }
+
+  showError(control: keyof typeof this.form.controls, error: string): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.hasError(error);
   }
 }

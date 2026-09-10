@@ -93,6 +93,11 @@ const MAX_FILE_SIZE_MB = 5;
               <option [ngValue]="s.subServiceID">{{ s.subServiceName }}</option>
             }
           </select>
+          @if (form.controls.subServiceID.invalid && form.controls.subServiceID.touched) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="km-category" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -105,6 +110,11 @@ const MAX_FILE_SIZE_MB = 5;
               <option [ngValue]="c.categoryID">{{ c.categoryName }}</option>
             }
           </select>
+          @if (form.controls.categoryID.invalid && form.controls.categoryID.touched) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="km-subcategory" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -122,6 +132,11 @@ const MAX_FILE_SIZE_MB = 5;
               <option [ngValue]="s.subCategoryID">{{ s.subCategoryName }}</option>
             }
           </select>
+          @if (form.controls.subCategoryID.invalid && form.controls.subCategoryID.touched) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="km-file" class="mb-1 block text-xs font-medium text-muted-foreground">
