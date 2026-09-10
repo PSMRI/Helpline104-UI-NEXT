@@ -84,7 +84,7 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     http.match((req) => req.url.includes('covid/master/VaccinationTypeAndDoseTaken')).forEach((req) => req.flush({ data: null }));
   }
 
-  it('shows Prescription and Resend Last Prescription for MO with a prescription in the last 5 days', () => {
+  it('shows Prescription and Resend Prescription for MO with a prescription in the last 5 days', () => {
     setRole(authStore, 'MO');
     const fixture = render();
     const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
@@ -94,10 +94,10 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     expect(fixture.componentInstance.showPrescription()).toBeTrue();
     expect(fixture.componentInstance.recentPrescription()).not.toBeNull();
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
-    expect(buttons.some((b) => b.textContent?.includes('Resend Last Prescription'))).toBeTrue();
+    expect(buttons.some((b) => b.textContent?.includes('Resend Prescription'))).toBeTrue();
   });
 
-  it('hides Resend Last Prescription for MO when the only prescription is older than 5 days', () => {
+  it('hides Resend Prescription for MO when the only prescription is older than 5 days', () => {
     setRole(authStore, 'MO');
     const fixture = render();
     const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();

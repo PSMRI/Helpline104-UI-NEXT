@@ -325,6 +325,9 @@ function optionalMinLength(min: number) {
             <table class="w-full text-left text-sm">
               <thead class="bg-muted/50 text-xs text-muted-foreground">
                 <tr>
+                  <th class="px-3 py-2 font-medium">
+                    {{ 'prescription.diagnosisProvisional' | translate: lang() }}
+                  </th>
                   <th class="px-3 py-2 font-medium">{{ 'prescription.drug' | translate: lang() }}</th>
                   <th class="px-3 py-2 font-medium">{{ 'prescription.strength' | translate: lang() }}</th>
                   <th class="px-3 py-2 font-medium">{{ 'prescription.frequency' | translate: lang() }}</th>
@@ -336,6 +339,7 @@ function optionalMinLength(min: number) {
               <tbody>
                 @for (line of lines(); track $index; let i = $index) {
                   <tr class="border-t border-border">
+                    <td class="px-3 py-2">{{ diagnosis.value.trim() || '—' }}</td>
                     <td class="px-3 py-2">
                       <span class="font-medium text-foreground">{{ line.drugName }}</span>
                       @if (line.drugGroupName) {
@@ -372,11 +376,56 @@ function optionalMinLength(min: number) {
             </table>
           </div>
 
-          <div class="mt-4 flex flex-wrap gap-2">
+          <!-- Legacy footer: alternate-number opt-in + Save & Send on the left,
+               Save on the right (prescription.component.html:173-193). -->
+          <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <label class="flex items-center gap-1.5 text-sm text-foreground">
+              <input
+                type="checkbox"
+                class="h-4 w-4 accent-primary"
+                [checked]="useAltNumber()"
+                (change)="toggleAltNumber()"
+              />
+              {{ 'prescription.alternateNumber' | translate: lang() }}:
+            </label>
+
+            @if (useAltNumber()) {
+              <div class="flex flex-col gap-1">
+                <input
+                  id="rx-save-alt-number"
+                  z-input
+                  class="w-44"
+                  inputmode="numeric"
+                  maxlength="10"
+                  [attr.aria-label]="'prescription.alternateNumber' | translate: lang()"
+                  [value]="saveAltNumber()"
+                  (input)="saveAltNumber.set($any($event.target).value)"
+                  [attr.aria-invalid]="saveAltNumberValid() ? null : true"
+                />
+                @if (!saveAltNumberValid()) {
+                  <p class="text-xs font-medium text-destructive" role="alert">
+                    {{ 'prescription.alternateNumberInvalid' | translate: lang() }}
+                  </p>
+                }
+              </div>
+            }
+
             <button
               z-button
               type="button"
               zType="default"
+              [zLoading]="saving() || sendingSms()"
+              [zDisabled]="!canSaveAndSend()"
+              (click)="saveAndSend()"
+            >
+              {{ 'prescription.saveAndSend' | translate: lang() }}
+            </button>
+
+            <button
+              z-button
+              type="button"
+              zType="default"
+              class="sm:ml-auto"
               [zLoading]="saving()"
               [zDisabled]="!canSave()"
               (click)="save()"
@@ -550,6 +599,17 @@ export class PrescriptionComponent implements OnInit {
     () => this.selectedResendDrugIds().size > 0 && !this.sendingSms() && this.altNumberValid(),
   );
 
+  /**
+   * Legacy "Save & Send" footer: an alternate-number opt-in (legacy `altNum`)
+   * and the number itself. With the box unticked the SMS goes to the
+   * beneficiary's registered number, exactly as legacy does.
+   */
+  readonly useAltNumber = signal(false);
+  readonly saveAltNumber = signal('');
+  readonly saveAltNumberValid = computed(
+    () => !this.useAltNumber() || ALTERNATE_NUMBER_PATTERN.test(this.saveAltNumber().trim()),
+  );
+
   /** Drug name currently selected in the line form (drives the group list). */
   private readonly selectedDrugName = signal<string | null>(null);
 
@@ -588,6 +648,30 @@ export class PrescriptionComponent implements OnInit {
   /** Whether the prescription can be saved. */
   canSave(): boolean {
     return this.hasContext() && !this.saving() && this.diagnosis.valid && this.lines().length > 0;
+  }
+
+  /**
+   * Save & Send additionally needs a usable destination number: legacy
+   * disables it while the alternate-number box is ticked but the number is not
+   * yet 10 digits (`[disabled]="altNum && !validNumber"`).
+   */
+  canSaveAndSend(): boolean {
+    return this.canSave() && !this.sendingSms() && this.saveAltNumberValid();
+  }
+
+  toggleAltNumber(): void {
+    this.useAltNumber.update((v) => !v);
+    if (!this.useAltNumber()) {
+      this.saveAltNumber.set('');
+    }
+  }
+
+  /** Legacy `save_and_sendSMS` — save first, then SMS the saved drug lines. */
+  saveAndSend(): void {
+    if (!this.canSaveAndSend()) {
+      return;
+    }
+    this.save(true);
   }
 
   onDrugNameChange(): void {
@@ -679,16 +763,30 @@ export class PrescriptionComponent implements OnInit {
    * legacy did), rather than surfacing a hard error over a soft-config gap.
    */
   sendResendSms(): void {
+    if (!this.canSendResend()) {
+      return;
+    }
+    this.sendPrescriptionSms([...this.selectedResendDrugIds()], this.resendAltNumber().trim() || null, () => {
+      this.selectedResendDrugIds.set(new Set());
+      this.resendAltNumber.set('');
+    });
+  }
+
+  /**
+   * Send the "Prescription SMS"-type template, one request per drug line, to
+   * the beneficiary's registered number or `alternateNo` (legacy `sendSMS`).
+   * A missing SMS type/template for the service silently no-ops, as legacy did,
+   * rather than surfacing a hard error over a soft-config gap.
+   */
+  private sendPrescriptionSms(drugIds: number[], alternateNo: string | null, onSent?: () => void): void {
     const beneficiaryRegID = this.callStore.beneficiaryId();
-    const drugIds = [...this.selectedResendDrugIds()];
-    if (!this.canSendResend() || beneficiaryRegID === null || drugIds.length === 0) {
+    if (beneficiaryRegID === null || drugIds.length === 0) {
       return;
     }
     const role = this.authStore.currentRole();
     const providerServiceMapID = role?.providerServiceMapID ?? null;
     const serviceID = role?.serviceID ?? null;
     const createdBy = this.authStore.user()?.userName ?? '';
-    const alternateNo = this.resendAltNumber().trim() || null;
 
     this.sendingSms.set(true);
     this.sms
@@ -727,8 +825,7 @@ export class PrescriptionComponent implements OnInit {
                   .subscribe({
                     next: () => {
                       this.sendingSms.set(false);
-                      this.selectedResendDrugIds.set(new Set());
-                      this.resendAltNumber.set('');
+                      onSent?.();
                       toast.success(this.i18n.instant('prescription.smsSent'));
                     },
                     error: () => this.sendingSms.set(false),
@@ -741,7 +838,12 @@ export class PrescriptionComponent implements OnInit {
       });
   }
 
-  save(): void {
+  /**
+   * Persist the prescription. With `sendSms` the saved drug lines are then
+   * texted to the beneficiary (or the alternate number), which is legacy's
+   * "Save & Send" — one save, then one SMS per saved line.
+   */
+  save(sendSms = false): void {
     if (!this.canSave()) {
       return;
     }
@@ -784,6 +886,15 @@ export class PrescriptionComponent implements OnInit {
           );
           if (id != null) {
             this.saved.emit(id);
+          }
+          if (sendSms) {
+            // Legacy addresses the SMS by the ids the save response hands back.
+            const drugIds = (res.prescribedDrugs ?? [])
+              .map((d) => d.prescribedDrugID)
+              .filter((v): v is number => v != null);
+            this.sendPrescriptionSms(drugIds, this.useAltNumber() ? this.saveAltNumber().trim() : null);
+            this.useAltNumber.set(false);
+            this.saveAltNumber.set('');
           }
           this.lines.set([]);
           this.diagnosis.reset('');
