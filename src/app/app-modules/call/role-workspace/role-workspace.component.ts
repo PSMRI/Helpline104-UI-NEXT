@@ -178,6 +178,7 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
         okText: this.i18n.instant('consent.yes'),
         cancelText: this.i18n.instant('consent.no'),
         width: '36rem',
+        status: 'info',
       })
       .subscribe((granted) => {
         this.consentGranted.set(granted);
@@ -202,6 +203,7 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
         message: this.i18n.instant('roleWorkspace.proceedConfirm'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         if (confirmed) {
@@ -217,6 +219,7 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
         message: this.i18n.instant('roleWorkspace.cancelConfirm'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         if (confirmed) {

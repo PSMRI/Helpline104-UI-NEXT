@@ -46,6 +46,9 @@ describe('BeneficiaryRegistrationComponent field labels', () => {
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     const fixture = TestBed.createComponent(BeneficiaryRegistrationComponent);
+    // Past the legacy "Have you called earlier?" landing gate — every view
+    // this file inspects (search/register) is hidden until it's answered.
+    fixture.componentInstance.calledEarlier.set('yes');
     fixture.detectChanges();
     return fixture;
   }

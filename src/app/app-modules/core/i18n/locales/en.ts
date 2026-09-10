@@ -120,6 +120,7 @@ export const en = {
 
   // Shared dialog chrome
   'dashboard.dialog.info': 'Info',
+  'dashboard.dialog.success': 'Success',
   'dashboard.dialog.error': 'Error',
   'dashboard.dialog.ok': 'Ok',
   'dashboard.dialog.cancel': 'Cancel',
@@ -130,6 +131,7 @@ export const en = {
 
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'Caller number',
+  'innerpage.yearsSuffix': 'Years',
   'innerpage.timer.ariaLabel': 'Call duration',
   'innerpage.statusOnCall': 'On call',
   'innerpage.dispatcherTitle': 'Call workspace',
@@ -171,6 +173,8 @@ export const en = {
   'registration.action.search': 'Search',
   'registration.action.retry': 'Retry',
   'registration.action.register': 'Register beneficiary',
+  'registration.action.modify': 'Modify',
+  'registration.action.proceed': 'Proceed',
   'registration.validation.required': 'This field is required.',
   'registration.validation.firstNameMin': 'Enter at least 3 characters.',
   'registration.validation.whitespace': 'Cannot be only spaces.',
@@ -179,12 +183,17 @@ export const en = {
   'registration.validation.searchCriteria': 'Enter a name or registration ID to search.',
   'registration.toast.selected': 'Beneficiary selected for this call.',
   'registration.toast.registered': 'Beneficiary registered and selected.',
+  'registration.toast.modified': 'Beneficiary details updated.',
   'registration.toast.error': 'Something went wrong. Please try again.',
   'registration.register.error': 'Registration failed. Please try again or contact support.',
   'registration.register.dismiss': 'Close',
   'registration.toast.noCli': 'No caller number is available for this call.',
   'registration.toast.masterError': 'Could not load some form options.',
   'registration.notice.noCli': 'Registration is unavailable because no caller number is available for this call.',
+  'registration.calledEarlier.question': 'Have you called earlier?',
+  'registration.quickSearch.placeholder': 'Beneficiary ID or ABHA',
+  'registration.quickSearch.viewAll': 'View All',
+  'registration.quickSearch.invalid': 'Enter a valid Beneficiary ID or ABHA number/address.',
   'registration.section.identity': 'Personal details',
   'registration.section.address': 'Address & contact',
   'registration.field.title': 'Title',
@@ -763,7 +772,6 @@ export const en = {
   'hao.service.snomed': 'SNOMED CT',
   'hao.service.cdss': 'CDSS',
   'hao.service.prescription': 'Prescription',
-  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'Chief Complaints',
@@ -809,6 +817,8 @@ export const en = {
   'hao.closure.confirmContinue': 'Submit this disposition and continue the call?',
   'hao.closure.confirmClose': 'Submit this disposition and close the call?',
   'hao.closure.confirmTransfer': 'Transfer this call to the selected campaign?',
+  'hao.closure.closedSuccess': 'Call closed successfully',
+  'hao.closure.transferredToPrefix': 'Call transferred to',
   'hao.closure.noCallError': 'No active call to close.',
   'hao.closure.closeError': 'Unable to close the call. Please try again.',
   'hao.closure.transferError': 'Unable to transfer the call. Please try again.',

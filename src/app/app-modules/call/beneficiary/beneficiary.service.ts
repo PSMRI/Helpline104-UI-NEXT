@@ -38,12 +38,15 @@ import {
   RegisterBeneficiaryResponse,
   RegistrationMasterData,
   StateOption,
+  UpdateBeneficiaryRequest,
   VillageOption,
 } from './beneficiary.models';
 
 /** Endpoint paths (relative to the common API base), ported from SearchService. */
 const SEARCH_BY_PHONE_PATH = 'beneficiary/searchUserByPhone';
 const SEARCH_BENEFICIARY_PATH = 'beneficiary/searchBeneficiary';
+const SEARCH_USER_BY_ID_PATH = 'beneficiary/searchUserByID';
+const UPDATE_BENEFICIARY_PATH = 'beneficiary/update';
 const CREATE_BENEFICIARY_PATH = 'beneficiary/create';
 const REGISTRATION_DATA_PATH = 'beneficiary/getRegistrationDataV1';
 const DISTRICTS_PATH = 'location/districts/';
@@ -109,6 +112,37 @@ export class BeneficiaryService {
     return this.http.post<ApiResponse<BeneficiaryRecord[]>>(this.baseUrl + SEARCH_BENEFICIARY_PATH, criteria).pipe(
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readList(res)),
+      catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
+  }
+
+  /**
+   * Fetch the full record for one beneficiary (legacy `retrieveRegHistory` /
+   * `searchUserByID`) ΓÇö richer than the {@link searchBeneficiary} row (title,
+   * DOB, identity, full address with state/district/sub-district/village
+   * names, marital status, caste, education). Used to populate the
+   * confirm/modify form when the agent selects an already-registered
+   * beneficiary, and to drive the persistent demographics summary bar.
+   */
+  retrieveRegHistory(beneficiaryRegID: number): Observable<BeneficiaryRecord[]> {
+    return this.http
+      .post<ApiResponse<BeneficiaryRecord[]>>(this.baseUrl + SEARCH_USER_BY_ID_PATH, { beneficiaryRegID })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => this.readList(res)),
+        catchError((err: unknown) => throwError(() => this.toError(err))),
+      );
+  }
+
+  /** Persist edits to an existing beneficiary (legacy `updateBeneficiary`). */
+  update(payload: UpdateBeneficiaryRequest): Observable<void> {
+    return this.http.post<ApiResponse<unknown>>(this.baseUrl + UPDATE_BENEFICIARY_PATH, payload).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
+      map((res) => {
+        if (res.statusCode && res.statusCode !== 200) {
+          throw this.toError(res);
+        }
+      }),
       catchError((err: unknown) => throwError(() => this.toError(err))),
     );
   }

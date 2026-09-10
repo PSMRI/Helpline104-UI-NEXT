@@ -122,6 +122,7 @@ export const as: Record<TranslationKey, string> = {
 
   // Shared dialog chrome
   'dashboard.dialog.info': 'তথ্য',
+  'dashboard.dialog.success': 'সফলতা',
   'dashboard.dialog.error': 'ত্ৰুটি',
   'dashboard.dialog.ok': 'ঠিক আছে',
   'dashboard.dialog.cancel': 'বাতিল',
@@ -131,6 +132,7 @@ export const as: Record<TranslationKey, string> = {
 
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'কলাৰৰ নম্বৰ',
+  'innerpage.yearsSuffix': 'বছৰ',
   'innerpage.timer.ariaLabel': 'কলৰ ম্যাদ',
   'innerpage.statusOnCall': 'কলত আছে',
   'innerpage.dispatcherTitle': 'কল কৰ্মক্ষেত্ৰ',
@@ -173,6 +175,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.action.search': 'সন্ধান কৰক',
   'registration.action.retry': 'পুনৰ চেষ্টা কৰক',
   'registration.action.register': 'হিতাধিকাৰী পঞ্জীয়ন কৰক',
+  'registration.action.modify': 'সংশোধন কৰক',
+  'registration.action.proceed': 'আগবাঢ়ক',
   'registration.validation.required': 'এই ক্ষেত্ৰটো আৱশ্যক।',
   'registration.validation.firstNameMin': 'কমেও ৩টা আখৰ দিয়ক।',
   'registration.validation.whitespace': 'কেৱল ৰিক্ত স্থান হ’ব নোৱাৰে।',
@@ -181,12 +185,17 @@ export const as: Record<TranslationKey, string> = {
   'registration.validation.searchCriteria': 'সন্ধান কৰিবলৈ নাম বা পঞ্জীয়ন আইডি দিয়ক।',
   'registration.toast.selected': 'এই কলৰ বাবে হিতাধিকাৰী বাছনি কৰা হ’ল।',
   'registration.toast.registered': 'হিতাধিকাৰী পঞ্জীয়ন আৰু বাছনি কৰা হ’ল।',
+  'registration.toast.modified': 'হিতাধিকাৰীৰ বিৱৰণ আপডেট কৰা হ’ল।',
   'registration.toast.error': 'কিবা ভুল হ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'registration.register.error': "পঞ্জীয়ন বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।",
   'registration.register.dismiss': 'বন্ধ কৰক',
   'registration.toast.noCli': 'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নহয়।',
   'registration.toast.masterError': 'কিছুমান ফৰ্ম বিকল্প ল’ড কৰিব পৰা নগ’ল।',
   'registration.notice.noCli': 'এই কলৰ বাবে কোনো কলাৰ নম্বৰ উপলব্ধ নোহোৱাৰ বাবে পঞ্জীয়ন উপলব্ধ নহয়।',
+  'registration.calledEarlier.question': 'আপুনি আগতে কল কৰিছিলনে?',
+  'registration.quickSearch.placeholder': 'হিতাধিকাৰী আইডি বা ABHA',
+  'registration.quickSearch.viewAll': 'সকলো চাওক',
+  'registration.quickSearch.invalid': 'বৈধ হিতাধিকাৰী আইডি বা ABHA নম্বৰ/ঠিকনা দিয়ক।',
   'registration.section.identity': 'ব্যক্তিগত বিৱৰণ',
   'registration.section.address': 'ঠিকনা আৰু যোগাযোগ',
   'registration.field.title': 'উপাধি',
@@ -765,7 +774,6 @@ export const as: Record<TranslationKey, string> = {
   'hao.service.snomed': 'SNOMED CT',
   'hao.service.cdss': 'CDSS',
   'hao.service.prescription': 'ঔষধপত্ৰ',
-  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'মুখ্য অভিযোগ',
@@ -811,6 +819,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.confirmContinue': 'এই ডিচপোজিচন দাখিল কৰি কল অব্যাহত ৰাখিব নে?',
   'hao.closure.confirmClose': 'এই ডিচপোজিচন দাখিল কৰি কল বন্ধ কৰিব নে?',
   'hao.closure.confirmTransfer': 'এই কল বাছনি কৰা অভিযানলৈ স্থানান্তৰ কৰিব নে?',
+  'hao.closure.closedSuccess': 'কল সফলতাৰে বন্ধ কৰা হৈছে',
+  'hao.closure.transferredToPrefix': 'কল স্থানান্তৰ কৰা হৈছে',
   'hao.closure.noCallError': 'বন্ধ কৰিবলৈ কোনো সক্ৰিয় কল নাই।',
   'hao.closure.closeError': 'কল বন্ধ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.transferError': 'কল স্থানান্তৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',

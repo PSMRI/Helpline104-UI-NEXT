@@ -180,6 +180,7 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
         message: this.i18n.instant('hao.workspace.proceedConfirm'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         if (confirmed) {
@@ -196,6 +197,7 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
         message: this.i18n.instant('hao.workspace.cancelConfirm'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         if (confirmed) {

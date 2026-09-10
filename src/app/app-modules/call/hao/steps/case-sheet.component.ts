@@ -477,9 +477,10 @@ export class CaseSheetComponent {
         this.serviceAvailed.emit();
         this.confirmDialog
           .alert({
-            title: this.i18n.instant('dashboard.dialog.info'),
+            title: this.i18n.instant('dashboard.dialog.success'),
             message: this.i18n.instant('hao.caseSheet.saveSuccess'),
             okText: this.i18n.instant('dashboard.dialog.ok'),
+            status: 'success',
           })
           .subscribe();
       },
@@ -490,6 +491,7 @@ export class CaseSheetComponent {
             title: this.i18n.instant('dashboard.dialog.error'),
             message: this.i18n.instant('hao.caseSheet.saveError'),
             okText: this.i18n.instant('dashboard.dialog.ok'),
+            status: 'error',
           })
           .subscribe();
       },

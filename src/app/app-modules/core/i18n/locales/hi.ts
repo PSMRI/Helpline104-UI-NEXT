@@ -122,6 +122,7 @@ export const hi: Record<TranslationKey, string> = {
 
   // Shared dialog chrome
   'dashboard.dialog.info': 'सूचना',
+  'dashboard.dialog.success': 'सफलता',
   'dashboard.dialog.error': 'त्रुटि',
   'dashboard.dialog.ok': 'ठीक है',
   'dashboard.dialog.cancel': 'रद्द करें',
@@ -131,6 +132,7 @@ export const hi: Record<TranslationKey, string> = {
 
   // On-call workspace (Innerpage) shell
   'innerpage.callerNumber': 'कॉल करने वाले का नंबर',
+  'innerpage.yearsSuffix': 'वर्ष',
   'innerpage.timer.ariaLabel': 'कॉल अवधि',
   'innerpage.statusOnCall': 'कॉल पर',
   'innerpage.dispatcherTitle': 'कॉल कार्यक्षेत्र',
@@ -172,6 +174,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.action.search': 'खोजें',
   'registration.action.retry': 'पुनः प्रयास करें',
   'registration.action.register': 'लाभार्थी पंजीकृत करें',
+  'registration.action.modify': 'संशोधित करें',
+  'registration.action.proceed': 'आगे बढ़ें',
   'registration.validation.required': 'यह फ़ील्ड आवश्यक है।',
   'registration.validation.firstNameMin': 'कम से कम 3 अक्षर दर्ज करें।',
   'registration.validation.whitespace': 'केवल रिक्त स्थान नहीं हो सकता।',
@@ -180,12 +184,17 @@ export const hi: Record<TranslationKey, string> = {
   'registration.validation.searchCriteria': 'खोजने के लिए नाम या पंजीकरण आईडी दर्ज करें।',
   'registration.toast.selected': 'इस कॉल के लिए लाभार्थी चुना गया।',
   'registration.toast.registered': 'लाभार्थी पंजीकृत और चयनित किया गया।',
+  'registration.toast.modified': 'लाभार्थी विवरण अपडेट किया गया।',
   'registration.toast.error': 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।',
   'registration.register.error': 'पंजीकरण विफल हुआ। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।',
   'registration.register.dismiss': 'बंद करें',
   'registration.toast.noCli': 'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध नहीं है।',
   'registration.toast.masterError': 'कुछ फ़ॉर्म विकल्प लोड नहीं हो सके।',
   'registration.notice.noCli': 'इस कॉल के लिए कोई कॉलर नंबर उपलब्ध न होने के कारण पंजीकरण उपलब्ध नहीं है।',
+  'registration.calledEarlier.question': 'क्या आपने पहले कॉल किया है?',
+  'registration.quickSearch.placeholder': 'लाभार्थी आईडी या ABHA',
+  'registration.quickSearch.viewAll': 'सभी देखें',
+  'registration.quickSearch.invalid': 'मान्य लाभार्थी आईडी या ABHA नंबर/पता दर्ज करें।',
   'registration.section.identity': 'व्यक्तिगत विवरण',
   'registration.section.address': 'पता और संपर्क',
   'registration.field.title': 'शीर्षक',
@@ -763,7 +772,6 @@ export const hi: Record<TranslationKey, string> = {
   'hao.service.snomed': 'SNOMED CT',
   'hao.service.cdss': 'CDSS',
   'hao.service.prescription': 'प्रिस्क्रिप्शन',
-  'hao.service.sms': 'SMS',
 
   // HAO case sheet (Health Advisory)
   'hao.caseSheet.chiefComplaints': 'मुख्य शिकायतें',
@@ -809,6 +817,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.confirmContinue': 'यह डिस्पोज़िशन सबमिट करें और कॉल जारी रखें?',
   'hao.closure.confirmClose': 'यह डिस्पोज़िशन सबमिट करें और कॉल बंद करें?',
   'hao.closure.confirmTransfer': 'इस कॉल को चयनित अभियान में स्थानांतरित करें?',
+  'hao.closure.closedSuccess': 'कॉल सफलतापूर्वक बंद हुआ',
+  'hao.closure.transferredToPrefix': 'कॉल को स्थानांतरित किया गया',
   'hao.closure.noCallError': 'बंद करने के लिए कोई सक्रिय कॉल नहीं है।',
   'hao.closure.closeError': 'कॉल बंद करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.transferError': 'कॉल स्थानांतरित करने में असमर्थ। कृपया पुनः प्रयास करें।',

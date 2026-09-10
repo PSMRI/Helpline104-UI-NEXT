@@ -215,6 +215,7 @@ import { HaoService } from '../hao.service';
               z-button
               type="button"
               zType="outline"
+              class="border-success bg-success text-success-foreground hover:bg-success/90"
               [zLoading]="transferring()"
               [zDisabled]="actionBusy() || !selectedCampaign()"
               (click)="transfer()"
@@ -237,13 +238,22 @@ import { HaoService } from '../hao.service';
           z-button
           type="button"
           zType="outline"
+          class="border-success bg-success text-success-foreground hover:bg-success/90"
           [zLoading]="submitting()"
           [zDisabled]="actionBusy()"
           (click)="submit(true)"
         >
           {{ 'hao.closure.submitContinue' | translate: lang() }}
         </button>
-        <button z-button type="button" [zLoading]="submitting()" [zDisabled]="actionBusy()" (click)="submit(false)">
+        <button
+          z-button
+          type="button"
+          zType="outline"
+          class="border-success bg-success text-success-foreground hover:bg-success/90"
+          [zLoading]="submitting()"
+          [zDisabled]="actionBusy()"
+          (click)="submit(false)"
+        >
           {{ 'hao.closure.submitClose' | translate: lang() }}
         </button>
       </div>
@@ -462,6 +472,7 @@ export class ClosureStepComponent {
         message: this.i18n.instant(confirmKey),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         this.confirming.set(false);
@@ -480,6 +491,14 @@ export class ClosureStepComponent {
           this.form.reset({ isEmergency: false, isSuicidal: false });
           this.continued.emit();
         } else {
+          this.confirmDialog
+            .alert({
+              title: this.i18n.instant('dashboard.dialog.success'),
+              message: this.i18n.instant('hao.closure.closedSuccess'),
+              okText: this.i18n.instant('dashboard.dialog.ok'),
+              status: 'success',
+            })
+            .subscribe();
           this.closed.emit();
         }
       },
@@ -520,6 +539,7 @@ export class ClosureStepComponent {
         message: this.i18n.instant('hao.closure.confirmTransfer'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         this.confirming.set(false);
@@ -541,6 +561,14 @@ export class ClosureStepComponent {
           .subscribe({
             next: () => {
               this.transferring.set(false);
+              this.confirmDialog
+                .alert({
+                  title: this.i18n.instant('dashboard.dialog.success'),
+                  message: `${this.i18n.instant('hao.closure.transferredToPrefix')} ${campaign}`,
+                  okText: this.i18n.instant('dashboard.dialog.ok'),
+                  status: 'success',
+                })
+                .subscribe();
               this.transferred.emit();
             },
             error: () => {
@@ -613,6 +641,7 @@ export class ClosureStepComponent {
         title: this.i18n.instant('dashboard.dialog.error'),
         message: this.i18n.instant(messageKey),
         okText: this.i18n.instant('dashboard.dialog.ok'),
+        status: 'error',
       })
       .subscribe();
   }
