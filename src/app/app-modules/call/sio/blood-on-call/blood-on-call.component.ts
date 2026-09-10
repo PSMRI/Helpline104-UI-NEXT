@@ -38,6 +38,7 @@ import { lucideDroplet } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../../../core/auth/auth.store';
@@ -65,7 +66,14 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
   selector: 'app-sio-blood-on-call',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardFormMessageComponent,
+    ZardInputDirective,
+  ],
   viewProviders: [provideIcons({ lucideDroplet })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -107,6 +115,9 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
               maxlength="25"
               formControlName="recipientName"
             />
+            @if (showError('recipientName', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -123,6 +134,9 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
               max="120"
               formControlName="recipientAge"
             />
+            @if (showError('recipientAge', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -135,6 +149,9 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
                 <option [ngValue]="g.genderID">{{ g.genderName }}</option>
               }
             </select>
+            @if (showError('recipientGenderID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -147,6 +164,9 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
                 <option [ngValue]="b.bloodGroupID">{{ b.bloodGroup }}</option>
               }
             </select>
+            @if (showError('bloodGroupID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -174,6 +194,9 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
               min="1"
               formControlName="unitRequired"
             />
+            @if (showError('unitRequired', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div class="sm:col-span-2 lg:col-span-1">
@@ -188,6 +211,9 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
               maxlength="150"
               formControlName="hospitalAdmitted"
             />
+            @if (showError('hospitalAdmitted', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -200,6 +226,9 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
             </select>
+            @if (showError('stateID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -212,6 +241,9 @@ import { BloodComponentType, BloodGroup, BloodRequestRow } from './blood-on-call
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
             </select>
+            @if (showError('districtID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
@@ -445,5 +477,10 @@ export class BloodOnCallComponent implements OnInit {
 
   private setError(err: SioError): void {
     this.errorMessage.set(err.errorMessage || this.i18n.instant('sio.common.loadError'));
+  }
+
+  showError(control: keyof typeof this.form.controls, error: string): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.hasError(error);
   }
 }

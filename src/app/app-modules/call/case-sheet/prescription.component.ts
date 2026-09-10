@@ -180,6 +180,11 @@ function optionalMinLength(min: number) {
                 <option [ngValue]="name">{{ name }}</option>
               }
             </select>
+            @if (lineForm.controls.drugName.invalid && lineForm.controls.drugName.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'prescription.drugRequired' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -199,6 +204,11 @@ function optionalMinLength(min: number) {
                 <option [ngValue]="g.drugMapID">{{ g.drugGroupName || g.drugName }}</option>
               }
             </select>
+            @if (lineForm.controls.drugMapID.invalid && lineForm.controls.drugMapID.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'prescription.drugGroupRequired' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -218,6 +228,11 @@ function optionalMinLength(min: number) {
                 <option [ngValue]="s">{{ s }}</option>
               }
             </select>
+            @if (lineForm.controls.strength.invalid && lineForm.controls.strength.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'prescription.strengthRequired' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -244,6 +259,11 @@ function optionalMinLength(min: number) {
                 <option [ngValue]="f">{{ f }}</option>
               }
             </select>
+            @if (lineForm.controls.frequency.invalid && lineForm.controls.frequency.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'prescription.frequencyRequired' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>

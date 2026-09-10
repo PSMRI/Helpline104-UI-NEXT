@@ -128,6 +128,11 @@ function recordingKey(row: CallRecordingRow): string {
             [max]="maxDate"
             (change)="onStartChange()"
           />
+          @if (form.controls.startDate.touched && form.controls.startDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="qa-audit-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -141,6 +146,11 @@ function recordingKey(row: CallRecordingRow): string {
             [min]="form.controls.startDate.value"
             [max]="endMax()"
           />
+          @if (form.controls.endDate.touched && form.controls.endDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="qa-audit-role" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -220,6 +230,11 @@ function recordingKey(row: CallRecordingRow): string {
               </option>
             }
           </select>
+          @if (form.controls.callGroup.touched && form.controls.callGroup.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="qa-audit-sub" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -233,6 +248,11 @@ function recordingKey(row: CallRecordingRow): string {
               <option [ngValue]="subType.callTypeID">{{ subType.callType }}</option>
             }
           </select>
+          @if (form.controls.callTypeID.touched && form.controls.callTypeID.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
       </form>
 

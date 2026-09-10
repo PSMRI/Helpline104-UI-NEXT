@@ -95,6 +95,11 @@ import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from 
             [max]="maxDate"
             (change)="onStartChange()"
           />
+          @if (form.controls.startDate.touched && form.controls.startDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="cs-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -108,6 +113,11 @@ import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from 
             [min]="form.controls.startDate.value"
             [max]="endMax()"
           />
+          @if (form.controls.endDate.touched && form.controls.endDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="cs-role" class="mb-1 block text-xs font-medium text-muted-foreground">

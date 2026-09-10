@@ -93,6 +93,11 @@ function recordingKey(entry: RecordingEntry): string {
               maxlength="12"
               [placeholder]="'blockUnblock.phone' | translate: lang()"
             />
+            @if (phone.touched && phone.hasError('required')) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <button z-button type="button" zType="default" [zDisabled]="phone.invalid || loading()" (click)="search()">
             <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
