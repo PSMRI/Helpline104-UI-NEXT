@@ -90,6 +90,9 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
       </app-hao-stepper>
 
       <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+        <button z-button type="button" zType="outline" (click)="cancelCall()">
+          {{ 'roleWorkspace.cancelCall' | translate: lang() }}
+        </button>
         @if (showSwitchRole() && switchRoleLabelKey(); as labelKey) {
           <button z-button type="button" zType="outline" (click)="switchRole.emit()">
             {{ labelKey | translate: lang() }}
@@ -229,5 +232,21 @@ export class RoleWorkspaceComponent implements OnInit {
 
   onContinue(): void {
     this.stepper().previous();
+  }
+
+  cancelCall(): void {
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('roleWorkspace.cancelCallTitle'),
+        message: this.i18n.instant('roleWorkspace.cancelCallConfirm'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.callStore.setBeneficiaryId(null);
+          void this.router.navigate(['/innerpage']);
+        }
+      });
   }
 }

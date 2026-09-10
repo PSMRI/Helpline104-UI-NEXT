@@ -658,6 +658,9 @@ export const en = {
   'hao.workspace.proceedConfirm': 'Proceed to closure for this call?',
   'hao.workspace.cancelTitle': 'Cancel',
   'hao.workspace.cancelConfirm': 'Return to providing a service?',
+  'hao.workspace.cancelCall': 'Cancel Call',
+  'hao.workspace.cancelCallTitle': 'Cancel Call',
+  'hao.workspace.cancelCallConfirm': 'Cancel this call and return to beneficiary selection?',
 
   // Role workspaces (MO / CO / Counsellor) shell
   'roleWorkspace.stepService': 'Case sheet',
@@ -668,6 +671,9 @@ export const en = {
   'roleWorkspace.proceedConfirm': 'Proceed to closure for this call?',
   'roleWorkspace.cancelTitle': 'Cancel',
   'roleWorkspace.cancelConfirm': 'Return to the case sheet?',
+  'roleWorkspace.cancelCall': 'Cancel Call',
+  'roleWorkspace.cancelCallTitle': 'Cancel Call',
+  'roleWorkspace.cancelCallConfirm': 'Cancel this call and return to beneficiary selection?',
   'roleWorkspace.mo.title': 'Medical Officer (MO)',
   'roleWorkspace.mo.subtitle': 'Record the medical advisory, then close the call.',
   'roleWorkspace.mo.switchToCo': 'Switch to CO',

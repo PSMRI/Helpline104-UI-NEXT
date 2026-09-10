@@ -660,6 +660,9 @@ export const as: Record<TranslationKey, string> = {
   'hao.workspace.proceedConfirm': 'এই কলৰ বাবে সমাপনলৈ আগবাঢ়িব নে?',
   'hao.workspace.cancelTitle': 'বাতিল কৰক',
   'hao.workspace.cancelConfirm': 'সেৱা আগবঢ়োৱালৈ উভতি যাব নে?',
+  'hao.workspace.cancelCall': 'কল বাতিল কৰক',
+  'hao.workspace.cancelCallTitle': 'কল বাতিল কৰক',
+  'hao.workspace.cancelCallConfirm': 'এই কলটো বাতিল কৰি হিতাধিকাৰী নিৰ্বাচনলৈ উভতি যাব নে?',
 
   // Role workspaces (MO / CO / Counsellor) shell
   'roleWorkspace.stepService': 'কেছ শ্বীট',
@@ -670,6 +673,9 @@ export const as: Record<TranslationKey, string> = {
   'roleWorkspace.proceedConfirm': 'এই কলৰ বাবে সমাপ্তিলৈ আগবাঢ়িব নে?',
   'roleWorkspace.cancelTitle': 'বাতিল কৰক',
   'roleWorkspace.cancelConfirm': 'কেছ শ্বীটলৈ উভতি যাব নে?',
+  'roleWorkspace.cancelCall': 'কল বাতিল কৰক',
+  'roleWorkspace.cancelCallTitle': 'কল বাতিল কৰক',
+  'roleWorkspace.cancelCallConfirm': 'এই কলটো বাতিল কৰি হিতাধিকাৰী নিৰ্বাচনলৈ উভতি যাব নে?',
   'roleWorkspace.mo.title': 'মেডিকেল অফিচাৰ (MO)',
   'roleWorkspace.mo.subtitle': 'চিকিৎসা পৰামৰ্শ লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
   'roleWorkspace.mo.switchToCo': 'CO-লৈ সলনি কৰক',
