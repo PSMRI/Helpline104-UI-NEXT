@@ -819,7 +819,16 @@ export class ClosureStepComponent {
       isEmergency: value.isEmergency,
       isSuicidal: value.isSuicidal,
       isFeedback: value.isFeedback,
-      providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
+      // Must be the real providerServiceMapID, not serviceID: when
+      // isFollowupRequired is set, the backend re-reads this same body as an
+      // OutboundCallRequest and persists this value to
+      // t_outboundcallrequest.ProviderServiceMapID
+      // (BeneficiaryCallServiceImpl.closeCall:396-398), which every outbound
+      // worklist query then filters on. Sending serviceID stamped follow-ups
+      // with an id no worklist looks for, losing them silently. Legacy is
+      // correct here: its `current_service.serviceID` holds the
+      // providerServiceMapID despite the name (data.service.ts:52).
+      providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
       agentID: this.authStore.user()?.agentID ?? null,
       endCall: !andContinue,
       IsOutbound: this.outboundStore.hasSelection(),
