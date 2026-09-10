@@ -182,8 +182,8 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
 
       @if (showFeedbackRequired()) {
         <label class="flex cursor-pointer items-center gap-2 text-sm">
-          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFeedbackRequired" />
-          {{ 'hao.closure.feedbackRequired' | translate: lang() }}
+          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFeedback" />
+          {{ 'hao.closure.ivrFeedbackRequired' | translate: lang() }}
         </label>
       }
 
@@ -482,8 +482,6 @@ export class ClosureStepComponent {
   readonly selectedCampaign = signal<string | null>(null);
   readonly enableInstitute = signal(false);
 
-  readonly showFeedbackRequired = computed(() => this.selectedCallGroup() === 'Valid');
-
   readonly form = this.fb.nonNullable.group({
     isEmergency: [false],
     isSuicidal: [false],
@@ -491,7 +489,7 @@ export class ClosureStepComponent {
     // chosen nested sub-type's numeric callTypeID.
     callGroupType: this.fb.control<string | null>(null, Validators.required),
     callSubTypeID: this.fb.control<number | null>(null),
-    isFeedbackRequired: [false],
+    isFeedback: [false],
     isFollowupRequired: [false],
     followUpDate: this.fb.control<string | null>(null),
     caste: this.fb.control<number | null>(null),
@@ -537,6 +535,9 @@ export class ClosureStepComponent {
     return group !== null && group !== 'valid' && group !== 'transfer' && group !== 'referral';
   });
 
+  /** IVR feedback is only offered for the "Valid" call-type group (legacy `showFeedbackRequiredFlag`). */
+  readonly showFeedbackRequired = computed(() => this.selectedCallGroup() === 'Valid');
+
   constructor() {
     this.loadCallTypes();
     this.loadMasterData();
@@ -560,8 +561,10 @@ export class ClosureStepComponent {
       const hasSubTypes = this.subTypes().length > 0;
       c.callSubTypeID.setValidators(hasSubTypes ? [Validators.required] : []);
       c.callSubTypeID.updateValueAndValidity();
+      // IVR feedback is only meaningful for "Valid" (legacy resets the flag the
+      // moment the group changes away from it).
       if (value !== 'Valid') {
-        c.isFeedbackRequired.setValue(false);
+        c.isFeedback.setValue(false);
       }
       if (value?.toLowerCase() === 'referral') {
         if (this.hasBeneficiary()) {
@@ -573,6 +576,13 @@ export class ClosureStepComponent {
         }
       }
     });
+
+    // An emergency call (flagged during registration, broadcast via CallStore)
+    // is always disposed as "Valid" — mirrors legacy closure's handleEmergency,
+    // which forces callType = "Valid" on the same signal. Locked rather than
+    // just pre-filled so the mandatory disposition can't be changed away from
+    // Valid for a call already marked emergency.
+    effect(() => this.applyEmergencyCallType(this.callStore.isEmergencyCall()));
 
     c.isFollowupRequired.valueChanges.pipe(takeUntilDestroyed()).subscribe((required) => {
       this.followUpRequired.set(required);
@@ -700,12 +710,12 @@ export class ClosureStepComponent {
       requestedFor: value.remarks?.trim() || null,
       isEmergency: value.isEmergency,
       isSuicidal: value.isSuicidal,
+      isFeedback: value.isFeedback,
       providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
       agentID: this.authStore.user()?.agentID ?? null,
       endCall: !andContinue,
       IsOutbound: this.outboundStore.hasSelection(),
       createdBy: this.authStore.user()?.userName ?? '',
-      isFeedback: value.isFeedbackRequired,
       externalRefferal: value.externalRefferal,
       instTypeId: value.institutionID,
       instNames: value.instituteName.length > 0 ? value.instituteName : null,
@@ -743,6 +753,10 @@ export class ClosureStepComponent {
         this.submitting.set(false);
         if (andContinue) {
           this.form.reset({ isEmergency: false, isSuicidal: false });
+          // form.reset() clears callGroupType (and re-enables it) regardless of
+          // the disabled-lock applied below — reapply for the same still-live,
+          // still-emergency call.
+          this.applyEmergencyCallType(this.callStore.isEmergencyCall());
           this.continued.emit();
         } else {
           this.confirmDialog
@@ -861,6 +875,25 @@ export class ClosureStepComponent {
             },
           });
       });
+  }
+
+  /**
+   * Force-select and lock `callGroupType` to "Valid" while the call is
+   * flagged emergency; release the lock otherwise. Re-callable (not just
+   * effect-driven) because `form.reset()` on Submit & Continue clears and
+   * re-enables the control outside the signal change that would otherwise
+   * trigger this.
+   */
+  private applyEmergencyCallType(isEmergency: boolean): void {
+    const control = this.form.controls.callGroupType;
+    if (isEmergency) {
+      if (control.value !== 'Valid') {
+        control.setValue('Valid');
+      }
+      control.disable();
+    } else {
+      control.enable();
+    }
   }
 
   private loadCallTypes(): void {

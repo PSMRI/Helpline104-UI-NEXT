@@ -117,6 +117,7 @@ describe('CallStore beneficiary persistence', () => {
     seeding.setCallId('4242');
     seeding.setBeneficiaryId(5006622, 54);
     seeding.setDemographics(demographicsOf('Test'));
+    seeding.setEmergencyCall(true);
 
     // Every key the store owns is populated before the call ends, so the
     // assertion below cannot pass simply because a key was never written.

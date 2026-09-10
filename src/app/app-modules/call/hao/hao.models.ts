@@ -257,6 +257,12 @@ export interface CloseCallRequest {
   requestedFor?: string | null;
   isEmergency: boolean;
   isSuicidal: boolean;
+  /**
+   * Whether an IVR feedback call is required (legacy `isFeedbackRequiredFlag`),
+   * only meaningful — and only shown to the agent — when {@link callType} is
+   * "Valid".
+   */
+  isFeedback: boolean;
   /** Selected service id (legacy sent `current_service.serviceID` here). */
   providerServiceMapID: number | null;
   agentID: number | null;
@@ -265,7 +271,6 @@ export interface CloseCallRequest {
   /** HAO workspace is the inbound flow. */
   IsOutbound: boolean;
   createdBy: string;
-  isFeedback?: boolean;
   externalRefferal?: string | null;
   instTypeId?: number | null;
   instNames?: string[] | null;

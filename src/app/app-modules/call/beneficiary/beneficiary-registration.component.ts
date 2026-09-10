@@ -1628,6 +1628,9 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   onEmergencyChange(): void {
     const emergency = this.registerForm.controls.isEmergency.value;
     this.isEmergency.set(emergency);
+    // Legacy broadcasts this to closure via getCommonData.isEmergency so it can
+    // auto-select "Valid" as the call type for the same call.
+    this.callStore.setEmergencyCall(emergency);
     // Address is required only for non-emergency registrations.
     const addressControls = ['stateID', 'districtID', 'subDistrictID', 'villageID'] as const;
     for (const name of addressControls) {
