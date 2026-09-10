@@ -661,7 +661,13 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   'registration.field.ageUnit' | translate: lang()
                 }}</label>
                 <z-form-control>
-                  <select id="ageUnit" formControlName="ageUnit" [class]="selectClass" (change)="onAgeUnitChange()">
+                  <select
+                    id="ageUnit"
+                    formControlName="ageUnit"
+                    [class]="selectClass"
+                    [attr.aria-invalid]="ariaInvalid('ageUnit')"
+                    (change)="onAgeUnitChange()"
+                  >
                     <option value="years">
                       {{ 'registration.ageUnit.years' | translate: lang() }}
                     </option>
@@ -673,6 +679,9 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                     </option>
                   </select>
                 </z-form-control>
+                @if (showError('ageUnit', 'required')) {
+                  <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+                }
               </z-form-field>
 
               <!-- Relationship to the existing beneficiary on this number -->
@@ -1870,6 +1879,7 @@ type RegisterControlName =
   | 'lastName'
   | 'genderID'
   | 'age'
+  | 'ageUnit'
   | 'dob'
   | 'govtIdentityNo'
   | 'stateID'
