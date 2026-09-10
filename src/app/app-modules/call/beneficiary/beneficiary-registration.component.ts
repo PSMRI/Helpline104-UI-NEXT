@@ -1099,7 +1099,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   private parentBenRegID: number | null = null;
 
   // --- Master data --------------------------------------------------------
-  readonly genders = signal<Gender[]>(GENDER_OPTIONS.map((g) => ({ genderID: g.genderID, genderName: g.genderName })));
+  readonly genders = signal<Gender[]>([]);
   readonly titles = signal<Title[]>([]);
   readonly communities = signal<Community[]>([]);
   readonly maritalStatuses = signal<MaritalStatus[]>([]);
