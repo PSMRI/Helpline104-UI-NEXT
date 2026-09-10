@@ -36,6 +36,7 @@ import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
 import { Community, Education } from '../../beneficiary/beneficiary.models';
 import { CallStore } from '../../call.store';
 import { CallWrapupService } from '../../call-wrapup.service';
+import { OutboundStore } from '../../../outbound/outbound.store';
 import { ScheduleAppointmentComponent } from '../../schedule-appointment/schedule-appointment.component';
 import {
   AvailableService,
@@ -423,6 +424,7 @@ export class ClosureStepComponent {
   private readonly callWrapup = inject(CallWrapupService);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly outboundStore = inject(OutboundStore);
 
   readonly lang = this.i18n.language;
   readonly roleRO = ROLE_RO;
@@ -701,7 +703,7 @@ export class ClosureStepComponent {
       providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
       agentID: this.authStore.user()?.agentID ?? null,
       endCall: !andContinue,
-      IsOutbound: false,
+      IsOutbound: this.outboundStore.hasSelection(),
       createdBy: this.authStore.user()?.userName ?? '',
       isFeedback: value.isFeedbackRequired,
       externalRefferal: value.externalRefferal,
