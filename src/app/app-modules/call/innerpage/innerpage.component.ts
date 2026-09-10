@@ -27,6 +27,8 @@ import { RouterOutlet } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCircleDot, lucidePhoneIncoming } from '@ng-icons/lucide';
 
+import { LanguageSelectComponent } from '@/shared/components/layout/language-select.component';
+
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { KeepaliveService } from '../../core/services/keepalive.service';
@@ -47,7 +49,7 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
   selector: 'app-innerpage',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, NgIcon, TranslatePipe, CallDurationTimerComponent],
+  imports: [RouterOutlet, NgIcon, TranslatePipe, CallDurationTimerComponent, LanguageSelectComponent],
   viewProviders: [provideIcons({ lucidePhoneIncoming, lucideCircleDot })],
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
@@ -68,6 +70,8 @@ import { CallDurationTimerComponent } from './call-duration-timer.component';
           </div>
 
           <div class="flex items-center gap-6">
+            <app-language-select />
+
             <app-call-duration-timer />
 
             @if (wrapupSecondsRemaining() > 0) {

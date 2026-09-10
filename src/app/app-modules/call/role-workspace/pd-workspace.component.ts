@@ -20,10 +20,11 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthStore } from '../../core/auth/auth.store';
+import { HasUnsavedChanges } from '../unsaved-changes.guard';
 import { SERVICE_104 } from './role-screens.util';
 import { RoleWorkspaceComponent } from './role-workspace.component';
 
@@ -52,9 +53,11 @@ const ROLE_MO = 'MO';
     />
   `,
 })
-export class PdWorkspaceComponent {
+export class PdWorkspaceComponent implements HasUnsavedChanges {
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
+
+  private readonly roleWorkspace = viewChild.required(RoleWorkspaceComponent);
 
   /**
    * Whether the agent also holds the MO role on the 104 service.
@@ -71,5 +74,9 @@ export class PdWorkspaceComponent {
 
   goToMo(): void {
     void this.router.navigate(['/innerpage/mo']);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.roleWorkspace().hasUnsavedChanges();
   }
 }
