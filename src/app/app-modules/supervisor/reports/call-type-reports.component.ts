@@ -127,6 +127,11 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
             [max]="maxDate"
             (change)="onStartChange()"
           />
+          @if (form.controls.startDate.touched && form.controls.startDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="ct-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -140,6 +145,11 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
             [min]="form.controls.startDate.value"
             [max]="endMax()"
           />
+          @if (form.controls.endDate.touched && form.controls.endDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="ct-service" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -153,6 +163,11 @@ const GRIEVANCE_TYPE_NAMES = ['Asha Complaints', 'Generic Complaint'];
               <option [ngValue]="service">{{ service }}</option>
             }
           </select>
+          @if (form.controls.service.touched && form.controls.service.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
 
         @if (service() === 'Grievance') {

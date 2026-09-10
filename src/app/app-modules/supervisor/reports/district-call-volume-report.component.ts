@@ -90,6 +90,11 @@ const FILE_NAME = 'District_Wise_Call_Volume_Report';
             [max]="maxDate"
             (change)="onStartChange()"
           />
+          @if (form.controls.startDate.touched && form.controls.startDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="dv-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -103,6 +108,11 @@ const FILE_NAME = 'District_Wise_Call_Volume_Report';
             [min]="form.controls.startDate.value"
             [max]="endMax()"
           />
+          @if (form.controls.endDate.touched && form.controls.endDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="dv-district" class="mb-1 block text-xs font-medium text-muted-foreground">
