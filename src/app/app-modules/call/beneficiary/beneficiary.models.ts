@@ -94,6 +94,8 @@ export interface BeneficiaryRecord {
   govtIdentityTypeID?: number | null;
   m_gender?: { genderID?: number; genderName?: string };
   maritalStatus?: { maritalStatusID?: number; status?: string };
+  /** ABHA (Ayushman Bharat Health Account) linkages, if any (legacy `loadAbhaDetails`). */
+  abhaDetails?: AbhaDetail[];
   benPhoneMaps?: Array<{
     phoneNo?: string;
     parentBenRegID?: number | null;
@@ -139,6 +141,19 @@ export interface BeneficiarySearchRequest {
   HealthIDNumber?: string;
   /** ABHA address, e.g. `name@abdm` (legacy `HealthID`). */
   HealthID?: string;
+  /** State / district filter (legacy nests these under `i_bendemographics`). */
+  i_bendemographics?: {
+    stateID?: number | null;
+    districtID?: number | null;
+  };
+}
+
+/** One ABHA (Ayushman Bharat Health Account) linkage (legacy field names, kept verbatim). */
+export interface AbhaDetail {
+  HealthIDNumber?: string;
+  HealthID?: string;
+  CreatedDate?: string;
+  AuthenticationMode?: string;
 }
 
 /** One phone mapping sent when registering a beneficiary (legacy `benPhoneMaps`). */

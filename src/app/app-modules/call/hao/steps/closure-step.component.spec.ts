@@ -275,4 +275,46 @@ describe('ClosureStepComponent', () => {
     expect(submitContinue?.disabled).toBeTrue();
     expect(submitClose?.disabled).toBeFalse();
   });
+
+  it('hides the follow-up Feature select for a role with only one candidate feature', () => {
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    expect(component.features()).toEqual(['Health_Advice']);
+
+    component.form.controls.isFollowupRequired.setValue(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('select[formcontrolname="selectedFeature"]')).toBeNull();
+  });
+
+  it('shows and requires the follow-up Feature select when the role also holds Blood Request', () => {
+    authStore.setSession({
+      token: 't',
+      user: { userID: 1, agentID: 7, userName: 'agent', status: 'Active' },
+      privileges: [
+        {
+          serviceName: '104',
+          roles: [
+            {
+              serviceRoleScreenMappings: [
+                { screen: { screenName: 'Health_Advice' } },
+                { screen: { screenName: 'Blood Request' } },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    expect(component.features()).toEqual(['Health_Advice', 'Blood Request']);
+
+    component.form.controls.isFollowupRequired.setValue(true);
+    fixture.detectChanges();
+    const select = fixture.nativeElement.querySelector('select[formcontrolname="selectedFeature"]');
+    expect(select).not.toBeNull();
+    expect(component.form.controls.selectedFeature.hasError('required')).toBeTrue();
+
+    component.form.controls.selectedFeature.setValue('Blood Request');
+    expect(component.form.controls.selectedFeature.valid).toBeTrue();
+  });
 });

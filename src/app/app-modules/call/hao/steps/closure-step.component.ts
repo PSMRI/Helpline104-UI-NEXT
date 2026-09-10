@@ -38,6 +38,7 @@ import { Community, Education } from '../../beneficiary/beneficiary.models';
 import { CallStore } from '../../call.store';
 import { CallWrapupService } from '../../call-wrapup.service';
 import { OutboundStore } from '../../../outbound/outbound.store';
+import { collectServiceScreens, SERVICE_104 } from '../../role-workspace/role-screens.util';
 import { ScheduleAppointmentComponent } from '../../schedule-appointment/schedule-appointment.component';
 import {
   AvailableService,
@@ -57,6 +58,17 @@ const ROLE_CO = 'CO';
 const ROLE_RO = 'RO';
 
 const HEALTH_ADVISORY_SERVICE_NAME = 'Health Advisory Service';
+
+/** Legacy `getOutboundCallFeatures()` — the follow-up "feature" (screen) per role. */
+const ROLE_FEATURE_NAME: Readonly<Partial<Record<string, string>>> = {
+  HAO: 'Health_Advice',
+  CO: 'Counselling',
+  MO: 'Medical_Advice',
+  PD: 'Psychiatrist',
+};
+
+/** Extra follow-up feature legacy always appends when the role also holds this screen. */
+const BLOOD_REQUEST_SCREEN = 'Blood Request';
 
 type TransferRole = 'hao' | 'co' | 'mo';
 
@@ -233,6 +245,25 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
           <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" />
           {{ 'hao.closure.followUpRequired' | translate: lang() }}
         </label>
+        @if (followUpRequired() && features().length > 1) {
+          <div class="flex flex-col gap-1.5 sm:max-w-xs">
+            <label class="text-sm font-medium" for="hao-cl-feature">
+              {{ 'hao.closure.feature' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="hao-cl-feature"
+              formControlName="selectedFeature"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              [attr.aria-invalid]="isInvalid('selectedFeature') || null"
+            >
+              <option [ngValue]="null">{{ 'hao.closure.selectFeature' | translate: lang() }}</option>
+              @for (feature of features(); track feature) {
+                <option [ngValue]="feature">{{ feature }}</option>
+              }
+            </select>
+          </div>
+        }
         @if (followUpRequired()) {
           <div class="flex flex-col gap-1.5 sm:max-w-xs">
             <label class="text-sm font-medium" for="hao-cl-followup">
@@ -508,6 +539,22 @@ export class ClosureStepComponent {
   readonly currentRole = computed(() => this.authStore.currentRole()?.featureCode ?? null);
   readonly hasBeneficiary = computed(() => this.callStore.beneficiaryId() !== null);
 
+  /**
+   * Follow-up "feature" (screen) choices (legacy `getOutboundCallFeatures()`):
+   * the role's own screen, plus Blood Request when the role also holds it.
+   * The follow-up "Feature" select only appears when there is more than one —
+   * with a single feature legacy sends it without asking.
+   */
+  readonly features = computed<string[]>(() => {
+    const role = this.currentRole();
+    const primary = role ? ROLE_FEATURE_NAME[role] : undefined;
+    const list = primary ? [primary] : [];
+    if (collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes(BLOOD_REQUEST_SCREEN)) {
+      list.push(BLOOD_REQUEST_SCREEN);
+    }
+    return list;
+  });
+
   readonly callTypes = signal<CallType[]>([]);
   readonly campaigns = signal<TransferCampaign[]>([]);
   readonly services = signal<AvailableService[]>([]);
@@ -554,6 +601,7 @@ export class ClosureStepComponent {
     isFeedback: [false],
     isFollowupRequired: [false],
     followUpDate: this.fb.control<string | null>(null),
+    selectedFeature: this.fb.control<string | null>(null),
     caste: this.fb.control<number | null>(null),
     education: this.fb.control<number | null>(null),
     externalRefferal: this.fb.control<'Yes' | 'No' | null>(null),
@@ -679,6 +727,14 @@ export class ClosureStepComponent {
         c.followUpDate.reset(null);
       }
       c.followUpDate.updateValueAndValidity();
+      // The Feature select is mandatory only when follow-up is required and the
+      // role holds more than one candidate feature (legacy: `features?.length>1`).
+      const featureRequired = required && this.features().length > 1;
+      c.selectedFeature.setValidators(featureRequired ? [Validators.required] : []);
+      if (!featureRequired) {
+        c.selectedFeature.reset(null);
+      }
+      c.selectedFeature.updateValueAndValidity();
     });
 
     c.externalRefferal.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
@@ -767,6 +823,12 @@ export class ClosureStepComponent {
     // through a Date object, matching the dOB field's format.
     const prefferedDateTime: string | null =
       value.isFollowupRequired && value.followUpDate ? `${value.followUpDate}T00:00:00.000Z` : null;
+    // Legacy `requestedFeature`: the feature (screen) the follow-up routes back
+    // to — the agent's explicit choice when they hold more than one, else the
+    // role's own single feature, sent without asking.
+    const requestedFeature: string | null = value.isFollowupRequired
+      ? (value.selectedFeature ?? this.features()[0] ?? null)
+      : null;
 
     const request: CloseCallRequest = {
       benCallID,
@@ -779,6 +841,7 @@ export class ClosureStepComponent {
       fitToBlock: subType.fitToBlock,
       isFollowupRequired: value.isFollowupRequired,
       prefferedDateTime,
+      requestedFeature,
       requestedFor: value.remarks?.trim() || null,
       isEmergency: value.isEmergency,
       isSuicidal: value.isSuicidal,
