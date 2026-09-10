@@ -205,6 +205,10 @@ export interface CloseCallRequest {
   /** HAO workspace is the inbound flow. */
   IsOutbound: boolean;
   createdBy: string;
+  /** Logged-in user's own id (legacy `saved_data.uid`), distinct from the telephony {@link agentID}. */
+  callEndUserID?: number | null;
+  /** Agent IP, resolved via `cti/getAgentIPAddress`; null when unavailable. */
+  agentIPAddress?: string | null;
 }
 
 /**
