@@ -21,6 +21,7 @@
  */
 
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -40,9 +41,9 @@ import { CallStore } from '../../call.store';
 import { CasesheetHistoryMctsComponent } from '../../casesheet-history/casesheet-history-mcts.component';
 import { CasesheetHistoryMmuComponent } from '../../casesheet-history/casesheet-history-mmu.component';
 import { MmuVisitRow } from '../../casesheet-history/other-helpline.models';
-import { CdssComponent } from '../../case-sheet/cdss.component';
+import { CdssFlowService } from '../../case-sheet/cdss-flow.service';
 import { CdssService } from '../../case-sheet/cdss.service';
-import type { CdssGender, CdssSelection } from '../../case-sheet/cdss.models';
+import type { CdssGender, CdssPatientContext, CdssSelection } from '../../case-sheet/cdss.models';
 import { DiseaseSummaryDetail } from '../../case-sheet/disease-summary.models';
 import { SNOMED_NO_MATCH, SnomedService } from '../../case-sheet/snomed.service';
 import { PrescriptionComponent } from '../../case-sheet/prescription.component';
@@ -103,7 +104,6 @@ const MIN_VACCINE_AGE = 12;
     CasesheetHistoryMctsComponent,
     CasesheetHistoryMmuComponent,
     ViewDiseaseSummaryDetailsComponent,
-    CdssComponent,
     PrescriptionComponent,
   ],
   viewProviders: [provideIcons({ lucideSearch })],
@@ -821,14 +821,20 @@ const MIN_VACCINE_AGE = 12;
         </div>
       }
 
-      <app-cdss
-        [complaint]="complaint()"
-        [age]="patientAge()"
-        [gender]="patientGender()"
-        [role]="roleCode()"
-        [disabled]="saving()"
-        (selection)="onCdssSelection($event)"
-      />
+      <!--
+        No inline CDSS panel: legacy drives CDSS entirely through the popups
+        the chief-complaint pick opens (Symptoms → Symptom Results →
+        Diseases), so the only thing shown here is the loading/error state of
+        that chain.
+      -->
+      @if (cdssBusy()) {
+        <p class="text-xs text-muted-foreground">{{ 'cdss.title' | translate: lang() }}…</p>
+      }
+      @if (cdssError()) {
+        <p class="text-xs font-medium text-destructive" role="alert">
+          {{ 'cdss.noQuestions' | translate: lang() }}
+        </p>
+      }
 
       <div class="flex flex-wrap justify-end gap-2">
         @if (showPrescription()) {
@@ -964,6 +970,7 @@ export class CaseSheetComponent {
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly cdss = inject(CdssService);
+  private readonly cdssFlow = inject(CdssFlowService);
   private readonly snomed = inject(SnomedService);
 
   readonly lang = this.i18n.language;
@@ -1081,6 +1088,11 @@ export class CaseSheetComponent {
    * tooltip (`sctID_pcc`).
    */
   readonly complaintSctid = signal('');
+
+  /** True while the CDSS questionnaire for a freshly picked complaint loads. */
+  readonly cdssBusy = signal(false);
+  /** Set when the CDSS chain fails, so the agent sees why nothing opened. */
+  readonly cdssError = signal(false);
 
   /**
    * Substring match, case-insensitive — what legacy's `<md2-autocomplete>`
@@ -1246,6 +1258,35 @@ export class CaseSheetComponent {
     this.snomed.getRecordConceptId(option).subscribe((conceptId) => {
       this.complaintSctid.set(conceptId === SNOMED_NO_MATCH ? '' : `SCTID: ${conceptId}`);
     });
+    void this.openCdssFlow(option);
+  }
+
+  /**
+   * Legacy's `invokeDialog()`: picking a complaint goes straight into the
+   * Symptoms → Symptom Results → Diseases popups, and saving there fills
+   * Provisional Diagnosis + Recommended Action.
+   */
+  private async openCdssFlow(symptom: string): Promise<void> {
+    const age = this.patientAge();
+    const gender = this.patientGender();
+    if (age === null || gender === null) {
+      return;
+    }
+    const patient: CdssPatientContext = { age, gender, symptom };
+    this.cdssBusy.set(true);
+    try {
+      const questionnaire = await firstValueFrom(this.cdss.getQuestions(patient));
+      const selection = await this.cdssFlow.run(patient, questionnaire.id, questionnaire.questions, (selected) =>
+        firstValueFrom(this.cdss.getResult({ complaintId: questionnaire.id, selected })),
+      );
+      if (selection) {
+        this.onCdssSelection(selection);
+      }
+    } catch {
+      this.cdssError.set(true);
+    } finally {
+      this.cdssBusy.set(false);
+    }
   }
 
   /**
