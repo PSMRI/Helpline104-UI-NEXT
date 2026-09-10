@@ -30,6 +30,7 @@ import { AppFooterComponent } from '@/shared/components/layout/app-footer.compon
 
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { SessionStorageService } from '../../core/services/session-storage.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 const FEEDBACK_ROUTE = '/feedback';
@@ -62,12 +63,14 @@ export class DashboardFooterComponent {
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
   private readonly authStore = inject(AuthStore);
+  private readonly storage = inject(SessionStorageService);
 
   readonly lang = this.i18n.language;
 
   goToFeedback(): void {
     // The feedback page is anonymous: clear the session before navigating.
     this.authStore.clear();
+    this.storage.clear();
     void this.router.navigate([FEEDBACK_ROUTE], { queryParams: { sl: '104' } });
   }
 }
