@@ -293,6 +293,11 @@ export interface TransferCampaign {
   [key: string]: unknown;
 }
 
+export interface AvailableService {
+  subServiceName: string;
+  [key: string]: unknown;
+}
+
 /** A skill within a transfer campaign (`cti/getCampaignSkills`). */
 export interface CampaignSkill {
   skillName: string;
