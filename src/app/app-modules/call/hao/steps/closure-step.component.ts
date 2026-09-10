@@ -584,6 +584,26 @@ export class ClosureStepComponent {
   });
 
   /**
+   * Verified against legacy `closure.component.ts`: `populateTransferDropDown()`
+   * renders the full backend-returned service list for every role with no
+   * role-based `*ngIf`/filter (a code comment there even confirms an explicit
+   * past change request to let HAO transfer directly to CO). The only
+   * transfer-target restriction legacy has at all is RO-without-a-beneficiary,
+   * below — CO is not restricted to MO-only client-side; whatever targets CO
+   * can actually reach is entirely a function of which services the backend
+   * returns for CO's `providerServiceMapID` ({@link loadServices}). Do not add
+   * a CO-specific client-side ban here — that would invent behavior legacy
+   * doesn't have.
+   */
+  readonly transferServices = computed<AvailableService[]>(() => {
+    const list = this.services();
+    if (this.currentRole() === ROLE_RO && !this.hasBeneficiary()) {
+      return list.filter((s) => s.subServiceName === HEALTH_ADVISORY_SERVICE_NAME);
+    }
+    return list;
+  });
+
+  /**
    * Whether a transfer target is currently chosen — legacy's Transfer Call
    * select and action button are always visible (see {@link canTransfer}),
    * not behind a checkbox; "transferring" is simply "a service is selected".
@@ -592,14 +612,6 @@ export class ClosureStepComponent {
 
   /** Whether there is anything to transfer to at all (legacy `validTrans`). */
   readonly canTransfer = computed(() => this.transferServices().length > 0);
-
-  readonly transferServices = computed<AvailableService[]>(() => {
-    const list = this.services();
-    if (this.currentRole() === ROLE_RO && !this.hasBeneficiary()) {
-      return list.filter((s) => s.subServiceName === HEALTH_ADVISORY_SERVICE_NAME);
-    }
-    return list;
-  });
 
   readonly nuisanceBlock = computed(() => {
     const group = this.selectedCallGroup()?.toLowerCase() ?? null;

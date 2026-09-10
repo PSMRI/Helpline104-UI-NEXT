@@ -304,6 +304,7 @@ export interface TransferCampaign {
 
 export interface AvailableService {
   subServiceName: string;
+  subServiceID?: number;
   [key: string]: unknown;
 }
 
