@@ -138,6 +138,10 @@ export interface CaseSheetRequest {
   symptoms?: string | null;
   COVID19_contact_history?: string | null;
   medical_consultation?: string | null;
+  riskLevel?: string | null;
+  treatmentRecommendation?: string | null;
+  categoryID?: number | null;
+  subCategoryID?: number | null;
 }
 
 /** Response of a successful `beneficiary/save/benCaseSheet`. */
@@ -161,6 +165,10 @@ export interface PresentCaseSheet {
   addedAdvice?: string | null;
   actionByHAO?: string | null;
   actionByMO?: string | null;
+  riskLevel?: string | null;
+  treatmentRecommendation?: string | null;
+  categoryID?: number | null;
+  subCategoryID?: number | null;
   [key: string]: unknown;
 }
 
@@ -337,4 +345,24 @@ export interface SaveCovidVaccinationRequest {
   providerServiceMapID?: number | null;
   createdBy: string;
   modifiedBy?: string | null;
+}
+
+export interface GuidelineCategory {
+  categoryID: number;
+  categoryName: string;
+  isWellBeing?: boolean | null;
+  [key: string]: unknown;
+}
+
+export interface GuidelineSubCategory {
+  subCategoryID: number;
+  subCategoryName: string;
+  [key: string]: unknown;
+}
+
+export interface GuidelineDetail {
+  subCategoryName?: string | null;
+  subCatFilePath?: string | null;
+  fileManger?: { fileName?: string | null }[];
+  [key: string]: unknown;
 }

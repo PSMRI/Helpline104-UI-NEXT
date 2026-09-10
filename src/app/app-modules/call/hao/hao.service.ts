@@ -37,6 +37,9 @@ import {
   CloseCallRequest,
   CovidVaccinationDetails,
   CovidVaccineMasterData,
+  GuidelineCategory,
+  GuidelineDetail,
+  GuidelineSubCategory,
   PresentCaseSheet,
   SaveCovidVaccinationRequest,
   TransferCallRequest,
@@ -62,6 +65,9 @@ const PATHS = {
   covidVaccineMaster: 'covid/master/VaccinationTypeAndDoseTaken',
   covidVaccinationDetails: 'covid/getCovidVaccinationDetails',
   saveCovidVaccination: 'covid/saveCovidVaccinationDetails',
+  guidelineCategories: 'service/category',
+  guidelineSubCategories: 'service/subcategory',
+  guidelineDetails: 'service/getSubCategoryFilesWithURL',
 } as const;
 
 /**
@@ -347,6 +353,45 @@ export class HaoService {
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => assertCallActionSucceeded(res, 'transferCall')),
+      );
+  }
+
+  getGuidelineCategories(providerServiceMapID: number | null): Observable<GuidelineCategory[]> {
+    return this.http
+      .post<ApiResponse<GuidelineCategory[]>>(this.baseCommon + PATHS.guidelineCategories, {
+        providerServiceMapID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
+  }
+
+  getGuidelineSubCategories(categoryID: number): Observable<GuidelineSubCategory[]> {
+    return this.http
+      .post<ApiResponse<GuidelineSubCategory[]>>(this.baseCommon + PATHS.guidelineSubCategories, {
+        categoryID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
+  }
+
+  getGuidelineDetails(
+    categoryID: number | null,
+    subCategoryID: number | null,
+    providerServiceMapID: number | null,
+  ): Observable<GuidelineDetail[]> {
+    return this.http
+      .post<ApiResponse<GuidelineDetail[]>>(this.baseCommon + PATHS.guidelineDetails, {
+        categoryID,
+        subCategoryID,
+        providerServiceMapID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
       );
   }
 }
