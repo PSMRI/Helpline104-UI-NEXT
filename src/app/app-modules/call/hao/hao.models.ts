@@ -274,6 +274,10 @@ export interface CloseCallRequest {
   externalRefferal?: string | null;
   instTypeId?: number | null;
   instNames?: string[] | null;
+  /** Logged-in user's own id (legacy `saved_data.uid`), distinct from the telephony {@link agentID}. */
+  callEndUserID?: number | null;
+  /** Agent IP, resolved via `cti/getAgentIPAddress`; null when unavailable. */
+  agentIPAddress?: string | null;
 }
 
 export interface InstituteType {

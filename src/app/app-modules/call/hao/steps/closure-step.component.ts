@@ -30,6 +30,7 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { AuthStore } from '../../../core/auth/auth.store';
+import { CzentrixService } from '../../../core/services/czentrix.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
@@ -420,6 +421,7 @@ export class ClosureStepComponent {
   private readonly haoService = inject(HaoService);
   private readonly beneficiaryService = inject(BeneficiaryService);
   private readonly authStore = inject(AuthStore);
+  private readonly czentrix = inject(CzentrixService);
   private readonly callStore = inject(CallStore);
   private readonly callWrapup = inject(CallWrapupService);
   private readonly i18n = inject(I18nService);
@@ -459,6 +461,9 @@ export class ClosureStepComponent {
   readonly instituteNames = signal<InstituteName[]>([]);
   readonly submitting = signal(false);
   readonly transferring = signal(false);
+
+  /** Agent IP, resolved once on init (legacy caches it the same way on `saved_data.ipAddress`); null until resolved/on failure. */
+  readonly agentIPAddress = signal<string | null>(null);
 
   /** Whether the schedule-appointment form is shown (legacy referral flow). */
   readonly showAppointment = signal(false);
@@ -541,6 +546,7 @@ export class ClosureStepComponent {
   constructor() {
     this.loadCallTypes();
     this.loadMasterData();
+    this.resolveAgentIPAddress();
 
     // The caller hung up — there is no live call left to transfer.
     // getRawValue() still includes a disabled control's value.
@@ -719,6 +725,8 @@ export class ClosureStepComponent {
       externalRefferal: value.externalRefferal,
       instTypeId: value.institutionID,
       instNames: value.instituteName.length > 0 ? value.instituteName : null,
+      callEndUserID: this.authStore.user()?.userID ?? null,
+      agentIPAddress: this.agentIPAddress(),
     };
 
     const confirmKey = andContinue ? 'hao.closure.confirmContinue' : 'hao.closure.confirmClose';
@@ -851,7 +859,7 @@ export class ClosureStepComponent {
             transferCampaignInfo: campaign,
             skillTransferFlag: !!skill,
             skill,
-            agentIPAddress: null,
+            agentIPAddress: this.agentIPAddress(),
             benCallID,
             callType: subType.callGroupType,
             callTypeID: subType.callTypeID,
@@ -894,6 +902,23 @@ export class ClosureStepComponent {
     } else {
       control.enable();
     }
+  }
+
+  /**
+   * Resolve the agent's CTI IP once, up front (legacy resolves and caches
+   * `saved_data.ipAddress` on load rather than per-action). Best-effort: close
+   * and transfer both send whatever is available — `null` if this hasn't
+   * resolved yet or the lookup failed — rather than blocking submission on it.
+   */
+  private resolveAgentIPAddress(): void {
+    const agentID = this.authStore.user()?.agentID ?? null;
+    if (agentID === null) {
+      return;
+    }
+    this.czentrix.getAgentIPAddress(agentID).subscribe({
+      next: (ip) => this.agentIPAddress.set(ip),
+      error: () => this.agentIPAddress.set(null),
+    });
   }
 
   private loadCallTypes(): void {
