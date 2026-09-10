@@ -60,6 +60,7 @@ const WORKSPACE_PATH_BY_FEATURE: Readonly<Record<string, string>> = {
   SIO: 'sio',
   PD: 'pd',
   Surveyor: 'surveyor',
+  Counsellor: 'counsellor',
 };
 
 /**
