@@ -36,6 +36,7 @@ import { KeepaliveService } from '../../core/services/keepalive.service';
 import { CallStore } from '../call.store';
 import { CallWrapupService } from '../call-wrapup.service';
 import { CallDurationTimerComponent } from './call-duration-timer.component';
+import { InnerpageFooterComponent } from './innerpage-footer.component';
 
 const ROLE_CO = 'CO';
 
@@ -52,7 +53,14 @@ const ROLE_CO = 'CO';
   selector: 'app-innerpage',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, NgIcon, TranslatePipe, CallDurationTimerComponent, LanguageSelectComponent],
+  imports: [
+    RouterOutlet,
+    NgIcon,
+    TranslatePipe,
+    CallDurationTimerComponent,
+    LanguageSelectComponent,
+    InnerpageFooterComponent,
+  ],
   viewProviders: [provideIcons({ lucidePhoneIncoming, lucideCircleDot })],
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
@@ -141,6 +149,8 @@ const ROLE_CO = 'CO';
           <router-outlet />
         </div>
       </main>
+
+      <app-innerpage-footer />
     </div>
   `,
 })

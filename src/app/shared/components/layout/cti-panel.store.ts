@@ -52,6 +52,9 @@ export class CtiPanelStore {
   private readonly _ctiOpen = signal(false);
   readonly ctiOpen = this._ctiOpen.asReadonly();
 
+  /** Bumped on manual retry so the iframe `src` actually changes and reloads. */
+  private readonly retryNonce = signal(0);
+
   /**
    * Whether the CZentrix toggle is visible: an authenticated session with a
    * telephony agent id and a selected role that is not the supervisor (who has
@@ -75,11 +78,18 @@ export class CtiPanelStore {
     if (id === null) {
       return null;
     }
-    const url = `${this.config.getTelephonyServerURL()}${CTI_HANDLER_PATH}?e=${id}`;
+    const nonce = this.retryNonce();
+    const url =
+      `${this.config.getTelephonyServerURL()}${CTI_HANDLER_PATH}?e=${id}` + (nonce ? `&_retry=${nonce}` : '');
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   });
 
   toggleCti(): void {
     this._ctiOpen.update((open) => !open);
+  }
+
+  /** Force the iframe `src` to change so a failed load actually re-requests. */
+  bumpRetry(): void {
+    this.retryNonce.update((n) => n + 1);
   }
 }
