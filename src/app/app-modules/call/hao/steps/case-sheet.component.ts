@@ -41,10 +41,10 @@ import { CasesheetHistoryMctsComponent } from '../../casesheet-history/casesheet
 import { CasesheetHistoryMmuComponent } from '../../casesheet-history/casesheet-history-mmu.component';
 import { MmuVisitRow } from '../../casesheet-history/other-helpline.models';
 import { CdssComponent } from '../../case-sheet/cdss.component';
+import { CdssService } from '../../case-sheet/cdss.service';
 import type { CdssGender, CdssSelection } from '../../case-sheet/cdss.models';
 import { DiseaseSummaryDetail } from '../../case-sheet/disease-summary.models';
-import { SnomedSearchComponent } from '../../case-sheet/snomed-search.component';
-import type { SnomedTerm } from '../../case-sheet/snomed.models';
+import { SNOMED_NO_MATCH, SnomedService } from '../../case-sheet/snomed.service';
 import { PrescriptionComponent } from '../../case-sheet/prescription.component';
 import { PrescriptionRecord } from '../../case-sheet/prescription.models';
 import { PrescriptionService } from '../../case-sheet/prescription.service';
@@ -103,7 +103,6 @@ const MIN_VACCINE_AGE = 12;
     CasesheetHistoryMctsComponent,
     CasesheetHistoryMmuComponent,
     ViewDiseaseSummaryDetailsComponent,
-    SnomedSearchComponent,
     CdssComponent,
     PrescriptionComponent,
   ],
@@ -326,17 +325,57 @@ const MIN_VACCINE_AGE = 12;
               [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
             ></textarea>
           } @else {
-            <textarea
-              z-input
-              id="hao-cs-complaints"
-              rows="3"
-              maxlength="2000"
-              formControlName="chiefComplaints"
-              [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
-              [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
-              [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
-              (blur)="onComplaintBlur()"
-            ></textarea>
+            <!--
+              Legacy renders this field as an <md2-autocomplete> over the
+              CDSS chief-complaint list (case-sheet.component.html:357-378):
+              typing filters the list, and picking an entry fires
+              invokeDialog() straight into the Symptoms popup. The dropdown
+              below reproduces that; there is deliberately no second
+              SNOMED search box, which legacy never had.
+            -->
+            <div class="relative">
+              <textarea
+                z-input
+                id="hao-cs-complaints"
+                rows="3"
+                maxlength="2000"
+                formControlName="chiefComplaints"
+                role="combobox"
+                autocomplete="off"
+                [attr.aria-expanded]="complaintDropdownOpen()"
+                aria-controls="hao-cs-complaint-options"
+                [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
+                [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
+                [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
+                [title]="complaintSctid()"
+                (input)="onComplaintInput()"
+                (focus)="onComplaintInput()"
+                (keydown.escape)="closeComplaintDropdown()"
+                (blur)="onComplaintBlur()"
+              ></textarea>
+              @if (complaintDropdownOpen() && filteredComplaints().length > 0) {
+                <ul
+                  id="hao-cs-complaint-options"
+                  role="listbox"
+                  class="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-md"
+                >
+                  @for (option of filteredComplaints(); track option) {
+                    <li role="option" [attr.aria-selected]="false">
+                      <button
+                        type="button"
+                        class="w-full px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:outline-none"
+                        (mousedown)="selectComplaint(option)"
+                      >
+                        {{ option }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+            @if (complaintSctid()) {
+              <p class="text-xs text-muted-foreground">{{ complaintSctid() }}</p>
+            }
           }
           @if (isInvalid('chiefComplaints')) {
             <p id="hao-cs-complaints-error" class="text-xs font-medium text-destructive" role="alert">
@@ -346,9 +385,6 @@ const MIN_VACCINE_AGE = 12;
                 {{ 'hao.caseSheet.chiefComplaintsRequired' | translate: lang() }}
               }
             </p>
-          }
-          @if (!isCo()) {
-            <app-snomed-search (selected)="onSnomedSelected($event)" />
           }
         </div>
 
@@ -927,6 +963,8 @@ export class CaseSheetComponent {
   readonly callStore = inject(CallStore);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly cdss = inject(CdssService);
+  private readonly snomed = inject(SnomedService);
 
   readonly lang = this.i18n.language;
 
@@ -1018,14 +1056,45 @@ export class CaseSheetComponent {
   });
 
   /**
-   * CDSS symptom input. Mirrors `chiefComplaints` for every normal edit
-   * (typing, loading an existing case sheet, Clear/reset) — but see
-   * {@link onSnomedSelected}, which deliberately keeps this signal on the
-   * agent's own typed text instead of the SNOMED description it writes into
-   * the form control.
+   * CDSS symptom input. Mirrors `chiefComplaints` for every edit — including
+   * picking an entry from the chief-complaint dropdown, which legacy feeds
+   * straight into `invokeDialog()`/`getQuestions` as the symptom
+   * (`case-sheet.component.ts:1294-1299`).
    */
   private readonly _complaint = signal(this.form.controls.chiefComplaints.value);
   readonly complaint = this._complaint.asReadonly();
+
+  /**
+   * Chief-complaint options for the field's dropdown — legacy's
+   * `chiefCompliants`, loaded from `CDSS/Symptoms` for the patient's age and
+   * gender (`fetchChiefComplaintsBasedOnGender()`).
+   */
+  private readonly complaintOptions = signal<string[]>([]);
+  /** `age|gender` the option list was last loaded for; see {@link loadChiefComplaintOptions}. */
+  private complaintOptionsKey: string | null = null;
+  private readonly complaintQuery = signal('');
+  readonly complaintDropdownOpen = signal(false);
+
+  /**
+   * `SCTID: <conceptID>` for the picked complaint. Legacy resolves this behind
+   * the scenes on selection (`getSnomedCTRecord`) and shows it as the field's
+   * tooltip (`sctID_pcc`).
+   */
+  readonly complaintSctid = signal('');
+
+  /**
+   * Substring match, case-insensitive — what legacy's `<md2-autocomplete>`
+   * does in the browser (its own `filter()` helper is prefix-based but is
+   * never wired to the template, so it is dead code there).
+   */
+  readonly filteredComplaints = computed(() => {
+    const query = this.complaintQuery().trim().toLowerCase();
+    const options = this.complaintOptions();
+    if (query.length === 0) {
+      return options;
+    }
+    return options.filter((option) => option.toLowerCase().includes(query));
+  });
 
   private readonly wellbeingOrInfo = toSignal(this.form.controls.wellbeingOrInfo.valueChanges, {
     initialValue: this.form.controls.wellbeingOrInfo.value,
@@ -1148,23 +1217,61 @@ export class CaseSheetComponent {
     return this.authStore.currentRole()?.providerServiceMapID ?? null;
   }
 
+  /** Typing in the chief-complaint field re-filters and opens its dropdown. */
+  onComplaintInput(): void {
+    this.complaintQuery.set(this.form.controls.chiefComplaints.value ?? '');
+    this.complaintDropdownOpen.set(true);
+  }
+
+  closeComplaintDropdown(): void {
+    this.complaintDropdownOpen.set(false);
+  }
+
   /**
-   * A SNOMED CT description ("Fever of unknown origin") is the clinically
-   * correct thing to record, but CDSS's own catalogue keys on plain disease
-   * names ("Fever") and returns nothing for the coded description — so the
-   * case sheet keeps the SNOMED term, while the CDSS symptom input
-   * ({@link complaint}) is deliberately left on whatever the agent had typed
-   * before selecting it. Provisional Diagnosis still gets the fallback fill
-   * from the SNOMED term itself (see {@link fillProvisionalDiagnosisFallback}),
-   * since that field should reflect the precise clinical term regardless of
-   * what CDSS can match on.
+   * Pick a complaint from the dropdown — legacy's `<md2-autocomplete>`
+   * `(change)="invokeDialog(pcc)"`. Unlike the retired SNOMED box this feeds
+   * the CDSS symptom input ({@link complaint}) with the picked name, because
+   * that name is exactly what legacy posts to `getQuestions` as `symptom`
+   * (`case-sheet.component.ts:1297`), and resolves the term's SNOMED concept
+   * id behind the scenes for the field's `SCTID:` hint (legacy `sctID_pcc`).
    */
-  onSnomedSelected(term: SnomedTerm): void {
-    const priorComplaint = this._complaint();
-    this.form.controls.chiefComplaints.setValue(term.term);
+  selectComplaint(option: string): void {
+    this.form.controls.chiefComplaints.setValue(option);
     this.form.controls.chiefComplaints.markAsDirty();
-    this._complaint.set(priorComplaint);
-    this.fillProvisionalDiagnosisFallback(term.term);
+    this._complaint.set(option);
+    this.complaintQuery.set(option);
+    this.closeComplaintDropdown();
+    this.fillProvisionalDiagnosisFallback(option);
+    this.complaintSctid.set('');
+    this.snomed.getRecordConceptId(option).subscribe((conceptId) => {
+      this.complaintSctid.set(conceptId === SNOMED_NO_MATCH ? '' : `SCTID: ${conceptId}`);
+    });
+  }
+
+  /**
+   * Load legacy's `chiefCompliants` for the patient's age + gender. Deduped on
+   * the age/gender pair: the patient fields feeding it are plain form controls
+   * (not signals), so the callers below can fire on edits that leave the pair
+   * unchanged, and legacy only refetches when the pair actually changes.
+   */
+  private loadChiefComplaintOptions(): void {
+    const age = this.patientAge();
+    const gender = this.patientGender();
+    if (age === null || gender === null) {
+      return;
+    }
+    const key = `${age}|${gender}`;
+    if (key === this.complaintOptionsKey) {
+      return;
+    }
+    this.complaintOptionsKey = key;
+    this.cdss.getChiefComplaints({ age, gender }).subscribe({
+      next: (options) => this.complaintOptions.set(options),
+      error: () => {
+        this.complaintOptionsKey = null;
+        this.complaintOptions.set([]);
+      },
+    });
   }
 
   /**
@@ -1176,6 +1283,7 @@ export class CaseSheetComponent {
    * value already present (typed default or a prior CDSS accept).
    */
   onComplaintBlur(): void {
+    this.closeComplaintDropdown();
     if (this.isCo()) {
       return;
     }
@@ -1269,6 +1377,19 @@ export class CaseSheetComponent {
         this.loadRecentPrescription(id);
       }
     });
+
+    // Legacy loads the chief-complaint list per patient age + gender
+    // (`fetchChiefComplaintsBasedOnGender`). The demographics path is a signal;
+    // the "Patient is: Other" fields are plain form controls, so they need
+    // their own subscriptions to reach the (deduped) loader.
+    effect(() => {
+      this.callStore.demographics();
+      this.loadChiefComplaintOptions();
+    });
+    const reloadComplaints = () => this.loadChiefComplaintOptions();
+    this.form.controls.isPatientOther.valueChanges.subscribe(reloadComplaints);
+    this.form.controls.patientAgeValue.valueChanges.subscribe(reloadComplaints);
+    this.form.controls.patientGenderID.valueChanges.subscribe(reloadComplaints);
 
     this.setRoleRequiredValidators();
     this.form.controls.chiefComplaintMode.valueChanges.subscribe(() => this.setRoleRequiredValidators());

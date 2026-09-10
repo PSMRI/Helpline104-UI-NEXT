@@ -29,6 +29,14 @@ import { ApiResponse, SnomedError, SnomedSearchRequest, SnomedSearchResponse, Sn
 
 /** Endpoint path (relative to the common API base), ported from CaseSheetService. */
 const SNOMED_SEARCH_PATH = 'snomed/getSnomedCTRecordList';
+/** Single-record lookup (legacy `SnomedService.getSnomedCTRecord`). */
+const SNOMED_RECORD_PATH = 'snomed/getSnomedCTRecord';
+
+/**
+ * Concept id legacy stores when a term has no SNOMED match
+ * (`case-sheet.component.ts:1339` sets `sctID_pcc_toSave = "NA"`).
+ */
+export const SNOMED_NO_MATCH = 'NA';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
 const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
@@ -66,6 +74,26 @@ export class SnomedService {
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readTerms(res)),
       catchError((err: unknown) => throwError(() => this.toError(err))),
+    );
+  }
+
+  /**
+   * Resolve one term to its SNOMED concept id, the way legacy does behind the
+   * scenes when the agent picks a chief complaint (`getSnomedCTRecord(term)`,
+   * feeding the field's `SCTID:` tooltip and the saved `diseaseSummaryID`).
+   * Resolves to {@link SNOMED_NO_MATCH} when the backend has no match, and
+   * never errors — legacy treats a failed lookup as "NA" rather than blocking
+   * the case sheet.
+   */
+  getRecordConceptId(term: string): Observable<string> {
+    return this.http.post<ApiResponse<{ conceptID?: string | number }>>(this.baseUrl + SNOMED_RECORD_PATH, { term }).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
+      map((res) => {
+        const id = res.data?.conceptID;
+        const text = id === null || id === undefined ? '' : id.toString().trim();
+        return text.length > 0 ? text : SNOMED_NO_MATCH;
+      }),
+      catchError(() => [SNOMED_NO_MATCH]),
     );
   }
 
