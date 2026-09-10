@@ -49,6 +49,7 @@ import { PrescriptionComponent } from '../../case-sheet/prescription.component';
 import { PrescriptionRecord } from '../../case-sheet/prescription.models';
 import { PrescriptionService } from '../../case-sheet/prescription.service';
 import { ViewDiseaseSummaryDetailsComponent } from '../../case-sheet/view-disease-summary-details.component';
+import { SERVICE_104, collectServiceScreens } from '../../role-workspace/role-screens.util';
 import {
   AvailableDisease,
   CaseSheetRequest,
@@ -498,7 +499,7 @@ const MIN_VACCINE_AGE = 12;
         />
       }
 
-      @if (isHao()) {
+      @if (showActionByHao()) {
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium" for="hao-cs-action-hao">
             {{ 'hao.caseSheet.actionByHao' | translate: lang() }}
@@ -1032,6 +1033,16 @@ export class CaseSheetComponent {
 
   readonly roleCode = computed(() => this.authStore.currentRole()?.featureCode ?? '');
   readonly isHao = computed(() => this.roleCode() === 'HAO');
+  /**
+   * Action by HAO is the one field legacy does NOT gate on the role code alone
+   * (`case-sheet.component.html:593`): a hybrid RO+HAO agent's feature code is
+   * remapped to `RO` by `getSelectedFeature()`, so legacy ORs in the
+   * Health_Advice screen privilege to keep the field visible for them. Every
+   * other HAO check in that template is a plain role comparison.
+   */
+  readonly showActionByHao = computed(
+    () => this.isHao() || collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes('Health_Advice'),
+  );
   readonly isMo = computed(() => this.roleCode() === 'MO');
   readonly isCo = computed(() => this.roleCode() === 'CO');
   readonly isHaoOrMo = computed(() => this.isHao() || this.isMo());
