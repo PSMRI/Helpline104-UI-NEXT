@@ -254,8 +254,25 @@ export class CallStore {
       this.storage.removeItem(CALL_STORAGE_KEYS.demographics);
       return;
     }
-    this._demographics.set(demographics);
-    this.storage.setItem(CALL_STORAGE_KEYS.demographics, JSON.stringify(demographics));
+    // Re-validated the same way readStoredDemographics() re-validates on
+    // rehydration — callers feed this from backend responses (`actualAge`,
+    // etc.) and from `<input type="number">` controls bound through this
+    // app's custom z-input directive, either of which can hand a numeric
+    // *string* to a field TypeScript only claims is a `number`. Without this,
+    // age/gender surviving in memory (typeof never checked) could still fail
+    // `readAge`/`toId`'s strict `typeof === 'number'` check the moment the
+    // page reloads and rehydrates from storage — patientAge()/patientGender()
+    // silently going null mid-call, and CDSS's `hasContext()` with them.
+    const validated: CallerDemographics = {
+      ...demographics,
+      firstName: readString(demographics.firstName),
+      lastName: readString(demographics.lastName),
+      age: readAge(demographics.age),
+      genderId: toId(demographics.genderId),
+      genderName: readString(demographics.genderName),
+    };
+    this._demographics.set(validated);
+    this.storage.setItem(CALL_STORAGE_KEYS.demographics, JSON.stringify(validated));
   }
 
   /** Clear all live-call state (signals + persisted keys) on call close. */
@@ -313,7 +330,15 @@ function readStoredId(raw: string | null): number | null {
 
 /** Narrow an already-parsed value to a positive whole id, or null. */
 function toId(value: unknown): number | null {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : null;
+  // `beneficiary/create` (and other endpoints) return large ids as JSON
+  // *strings* (e.g. `"10690089"`), not numbers — despite the response type
+  // declaring `beneficiaryRegID: number` — so a strict `typeof === 'number'`
+  // check silently dropped every beneficiary id from a fresh registration.
+  // `beneficiaryGuard` then saw `beneficiaryId() === null` and bounced the
+  // agent back to `/innerpage/registration` with no error, which is why
+  // "Do you want to proceed to Health Advisory?" looked like it did nothing.
+  const numeric = typeof value === 'number' ? value : typeof value === 'string' ? Number(value.trim()) : NaN;
+  return Number.isSafeInteger(numeric) && numeric > 0 ? numeric : null;
 }
 
 /**
@@ -372,5 +397,11 @@ function readString(value: unknown): string | null {
  * rather than positive; fractional and negative values are discarded.
  */
 function readAge(value: unknown): number | null {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
+  // Same string-vs-number laxity as toId() above: a numeric age can arrive as
+  // a JSON string, from a backend field (`actualAge`) or a form control bound
+  // through this app's custom z-input directive, which doesn't coerce
+  // `type="number"` inputs to a real number the way Angular's own
+  // NumberValueAccessor would.
+  const numeric = typeof value === 'number' ? value : typeof value === 'string' ? Number(value.trim()) : NaN;
+  return Number.isSafeInteger(numeric) && numeric >= 0 ? numeric : null;
 }

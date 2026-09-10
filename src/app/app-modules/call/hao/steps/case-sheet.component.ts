@@ -21,7 +21,6 @@
  */
 
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -786,9 +785,15 @@ export class CaseSheetComponent {
     doseTypeID: this.fb.control<number | null>(null),
   });
 
-  readonly complaint = toSignal(this.form.controls.chiefComplaints.valueChanges, {
-    initialValue: this.form.controls.chiefComplaints.value,
-  });
+  /**
+   * CDSS symptom input. Mirrors `chiefComplaints` for every normal edit
+   * (typing, loading an existing case sheet, Clear/reset) — but see
+   * {@link onSnomedSelected}, which deliberately keeps this signal on the
+   * agent's own typed text instead of the SNOMED description it writes into
+   * the form control.
+   */
+  private readonly _complaint = signal(this.form.controls.chiefComplaints.value);
+  readonly complaint = this._complaint.asReadonly();
 
   readonly roleCode = computed(() => this.authStore.currentRole()?.featureCode ?? '');
   readonly isHao = computed(() => this.roleCode() === 'HAO');
@@ -839,9 +844,22 @@ export class CaseSheetComponent {
     return false;
   });
 
+  /**
+   * A SNOMED CT description ("Fever of unknown origin") is the clinically
+   * correct thing to record, but CDSS's own catalogue keys on plain disease
+   * names ("Fever") and returns nothing for the coded description — so the
+   * case sheet keeps the SNOMED term, while the CDSS symptom input
+   * ({@link complaint}) is deliberately left on whatever the agent had typed
+   * before selecting it. Provisional Diagnosis still gets the fallback fill
+   * from the SNOMED term itself (see {@link fillProvisionalDiagnosisFallback}),
+   * since that field should reflect the precise clinical term regardless of
+   * what CDSS can match on.
+   */
   onSnomedSelected(term: SnomedTerm): void {
+    const priorComplaint = this._complaint();
     this.form.controls.chiefComplaints.setValue(term.term);
     this.form.controls.chiefComplaints.markAsDirty();
+    this._complaint.set(priorComplaint);
     this.fillProvisionalDiagnosisFallback(term.term);
   }
 
@@ -884,6 +902,10 @@ export class CaseSheetComponent {
   }
 
   constructor() {
+    this.form.controls.chiefComplaints.valueChanges.subscribe((value) => {
+      this._complaint.set(value);
+    });
+
     this.haoService.getAvailableDiseases().subscribe({
       next: (diseases) => this.diseases.set(diseases),
       error: () => this.diseases.set([]),
