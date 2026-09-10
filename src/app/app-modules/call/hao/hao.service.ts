@@ -40,6 +40,8 @@ import {
   GuidelineCategory,
   GuidelineDetail,
   GuidelineSubCategory,
+  InstituteName,
+  InstituteType,
   PresentCaseSheet,
   SaveCovidVaccinationRequest,
   TransferCallRequest,
@@ -68,6 +70,8 @@ const PATHS = {
   guidelineCategories: 'service/category',
   guidelineSubCategories: 'service/subcategory',
   guidelineDetails: 'service/getSubCategoryFilesWithURL',
+  instituteTypes: 'institute/getInstituteTypes',
+  instituteNames: 'institute/getInstituteName/',
 } as const;
 
 /**
@@ -389,6 +393,26 @@ export class HaoService {
         subCategoryID,
         providerServiceMapID,
       })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
+  }
+
+  getInstituteTypes(providerServiceMapID: number | null): Observable<InstituteType[]> {
+    return this.http
+      .post<ApiResponse<InstituteType[]>>(this.config.getCommonBaseURL() + PATHS.instituteTypes, {
+        providerServiceMapID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
+  }
+
+  getInstituteNames(institutionTypeID: number): Observable<InstituteName[]> {
+    return this.http
+      .get<ApiResponse<InstituteName[]>>(this.config.getCommonBaseURL() + PATHS.instituteNames + institutionTypeID)
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => (Array.isArray(res.data) ? res.data : [])),
