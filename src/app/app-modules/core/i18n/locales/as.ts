@@ -776,6 +776,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.callSubType': 'কলৰ উপ-প্ৰকাৰ',
   'hao.closure.selectCallSubType': 'কলৰ উপ-প্ৰকাৰ বাছনি কৰক',
   'hao.closure.callSubTypeRequired': 'কলৰ উপ-প্ৰকাৰ আৱশ্যক।',
+  // Legacy leaves this key untranslated (English.json/Hindi.json/Assamese.json).
+  'hao.closure.ivrFeedbackRequired': 'IVR Feedback Required',
   'hao.closure.followUpRequired': 'অনুসৰণ আৱশ্যক',
   'hao.closure.followUpDate': 'অনুসৰণৰ তাৰিখ',
   'hao.closure.followUpDateRequired': 'অনুসৰণৰ তাৰিখ আৱশ্যক।',

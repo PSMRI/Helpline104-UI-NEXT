@@ -132,6 +132,13 @@ import { HaoService } from '../hao.service';
         </div>
       </div>
 
+      @if (showFeedbackRequired()) {
+        <label class="flex cursor-pointer items-center gap-2 text-sm">
+          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFeedback" />
+          {{ 'hao.closure.ivrFeedbackRequired' | translate: lang() }}
+        </label>
+      }
+
       <div class="flex flex-col gap-3">
         <label class="flex cursor-pointer items-center gap-2 text-sm">
           <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" />
@@ -309,6 +316,7 @@ export class ClosureStepComponent {
     // chosen nested sub-type's numeric callTypeID.
     callGroupType: this.fb.control<string | null>(null, Validators.required),
     callSubTypeID: this.fb.control<number | null>(null),
+    isFeedback: [false],
     isFollowupRequired: [false],
     followUpDate: this.fb.control<string | null>(null),
     doTransfer: [false],
@@ -326,6 +334,9 @@ export class ClosureStepComponent {
     const group = this.selectedCallGroup();
     return this.callTypes().find((t) => t.callGroupType === group)?.callTypes ?? [];
   });
+
+  /** IVR feedback is only offered for the "Valid" call-type group (legacy `showFeedbackRequiredFlag`). */
+  readonly showFeedbackRequired = computed(() => this.selectedCallGroup() === 'Valid');
 
   constructor() {
     this.loadCallTypes();
@@ -349,6 +360,11 @@ export class ClosureStepComponent {
       const hasSubTypes = this.subTypes().length > 0;
       c.callSubTypeID.setValidators(hasSubTypes ? [Validators.required] : []);
       c.callSubTypeID.updateValueAndValidity();
+      // IVR feedback is only meaningful for "Valid" (legacy resets the flag the
+      // moment the group changes away from it).
+      if (value !== 'Valid') {
+        c.isFeedback.setValue(false);
+      }
     });
 
     c.isFollowupRequired.valueChanges.pipe(takeUntilDestroyed()).subscribe((required) => {
@@ -446,6 +462,7 @@ export class ClosureStepComponent {
       requestedFor: value.remarks?.trim() || null,
       isEmergency: value.isEmergency,
       isSuicidal: value.isSuicidal,
+      isFeedback: value.isFeedback,
       providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
       agentID: this.authStore.user()?.agentID ?? null,
       endCall: !andContinue,

@@ -774,6 +774,7 @@ export const en = {
   'hao.closure.callSubType': 'Call Sub-Type',
   'hao.closure.selectCallSubType': 'Select call sub-type',
   'hao.closure.callSubTypeRequired': 'Call sub-type is required.',
+  'hao.closure.ivrFeedbackRequired': 'IVR Feedback Required',
   'hao.closure.followUpRequired': 'Follow-up required',
   'hao.closure.followUpDate': 'Follow-up Date',
   'hao.closure.followUpDateRequired': 'Follow-up date is required.',
