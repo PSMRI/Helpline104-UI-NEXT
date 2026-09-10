@@ -116,6 +116,28 @@ export interface CaseSheetRequest {
   remarks?: string | null;
   providerServiceMapID?: number | null;
   createdBy: string;
+  /** True when the call is on behalf of the caller themselves (legacy `isSelf`). */
+  isSelf?: boolean;
+  /** CDSS-derived action, editable by the agent (legacy `addedAdvice`). */
+  addedAdvice?: string | null;
+  /** Required, role-labelled action field (legacy `actionByHAO`). */
+  actionByHAO?: string | null;
+  /** Required, role-labelled action field (legacy `actionByMO`). */
+  actionByMO?: string | null;
+  /** Patient's age unit when entered as "Other" under HAO (legacy `ageUnits`). */
+  ageUnits?: string | null;
+  /** Patient's date of birth when entered as "Other" under HAO (legacy `dOB`). */
+  dOB?: string | null;
+  /** True once the COVID (QC) section has been filled (legacy `isCOVIDAvailable`). */
+  isCOVIDAvailable?: boolean;
+  travel_14days?: string | null;
+  travel_type?: string | null;
+  travelledFrom?: string | null;
+  travelledTo?: string | null;
+  modeOfTravel?: string | null;
+  symptoms?: string | null;
+  COVID19_contact_history?: string | null;
+  medical_consultation?: string | null;
 }
 
 /** Response of a successful `beneficiary/save/benCaseSheet`. */
@@ -135,6 +157,10 @@ export interface PresentCaseSheet {
   provisionalDiagnosis?: string | null;
   healthAdvice?: string | null;
   remarks?: string | null;
+  isSelf?: boolean;
+  addedAdvice?: string | null;
+  actionByHAO?: string | null;
+  actionByMO?: string | null;
   [key: string]: unknown;
 }
 
@@ -274,4 +300,41 @@ export interface TransferCallRequest {
   callType: string;
   /** Chosen sub-type id, same value {@link CloseCallRequest.callTypeID} sends. */
   callTypeID: number;
+}
+
+// --- COVID vaccine status (case sheet) --------------------------------------
+
+export interface CovidVaccineType {
+  covidVaccineTypeID: number;
+  vaccineType: string;
+  [key: string]: unknown;
+}
+
+export interface CovidDoseType {
+  covidDoseTypeID: number;
+  doseType: string;
+  [key: string]: unknown;
+}
+
+export interface CovidVaccineMasterData {
+  vaccineType: CovidVaccineType[];
+  doseType: CovidDoseType[];
+}
+
+export interface CovidVaccinationDetails {
+  covidVSID?: number | null;
+  vaccineStatus?: 'YES' | 'NO' | null;
+  covidVaccineTypeID?: number | null;
+  doseTypeID?: number | null;
+}
+
+export interface SaveCovidVaccinationRequest {
+  covidVSID?: number | null;
+  beneficiaryRegID: number;
+  vaccineStatus: 'YES' | 'NO';
+  covidVaccineTypeID?: number | null;
+  doseTypeID?: number | null;
+  providerServiceMapID?: number | null;
+  createdBy: string;
+  modifiedBy?: string | null;
 }

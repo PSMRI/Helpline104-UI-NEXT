@@ -35,7 +35,10 @@ import {
   CaseSheetRequest,
   CaseSheetResponse,
   CloseCallRequest,
+  CovidVaccinationDetails,
+  CovidVaccineMasterData,
   PresentCaseSheet,
+  SaveCovidVaccinationRequest,
   TransferCallRequest,
   TransferCampaign,
 } from './hao.models';
@@ -55,6 +58,10 @@ const PATHS = {
   transferCampaigns: 'cti/getTransferCampaigns',
   campaignSkills: 'cti/getCampaignSkills',
   transferCall: 'cti/transferCall',
+  // COVID vaccine status (case sheet) — common-api
+  covidVaccineMaster: 'covid/master/VaccinationTypeAndDoseTaken',
+  covidVaccinationDetails: 'covid/getCovidVaccinationDetails',
+  saveCovidVaccination: 'covid/saveCovidVaccinationDetails',
 } as const;
 
 /**
@@ -184,6 +191,38 @@ export class HaoService {
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => res.data ?? {}),
+      );
+  }
+
+  /** Vaccine-type and dose-taken catalogue for the Covid Vaccine Status form. */
+  getCovidVaccineMasterData(): Observable<CovidVaccineMasterData | null> {
+    return this.http
+      .get<ApiResponse<CovidVaccineMasterData>>(this.baseCommon + PATHS.covidVaccineMaster)
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? null),
+      );
+  }
+
+  /** Previously-recorded vaccination status for the active beneficiary, if any. */
+  getCovidVaccinationDetails(beneficiaryRegID: number): Observable<CovidVaccinationDetails | null> {
+    return this.http
+      .post<ApiResponse<CovidVaccinationDetails>>(this.baseCommon + PATHS.covidVaccinationDetails, {
+        beneficiaryRegID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? null),
+      );
+  }
+
+  /** Persist the Covid Vaccine Status sub-form. */
+  saveCovidVaccinationDetails(request: SaveCovidVaccinationRequest): Observable<CovidVaccinationDetails | null> {
+    return this.http
+      .post<ApiResponse<CovidVaccinationDetails>>(this.baseCommon + PATHS.saveCovidVaccination, request)
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? null),
       );
   }
 
