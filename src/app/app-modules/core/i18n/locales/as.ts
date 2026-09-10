@@ -195,6 +195,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.calledEarlier.question': 'আপুনি আগতে কল কৰিছিলনে?',
   'registration.quickSearch.placeholder': 'হিতাধিকাৰী আইডি বা ABHA',
   'registration.quickSearch.viewAll': 'সকলো চাওক',
+  'registration.quickSearch.invalid': 'বৈধ হিতাধিকাৰী আইডি বা ABHA নম্বৰ/ঠিকনা দিয়ক।',
   'registration.section.identity': 'ব্যক্তিগত বিৱৰণ',
   'registration.section.address': 'ঠিকনা আৰু যোগাযোগ',
   'registration.field.title': 'উপাধি',

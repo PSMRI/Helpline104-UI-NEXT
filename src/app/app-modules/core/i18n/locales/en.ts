@@ -193,6 +193,7 @@ export const en = {
   'registration.calledEarlier.question': 'Have you called earlier?',
   'registration.quickSearch.placeholder': 'Beneficiary ID or ABHA',
   'registration.quickSearch.viewAll': 'View All',
+  'registration.quickSearch.invalid': 'Enter a valid Beneficiary ID or ABHA number/address.',
   'registration.section.identity': 'Personal details',
   'registration.section.address': 'Address & contact',
   'registration.field.title': 'Title',

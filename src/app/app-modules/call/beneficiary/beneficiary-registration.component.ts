@@ -84,6 +84,14 @@ const RESULTS_PAGE_SIZE = 10;
 
 /** Indian mobile number: exactly 10 digits. */
 const PHONE_PATTERN = /^[0-9]{10}$/;
+/** Beneficiary ID: exactly 12 digits. */
+const BENEFICIARY_ID_PATTERN = /^\d{12}$/;
+/** ABHA number without hyphens: exactly 14 digits. */
+const ABHA_NUMBER_PATTERN = /^\d{14}$/;
+/** ABHA number already hyphenated: NN-NNNN-NNNN-NNNN. */
+const ABHA_NUMBER_HYPHENATED_PATTERN = /^(\d{2})-(\d{4})-(\d{4})-(\d{4})*$/;
+/** ABHA address, e.g. `name[.suffix]@xxx` (legacy only accepts a 3-letter suffix). */
+const ABHA_ADDRESS_PATTERN = /^([a-zA-Z0-9])+(\.[a-zA-Z0-9]+)?@([a-zA-Z]{3})$/;
 /** Indian pincode: exactly 6 digits. */
 const PINCODE_PATTERN = /^[0-9]{6}$/;
 /** Default phone type id (primary mobile). */
@@ -230,6 +238,39 @@ function validDob(control: AbstractControl): ValidationErrors | null {
     return null;
   }
   return fromDateInput(value) === null ? { invalidDob: true } : null;
+}
+
+/**
+ * Route a quick-search term to the right search field, matching legacy's
+ * `validateSearchItem` → `validateBenID` → `checkValidHealthIDNumber` →
+ * `validateHealthIDNumberPattern` → `validateHealthIDPattern` cascade
+ * (`beneficiary-registration-104.component.ts:1992-2082`): a 12-digit term is
+ * a Beneficiary ID; a 14-digit or 17-char hyphenated term is an ABHA number
+ * (`HealthIDNumber`, re-hyphenated into NN-NNNN-NNNN-NNNN when given without
+ * hyphens); anything else that looks like `name[.suffix]@xxx` is an ABHA
+ * address (`HealthID`). Each length-specific check falls through to the
+ * ABHA-address check on a pattern mismatch, exactly as legacy does. Returns
+ * `null` when the term matches none of these (legacy's "Please enter a valid
+ * input" case), so the caller can surface that instead of sending a doomed
+ * `beneficiaryID` search.
+ */
+function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null {
+  if (term.length < 8 || term.length > 32) {
+    return null;
+  }
+  if (term.length === 12 && BENEFICIARY_ID_PATTERN.test(term)) {
+    return { beneficiaryID: term };
+  }
+  if (term.length === 14 && ABHA_NUMBER_PATTERN.test(term)) {
+    return { HealthIDNumber: `${term.slice(0, 2)}-${term.slice(2, 6)}-${term.slice(6, 10)}-${term.slice(10)}` };
+  }
+  if (term.length === 17 && ABHA_NUMBER_HYPHENATED_PATTERN.test(term)) {
+    return { HealthIDNumber: term };
+  }
+  if (ABHA_ADDRESS_PATTERN.test(term)) {
+    return { HealthID: term };
+  }
+  return null;
 }
 
 /**
@@ -1513,8 +1554,13 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     if (!term) {
       return;
     }
+    const criteria = buildQuickSearchCriteria(term);
+    if (!criteria) {
+      toast.error(this.i18n.instant('registration.quickSearch.invalid'));
+      return;
+    }
     this.quickSearchLoading.set(true);
-    this.beneficiary.searchBeneficiary({ beneficiaryID: term }).subscribe({
+    this.beneficiary.searchBeneficiary(criteria).subscribe({
       next: (rows) => {
         this.quickSearchLoading.set(false);
         this.quickSearchResults.set(rows);

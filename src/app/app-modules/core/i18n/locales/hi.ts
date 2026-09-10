@@ -194,6 +194,7 @@ export const hi: Record<TranslationKey, string> = {
   'registration.calledEarlier.question': 'क्या आपने पहले कॉल किया है?',
   'registration.quickSearch.placeholder': 'लाभार्थी आईडी या ABHA',
   'registration.quickSearch.viewAll': 'सभी देखें',
+  'registration.quickSearch.invalid': 'मान्य लाभार्थी आईडी या ABHA नंबर/पता दर्ज करें।',
   'registration.section.identity': 'व्यक्तिगत विवरण',
   'registration.section.address': 'पता और संपर्क',
   'registration.field.title': 'शीर्षक',

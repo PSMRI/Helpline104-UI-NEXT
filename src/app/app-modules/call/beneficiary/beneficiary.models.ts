@@ -135,6 +135,10 @@ export interface BeneficiarySearchRequest {
   lastName?: string;
   genderID?: number | null;
   beneficiaryID?: string;
+  /** ABHA number, hyphenated 17-char form (legacy `HealthIDNumber`). */
+  HealthIDNumber?: string;
+  /** ABHA address, e.g. `name@abdm` (legacy `HealthID`). */
+  HealthID?: string;
 }
 
 /** One phone mapping sent when registering a beneficiary (legacy `benPhoneMaps`). */
