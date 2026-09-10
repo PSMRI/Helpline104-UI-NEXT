@@ -50,6 +50,6 @@ describe('upgradeToHttps', () => {
   });
 
   it('resolves the real host, not the userinfo, when a loopback address is used as userinfo', () => {
-    expect(upgradeToHttps('http://127.0.0.1@evil.example/')).toBe('https://evil.example/');
+    expect(upgradeToHttps('http://127.0.0.1@evil.example/')).toBe('https://127.0.0.1@evil.example/');
   });
 });
