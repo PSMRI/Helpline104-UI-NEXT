@@ -20,8 +20,9 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, viewChild } from '@angular/core';
 
+import { HasUnsavedChanges } from '../unsaved-changes.guard';
 import { RoleWorkspaceComponent } from './role-workspace.component';
 
 /**
@@ -45,4 +46,10 @@ import { RoleWorkspaceComponent } from './role-workspace.component';
     />
   `,
 })
-export class CounsellorWorkspaceComponent {}
+export class CounsellorWorkspaceComponent implements HasUnsavedChanges {
+  private readonly roleWorkspace = viewChild.required(RoleWorkspaceComponent);
+
+  hasUnsavedChanges(): boolean {
+    return this.roleWorkspace().hasUnsavedChanges();
+  }
+}

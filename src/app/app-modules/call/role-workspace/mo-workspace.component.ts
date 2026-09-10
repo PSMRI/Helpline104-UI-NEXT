@@ -20,10 +20,11 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthStore } from '../../core/auth/auth.store';
+import { HasUnsavedChanges } from '../unsaved-changes.guard';
 import { RoleWorkspaceComponent } from './role-workspace.component';
 
 /** 104 service whose roles are inspected for the CO hand-off. */
@@ -52,9 +53,11 @@ const ROLE_CO = 'CO';
     />
   `,
 })
-export class MoWorkspaceComponent {
+export class MoWorkspaceComponent implements HasUnsavedChanges {
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
+
+  private readonly roleWorkspace = viewChild.required(RoleWorkspaceComponent);
 
   /** Whether the agent also holds the CO role on the 104 service. */
   readonly hasCoPrivilege = computed(() =>
@@ -65,5 +68,9 @@ export class MoWorkspaceComponent {
 
   goToCo(): void {
     void this.router.navigate(['/innerpage/co']);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.roleWorkspace().hasUnsavedChanges();
   }
 }

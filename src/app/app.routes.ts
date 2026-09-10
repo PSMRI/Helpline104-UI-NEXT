@@ -110,6 +110,7 @@ export const routes: Routes = [
         // MO (Medical Officer) case-sheet workspace.
         path: 'mo',
         canActivate: [beneficiaryGuard, roleWorkspaceGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/mo-workspace.component').then((m) => m.MoWorkspaceComponent),
       },
@@ -117,6 +118,7 @@ export const routes: Routes = [
         // CO (Counselling Officer) case-sheet workspace.
         path: 'co',
         canActivate: [beneficiaryGuard, roleWorkspaceGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/co-workspace.component').then((m) => m.CoWorkspaceComponent),
       },
@@ -124,6 +126,7 @@ export const routes: Routes = [
         // Counsellor (mental-health) case-sheet workspace.
         path: 'counsellor',
         canActivate: [beneficiaryGuard, roleWorkspaceGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/counsellor-workspace.component').then(
             (m) => m.CounsellorWorkspaceComponent,
@@ -134,6 +137,7 @@ export const routes: Routes = [
         // so a role without SIO screens cannot reach it by typing the URL.
         path: 'sio',
         canActivate: [sioGuard, beneficiaryGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/sio-workspace.component').then((m) => m.SioWorkspaceComponent),
       },
@@ -141,6 +145,7 @@ export const routes: Routes = [
         // Surveyor workspace (call-type reports host).
         path: 'surveyor',
         canActivate: [beneficiaryGuard, roleWorkspaceGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/surveyor-workspace.component').then(
             (m) => m.SurveyorWorkspaceComponent,
@@ -150,6 +155,7 @@ export const routes: Routes = [
         // PD (Psychiatrist / Programme Division) case-sheet workspace.
         path: 'pd',
         canActivate: [beneficiaryGuard, roleWorkspaceGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./app-modules/call/role-workspace/pd-workspace.component').then((m) => m.PdWorkspaceComponent),
       },

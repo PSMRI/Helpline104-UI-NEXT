@@ -36,6 +36,7 @@ import { CallWrapupService } from '../call-wrapup.service';
 import { HaoStepperComponent } from '../hao/hao-stepper.component';
 import { ClosureStepComponent } from '../hao/steps/closure-step.component';
 import { ServiceDeliveryStepComponent } from '../hao/steps/service-delivery-step.component';
+import { HasUnsavedChanges } from '../unsaved-changes.guard';
 import { SERVICE_104, collectServiceScreens } from './role-screens.util';
 
 /**
@@ -111,7 +112,7 @@ import { SERVICE_104, collectServiceScreens } from './role-screens.util';
     </section>
   `,
 })
-export class SioWorkspaceComponent {
+export class SioWorkspaceComponent implements HasUnsavedChanges {
   private readonly callStore = inject(CallStore);
   private readonly authStore = inject(AuthStore);
   private readonly callWrapup = inject(CallWrapupService);
@@ -145,6 +146,10 @@ export class SioWorkspaceComponent {
 
   onServiceAvailed(): void {
     this._serviceAvailed.set(true);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.stepIndex() === 0 && !this.serviceAvailed();
   }
 
   proceedToClosure(): void {
