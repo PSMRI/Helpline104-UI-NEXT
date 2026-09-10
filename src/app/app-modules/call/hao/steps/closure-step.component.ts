@@ -87,7 +87,7 @@ import { HaoService } from '../hao.service';
           <select
             id="hao-cl-type"
             formControlName="callGroupType"
-            class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             [attr.aria-invalid]="isInvalid('callGroupType') || null"
           >
             <option [ngValue]="null">
@@ -367,6 +367,13 @@ export class ClosureStepComponent {
       }
     });
 
+    // An emergency call (flagged during registration, broadcast via CallStore)
+    // is always disposed as "Valid" — mirrors legacy closure's handleEmergency,
+    // which forces callType = "Valid" on the same signal. Locked rather than
+    // just pre-filled so the mandatory disposition can't be changed away from
+    // Valid for a call already marked emergency.
+    effect(() => this.applyEmergencyCallType(this.callStore.isEmergencyCall()));
+
     c.isFollowupRequired.valueChanges.pipe(takeUntilDestroyed()).subscribe((required) => {
       this.followUpRequired.set(required);
       c.followUpDate.setValidators(required ? [Validators.required] : []);
@@ -495,6 +502,10 @@ export class ClosureStepComponent {
         this.submitting.set(false);
         if (andContinue) {
           this.form.reset({ isEmergency: false, isSuicidal: false });
+          // form.reset() clears callGroupType (and re-enables it) regardless of
+          // the disabled-lock applied below — reapply for the same still-live,
+          // still-emergency call.
+          this.applyEmergencyCallType(this.callStore.isEmergencyCall());
           this.continued.emit();
         } else {
           this.closed.emit();
@@ -566,6 +577,25 @@ export class ClosureStepComponent {
             },
           });
       });
+  }
+
+  /**
+   * Force-select and lock `callGroupType` to "Valid" while the call is
+   * flagged emergency; release the lock otherwise. Re-callable (not just
+   * effect-driven) because `form.reset()` on Submit & Continue clears and
+   * re-enables the control outside the signal change that would otherwise
+   * trigger this.
+   */
+  private applyEmergencyCallType(isEmergency: boolean): void {
+    const control = this.form.controls.callGroupType;
+    if (isEmergency) {
+      if (control.value !== 'Valid') {
+        control.setValue('Valid');
+      }
+      control.disable();
+    } else {
+      control.enable();
+    }
   }
 
   private loadCallTypes(): void {

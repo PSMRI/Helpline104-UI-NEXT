@@ -39,6 +39,7 @@ export const CALL_STORAGE_KEYS = {
   beneficiaryId: 'callBeneficiaryId',
   districtId: 'callDistrictId',
   demographics: 'callDemographics',
+  isEmergencyCall: 'callIsEmergencyCall',
 } as const;
 
 /** Sentinel the legacy app wrote to `sessionStorage.onCall` for a live call. */
@@ -108,6 +109,11 @@ export class CallStore {
       ? null
       : readStoredDemographics(this.storage.getItem(CALL_STORAGE_KEYS.demographics)),
   );
+  // Legacy `getCommonData.isEmergency` broadcast from registration to closure,
+  // for the same call — not beneficiary-scoped, so it survives independently.
+  private readonly _isEmergencyCall = signal<boolean>(
+    this.storage.getItem(CALL_STORAGE_KEYS.isEmergencyCall) === 'true',
+  );
 
   /** True while an inbound call is connected; gates the on-call workspace. */
   readonly onCall = this._onCall.asReadonly();
@@ -127,6 +133,12 @@ export class CallStore {
   readonly districtID = this._districtID.asReadonly();
   /** Demographics of the resolved beneficiary, or null until identified. */
   readonly demographics = this._demographics.asReadonly();
+  /**
+   * True when the agent marked this call emergency during registration
+   * (legacy `getCommonData.isEmergency` broadcast). Read by the closure step
+   * to auto-select the "Valid" call type, mirroring legacy `handleEmergency`.
+   */
+  readonly isEmergencyCall = this._isEmergencyCall.asReadonly();
   /** Epoch ms when the active call connected, or null when not on a call. */
   readonly startedAt = this._startedAt.asReadonly();
 
@@ -171,12 +183,14 @@ export class CallStore {
     this._beneficiaryId.set(null);
     this._districtID.set(null);
     this._demographics.set(null);
+    this._isEmergencyCall.set(false);
 
     this.storage.setItem(CALL_STORAGE_KEYS.onCall, ON_CALL_YES);
     this.storage.setItem(CALL_STORAGE_KEYS.cli, seed.cli);
     this.storage.setItem(CALL_STORAGE_KEYS.sessionId, seed.sessionId);
     this.storage.setItem(CALL_STORAGE_KEYS.startedAt, String(startedAt));
     this.storage.removeItem(CALL_STORAGE_KEYS.callId);
+    this.storage.removeItem(CALL_STORAGE_KEYS.isEmergencyCall);
     // The persisted beneficiary must be dropped with the signals above, or the
     // new caller would inherit the previous call's patient after a reload.
     this.clearBeneficiaryStorage();
@@ -256,13 +270,30 @@ export class CallStore {
     this._beneficiaryId.set(null);
     this._districtID.set(null);
     this._demographics.set(null);
+    this._isEmergencyCall.set(false);
 
     this.storage.removeItem(CALL_STORAGE_KEYS.onCall);
     this.storage.removeItem(CALL_STORAGE_KEYS.cli);
     this.storage.removeItem(CALL_STORAGE_KEYS.sessionId);
     this.storage.removeItem(CALL_STORAGE_KEYS.callId);
     this.storage.removeItem(CALL_STORAGE_KEYS.startedAt);
+    this.storage.removeItem(CALL_STORAGE_KEYS.isEmergencyCall);
     this.clearBeneficiaryStorage();
+  }
+
+  /**
+   * Record whether the agent marked this call emergency during registration
+   * (legacy `getCommonData.isEmergency` broadcast). The closure step reads
+   * this to auto-select the "Valid" call type for the same call, mirroring
+   * legacy `closure.component.ts`'s `handleEmergency`.
+   */
+  setEmergencyCall(isEmergency: boolean): void {
+    this._isEmergencyCall.set(isEmergency);
+    if (isEmergency) {
+      this.storage.setItem(CALL_STORAGE_KEYS.isEmergencyCall, 'true');
+    } else {
+      this.storage.removeItem(CALL_STORAGE_KEYS.isEmergencyCall);
+    }
   }
 
   /** Drop every persisted beneficiary key (id, district, demographics). */
