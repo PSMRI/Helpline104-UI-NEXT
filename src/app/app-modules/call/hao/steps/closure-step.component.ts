@@ -34,6 +34,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { CallWrapupService } from '../../call-wrapup.service';
+import { OutboundStore } from '../../../outbound/outbound.store';
 import { ScheduleAppointmentComponent } from '../../schedule-appointment/schedule-appointment.component';
 import { CallSubType, CallType, CampaignSkill, CloseCallRequest, TransferCampaign } from '../hao.models';
 import { HaoService } from '../hao.service';
@@ -258,6 +259,7 @@ export class ClosureStepComponent {
   private readonly callWrapup = inject(CallWrapupService);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly outboundStore = inject(OutboundStore);
 
   readonly lang = this.i18n.language;
 
@@ -449,7 +451,7 @@ export class ClosureStepComponent {
       providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
       agentID: this.authStore.user()?.agentID ?? null,
       endCall: !andContinue,
-      IsOutbound: false,
+      IsOutbound: this.outboundStore.hasSelection(),
       createdBy: this.authStore.user()?.userName ?? '',
     };
 
