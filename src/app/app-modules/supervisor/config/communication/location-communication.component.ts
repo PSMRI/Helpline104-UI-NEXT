@@ -91,6 +91,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               <span class="text-destructive">*</span>
             </label>
             <input id="lc-start" z-input class="w-full" type="date" formControlName="startDate" />
+            @if (searchForm.controls.startDate.invalid && searchForm.controls.startDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="lc-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -98,6 +103,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               <span class="text-destructive">*</span>
             </label>
             <input id="lc-end" z-input class="w-full" type="date" formControlName="endDate" />
+            @if (searchForm.controls.endDate.invalid && searchForm.controls.endDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
             @if (searchRangeInvalid()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supComm.endBeforeStart' | translate: lang() }}
@@ -227,6 +237,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               <span class="text-destructive">*</span>
             </label>
             <input id="lc-c-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
+            @if (createForm.controls.startDate.invalid && createForm.controls.startDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="lc-c-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -241,6 +256,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               [min]="createForm.controls.startDate.value || today"
               formControlName="endDate"
             />
+            @if (createForm.controls.endDate.invalid && createForm.controls.endDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
             @if (createRangeInvalid()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supComm.endBeforeStart' | translate: lang() }}
@@ -310,6 +330,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               <span class="text-destructive">*</span>
             </label>
             <input id="lc-e-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
+            @if (editForm.controls.startDate.invalid && editForm.controls.startDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="lc-e-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -324,6 +349,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               [min]="editForm.controls.startDate.value || today"
               formControlName="endDate"
             />
+            @if (editForm.controls.endDate.invalid && editForm.controls.endDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
             @if (editRangeInvalid()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supComm.endMustBeAfterStart' | translate: lang() }}

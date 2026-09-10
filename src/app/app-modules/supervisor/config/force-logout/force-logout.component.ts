@@ -66,6 +66,11 @@ import { ForceLogoutService } from './force-logout.service';
             <span class="text-destructive">*</span>
           </label>
           <input id="fl-username" z-input class="w-full" [formControl]="userName" />
+          @if (userName.hasError('required') && userName.touched) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <button z-button type="submit" zType="default" [zLoading]="saving()" [zDisabled]="userName.invalid || saving()">
           {{ 'supLogout.kickout' | translate: lang() }}

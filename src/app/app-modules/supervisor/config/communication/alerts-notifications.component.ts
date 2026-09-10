@@ -105,6 +105,11 @@ type ViewMode = 'search' | 'create' | 'edit';
                 <option [ngValue]="t.notificationTypeID">{{ t.notificationType }}</option>
               }
             </select>
+            @if (searchForm.controls.notificationTypeID.invalid && searchForm.controls.notificationTypeID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="an-start" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -112,6 +117,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               <span class="text-destructive">*</span>
             </label>
             <input id="an-start" z-input class="w-full" type="date" formControlName="startDate" />
+            @if (searchForm.controls.startDate.invalid && searchForm.controls.startDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="an-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -119,6 +129,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               <span class="text-destructive">*</span>
             </label>
             <input id="an-end" z-input class="w-full" type="date" formControlName="endDate" />
+            @if (searchForm.controls.endDate.invalid && searchForm.controls.endDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
             @if (searchRangeInvalid()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supComm.endBeforeStart' | translate: lang() }}
@@ -240,6 +255,11 @@ type ViewMode = 'search' | 'create' | 'edit';
                 <option [ngValue]="t.notificationTypeID">{{ t.notificationType }}</option>
               }
             </select>
+            @if (createForm.controls.notificationTypeID.invalid && createForm.controls.notificationTypeID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="an-c-role" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -286,6 +306,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               <span class="text-destructive">*</span>
             </label>
             <input id="an-c-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
+            @if (createForm.controls.startDate.invalid && createForm.controls.startDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="an-c-stime" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -307,6 +332,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               [min]="createForm.controls.startDate.value || today"
               formControlName="endDate"
             />
+            @if (createForm.controls.endDate.invalid && createForm.controls.endDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
             @if (createRangeInvalid()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supComm.endBeforeStart' | translate: lang() }}
@@ -392,6 +422,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               <span class="text-destructive">*</span>
             </label>
             <input id="an-e-start" z-input class="w-full" type="date" [min]="today" formControlName="startDate" />
+            @if (editForm.controls.startDate.invalid && editForm.controls.startDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="an-e-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -406,6 +441,11 @@ type ViewMode = 'search' | 'create' | 'edit';
               [min]="editForm.controls.startDate.value || today"
               formControlName="endDate"
             />
+            @if (editForm.controls.endDate.invalid && editForm.controls.endDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
             @if (editRangeInvalid()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supComm.endMustBeAfterStart' | translate: lang() }}
