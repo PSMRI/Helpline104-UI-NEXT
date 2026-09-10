@@ -658,6 +658,9 @@ export const hi: Record<TranslationKey, string> = {
   'hao.workspace.proceedConfirm': 'इस कॉल के लिए समापन की ओर बढ़ें?',
   'hao.workspace.cancelTitle': 'रद्द करें',
   'hao.workspace.cancelConfirm': 'सेवा प्रदान करने पर वापस जाएं?',
+  'hao.workspace.cancelCall': 'कॉल रद्द करें',
+  'hao.workspace.cancelCallTitle': 'कॉल रद्द करें',
+  'hao.workspace.cancelCallConfirm': 'इस कॉल को रद्द करें और लाभार्थी चयन पर वापस जाएं?',
 
   // Role workspaces (MO / CO / Counsellor) shell
   'roleWorkspace.stepService': 'केस शीट',
@@ -668,6 +671,9 @@ export const hi: Record<TranslationKey, string> = {
   'roleWorkspace.proceedConfirm': 'इस कॉल के लिए समापन पर जाएं?',
   'roleWorkspace.cancelTitle': 'रद्द करें',
   'roleWorkspace.cancelConfirm': 'केस शीट पर वापस जाएं?',
+  'roleWorkspace.cancelCall': 'कॉल रद्द करें',
+  'roleWorkspace.cancelCallTitle': 'कॉल रद्द करें',
+  'roleWorkspace.cancelCallConfirm': 'इस कॉल को रद्द करें और लाभार्थी चयन पर वापस जाएं?',
   'roleWorkspace.mo.title': 'मेडिकल ऑफिसर (MO)',
   'roleWorkspace.mo.subtitle': 'चिकित्सा सलाह दर्ज करें, फिर कॉल समाप्त करें।',
   'roleWorkspace.mo.switchToCo': 'CO पर स्विच करें',
