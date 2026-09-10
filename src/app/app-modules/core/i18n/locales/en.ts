@@ -426,6 +426,9 @@ export const en = {
   'casesheetHistory.tabMcts': 'MCTS',
   'casesheetHistory.tabMmu': 'e-Health Facility',
   'casesheetHistory.tabTm': 'Telemedicine',
+  // Legacy hardcodes this tab label in the template, so it is identical in
+  // every language (case-sheet.component.html:1334).
+  'casesheetHistory.tabHihl': '104-HIHL Casesheet',
   'casesheetHistory.own.title': '104 case-sheet history',
   'casesheetHistory.own.date': 'Date',
   'casesheetHistory.own.chiefComplaint': 'Chief complaint',

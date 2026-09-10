@@ -63,6 +63,9 @@ import {
   SaveCovidVaccinationRequest,
 } from '../hao.models';
 import { HaoService } from '../hao.service';
+import { HihlCaseSheetHistoryComponent } from '../../counsellor/hihl-case-sheet-history.component';
+import { HihlCaseSheetService } from '../../counsellor/hihl-case-sheet.service';
+import type { HihlHistoryRow } from '../../counsellor/hihl-case-sheet.models';
 import { CaseSheetHistoryComponent } from './case-sheet-history.component';
 
 const MO_FEATURE_CODE = 'MO';
@@ -70,7 +73,7 @@ const MO_FEATURE_CODE = 'MO';
 const RECENT_PRESCRIPTION_WINDOW_MS = 5 * 24 * 60 * 60 * 1000;
 
 /** History tabs shown in the case-sheet history section. */
-type HistoryTab = 'own' | 'mcts' | 'mmu' | 'tm';
+type HistoryTab = 'own' | 'mcts' | 'mmu' | 'tm' | 'hihl';
 type ChiefComplaintMode = 'complaint' | 'summary';
 type VaccineStatus = 'YES' | 'NO';
 type WellbeingOrInfo = '1' | '2';
@@ -100,6 +103,7 @@ const MIN_VACCINE_AGE = 12;
     ZardButtonComponent,
     ZardInputDirective,
     CaseSheetHistoryComponent,
+    HihlCaseSheetHistoryComponent,
     NgIcon,
     CasesheetHistoryMctsComponent,
     CasesheetHistoryMmuComponent,
@@ -897,7 +901,7 @@ const MIN_VACCINE_AGE = 12;
                 zSize="sm"
                 role="tab"
                 [attr.aria-selected]="activeTab() === tab.id"
-                (click)="activeTab.set(tab.id)"
+                (click)="selectHistoryTab(tab.id)"
               >
                 {{ tab.labelKey | translate: lang() }}
               </button>
@@ -921,6 +925,9 @@ const MIN_VACCINE_AGE = 12;
                   [isTm]="true"
                   (selectVisit)="onSelectVisit($event)"
                 />
+              }
+              @case ('hihl') {
+                <app-hihl-case-sheet-history [rows]="hihlHistoryRows()" [loading]="hihlHistoryLoading()" />
               }
             }
 
@@ -971,6 +978,7 @@ export class CaseSheetComponent {
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly cdss = inject(CdssService);
   private readonly cdssFlow = inject(CdssFlowService);
+  private readonly hihlService = inject(HihlCaseSheetService);
   private readonly snomed = inject(SnomedService);
 
   readonly lang = this.i18n.language;
@@ -1011,11 +1019,22 @@ export class CaseSheetComponent {
   readonly activeTab = signal<HistoryTab>('own');
   readonly selectedVisit = signal<MmuVisitRow | null>(null);
 
+  /**
+   * 104-HIHL case-sheet history (legacy's 5th tab, `benHihlData`). The other
+   * four tabs' components fetch their own rows from a `benRegID` input; this
+   * one takes rows as an input, so the case sheet loads them — lazily, the
+   * first time the tab is opened for a beneficiary.
+   */
+  readonly hihlHistoryRows = signal<HihlHistoryRow[]>([]);
+  readonly hihlHistoryLoading = signal(false);
+  private hihlHistoryLoadedFor: number | null = null;
+
   readonly historyTabs: ReadonlyArray<{ id: HistoryTab; labelKey: TranslationKey }> = [
     { id: 'own', labelKey: 'casesheetHistory.tabOwn' },
     { id: 'mcts', labelKey: 'casesheetHistory.tabMcts' },
     { id: 'mmu', labelKey: 'casesheetHistory.tabMmu' },
     { id: 'tm', labelKey: 'casesheetHistory.tabTm' },
+    { id: 'hihl', labelKey: 'casesheetHistory.tabHihl' },
   ];
 
   private prefilledFor: number | null = null;
@@ -1594,6 +1613,36 @@ export class CaseSheetComponent {
 
   toggleHistory(): void {
     this.historyOpen.update((open) => !open);
+    if (this.historyOpen()) {
+      this.loadHihlHistoryIfNeeded();
+    }
+  }
+
+  selectHistoryTab(tab: HistoryTab): void {
+    this.activeTab.set(tab);
+    if (tab === 'hihl') {
+      this.loadHihlHistoryIfNeeded();
+    }
+  }
+
+  private loadHihlHistoryIfNeeded(): void {
+    const beneficiaryRegID = this.beneficiaryId();
+    if (beneficiaryRegID === null || this.activeTab() !== 'hihl' || this.hihlHistoryLoadedFor === beneficiaryRegID) {
+      return;
+    }
+    this.hihlHistoryLoadedFor = beneficiaryRegID;
+    this.hihlHistoryLoading.set(true);
+    this.hihlService.getHistory(beneficiaryRegID).subscribe({
+      next: (rows) => {
+        this.hihlHistoryLoading.set(false);
+        this.hihlHistoryRows.set(rows);
+      },
+      error: () => {
+        this.hihlHistoryLoading.set(false);
+        this.hihlHistoryLoadedFor = null;
+        this.hihlHistoryRows.set([]);
+      },
+    });
   }
 
   onSelectVisit(visit: MmuVisitRow): void {

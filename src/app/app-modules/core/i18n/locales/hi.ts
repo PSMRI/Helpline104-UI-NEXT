@@ -426,6 +426,9 @@ export const hi: Record<TranslationKey, string> = {
   'casesheetHistory.tabMcts': 'MCTS',
   'casesheetHistory.tabMmu': 'ई-हेल्थ सुविधा',
   'casesheetHistory.tabTm': 'टेलीमेडिसिन',
+  // Legacy hardcodes this tab label in the template, so it is identical in
+  // every language (case-sheet.component.html:1334).
+  'casesheetHistory.tabHihl': '104-HIHL Casesheet',
   'casesheetHistory.own.title': '104 केस-शीट इतिहास',
   'casesheetHistory.own.date': 'तिथि',
   'casesheetHistory.own.chiefComplaint': 'मुख्य शिकायत',
