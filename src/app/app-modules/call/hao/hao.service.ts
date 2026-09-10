@@ -31,6 +31,7 @@ import {
   AvailableDisease,
   CallType,
   CampaignSkill,
+  CaseSheetHistoryEntry,
   CaseSheetRequest,
   CaseSheetResponse,
   CloseCallRequest,
@@ -45,6 +46,7 @@ const PATHS = {
   availableDiseases: 'diseaseController/getAvailableDiseases',
   diseaseByID: 'diseaseController/getDiseasesByID',
   presentCaseSheet: 'beneficiary/getPresentCaseSheet',
+  caseSheetHistory: 'beneficiary/get104BenMedHistory',
   saveCaseSheet: 'beneficiary/save/benCaseSheet',
   // Closure / call lifecycle — common-api
   callTypes: 'call/getCallTypesV1',
@@ -156,6 +158,22 @@ export class HaoService {
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => res.data ?? null),
+      );
+  }
+
+  /**
+   * Prior 104 case sheets recorded for the beneficiary across previous calls
+   * (legacy `caseSheetService.getCaseSheetData`, rendered by
+   * `case-sheet-history.html`). Resolves to `[]` when none exist yet.
+   */
+  getCaseSheetHistory(beneficiaryRegID: number): Observable<CaseSheetHistoryEntry[]> {
+    return this.http
+      .post<ApiResponse<CaseSheetHistoryEntry[]>>(this.base104 + PATHS.caseSheetHistory, {
+        beneficiaryRegID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? []),
       );
   }
 

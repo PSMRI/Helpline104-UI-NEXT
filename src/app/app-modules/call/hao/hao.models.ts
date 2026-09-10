@@ -137,6 +137,31 @@ export interface PresentCaseSheet {
   [key: string]: unknown;
 }
 
+/**
+ * One entry in the beneficiary's prior 104 case sheets, returned by
+ * `beneficiary/get104BenMedHistory` ({104}). Field names keep the legacy
+ * spelling (`selecteDiagnosis`, `addedAdvice`) since that is the wire
+ * contract, ported from the Angular 4 `case-sheet-history.html` list.
+ */
+export interface CaseSheetHistoryEntry {
+  benHistoryID?: number;
+  requestID?: number;
+  createdDate?: string;
+  patientName?: string;
+  patientAge?: number | string;
+  diseaseSummary?: string;
+  selecteDiagnosis?: string;
+  isChiefComplaint?: boolean;
+  algorithm?: string;
+  riskLevel?: string;
+  addedAdvice?: string;
+  actionByHAO?: string;
+  actionByMO?: string;
+  actionByPD?: string;
+  treatmentRecommendation?: string;
+  [key: string]: unknown;
+}
+
 // --- Closure --------------------------------------------------------------
 
 /**

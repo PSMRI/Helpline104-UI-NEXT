@@ -45,9 +45,10 @@ import type { SnomedTerm } from '../../case-sheet/snomed.models';
 import { ViewDiseaseSummaryDetailsComponent } from '../../case-sheet/view-disease-summary-details.component';
 import { AvailableDisease, CaseSheetRequest, PresentCaseSheet } from '../hao.models';
 import { HaoService } from '../hao.service';
+import { CaseSheetHistoryComponent } from './case-sheet-history.component';
 
 /** History tabs shown in the case-sheet history section. */
-type HistoryTab = 'mcts' | 'mmu' | 'tm';
+type HistoryTab = 'own' | 'mcts' | 'mmu' | 'tm';
 
 /** Map a gender name (any casing) to the single-letter CDSS gender code. */
 function toCdssGender(genderName: string | null | undefined): CdssGender | null {
@@ -82,6 +83,7 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
     TranslatePipe,
     ZardButtonComponent,
     ZardInputDirective,
+    CaseSheetHistoryComponent,
     CasesheetHistoryMctsComponent,
     CasesheetHistoryMmuComponent,
     ViewDiseaseSummaryDetailsComponent,
@@ -228,6 +230,9 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
 
           <div class="mt-3">
             @switch (activeTab()) {
+              @case ('own') {
+                <app-case-sheet-history [benRegID]="beneficiaryId()" />
+              }
               @case ('mcts') {
                 <app-casesheet-history-mcts [benRegID]="beneficiaryId()" />
               }
@@ -308,11 +313,12 @@ export class CaseSheetComponent {
 
   /** Case-sheet history section state. */
   readonly historyOpen = signal(false);
-  readonly activeTab = signal<HistoryTab>('mcts');
+  readonly activeTab = signal<HistoryTab>('own');
   readonly selectedVisit = signal<MmuVisitRow | null>(null);
 
   /** History tab definitions (label keys resolved in the template). */
   readonly historyTabs: ReadonlyArray<{ id: HistoryTab; labelKey: TranslationKey }> = [
+    { id: 'own', labelKey: 'casesheetHistory.tabOwn' },
     { id: 'mcts', labelKey: 'casesheetHistory.tabMcts' },
     { id: 'mmu', labelKey: 'casesheetHistory.tabMmu' },
     { id: 'tm', labelKey: 'casesheetHistory.tabTm' },
