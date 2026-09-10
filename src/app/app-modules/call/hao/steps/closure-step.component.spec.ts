@@ -89,6 +89,9 @@ describe('ClosureStepComponent', () => {
     http
       .match((req) => req.url.includes('beneficiary/get/services'))
       .forEach((req) => req.flush({ data: transferData.services ?? [] }));
+    // resolveAgentIPAddress() only fires when a session is set (agentID != null) —
+    // most callers here have none, so this is a no-op match for them.
+    http.match((req) => req.url.includes('getAgentIPAddress')).forEach((req) => req.flush({ data: null }));
     fixture.detectChanges();
     return fixture;
   }
