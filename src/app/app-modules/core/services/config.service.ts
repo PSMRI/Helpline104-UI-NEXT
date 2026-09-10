@@ -64,7 +64,7 @@ export class ConfigService {
 
   /** Licensing calls historically share the common API host. */
   getCommonBaseURLLicense(): string {
-    return environment.commonAPI;
+    return upgradeToHttps(environment.commonAPI);
   }
 
   /** Open (unauthenticated) endpoints share the common API host. */
@@ -73,28 +73,28 @@ export class ConfigService {
   }
 
   get104BaseURL(): string {
-    return environment.ip104;
+    return upgradeToHttps(environment.ip104);
   }
 
   get1097BaseURL(): string {
-    return environment.ip1097;
+    return upgradeToHttps(environment.ip1097);
   }
 
   getAdminBaseURL(): string {
-    return environment.adminAPI;
+    return upgradeToHttps(environment.adminAPI);
   }
 
   /** MMU shared the admin host in the legacy config. */
   getMMUBaseURL(): string {
-    return environment.mmuAPI;
+    return upgradeToHttps(environment.mmuAPI);
   }
 
   getTMBaseURL(): string {
-    return environment.tmAPI;
+    return upgradeToHttps(environment.tmAPI);
   }
 
   getFHIRBaseURL(): string {
-    return environment.fhirAPI;
+    return upgradeToHttps(environment.fhirAPI);
   }
 
   getTelephonyServerURL(): string {
@@ -106,7 +106,7 @@ export class ConfigService {
    * per environment; must NOT embed credentials — the server handles auth.
    */
   getOpenKmBaseURL(): string {
-    return environment.openKmBaseUrl;
+    return upgradeToHttps(environment.openKmBaseUrl);
   }
 
   // --- Behaviour flags -----------------------------------------------------
