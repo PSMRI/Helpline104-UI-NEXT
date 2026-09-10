@@ -36,6 +36,7 @@ import { CallWrapupService } from '../call-wrapup.service';
 import { HaoStepperComponent } from '../hao/hao-stepper.component';
 import { CaseSheetComponent } from '../hao/steps/case-sheet.component';
 import { ClosureStepComponent } from '../hao/steps/closure-step.component';
+import { HasUnsavedChanges } from '../unsaved-changes.guard';
 
 /**
  * Shared shell for the single-case-sheet role workspaces (MO / CO / Counsellor).
@@ -110,7 +111,7 @@ import { ClosureStepComponent } from '../hao/steps/closure-step.component';
     </section>
   `,
 })
-export class RoleWorkspaceComponent implements OnInit {
+export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
   private readonly callStore = inject(CallStore);
   private readonly callWrapup = inject(CallWrapupService);
   private readonly router = inject(Router);
@@ -185,6 +186,10 @@ export class RoleWorkspaceComponent implements OnInit {
 
   onServiceAvailed(): void {
     this._serviceAvailed.set(true);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.stepIndex() === 0 && !this.serviceAvailed();
   }
 
   proceedToClosure(): void {
