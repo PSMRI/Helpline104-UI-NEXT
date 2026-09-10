@@ -126,7 +126,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
         </fieldset>
       }
 
-      <div class="grid gap-5 sm:grid-cols-2">
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium" for="hao-cl-type">
             {{ 'hao.closure.callType' | translate: lang() }}
@@ -179,6 +179,46 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
             </p>
           }
         </div>
+
+        @if (canTransfer()) {
+          <div class="flex flex-col gap-1.5" [class.cursor-not-allowed]="disconnectedByCaller()">
+            <label class="text-sm font-medium" for="hao-cl-transfer-service">
+              {{ 'hao.closure.transferService' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cl-transfer-service"
+              formControlName="transferService"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            >
+              <option [ngValue]="null">
+                {{ 'hao.closure.selectTransferService' | translate: lang() }}
+              </option>
+              @for (service of transferServices(); track service.subServiceName) {
+                <option [ngValue]="service.subServiceName">{{ service.subServiceName }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (canTransfer() && currentRole() !== roleCO && skills().length > 0) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cl-skill">
+              {{ 'hao.closure.transferSkill' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cl-skill"
+              formControlName="skill"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            >
+              <option [ngValue]="null">
+                {{ 'hao.closure.selectSkill' | translate: lang() }}
+              </option>
+              @for (skill of skills(); track skill.skillName) {
+                <option [ngValue]="skill.skillName">{{ skill.skillName }}</option>
+              }
+            </select>
+          </div>
+        }
       </div>
 
       @if (showFeedbackRequired()) {
@@ -322,52 +362,68 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
         <input z-input id="hao-cl-remarks" type="text" maxlength="100" formControlName="remarks" />
       </div>
 
-      <div class="flex flex-col gap-3 rounded-lg border border-border p-4">
-        <label class="flex items-center gap-2 text-sm font-medium" [class.cursor-not-allowed]="disconnectedByCaller()" [class.cursor-pointer]="!disconnectedByCaller()">
-          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="doTransfer" />
-          {{ 'hao.closure.transferCall' | translate: lang() }}
-        </label>
-        @if (doTransfer()) {
-          <div class="grid gap-4 sm:grid-cols-2">
+      @if (currentRole() === roleCO) {
+        <div class="grid gap-5 sm:grid-cols-3">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cl-external-referral">
+              {{ 'hao.closure.externalReferral' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cl-external-referral"
+              formControlName="externalRefferal"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">
+                {{ 'hao.closure.selectExternalReferral' | translate: lang() }}
+              </option>
+              <option [ngValue]="'Yes'">{{ 'hao.closure.yes' | translate: lang() }}</option>
+              <option [ngValue]="'No'">{{ 'hao.closure.no' | translate: lang() }}</option>
+            </select>
+          </div>
+
+          @if (enableInstitute()) {
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium" for="hao-cl-transfer-service">
-                {{ 'hao.closure.transferService' | translate: lang() }}
-                <span class="text-destructive" aria-hidden="true">*</span>
+              <label class="text-sm font-medium" for="hao-cl-institute-type">
+                {{ 'hao.closure.instituteType' | translate: lang() }}
               </label>
               <select
-                id="hao-cl-transfer-service"
-                formControlName="transferService"
+                id="hao-cl-institute-type"
+                formControlName="institutionID"
                 class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option [ngValue]="null">
-                  {{ 'hao.closure.selectTransferService' | translate: lang() }}
+                  {{ 'hao.closure.selectInstituteType' | translate: lang() }}
                 </option>
-                @for (service of transferServices(); track service.subServiceName) {
-                  <option [ngValue]="service.subServiceName">{{ service.subServiceName }}</option>
+                @for (type of instituteTypes(); track type.institutionTypeID) {
+                  <option [ngValue]="type.institutionTypeID">{{ type.institutionType }}</option>
                 }
               </select>
             </div>
-            @if (currentRole() !== roleCO && skills().length > 0) {
-              <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium" for="hao-cl-skill">
-                  {{ 'hao.closure.transferSkill' | translate: lang() }}
-                </label>
-                <select
-                  id="hao-cl-skill"
-                  formControlName="skill"
-                  class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-                >
-                  <option [ngValue]="null">
-                    {{ 'hao.closure.selectSkill' | translate: lang() }}
-                  </option>
-                  @for (skill of skills(); track skill.skillName) {
-                    <option [ngValue]="skill.skillName">{{ skill.skillName }}</option>
-                  }
-                </select>
-              </div>
-            }
-          </div>
-        }
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium" for="hao-cl-institute-name">
+                {{ 'hao.closure.instituteName' | translate: lang() }}
+              </label>
+              <select
+                id="hao-cl-institute-name"
+                formControlName="instituteName"
+                multiple
+                class="h-24 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                @for (name of instituteNames(); track name.institutionName) {
+                  <option [ngValue]="name.institutionName">{{ name.institutionName }}</option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium" for="hao-cl-remarks">
+          {{ 'hao.closure.remarks' | translate: lang() }}
+        </label>
+        <input z-input id="hao-cl-remarks" type="text" maxlength="100" formControlName="remarks" />
       </div>
 
       @if (showAppointment()) {
@@ -378,13 +434,14 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
         <button z-button type="button" zType="outline" [zDisabled]="actionBusy()" (click)="openAppointmentManually()">
           {{ 'hao.closure.scheduleAppointment' | translate: lang() }}
         </button>
-        @if (doTransfer()) {
+        @if (canTransfer()) {
           <button
             z-button
             type="button"
             zType="outline"
+            class="border-success bg-success text-success-foreground hover:bg-success/90"
             [zLoading]="transferring()"
-            [zDisabled]="actionBusy() || !selectedCampaign()"
+            [zDisabled]="actionBusy() || !selectedCampaign() || disconnectedByCaller()"
             (click)="transfer()"
           >
             {{ 'hao.closure.transfer' | translate: lang() }}
@@ -483,8 +540,8 @@ export class ClosureStepComponent {
   // Form values mirrored to signals so conditional UI updates under zoneless CD.
   private readonly selectedCallGroup = signal<string | null>(null);
   readonly followUpRequired = signal(false);
-  readonly doTransfer = signal(false);
   readonly selectedCampaign = signal<string | null>(null);
+  private readonly selectedTransferService = signal<string | null>(null);
   readonly enableInstitute = signal(false);
 
   readonly form = this.fb.nonNullable.group({
@@ -502,7 +559,6 @@ export class ClosureStepComponent {
     externalRefferal: this.fb.control<'Yes' | 'No' | null>(null),
     institutionID: this.fb.control<number | null>(null),
     instituteName: this.fb.nonNullable.control<string[]>([]),
-    doTransfer: [false],
     transferService: this.fb.control<string | null>(null),
     skill: this.fb.control<string | null>(null),
     remarks: this.fb.control<string | null>(null),
@@ -527,6 +583,16 @@ export class ClosureStepComponent {
     return this.visibleCallTypes().find((t) => t.callGroupType === group)?.callTypes ?? [];
   });
 
+  /**
+   * Whether a transfer target is currently chosen — legacy's Transfer Call
+   * select and action button are always visible (see {@link canTransfer}),
+   * not behind a checkbox; "transferring" is simply "a service is selected".
+   */
+  readonly doTransfer = computed(() => this.selectedTransferService() !== null);
+
+  /** Whether there is anything to transfer to at all (legacy `validTrans`). */
+  readonly canTransfer = computed(() => this.transferServices().length > 0);
+
   readonly transferServices = computed<AvailableService[]>(() => {
     const list = this.services();
     if (this.currentRole() === ROLE_RO && !this.hasBeneficiary()) {
@@ -547,13 +613,17 @@ export class ClosureStepComponent {
     this.loadCallTypes();
     this.loadMasterData();
     this.resolveAgentIPAddress();
+    // Legacy's Transfer Call select is populated and visible immediately,
+    // not revealed behind a checkbox — load its data eagerly.
+    this.loadCampaigns();
+    this.loadServices();
 
     // The caller hung up — there is no live call left to transfer.
     // getRawValue() still includes a disabled control's value.
     effect(() => {
       if (this.disconnectedByCaller()) {
-        this.form.controls.doTransfer.setValue(false);
-        this.form.controls.doTransfer.disable();
+        this.form.controls.transferService.setValue(null);
+        this.form.controls.transferService.disable();
       }
     });
 
@@ -617,24 +687,8 @@ export class ClosureStepComponent {
       }
     });
 
-    c.doTransfer.valueChanges.pipe(takeUntilDestroyed()).subscribe((on) => {
-      this.doTransfer.set(on);
-      if (on) {
-        if (this.campaigns().length === 0) {
-          this.loadCampaigns();
-        }
-        if (this.services().length === 0) {
-          this.loadServices();
-        }
-      } else {
-        c.transferService.reset(null);
-        c.skill.reset(null);
-        this.skills.set([]);
-        this.selectedCampaign.set(null);
-      }
-    });
-
     c.transferService.valueChanges.pipe(takeUntilDestroyed()).subscribe((serviceName) => {
+      this.selectedTransferService.set(serviceName);
       c.skill.reset(null);
       this.skills.set([]);
       this.selectedCampaign.set(null);

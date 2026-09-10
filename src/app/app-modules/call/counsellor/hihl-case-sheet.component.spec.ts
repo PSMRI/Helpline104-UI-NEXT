@@ -75,10 +75,28 @@ describe('HihlCaseSheetComponent', () => {
     spyOn(TestBed.inject(ConfirmDialogService), 'confirm').and.returnValue(of(true));
     callStore.startCall({ cli: '9876543210', sessionId: 'sess-1' });
     callStore.setBeneficiaryId(42);
-    callStore.setDemographics({ firstName: 'Test', lastName: null, age: 30, genderId: null, genderName: null });
+    callStore.setDemographics({
+      firstName: 'Test',
+      lastName: null,
+      age: 30,
+      genderId: null,
+      genderName: null,
+      displayId: null,
+      stateName: null,
+      districtName: null,
+      subDistrictName: null,
+      villageName: null,
+      maritalStatus: null,
+      category: null,
+      communityName: null,
+      educationName: null,
+    });
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+    sessionStorage.clear();
+  });
 
   function render() {
     const fixture = TestBed.createComponent(HihlCaseSheetComponent);

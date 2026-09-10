@@ -278,12 +278,20 @@ export class CallStore {
     // page reloads and rehydrates from storage — patientAge()/patientGender()
     // silently going null mid-call, and CDSS's `hasContext()` with them.
     const validated: CallerDemographics = {
-      ...demographics,
       firstName: readString(demographics.firstName),
       lastName: readString(demographics.lastName),
       age: readAge(demographics.age),
       genderId: toId(demographics.genderId),
       genderName: readString(demographics.genderName),
+      displayId: readString(demographics.displayId),
+      stateName: readString(demographics.stateName),
+      districtName: readString(demographics.districtName),
+      subDistrictName: readString(demographics.subDistrictName),
+      villageName: readString(demographics.villageName),
+      maritalStatus: readString(demographics.maritalStatus),
+      category: readString(demographics.category),
+      communityName: readString(demographics.communityName),
+      educationName: readString(demographics.educationName),
     };
     this._demographics.set(validated);
     this.storage.setItem(CALL_STORAGE_KEYS.demographics, JSON.stringify(validated));
@@ -359,15 +367,18 @@ function readStoredId(raw: string | null): number | null {
   return toId(Number(raw));
 }
 
-/** Narrow an already-parsed value to a positive whole id, or null. */
+/**
+ * Narrow an already-parsed value to a positive whole id, or null.
+ *
+ * `beneficiary/create` (and other endpoints) return large ids as JSON
+ * *strings* (e.g. `"10690089"`), not numbers — despite the response type
+ * declaring `beneficiaryRegID: number` — so a strict `typeof === 'number'`
+ * check silently dropped every beneficiary id from a fresh registration.
+ * `beneficiaryGuard` then saw `beneficiaryId() === null` and bounced the
+ * agent back to `/innerpage/registration` with no error, which is why
+ * "Do you want to proceed to Health Advisory?" looked like it did nothing.
+ */
 function toId(value: unknown): number | null {
-  // `beneficiary/create` (and other endpoints) return large ids as JSON
-  // *strings* (e.g. `"10690089"`), not numbers — despite the response type
-  // declaring `beneficiaryRegID: number` — so a strict `typeof === 'number'`
-  // check silently dropped every beneficiary id from a fresh registration.
-  // `beneficiaryGuard` then saw `beneficiaryId() === null` and bounced the
-  // agent back to `/innerpage/registration` with no error, which is why
-  // "Do you want to proceed to Health Advisory?" looked like it did nothing.
   const numeric = typeof value === 'number' ? value : typeof value === 'string' ? Number(value.trim()) : NaN;
   return Number.isSafeInteger(numeric) && numeric > 0 ? numeric : null;
 }

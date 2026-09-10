@@ -119,7 +119,7 @@ export class BeneficiaryService {
 
   /**
    * Fetch the full record for one beneficiary (legacy `retrieveRegHistory` /
-   * `searchUserByID`) ΓÇö richer than the {@link searchBeneficiary} row (title,
+   * `searchUserByID`) — richer than the {@link searchBeneficiary} row (title,
    * DOB, identity, full address with state/district/sub-district/village
    * names, marital status, caste, education). Used to populate the
    * confirm/modify form when the agent selects an already-registered

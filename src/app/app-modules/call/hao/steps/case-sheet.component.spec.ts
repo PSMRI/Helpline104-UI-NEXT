@@ -26,7 +26,113 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { AuthStore } from '../../../core/auth/auth.store';
+import { CallStore } from '../../call.store';
 import { CaseSheetComponent } from './case-sheet.component';
+
+function setRole(authStore: AuthStore, featureCode: string): void {
+  authStore.setSession({
+    token: 't',
+    user: { userID: 1, agentID: 100, userName: 'agent', status: 'Active' },
+  });
+  authStore.setCurrentRole({
+    roleID: 1,
+    roleName: featureCode,
+    serviceID: 1,
+    serviceName: '104',
+    serviceProviderID: 1,
+    providerServiceMapID: 1,
+    workingLocationID: null,
+    apimanClientKey: null,
+    featureCode,
+  });
+}
+
+describe('CaseSheetComponent — Prescription (MO-only)', () => {
+  let authStore: AuthStore;
+  let callStore: CallStore;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [CaseSheetComponent],
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    authStore = TestBed.inject(AuthStore);
+    callStore = TestBed.inject(CallStore);
+    http = TestBed.inject(HttpTestingController);
+    callStore.setBeneficiaryId(1, null);
+  });
+
+  afterEach(() => {
+    http.verify();
+    // CallStore persists beneficiaryId/districtID to real sessionStorage —
+    // clear it so a prior test's beneficiary doesn't leak into the next.
+    sessionStorage.clear();
+  });
+
+  function render() {
+    const fixture = TestBed.createComponent(CaseSheetComponent);
+    fixture.componentRef.setInput('beneficiaryId', 1);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function flushInit(recentPrescriptions: Array<{ createdDate: string }> = []) {
+    http.match((req) => req.url.includes('getAvailableDiseases')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('getPresentCaseSheet')).forEach((req) => req.flush({ data: null }));
+    http.match((req) => req.url.includes('prescriptionList')).forEach((req) => req.flush({ data: recentPrescriptions }));
+    http.match((req) => req.url.includes('covid/master/VaccinationTypeAndDoseTaken')).forEach((req) => req.flush({ data: null }));
+  }
+
+  it('shows Prescription and Resend Last Prescription for MO with a prescription in the last 5 days', () => {
+    setRole(authStore, 'MO');
+    const fixture = render();
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    flushInit([{ createdDate: twoDaysAgo }]);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showPrescription()).toBeTrue();
+    expect(fixture.componentInstance.recentPrescription()).not.toBeNull();
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+    expect(buttons.some((b) => b.textContent?.includes('Resend Last Prescription'))).toBeTrue();
+  });
+
+  it('hides Resend Last Prescription for MO when the only prescription is older than 5 days', () => {
+    setRole(authStore, 'MO');
+    const fixture = render();
+    const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
+    flushInit([{ createdDate: eightDaysAgo }]);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.recentPrescription()).toBeNull();
+  });
+
+  it('does not show Prescription for HAO', () => {
+    setRole(authStore, 'HAO');
+    const fixture = render();
+    http.match((req) => req.url.includes('getAvailableDiseases')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('getPresentCaseSheet')).forEach((req) => req.flush({ data: null }));
+    http.match((req) => req.url.includes('covid/master/VaccinationTypeAndDoseTaken')).forEach((req) => req.flush({ data: null }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showPrescription()).toBeFalse();
+    http.expectNone((req) => req.url.includes('prescriptionList'));
+  });
+
+  it('Clear resets the case sheet form to its defaults', () => {
+    setRole(authStore, 'MO');
+    const fixture = render();
+    flushInit();
+    fixture.detectChanges();
+
+    fixture.componentInstance.form.controls.chiefComplaints.setValue('some complaint');
+    fixture.componentInstance.form.controls.remarks.setValue('some remark');
+    fixture.componentInstance.resetForm();
+
+    expect(fixture.componentInstance.form.controls.chiefComplaints.value).toBe('');
+    expect(fixture.componentInstance.form.controls.remarks.value).toBeNull();
+  });
+});
 
 describe('CaseSheetComponent — CO role', () => {
   let authStore: AuthStore;
@@ -59,6 +165,7 @@ describe('CaseSheetComponent — CO role', () => {
   afterEach(() => {
     http.match(() => true).forEach((req) => req.flush({ data: [] }));
     http.verify();
+    sessionStorage.clear();
   });
 
   function render() {
