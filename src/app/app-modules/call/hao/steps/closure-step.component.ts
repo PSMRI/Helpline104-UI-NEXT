@@ -241,10 +241,19 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
       }
 
       <div class="flex flex-col gap-3">
-        <label class="flex cursor-pointer items-center gap-2 text-sm">
-          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" />
-          {{ 'hao.closure.followUpRequired' | translate: lang() }}
-        </label>
+        <!-- Legacy asks this as a Yes/No radio group, not a checkbox
+             (closure.component.html:28-32). -->
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <span class="font-medium">{{ 'hao.closure.followUpRequired' | translate: lang() }}</span>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input type="radio" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" [value]="true" />
+            {{ 'hao.closure.yes' | translate: lang() }}
+          </label>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input type="radio" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" [value]="false" />
+            {{ 'hao.closure.no' | translate: lang() }}
+          </label>
+        </div>
         @if (followUpRequired() && features().length > 1) {
           <div class="flex flex-col gap-1.5 sm:max-w-xs">
             <label class="text-sm font-medium" for="hao-cl-feature">

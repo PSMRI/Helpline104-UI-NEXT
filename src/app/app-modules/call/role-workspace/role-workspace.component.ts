@@ -127,10 +127,10 @@ const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: s
   ],
   template: `
     <section class="rounded-xl border border-border bg-card p-4 sm:p-6">
-      <header class="mb-2 flex flex-col gap-1">
-        <h1 class="text-lg font-semibold text-foreground">{{ titleKey() | translate: lang() }}</h1>
-        <p class="text-sm text-muted-foreground">{{ subtitleKey() | translate: lang() }}</p>
-      </header>
+      <!-- Legacy shows no workspace title or subtitle above the stepper: the
+           role is already in the page chrome, and the card starts at the
+           stepper (104-mo.component.html). Title kept for the a11y label. -->
+      <h1 class="sr-only">{{ titleKey() | translate: lang() }}</h1>
 
       <app-hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
         <cdk-step [label]="'roleWorkspace.stepService' | translate: lang()" [completed]="true">

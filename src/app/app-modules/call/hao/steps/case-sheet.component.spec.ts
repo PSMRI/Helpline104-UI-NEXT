@@ -126,11 +126,11 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     fixture.detectChanges();
 
     fixture.componentInstance.form.controls.chiefComplaints.setValue('some complaint');
-    fixture.componentInstance.form.controls.remarks.setValue('some remark');
+    fixture.componentInstance.form.controls.recommendedAction.setValue('some action');
     fixture.componentInstance.resetForm();
 
     expect(fixture.componentInstance.form.controls.chiefComplaints.value).toBe('');
-    expect(fixture.componentInstance.form.controls.remarks.value).toBeNull();
+    expect(fixture.componentInstance.form.controls.recommendedAction.value).toBe('');
   });
 });
 

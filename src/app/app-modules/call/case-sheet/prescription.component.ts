@@ -95,13 +95,15 @@ function optionalMinLength(min: number) {
   imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
   viewProviders: [provideIcons({ lucidePill, lucidePlus, lucidePencil, lucideTrash2 })],
   template: `
-    <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <header class="mb-4 flex items-center gap-2">
-        <ng-icon name="lucidePill" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">
-          {{ 'prescription.title' | translate: lang() }}
-        </h3>
-      </header>
+    <section [class]="inDialog() ? '' : 'rounded-lg border border-border bg-card p-5 sm:p-6'">
+      @if (!inDialog()) {
+        <header class="mb-4 flex items-center gap-2">
+          <ng-icon name="lucidePill" size="18" class="text-primary" aria-hidden="true" />
+          <h3 class="text-sm font-semibold text-foreground">
+            {{ 'prescription.title' | translate: lang() }}
+          </h3>
+        </header>
+      }
 
       <!-- Patient header (read-only context) -->
       <dl class="mb-4 grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
@@ -170,20 +172,46 @@ function optionalMinLength(min: number) {
             <label for="rx-drug" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'prescription.drug' | translate: lang() }} *
             </label>
-            <select
-              id="rx-drug"
-              formControlName="drugName"
-              [class]="selectClass"
-              [attr.aria-invalid]="ctrlInvalid('drugName')"
-              (change)="onDrugNameChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'prescription.selectDrug' | translate: lang() }}
-              </option>
-              @for (name of drugNames(); track name) {
-                <option [ngValue]="name">{{ name }}</option>
+            <!-- Legacy's md2-autocomplete (prescription.component.html:52-64):
+                 substring match over the drug list, not a 115-option select. -->
+            <div class="relative">
+              <input
+                id="rx-drug"
+                z-input
+                class="w-full"
+                type="text"
+                role="combobox"
+                autocomplete="off"
+                [attr.aria-expanded]="drugDropdownOpen()"
+                aria-controls="rx-drug-options"
+                [attr.aria-invalid]="ctrlInvalid('drugName')"
+                [placeholder]="'prescription.selectDrug' | translate: lang()"
+                [value]="drugQuery()"
+                (input)="onDrugInput($any($event.target).value)"
+                (focus)="drugDropdownOpen.set(true)"
+                (keydown.escape)="drugDropdownOpen.set(false)"
+                (blur)="onDrugBlur()"
+              />
+              @if (drugDropdownOpen() && filteredDrugNames().length > 0) {
+                <ul
+                  id="rx-drug-options"
+                  role="listbox"
+                  class="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-md"
+                >
+                  @for (name of filteredDrugNames(); track name) {
+                    <li role="option" [attr.aria-selected]="false">
+                      <button
+                        type="button"
+                        class="w-full px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:outline-none"
+                        (mousedown)="selectDrug(name)"
+                      >
+                        {{ name }}
+                      </button>
+                    </li>
+                  }
+                </ul>
               }
-            </select>
+            </div>
             @if (lineForm.controls.drugName.invalid && lineForm.controls.drugName.touched) {
               <p class="mt-0.5 text-xs text-destructive">
                 {{ 'prescription.drugRequired' | translate: lang() }}
@@ -548,6 +576,8 @@ export class PrescriptionComponent implements OnInit {
   /** Label toggle: provisional diagnosis (true) vs "information given" (false). */
   readonly provisionalDiagnosis = input(true);
   readonly openHistory = input(false);
+  /** Rendered inside the prescription modal: the dialog supplies the chrome. */
+  readonly inDialog = input(false);
 
   /** Emits the created prescription id after a successful save. */
   readonly saved = output<number>();
@@ -627,6 +657,20 @@ export class PrescriptionComponent implements OnInit {
 
   readonly groupOptions = computed(() => this.drugs().filter((d) => d.drugName === this.selectedDrugName()));
 
+  /** What the agent has typed into the drug autocomplete. */
+  readonly drugQuery = signal('');
+  readonly drugDropdownOpen = signal(false);
+
+  /** Substring match, as legacy's md2-autocomplete did. */
+  readonly filteredDrugNames = computed(() => {
+    const query = this.drugQuery().trim().toLowerCase();
+    const names = this.drugNames();
+    if (query.length === 0) {
+      return names;
+    }
+    return names.filter((name) => name.toLowerCase().includes(query));
+  });
+
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);
 
   ngOnInit(): void {
@@ -682,6 +726,32 @@ export class PrescriptionComponent implements OnInit {
     this.lineForm.controls.drugMapID.setValue(groups.length === 1 ? groups[0].drugMapID : null);
   }
 
+  /** Typing filters the list and clears any previously committed drug. */
+  onDrugInput(value: string): void {
+    this.drugQuery.set(value);
+    this.drugDropdownOpen.set(true);
+    if (this.lineForm.controls.drugName.value !== value) {
+      this.lineForm.controls.drugName.setValue(null);
+      this.onDrugNameChange();
+    }
+  }
+
+  selectDrug(name: string): void {
+    this.lineForm.controls.drugName.setValue(name);
+    this.lineForm.controls.drugName.markAsDirty();
+    this.drugQuery.set(name);
+    this.drugDropdownOpen.set(false);
+    this.onDrugNameChange();
+  }
+
+  /** Free text that matches no drug is not a selection; drop it on blur. */
+  onDrugBlur(): void {
+    this.drugDropdownOpen.set(false);
+    this.lineForm.controls.drugName.markAsTouched();
+    const committed = this.lineForm.controls.drugName.value;
+    this.drugQuery.set(committed ?? '');
+  }
+
   addLine(): void {
     if (this.lineForm.invalid) {
       this.lineForm.markAllAsTouched();
@@ -716,6 +786,7 @@ export class PrescriptionComponent implements OnInit {
       return;
     }
     this.selectedDrugName.set(line.drugName);
+    this.drugQuery.set(line.drugName);
     this.lineForm.reset({
       drugName: line.drugName,
       drugMapID: line.drugMapID,
@@ -921,6 +992,8 @@ export class PrescriptionComponent implements OnInit {
       remarks: '',
     });
     this.selectedDrugName.set(null);
+    this.drugQuery.set('');
+    this.drugDropdownOpen.set(false);
   }
 
   private loadMasters(): void {
