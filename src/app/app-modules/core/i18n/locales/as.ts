@@ -854,7 +854,7 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.saveError': 'কেছ শ্বীট সংৰক্ষণ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.caseSheet.patientIs': 'ৰোগী হৈছে',
   'hao.caseSheet.patientIsSelf': 'নিজে',
-  'hao.caseSheet.patientIsOther': 'অন্য',
+  'hao.caseSheet.patientIsOther': 'আনবোৰ',
   'hao.caseSheet.firstName': 'প্ৰথম নাম',
   'hao.caseSheet.lastName': 'শেষ নাম',
   'hao.caseSheet.gender': 'লিংগ',

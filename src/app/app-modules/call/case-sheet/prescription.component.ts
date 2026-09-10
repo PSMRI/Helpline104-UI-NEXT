@@ -55,6 +55,7 @@ import {
   SavePrescriptionRequest,
 } from './prescription.models';
 import { SmsService } from '../sms/sms.service';
+import { LEGACY_GREEN_BUTTON } from '../legacy-theme';
 
 const PRESCRIPTION_SMS_TYPE = 'prescription sms';
 const ALTERNATE_NUMBER_PATTERN = /^\d{10}$/;
@@ -330,9 +331,8 @@ function optionalMinLength(min: number) {
             }
           </div>
 
-          <div class="flex items-end">
-            <button z-button type="submit" zType="outline" [zDisabled]="lineForm.invalid || !hasContext()">
-              <ng-icon name="lucidePlus" size="16" aria-hidden="true" />
+          <div class="flex items-end justify-end">
+            <button z-button type="submit" [class]="legacyGreen" [zDisabled]="lineForm.invalid || !hasContext()">
               {{ 'prescription.addDrug' | translate: lang() }}
             </button>
           </div>
@@ -441,7 +441,7 @@ function optionalMinLength(min: number) {
             <button
               z-button
               type="button"
-              zType="default"
+              [class]="legacyGreen"
               [zLoading]="saving() || sendingSms()"
               [zDisabled]="!canSaveAndSend()"
               (click)="saveAndSend()"
@@ -452,8 +452,7 @@ function optionalMinLength(min: number) {
             <button
               z-button
               type="button"
-              zType="default"
-              class="sm:ml-auto"
+              [class]="legacyGreen + ' sm:ml-auto'"
               [zLoading]="saving()"
               [zDisabled]="!canSave()"
               (click)="save()"
@@ -584,6 +583,7 @@ export class PrescriptionComponent implements OnInit {
 
   readonly lang = this.i18n.language;
   readonly selectClass = SELECT_CLASS;
+  readonly legacyGreen = LEGACY_GREEN_BUTTON;
   readonly diagnosisMax = DIAGNOSIS_MAX;
   readonly strengthNA = STRENGTH_NA;
 

@@ -39,6 +39,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslationKey } from '../../../core/i18n/locales';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
+import { LEGACY_BLUE_BUTTON, LEGACY_DIALOG_CHROME, LEGACY_GREEN_BUTTON } from '../../legacy-theme';
 import { CasesheetHistoryMctsComponent } from '../../casesheet-history/casesheet-history-mcts.component';
 import { CasesheetHistoryMmuComponent } from '../../casesheet-history/casesheet-history-mmu.component';
 import { MmuVisitRow } from '../../casesheet-history/other-helpline.models';
@@ -838,17 +839,18 @@ const MIN_VACCINE_AGE = 12;
         </p>
       }
 
+      <!-- Legacy: Prescription green on the left, Clear blue then Save green on
+           the right (case-sheet.component.html / 104 MO screenshots). -->
       <div class="flex flex-wrap justify-end gap-2 lg:col-span-full">
         @if (showPrescription()) {
-          <button z-button type="button" zType="outline" class="mr-auto" (click)="openPrescription()">
+          <button z-button type="button" [class]="legacyGreen + ' mr-auto'" (click)="openPrescription()">
             {{ 'hao.service.prescription' | translate: lang() }}
           </button>
           @if (recentPrescription()) {
             <button
               z-button
               type="button"
-              zType="outline"
-              class="-ml-1"
+              [class]="legacyGreen"
               [title]="'hao.caseSheet.resendPrescriptionHint' | translate: lang()"
               (click)="openRecentPrescription()"
             >
@@ -856,10 +858,16 @@ const MIN_VACCINE_AGE = 12;
             </button>
           }
         }
-        <button z-button type="button" zType="outline" (click)="resetForm()">
+        <button z-button type="button" [class]="legacyBlue" (click)="resetForm()">
           {{ 'hao.caseSheet.clear' | translate: lang() }}
         </button>
-        <button z-button type="submit" [zLoading]="saving()" [zDisabled]="saving() || beneficiaryId() === null">
+        <button
+          z-button
+          type="submit"
+          [class]="legacyGreen"
+          [zLoading]="saving()"
+          [zDisabled]="saving() || beneficiaryId() === null"
+        >
           {{ 'hao.caseSheet.save' | translate: lang() }}
         </button>
       </div>
@@ -871,7 +879,7 @@ const MIN_VACCINE_AGE = 12;
           <h2 class="text-sm font-semibold text-foreground">
             {{ 'casesheetHistory.sectionTitle' | translate: lang() }}
           </h2>
-          <button z-button type="button" zType="ghost" zSize="sm" (click)="toggleHistory()">
+          <button z-button type="button" [class]="legacyGreen" (click)="toggleHistory()">
             {{ (historyOpen() ? 'casesheetHistory.hide' : 'casesheetHistory.show') | translate: lang() }}
           </button>
         </div>
@@ -961,6 +969,10 @@ export class CaseSheetComponent {
   readonly callStore = inject(CallStore);
   private readonly i18n = inject(I18nService);
   private readonly dialog = inject(ZardDialogService);
+
+  /** Legacy's button accents (see legacy-theme.ts). */
+  readonly legacyGreen = LEGACY_GREEN_BUTTON;
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly cdss = inject(CdssService);
   private readonly cdssFlow = inject(CdssFlowService);
@@ -1532,6 +1544,7 @@ export class CaseSheetComponent {
       zHideFooter: true,
       zMaskClosable: false,
       zWidth: '68rem',
+      zCustomClasses: LEGACY_DIALOG_CHROME,
       // Dismissing asks first; the guard keeps the dialog open until confirmed.
       zOnCancel: (instance) => instance.confirmClose(),
     });

@@ -55,16 +55,21 @@ export interface PrescriptionDialogData {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PrescriptionComponent],
   template: `
-    <app-prescription
-      [patientName]="data.patientName"
-      [age]="data.age"
-      [gender]="data.gender"
-      [initialDiagnosis]="data.initialDiagnosis"
-      [provisionalDiagnosis]="data.provisionalDiagnosis"
-      [openHistory]="data.openHistory"
-      [inDialog]="true"
-      (saved)="dialogRef.close($event)"
-    />
+    <!-- Scrolls inside the dialog, as legacy's does. Without this the form
+         grows past the viewport once the prescription history or a few drug
+         rows are shown, and the footer's Save cannot be reached at all. -->
+    <div class="max-h-[calc(92vh-7rem)] overflow-y-auto px-1">
+      <app-prescription
+        [patientName]="data.patientName"
+        [age]="data.age"
+        [gender]="data.gender"
+        [initialDiagnosis]="data.initialDiagnosis"
+        [provisionalDiagnosis]="data.provisionalDiagnosis"
+        [openHistory]="data.openHistory"
+        [inDialog]="true"
+        (saved)="dialogRef.close($event)"
+      />
+    </div>
   `,
 })
 export class PrescriptionDialogComponent {

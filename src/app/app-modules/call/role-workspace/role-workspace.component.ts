@@ -40,6 +40,7 @@ import { GrievanceServiceComponent } from '../sio/grievance/grievance.component'
 import { OrganDonationComponent } from '../sio/organ-donation/organ-donation.component';
 import { SchemeServiceComponent } from '../sio/scheme/scheme.component';
 import { CallStore } from '../call.store';
+import { LEGACY_BLUE_BUTTON } from '../legacy-theme';
 import { CallWrapupService } from '../call-wrapup.service';
 import { HihlCaseSheetComponent } from '../counsellor/hihl-case-sheet.component';
 import { HaoStepperComponent } from '../hao/hao-stepper.component';
@@ -199,7 +200,9 @@ const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: s
         </cdk-step>
       </app-hao-stepper>
 
-      <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+      <!-- Legacy centres this Cancel/Closure pair under the card rather than
+           pushing them to opposite edges (104 MO screenshots). -->
+      <footer class="mt-4 flex flex-wrap items-center justify-center gap-3 border-t border-border pt-4">
         <button z-button type="button" zType="outline" (click)="cancelCall()">
           {{ 'roleWorkspace.cancelCall' | translate: lang() }}
         </button>
@@ -208,23 +211,24 @@ const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: s
             {{ labelKey | translate: lang() }}
           </button>
         }
-        <div class="ml-auto flex gap-3">
-          @if (stepIndex() === 1) {
-            <button z-button type="button" zType="outline" (click)="cancelToService()">
-              {{ 'roleWorkspace.cancel' | translate: lang() }}
-            </button>
-          } @else {
-            <button z-button type="button" (click)="proceedToClosure()">
-              {{ 'roleWorkspace.proceedToClosure' | translate: lang() }}
-            </button>
-          }
-        </div>
+        @if (stepIndex() === 1) {
+          <button z-button type="button" zType="outline" (click)="cancelToService()">
+            {{ 'roleWorkspace.cancel' | translate: lang() }}
+          </button>
+        } @else {
+          <button z-button type="button" [class]="legacyBlue" (click)="proceedToClosure()">
+            {{ 'roleWorkspace.proceedToClosure' | translate: lang() }}
+          </button>
+        }
       </footer>
     </section>
   `,
 })
 export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
   private readonly callStore = inject(CallStore);
+
+  /** Legacy's blue primary action (see legacy-theme.ts). */
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
   private readonly authStore = inject(AuthStore);
   private readonly callWrapup = inject(CallWrapupService);
   private readonly router = inject(Router);

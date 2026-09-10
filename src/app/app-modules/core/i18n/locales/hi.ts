@@ -852,7 +852,7 @@ export const hi: Record<TranslationKey, string> = {
   'hao.caseSheet.saveError': 'केस शीट सहेजने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.caseSheet.patientIs': 'रोगी है',
   'hao.caseSheet.patientIsSelf': 'स्वयं',
-  'hao.caseSheet.patientIsOther': 'अन्य',
+  'hao.caseSheet.patientIsOther': 'दूसरों',
   'hao.caseSheet.firstName': 'पहला नाम',
   'hao.caseSheet.lastName': 'अंतिम नाम',
   'hao.caseSheet.gender': 'लिंग',

@@ -850,7 +850,7 @@ export const en = {
   'hao.caseSheet.saveError': 'Unable to save the case sheet. Please try again.',
   'hao.caseSheet.patientIs': 'Patient is',
   'hao.caseSheet.patientIsSelf': 'Self',
-  'hao.caseSheet.patientIsOther': 'Other',
+  'hao.caseSheet.patientIsOther': 'Others',
   'hao.caseSheet.firstName': 'First Name',
   'hao.caseSheet.lastName': 'Last Name',
   'hao.caseSheet.gender': 'Gender',
