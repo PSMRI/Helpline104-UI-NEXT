@@ -212,7 +212,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
           </div>
         }
 
-        @if (canTransfer() && currentRole() !== roleCO && skills().length > 0) {
+        @if (canTransfer() && skills().length > 0 && skillRoleAllowed()) {
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium" for="hao-cl-skill">
               {{ 'hao.closure.transferSkill' | translate: lang() }}
@@ -594,8 +594,36 @@ export class ClosureStepComponent {
    */
   readonly doTransfer = computed(() => this.selectedTransferService() !== null);
 
-  /** Whether there is anything to transfer to at all (legacy `validTrans`). */
-  readonly canTransfer = computed(() => this.transferServices().length > 0);
+  /**
+   * Legacy `validTrans` (`closure.component.ts:448-468`), which gates the
+   * Transfer-to select, the Skill select and the Transfer button. It is driven
+   * by the chosen Call Type and whether a beneficiary is attached — NOT by
+   * whether any transfer services came back:
+   *
+   *   - initialised `true`, so the controls show before a Call Type is picked;
+   *   - Valid / Transfer / Referral: true when a beneficiary is attached,
+   *     otherwise true only for Transfer;
+   *   - any other (nuisance) call type: false.
+   */
+  readonly canTransfer = computed(() => {
+    const group = this.selectedCallGroup()?.toLowerCase() ?? null;
+    if (group === null) {
+      return true;
+    }
+    if (group !== 'valid' && group !== 'transfer' && group !== 'referral') {
+      return false;
+    }
+    return this.hasBeneficiary() || group === 'transfer';
+  });
+
+  /**
+   * Roles legacy shows the Skill select to — an allowlist, not "anyone but CO"
+   * (`closure.component.html:116`: `current_role == 'MO' || 'HAO' || 'RO'`).
+   */
+  readonly skillRoleAllowed = computed(() => {
+    const role = this.currentRole();
+    return role === ROLE_MO || role === ROLE_HAO || role === ROLE_RO;
+  });
 
   readonly nuisanceBlock = computed(() => {
     const group = this.selectedCallGroup()?.toLowerCase() ?? null;
