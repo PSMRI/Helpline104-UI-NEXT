@@ -22,7 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
+import { Observable, TimeoutError, catchError, map, shareReplay, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -78,6 +78,15 @@ export class BeneficiaryService {
     return this.config.getCommonBaseURL();
   }
 
+  // Reference/location data barely changes within a session but is re-requested on
+  // every registration-screen mount; cache per key (results can legitimately differ
+  // by provider-service-map / location) and evict on failure so retries still work.
+  private readonly registrationDataCache = new Map<number | null, Observable<RegistrationMasterData | undefined>>();
+  private readonly providerStatesCache = new Map<number | null, Observable<StateOption[]>>();
+  private readonly districtsCache = new Map<number, Observable<DistrictOption[]>>();
+  private readonly subDistrictsCache = new Map<number, Observable<BlockOption[]>>();
+  private readonly villagesCache = new Map<number, Observable<VillageOption[]>>();
+
   /**
    * Identify an inbound caller: list every beneficiary registered against the
    * caller's phone number (CLI). Resolves to `[]` when none are found.
@@ -126,13 +135,23 @@ export class BeneficiaryService {
    * service. Mirrors the legacy `getUserBeneficaryData` call.
    */
   getRegistrationData(providerServiceMapID: number | null): Observable<RegistrationMasterData | undefined> {
-    return this.http
+    const cached = this.registrationDataCache.get(providerServiceMapID);
+    if (cached) {
+      return cached;
+    }
+    const request$ = this.http
       .post<ApiResponse<RegistrationMasterData>>(this.baseUrl + REGISTRATION_DATA_PATH, { providerServiceMapID })
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => this.readData(res)),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
+        catchError((err: unknown) => {
+          this.registrationDataCache.delete(providerServiceMapID);
+          return throwError(() => this.toError(err));
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
       );
+    this.registrationDataCache.set(providerServiceMapID, request$);
+    return request$;
   }
 
   /** Healthcare-worker types (104 API), loaded when registering a HCW. */
@@ -146,40 +165,80 @@ export class BeneficiaryService {
 
   /** Provider states for the location cascade (admin API). */
   getProviderStates(serviceProviderID: number | null): Observable<StateOption[]> {
-    return this.http
+    const cached = this.providerStatesCache.get(serviceProviderID);
+    if (cached) {
+      return cached;
+    }
+    const request$ = this.http
       .post<ApiResponse<StateOption[]>>(this.config.getAdminBaseURL() + PROVIDER_STATES_PATH, { serviceProviderID })
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => this.readData(res) ?? []),
-        catchError((err: unknown) => throwError(() => this.toError(err))),
+        catchError((err: unknown) => {
+          this.providerStatesCache.delete(serviceProviderID);
+          return throwError(() => this.toError(err));
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
       );
+    this.providerStatesCache.set(serviceProviderID, request$);
+    return request$;
   }
 
   /** Districts for a state (common API, GET). */
   getDistricts(stateID: number): Observable<DistrictOption[]> {
-    return this.http.get<ApiResponse<DistrictOption[]>>(this.baseUrl + DISTRICTS_PATH + stateID).pipe(
+    const cached = this.districtsCache.get(stateID);
+    if (cached) {
+      return cached;
+    }
+    const request$ = this.http.get<ApiResponse<DistrictOption[]>>(this.baseUrl + DISTRICTS_PATH + stateID).pipe(
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
-      catchError((err: unknown) => throwError(() => this.toError(err))),
+      catchError((err: unknown) => {
+        this.districtsCache.delete(stateID);
+        return throwError(() => this.toError(err));
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
     );
+    this.districtsCache.set(stateID, request$);
+    return request$;
   }
 
   /** Sub-districts / blocks for a district (common API, GET). */
   getSubDistricts(districtID: number): Observable<BlockOption[]> {
-    return this.http.get<ApiResponse<BlockOption[]>>(this.baseUrl + SUB_DISTRICTS_PATH + districtID).pipe(
+    const cached = this.subDistrictsCache.get(districtID);
+    if (cached) {
+      return cached;
+    }
+    const request$ = this.http.get<ApiResponse<BlockOption[]>>(this.baseUrl + SUB_DISTRICTS_PATH + districtID).pipe(
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
-      catchError((err: unknown) => throwError(() => this.toError(err))),
+      catchError((err: unknown) => {
+        this.subDistrictsCache.delete(districtID);
+        return throwError(() => this.toError(err));
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
     );
+    this.subDistrictsCache.set(districtID, request$);
+    return request$;
   }
 
   /** Villages for a sub-district (common API, GET). */
   getVillages(subDistrictID: number): Observable<VillageOption[]> {
-    return this.http.get<ApiResponse<VillageOption[]>>(this.baseUrl + VILLAGES_PATH + subDistrictID).pipe(
+    const cached = this.villagesCache.get(subDistrictID);
+    if (cached) {
+      return cached;
+    }
+    const request$ = this.http.get<ApiResponse<VillageOption[]>>(this.baseUrl + VILLAGES_PATH + subDistrictID).pipe(
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
-      catchError((err: unknown) => throwError(() => this.toError(err))),
+      catchError((err: unknown) => {
+        this.villagesCache.delete(subDistrictID);
+        return throwError(() => this.toError(err));
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
     );
+    this.villagesCache.set(subDistrictID, request$);
+    return request$;
   }
 
   /**
