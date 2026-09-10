@@ -700,8 +700,6 @@ export const as: Record<TranslationKey, string> = {
   'roleWorkspace.mo.switchToCo': 'CO-লৈ সলনি কৰক',
   'roleWorkspace.co.title': 'কাউঞ্চেলিং অফিচাৰ (CO)',
   'roleWorkspace.co.subtitle': 'কাউঞ্চেলিং পৰামৰ্শ লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
-  'roleWorkspace.counsellor.title': 'কাউঞ্চেলাৰ',
-  'roleWorkspace.counsellor.subtitle': 'কাউঞ্চেলিং কেছ শ্বীট লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
   'roleWorkspace.counsellingSheetTab': 'কাউঞ্চেলিং শ্বীট - বৰ্তমান ভিজিট',
   'roleWorkspace.hihlCaseSheetTab': 'বিস্তৃত HIHL CO কেছ শ্বীট',
   'roleWorkspace.sio.title': 'ছাৰ্ভিচ ইনফৰমেচন অফিচাৰ (SIO)',

@@ -21,16 +21,24 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import { ChangeDetectionStrategy, Component, OnInit, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
+import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import type { TranslationKey } from '../../core/i18n/locales';
+import { DirectoryServicesComponent } from '../directory/directory-services.component';
+import { BloodOnCallComponent } from '../sio/blood-on-call/blood-on-call.component';
+import { EpidemicOutbreakComponent } from '../sio/epidemic-outbreak/epidemic-outbreak.component';
+import { FoodSafetyComponent } from '../sio/food-safety/food-safety.component';
+import { GrievanceServiceComponent } from '../sio/grievance/grievance.component';
+import { OrganDonationComponent } from '../sio/organ-donation/organ-donation.component';
+import { SchemeServiceComponent } from '../sio/scheme/scheme.component';
 import { CallStore } from '../call.store';
 import { CallWrapupService } from '../call-wrapup.service';
 import { HihlCaseSheetComponent } from '../counsellor/hihl-case-sheet.component';
@@ -38,18 +46,52 @@ import { HaoStepperComponent } from '../hao/hao-stepper.component';
 import { CaseSheetComponent } from '../hao/steps/case-sheet.component';
 import { ClosureStepComponent } from '../hao/steps/closure-step.component';
 import { HasUnsavedChanges } from '../unsaved-changes.guard';
+import { SERVICE_104, collectServiceScreens } from './role-screens.util';
 
-/** Which service-step tab is active, when {@link RoleWorkspaceComponent.showHihlTab} is set (CO / Counsellor only). */
-type ServiceTab = 'caseSheet' | 'hihl';
+/** Which service-step tab is active — the case sheet, the HIHL tab ({@link RoleWorkspaceComponent.showHihlTab}), or one of CO's SIO service tabs ({@link RoleWorkspaceComponent.showSioTabs}). */
+type ServiceTab =
+  | 'caseSheet'
+  | 'hihl'
+  | 'bloodOnCall'
+  | 'directory'
+  | 'epidemic'
+  | 'foodSafety'
+  | 'grievance'
+  | 'organDonation'
+  | 'schemes';
+
+/** One tab in the {@link RoleWorkspaceComponent.visibleTabs} strip. */
+interface WorkspaceTab {
+  readonly id: ServiceTab;
+  readonly labelKey: TranslationKey;
+}
 
 /**
- * Shared shell for the single-case-sheet role workspaces (MO / CO / Counsellor).
+ * CO's extra service tabs (legacy `104-co.component.html` tabs 3-9), gated by
+ * the same screen names the HAO service catalogue uses — a CO agent only sees
+ * the services their privileges actually grant.
+ */
+const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: string }> = [
+  { id: 'bloodOnCall', labelKey: 'hao.service.bloodOnCall', requiresScreen: 'Blood Request' },
+  { id: 'directory', labelKey: 'hao.service.directory', requiresScreen: 'Directory Information Service' },
+  { id: 'epidemic', labelKey: 'hao.service.epidemic', requiresScreen: 'Epidemic Outbreak Service' },
+  { id: 'foodSafety', labelKey: 'hao.service.foodSafety', requiresScreen: 'Food safety' },
+  { id: 'grievance', labelKey: 'hao.service.grievance', requiresScreen: 'Grievance' },
+  { id: 'organDonation', labelKey: 'hao.service.organDonation', requiresScreen: 'Organ Donation' },
+  { id: 'schemes', labelKey: 'hao.service.schemes', requiresScreen: 'Health schemes' },
+];
+
+/**
+ * Shared shell for the single-case-sheet role workspaces (MO / CO).
  *
- * These roles differ from HAO only in that they provide a single advisory case
- * sheet rather than the full `<md-tab-group>` service catalogue. Structurally
- * they are the same two-step wizard the legacy `104-mo` / `104-co` /
- * `104-counsellor` carousels drove with jQuery: step 1 records the case sheet,
- * step 2 closes the call. Navigation is declarative via {@link HaoStepperComponent}.
+ * Structurally these are the same two-step wizard the legacy `104-mo` /
+ * `104-co` carousels drove with jQuery: step 1 records the case sheet, step 2
+ * closes the call. Navigation is declarative via {@link HaoStepperComponent}.
+ * CO additionally gets a full tab strip on step 1 ({@link showHihlTab},
+ * {@link showSioTabs}) — legacy's `104-co` embeds the "Detailed HIHL" case
+ * sheet and the SIO service catalogue (Blood on Call, Directory, Epidemic,
+ * Food Safety, Grievance, Organ Donation, Health Schemes) as tabs directly on
+ * the CO screen; there is no separate "Counsellor" role in legacy.
  *
  * Title/subtitle are inputs so each role component supplies its own labels; an
  * optional role-switch action (e.g. MO → CO, the legacy `roleChanged`) is
@@ -73,6 +115,13 @@ type ServiceTab = 'caseSheet' | 'hihl';
     CaseSheetComponent,
     ClosureStepComponent,
     HihlCaseSheetComponent,
+    DirectoryServicesComponent,
+    BloodOnCallComponent,
+    EpidemicOutbreakComponent,
+    FoodSafetyComponent,
+    GrievanceServiceComponent,
+    OrganDonationComponent,
+    SchemeServiceComponent,
     ZardButtonComponent,
     TranslatePipe,
   ],
@@ -85,46 +134,58 @@ type ServiceTab = 'caseSheet' | 'hihl';
 
       <app-hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
         <cdk-step [label]="'roleWorkspace.stepService' | translate: lang()" [completed]="true">
-          @if (showHihlTab()) {
-            <div class="mb-4 flex gap-2 border-b border-border" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                class="border-b-2 px-3 py-2 text-sm font-medium"
-                [class.border-primary]="serviceTab() === 'caseSheet'"
-                [class.text-foreground]="serviceTab() === 'caseSheet'"
-                [class.border-transparent]="serviceTab() !== 'caseSheet'"
-                [class.text-muted-foreground]="serviceTab() !== 'caseSheet'"
-                [attr.aria-selected]="serviceTab() === 'caseSheet'"
-                (click)="serviceTab.set('caseSheet')"
-              >
-                {{ 'roleWorkspace.counsellingSheetTab' | translate: lang() }}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                class="border-b-2 px-3 py-2 text-sm font-medium"
-                [class.border-primary]="serviceTab() === 'hihl'"
-                [class.text-foreground]="serviceTab() === 'hihl'"
-                [class.border-transparent]="serviceTab() !== 'hihl'"
-                [class.text-muted-foreground]="serviceTab() !== 'hihl'"
-                [attr.aria-selected]="serviceTab() === 'hihl'"
-                (click)="serviceTab.set('hihl')"
-              >
-                {{ 'roleWorkspace.hihlCaseSheetTab' | translate: lang() }}
-              </button>
+          @if (visibleTabs().length > 1) {
+            <div class="mb-4 flex flex-wrap gap-2 border-b border-border" role="tablist">
+              @for (tab of visibleTabs(); track tab.id) {
+                <button
+                  type="button"
+                  role="tab"
+                  class="border-b-2 px-3 py-2 text-sm font-medium"
+                  [class.border-primary]="activeTab() === tab.id"
+                  [class.text-foreground]="activeTab() === tab.id"
+                  [class.border-transparent]="activeTab() !== tab.id"
+                  [class.text-muted-foreground]="activeTab() !== tab.id"
+                  [attr.aria-selected]="activeTab() === tab.id"
+                  (click)="serviceTab.set(tab.id)"
+                >
+                  {{ tab.labelKey | translate: lang() }}
+                </button>
+              }
             </div>
           }
 
-          @if (!showHihlTab() || serviceTab() === 'caseSheet') {
-            <app-hao-case-sheet
-              [beneficiaryId]="beneficiaryId()"
-              [callId]="callId()"
-              (serviceAvailed)="onServiceAvailed()"
-            />
-          }
-          @if (showHihlTab() && serviceTab() === 'hihl') {
-            <app-hihl-case-sheet [beneficiaryId]="beneficiaryId()" [callId]="callId()" />
+          @switch (activeTab()) {
+            @case ('hihl') {
+              <app-hihl-case-sheet [beneficiaryId]="beneficiaryId()" [callId]="callId()" />
+            }
+            @case ('bloodOnCall') {
+              <app-sio-blood-on-call (serviceProvided)="onServiceAvailed()" />
+            }
+            @case ('directory') {
+              <app-directory-services (serviceProvided)="onServiceAvailed()" />
+            }
+            @case ('epidemic') {
+              <app-sio-epidemic-outbreak (serviceProvided)="onServiceAvailed()" />
+            }
+            @case ('foodSafety') {
+              <app-sio-food-safety (serviceProvided)="onServiceAvailed()" />
+            }
+            @case ('grievance') {
+              <app-sio-grievance (serviceProvided)="onServiceAvailed()" />
+            }
+            @case ('organDonation') {
+              <app-sio-organ-donation (serviceProvided)="onServiceAvailed()" />
+            }
+            @case ('schemes') {
+              <app-sio-scheme (serviceProvided)="onServiceAvailed()" />
+            }
+            @case ('caseSheet') {
+              <app-hao-case-sheet
+                [beneficiaryId]="beneficiaryId()"
+                [callId]="callId()"
+                (serviceAvailed)="onServiceAvailed()"
+              />
+            }
           }
         </cdk-step>
 
@@ -164,6 +225,7 @@ type ServiceTab = 'caseSheet' | 'hihl';
 })
 export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
   private readonly callStore = inject(CallStore);
+  private readonly authStore = inject(AuthStore);
   private readonly callWrapup = inject(CallWrapupService);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
@@ -180,8 +242,10 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
   readonly switchRoleLabelKey = input<TranslationKey | null>(null);
   /** Read the beneficiary-consent script before counselling (CO / Counsellor). */
   readonly requireConsent = input(false);
-  /** Show the Counselling Sheet / Detailed HIHL case sheet tab strip (legacy `104-co` tab 2, Counsellor only). */
+  /** Show the Counselling Sheet / Detailed HIHL case sheet tab (legacy `104-co` tab 2). */
   readonly showHihlTab = input(false);
+  /** Show CO's screen-gated SIO service tabs (legacy `104-co` tabs 3-9). */
+  readonly showSioTabs = input(false);
 
   /** Emitted when the agent triggers the role switch. */
   readonly switchRole = output<void>();
@@ -191,8 +255,34 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
   /** Active wizard step (0 = case sheet, 1 = closure). */
   readonly stepIndex = signal(0);
 
-  /** Active service-step tab, when {@link showHihlTab} is set. */
+  /** Screen names the current role holds on the 104 service; gates the SIO tabs. */
+  private readonly screens = computed(() => collectServiceScreens(this.authStore.privileges(), SERVICE_104));
+
+  /** The tabs to render above the service step: case sheet, plus HIHL/SIO tabs when enabled. */
+  readonly visibleTabs = computed<readonly WorkspaceTab[]>(() => {
+    const tabs: WorkspaceTab[] = [{ id: 'caseSheet', labelKey: 'roleWorkspace.counsellingSheetTab' }];
+    if (this.showHihlTab()) {
+      tabs.push({ id: 'hihl', labelKey: 'roleWorkspace.hihlCaseSheetTab' });
+    }
+    if (this.showSioTabs()) {
+      const granted = new Set(this.screens());
+      tabs.push(...CO_SERVICE_TABS.filter((tab) => granted.has(tab.requiresScreen)));
+    }
+    return tabs;
+  });
+
+  /** The agent's raw tab choice; may not be visible for the current role. */
   readonly serviceTab = signal<ServiceTab>('caseSheet');
+
+  /** The effective active tab, clamped to {@link visibleTabs} (never a hidden tab). */
+  readonly activeTab = computed<ServiceTab>(() => {
+    const visible = this.visibleTabs();
+    const selected = this.serviceTab();
+    if (visible.some((tab) => tab.id === selected)) {
+      return selected;
+    }
+    return visible[0]?.id ?? selected;
+  });
 
   private readonly _serviceAvailed = signal(false);
   readonly serviceAvailed = this._serviceAvailed.asReadonly();

@@ -60,7 +60,6 @@ const WORKSPACE_PATH_BY_FEATURE: Readonly<Record<string, string>> = {
   SIO: 'sio',
   PD: 'pd',
   Surveyor: 'surveyor',
-  Counsellor: 'counsellor',
 };
 
 /**
@@ -114,8 +113,7 @@ const REGISTRATION_FIRST_FEATURE_CODES: ReadonlySet<string> = new Set(['RO', 'HA
  * only roles that ever take a genuinely new, unidentified caller, so they
  * always go to `registration`; every other role only ever receives an
  * already-resolved case (a transfer), so it lands directly on its own
- * workspace — falling back to `registration` if the role has none (e.g.
- * Counsellor, which has no workspace route yet).
+ * workspace — falling back to `registration` if the role has none.
  */
 export function inboundAcceptPath(featureCode: string | null | undefined, privileges: readonly Privilege[]): string {
   if (featureCode && REGISTRATION_FIRST_FEATURE_CODES.has(featureCode)) {
