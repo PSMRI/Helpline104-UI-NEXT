@@ -910,7 +910,7 @@ export const en = {
   'hao.caseSheet.covidVaccineSaveSuccess': 'Covid vaccine status saved successfully.',
   'hao.caseSheet.covidVaccineSaveError': 'Unable to save the covid vaccine status. Please try again.',
   'hao.caseSheet.caseSheet': 'Case Sheet',
-  'hao.caseSheet.counsellingSheet': 'Counselling Sheet',
+  'hao.caseSheet.counsellingSheet': 'Counselling Sheet - Current Visit',
   'hao.caseSheet.categoryGuidelineNote': 'Note: Category is mandatory only for guideline search',
   'hao.caseSheet.wellBeing': 'Well Being',
   'hao.caseSheet.information': 'Information',

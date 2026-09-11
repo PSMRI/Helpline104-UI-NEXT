@@ -36,6 +36,7 @@ import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
 import { Community, Education } from '../../beneficiary/beneficiary.models';
 import { CallStore } from '../../call.store';
+import { LEGACY_BLUE_BUTTON, LEGACY_GREEN_BUTTON } from '../../legacy-theme';
 import { CallWrapupService } from '../../call-wrapup.service';
 import { OutboundStore } from '../../../outbound/outbound.store';
 import { collectServiceScreens, SERVICE_104 } from '../../role-workspace/role-screens.util';
@@ -414,8 +415,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
           <button
             z-button
             type="button"
-            zType="outline"
-            class="border-success bg-success text-success-foreground hover:bg-success/90"
+            [class]="legacyGreen"
             [zLoading]="transferring()"
             [zDisabled]="actionBusy() || !selectedCampaign() || disconnectedByCaller()"
             (click)="transfer()"
@@ -426,8 +426,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
         <button
           z-button
           type="button"
-          zType="outline"
-          class="border-success bg-success text-success-foreground hover:bg-success/90"
+          [class]="legacyGreen"
           [zLoading]="submitting()"
           [zDisabled]="actionBusy() || doTransfer() || nuisanceBlock()"
           (click)="submit(true)"
@@ -437,8 +436,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
         <button
           z-button
           type="button"
-          zType="outline"
-          class="border-success bg-success text-success-foreground hover:bg-success/90"
+          [class]="legacyGreen"
           [zLoading]="submitting()"
           [zDisabled]="actionBusy() || doTransfer()"
           (click)="submit(false)"
@@ -462,6 +460,10 @@ export class ClosureStepComponent {
   private readonly outboundStore = inject(OutboundStore);
 
   readonly lang = this.i18n.language;
+
+  /** Legacy's button accents (see legacy-theme.ts). */
+  readonly legacyGreen = LEGACY_GREEN_BUTTON;
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
   readonly roleRO = ROLE_RO;
   readonly roleCO = ROLE_CO;
 

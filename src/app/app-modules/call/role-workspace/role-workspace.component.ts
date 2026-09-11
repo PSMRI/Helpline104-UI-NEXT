@@ -212,7 +212,9 @@ const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: s
           </button>
         }
         @if (stepIndex() === 1) {
-          <button z-button type="button" zType="outline" (click)="cancelToService()">
+          <!-- Legacy's Closure step marks this Cancel as a primary blue
+               action, not a quiet outline one. -->
+          <button z-button type="button" [class]="legacyBlue" (click)="cancelToService()">
             {{ 'roleWorkspace.cancel' | translate: lang() }}
           </button>
         } @else {

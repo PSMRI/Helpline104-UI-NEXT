@@ -914,7 +914,7 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.covidVaccineSaveSuccess': 'কভিড টিকাৰ অৱস্থা সফলতাৰে সংৰক্ষণ কৰা হ’ল।',
   'hao.caseSheet.covidVaccineSaveError': 'কভিড টিকাৰ অৱস্থা সংৰক্ষণ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.caseSheet.caseSheet': 'কেছ শ্বীট',
-  'hao.caseSheet.counsellingSheet': 'কাউন্সেলিং শ্বীট',
+  'hao.caseSheet.counsellingSheet': 'পৰামৰ্শ পত্ৰিকা - বৰ্তমান সাক্ষাৎ',
   'hao.caseSheet.categoryGuidelineNote': "টোকা: শ্ৰেণী কেৱল নিৰ্দেশনা সন্ধানৰ বাবে বাধ্যতামূলক",
   'hao.caseSheet.wellBeing': 'সুস্থতা',
   'hao.caseSheet.information': 'তথ্য',

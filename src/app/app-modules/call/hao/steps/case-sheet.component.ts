@@ -272,17 +272,20 @@ const MIN_VACCINE_AGE = 12;
             </select>
           </div>
 
+          <!-- Legacy renders Get Guidelines as a round green icon button. -->
           <button
             z-button
             type="button"
-            zType="outline"
-            zSize="sm"
+            zShape="circle"
+            zSize="icon-lg"
+            [class]="legacyGreen"
             [zLoading]="loadingGuidelines()"
             [zDisabled]="form.controls.categoryID.value === null || loadingGuidelines()"
+            [title]="'hao.caseSheet.getGuidelines' | translate: lang()"
             [attr.aria-label]="'hao.caseSheet.getGuidelines' | translate: lang()"
             (click)="searchGuidelines()"
           >
-            <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
+            <ng-icon name="lucideSearch" size="18" aria-hidden="true" />
           </button>
         </div>
 

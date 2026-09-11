@@ -912,7 +912,7 @@ export const hi: Record<TranslationKey, string> = {
   'hao.caseSheet.covidVaccineSaveSuccess': 'कोविड वैक्सीन स्थिति सफलतापूर्वक सहेजी गई।',
   'hao.caseSheet.covidVaccineSaveError': 'कोविड वैक्सीन स्थिति सहेजने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.caseSheet.caseSheet': 'केस शीट',
-  'hao.caseSheet.counsellingSheet': 'काउंसलिंग शीट',
+  'hao.caseSheet.counsellingSheet': 'परामर्श पत्रक - वर्तमान यात्रा',
   'hao.caseSheet.categoryGuidelineNote': 'नोट: श्रेणी केवल दिशानिर्देश खोज के लिए आवश्यक है',
   'hao.caseSheet.wellBeing': 'भलाई',
   'hao.caseSheet.information': 'जानकारी',
