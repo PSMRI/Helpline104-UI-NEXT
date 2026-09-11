@@ -749,7 +749,7 @@ export const en = {
   'roleWorkspace.proceedConfirm': 'Proceed to closure for this call?',
   'roleWorkspace.cancelTitle': 'Cancel',
   'roleWorkspace.cancelConfirm': 'Return to the case sheet?',
-  'roleWorkspace.cancelCall': 'Cancel',
+  'roleWorkspace.cancelCall': 'Cancel Call',
   'roleWorkspace.cancelCallTitle': 'Cancel Call',
   'roleWorkspace.cancelCallConfirm': 'Cancel this call and return to beneficiary selection?',
   'roleWorkspace.mo.title': 'Medical Officer (MO)',

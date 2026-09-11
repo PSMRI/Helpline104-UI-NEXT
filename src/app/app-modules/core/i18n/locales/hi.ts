@@ -750,7 +750,7 @@ export const hi: Record<TranslationKey, string> = {
   'roleWorkspace.proceedConfirm': 'इस कॉल के लिए समापन पर जाएं?',
   'roleWorkspace.cancelTitle': 'रद्द करें',
   'roleWorkspace.cancelConfirm': 'केस शीट पर वापस जाएं?',
-  'roleWorkspace.cancelCall': 'रद्द करना',
+  'roleWorkspace.cancelCall': 'कॉल रद्द करें',
   'roleWorkspace.cancelCallTitle': 'कॉल रद्द करें',
   'roleWorkspace.cancelCallConfirm': 'इस कॉल को रद्द करें और लाभार्थी चयन पर वापस जाएं?',
   'roleWorkspace.mo.title': 'मेडिकल ऑफिसर (MO)',

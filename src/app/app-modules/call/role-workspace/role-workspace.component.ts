@@ -202,37 +202,43 @@ const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: s
 
       <!-- Legacy centres this Cancel/Closure pair under the card rather than
            pushing them to opposite edges (104 MO screenshots). -->
-      <footer class="mt-4 flex flex-wrap items-center justify-center gap-3 border-t border-border pt-4">
-        <!-- Legacy's footer is a single Cancel/Closure navigation pair: Cancel
-             steps back to the case sheet and is disabled there, Closure steps
-             forward and is disabled on the closure step
-             (104-co.component.html:74-75, toggled in 104-co.component.ts:
-             184-185/201-202). Rendering a second "cancel the whole call"
-             action beside it put two identically-labelled buttons side by
-             side, one of which discarded the beneficiary. -->
-        <button
-          z-button
-          type="button"
-          zType="outline"
-          [zDisabled]="stepIndex() === 0"
-          (click)="cancelToService()"
-        >
-          {{ 'roleWorkspace.cancel' | translate: lang() }}
-        </button>
-        @if (showSwitchRole() && switchRoleLabelKey(); as labelKey) {
-          <button z-button type="button" zType="outline" (click)="switchRole.emit()">
-            {{ labelKey | translate: lang() }}
+      <!-- Legacy's footer is one Cancel/Closure navigation pair, centred:
+           Cancel steps back to the case sheet and is disabled there, Closure
+           steps forward and is disabled on the closure step
+           (104-co.component.html:74-75, toggled in 104-co.component.ts:
+           184-185/201-202). "Cancel Call" is a rewrite-only escape hatch for a
+           wrongly-picked beneficiary, which legacy has nowhere in this footer;
+           it sits apart on the left, under its own label, so it can never be
+           mistaken for the step-back Cancel beside Closure. -->
+      <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+        <div class="flex flex-wrap gap-3 sm:flex-1">
+          <button z-button type="button" zType="outline" (click)="cancelCall()">
+            {{ 'roleWorkspace.cancelCall' | translate: lang() }}
           </button>
-        }
-        <button
-          z-button
-          type="button"
-          [class]="legacyBlue"
-          [zDisabled]="stepIndex() === 1"
-          (click)="proceedToClosure()"
-        >
-          {{ 'roleWorkspace.proceedToClosure' | translate: lang() }}
-        </button>
+          @if (showSwitchRole() && switchRoleLabelKey(); as labelKey) {
+            <button z-button type="button" zType="outline" (click)="switchRole.emit()">
+              {{ labelKey | translate: lang() }}
+            </button>
+          }
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-3">
+          <button z-button type="button" zType="outline" [zDisabled]="stepIndex() === 0" (click)="cancelToService()">
+            {{ 'roleWorkspace.cancel' | translate: lang() }}
+          </button>
+          <button
+            z-button
+            type="button"
+            [class]="legacyBlue"
+            [zDisabled]="stepIndex() === 1"
+            (click)="proceedToClosure()"
+          >
+            {{ 'roleWorkspace.proceedToClosure' | translate: lang() }}
+          </button>
+        </div>
+
+        <!-- Balances the left zone so the legacy pair stays centred. -->
+        <div class="hidden sm:block sm:flex-1"></div>
       </footer>
     </section>
   `,
@@ -400,5 +406,26 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
 
   onContinue(): void {
     this.stepper().previous();
+  }
+
+  /**
+   * Abandon a wrongly-picked beneficiary and go back to selection. A rewrite
+   * addition — legacy offers no such shortcut, which is why it is labelled and
+   * placed apart from the Cancel that merely steps back to the case sheet.
+   */
+  cancelCall(): void {
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('roleWorkspace.cancelCallTitle'),
+        message: this.i18n.instant('roleWorkspace.cancelCallConfirm'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.callStore.setBeneficiaryId(null);
+          void this.router.navigate(['/innerpage']);
+        }
+      });
   }
 }

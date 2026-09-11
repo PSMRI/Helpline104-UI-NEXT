@@ -752,7 +752,7 @@ export const as: Record<TranslationKey, string> = {
   'roleWorkspace.proceedConfirm': 'এই কলৰ বাবে সমাপ্তিলৈ আগবাঢ়িব নে?',
   'roleWorkspace.cancelTitle': 'বাতিল কৰক',
   'roleWorkspace.cancelConfirm': 'কেছ শ্বীটলৈ উভতি যাব নে?',
-  'roleWorkspace.cancelCall': 'বাতিল কৰা',
+  'roleWorkspace.cancelCall': 'কল বাতিল কৰক',
   'roleWorkspace.cancelCallTitle': 'কল বাতিল কৰক',
   'roleWorkspace.cancelCallConfirm': 'এই কলটো বাতিল কৰি হিতাধিকাৰী নিৰ্বাচনলৈ উভতি যাব নে?',
   'roleWorkspace.mo.title': 'মেডিকেল অফিচাৰ (MO)',
