@@ -52,14 +52,17 @@ import { I18nService } from '../core/i18n/i18n.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { TranslationKey } from '../core/i18n/locales';
 
-/** One sidebar navigation entry. */
+/**
+ * One sidebar navigation entry: either a link, or a nested submenu matching
+ * legacy's `dropdown-submenu` (Communication, Call Reports).
+ */
 interface SupervisorNavItem {
   readonly labelKey: TranslationKey;
   readonly icon: string;
   /** Router link — absolute, so entries can point outside `/supervisor`. */
-  readonly link: string;
-  /** Match the active state exactly (for the overview entry). */
-  readonly exact?: boolean;
+  readonly link?: string;
+  /** Nested entries; set instead of {@link link} for a submenu. */
+  readonly children?: readonly SupervisorNavItem[];
 }
 
 /** A titled group of sidebar entries (Activities / Reports / Configurations). */
@@ -76,43 +79,74 @@ interface SupervisorNavGroup {
 const ACTIVITIES_NAV: readonly SupervisorNavItem[] = [
   { labelKey: 'supervisor.nav.agentStatus', icon: 'lucideActivity', link: '/supervisor/agent-status' },
   { labelKey: 'supervisor.nav.blockUnblock', icon: 'lucidePhoneOff', link: '/supervisor/block-unblock' },
-  { labelKey: 'supervisor.nav.outboundAllocation', icon: 'lucidePhoneForwarded', link: '/outbound/search' },
-  { labelKey: 'supervisor.nav.outboundReallocation', icon: 'lucideRefreshCw', link: '/outbound/reallocate' },
+  {
+    labelKey: 'supervisor.nav.outboundAllocation',
+    icon: 'lucidePhoneForwarded',
+    link: '/supervisor/outbound-allocation',
+  },
+  {
+    labelKey: 'supervisor.nav.outboundReallocation',
+    icon: 'lucideRefreshCw',
+    link: '/supervisor/outbound-reallocation',
+  },
   { labelKey: 'supervisor.nav.qualityAudit', icon: 'lucideHeadphones', link: '/supervisor/quality-audit' },
   { labelKey: 'supervisor.nav.grievance', icon: 'lucideMessageSquare', link: '/supervisor/grievance' },
   { labelKey: 'supervisor.nav.uploadSchemes', icon: 'lucideUpload', link: '/supervisor/upload-schemes' },
   { labelKey: 'supervisor.nav.uploadSymptoms', icon: 'lucideFilePlus2', link: '/supervisor/upload-symptoms' },
   {
-    labelKey: 'supervisor.nav.alertsNotifications',
+    labelKey: 'supervisor.nav.communication',
     icon: 'lucideMegaphone',
-    link: '/supervisor/communication/alerts-notifications',
-  },
-  {
-    labelKey: 'supervisor.nav.locationMessages',
-    icon: 'lucideMapPin',
-    link: '/supervisor/communication/location-messages',
-  },
-  {
-    labelKey: 'supervisor.nav.trainingResources',
-    icon: 'lucideBookOpen',
-    link: '/supervisor/communication/training-resources',
-  },
-  {
-    labelKey: 'supervisor.nav.emergencyContacts',
-    icon: 'lucidePhoneCall',
-    link: '/supervisor/communication/emergency-contacts',
+    children: [
+      {
+        labelKey: 'supervisor.nav.alertsNotifications',
+        icon: 'lucideMegaphone',
+        link: '/supervisor/communication/alerts-notifications',
+      },
+      {
+        labelKey: 'supervisor.nav.locationMessages',
+        icon: 'lucideMapPin',
+        link: '/supervisor/communication/location-messages',
+      },
+      {
+        labelKey: 'supervisor.nav.trainingResources',
+        icon: 'lucideBookOpen',
+        link: '/supervisor/communication/training-resources',
+      },
+      {
+        labelKey: 'supervisor.nav.emergencyContacts',
+        icon: 'lucidePhoneCall',
+        link: '/supervisor/communication/emergency-contacts',
+      },
+    ],
   },
   { labelKey: 'supervisor.nav.forceLogout', icon: 'lucideLogOut', link: '/supervisor/force-logout' },
 ];
 
 const REPORTS_NAV: readonly SupervisorNavItem[] = [
-  // Legacy orders the Reports menu telephony-first (104-supervisor.component.html:93-96).
+  // Legacy orders the Reports menu telephony-first, then CRM Reports (which is
+  // the call-type report), then the Call Reports submenu
+  // (104-supervisor.component.html:90-130).
   {
     labelKey: 'supervisor.nav.telephonyReports',
     icon: 'lucidePhoneCall',
     link: '/supervisor/telephony-reports',
   },
-  { labelKey: 'supervisor.nav.reports', icon: 'lucideChartColumn', link: '/supervisor/reports' },
+  { labelKey: 'supervisor.nav.reports', icon: 'lucideChartColumn', link: '/supervisor/reports/call-type' },
+  {
+    labelKey: 'supervisor.nav.callReports',
+    icon: 'lucideChartColumn',
+    children: [
+      { labelKey: 'supReports.tab.callQuality', icon: 'lucideChartColumn', link: '/supervisor/reports/call-quality' },
+      {
+        labelKey: 'supReports.tab.districtVolume',
+        icon: 'lucideChartColumn',
+        link: '/supervisor/reports/district-call-volume',
+      },
+      { labelKey: 'supReports.tab.unblockUser', icon: 'lucideChartColumn', link: '/supervisor/reports/unblock-user' },
+      { labelKey: 'supReports.tab.qa', icon: 'lucideChartColumn', link: '/supervisor/reports/qa-report' },
+      { labelKey: 'supReports.tab.callSummary', icon: 'lucideChartColumn', link: '/supervisor/reports/call-summary' },
+    ],
+  },
 ];
 
 const CONFIG_NAV: readonly SupervisorNavItem[] = [
@@ -124,7 +158,7 @@ const CONFIG_NAV: readonly SupervisorNavItem[] = [
 
 const NAV_GROUPS: readonly SupervisorNavGroup[] = [
   { labelKey: 'supervisor.nav.activities', items: ACTIVITIES_NAV },
-  { labelKey: 'supervisor.nav.reports', items: REPORTS_NAV },
+  { labelKey: 'supervisor.nav.reportsGroup', items: REPORTS_NAV },
   { labelKey: 'supervisor.nav.configurations', items: CONFIG_NAV },
 ];
 
@@ -194,31 +228,38 @@ const NAV_GROUPS: readonly SupervisorNavGroup[] = [
           class="hidden shrink-0 flex-col gap-4 bg-card py-4 transition-[width] duration-200 md:flex"
           [class]="sidebarOpen() ? 'w-60 overflow-y-auto border-r border-border px-3' : 'w-0 overflow-hidden'"
         >
-          <a
-            routerLink="/supervisor"
-            routerLinkActive="bg-accent text-foreground"
-            [routerLinkActiveOptions]="{ exact: true }"
-            class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            <ng-icon name="lucideHouse" size="16" aria-hidden="true" />
-            {{ 'supervisor.nav.overview' | translate: lang() }}
-          </a>
-
           @for (group of navGroups; track group.labelKey) {
             <div>
               <p class="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {{ group.labelKey | translate: lang() }}
               </p>
               <nav class="flex flex-col gap-0.5">
-                @for (item of group.items; track item.link) {
-                  <a
-                    [routerLink]="item.link"
-                    routerLinkActive="bg-accent text-foreground"
-                    class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-                  >
-                    <ng-icon [name]="item.icon" size="16" aria-hidden="true" />
-                    {{ item.labelKey | translate: lang() }}
-                  </a>
+                @for (item of group.items; track item.labelKey) {
+                  @if (item.children; as children) {
+                    <p class="mt-1 flex items-center gap-2 px-2 py-1 text-xs font-medium text-muted-foreground">
+                      <ng-icon [name]="item.icon" size="14" aria-hidden="true" />
+                      {{ item.labelKey | translate: lang() }}
+                    </p>
+                    @for (child of children; track child.link) {
+                      <a
+                        [routerLink]="child.link"
+                        routerLinkActive="bg-accent text-foreground"
+                        class="ml-3 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                      >
+                        <ng-icon [name]="child.icon" size="16" aria-hidden="true" />
+                        {{ child.labelKey | translate: lang() }}
+                      </a>
+                    }
+                  } @else {
+                    <a
+                      [routerLink]="item.link"
+                      routerLinkActive="bg-accent text-foreground"
+                      class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                    >
+                      <ng-icon [name]="item.icon" size="16" aria-hidden="true" />
+                      {{ item.labelKey | translate: lang() }}
+                    </a>
+                  }
                 }
               </nav>
             </div>

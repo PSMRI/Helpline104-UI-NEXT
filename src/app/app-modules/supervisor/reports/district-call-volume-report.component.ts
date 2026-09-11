@@ -1,5 +1,5 @@
 /*
- * AMRIT – Accessible Medical Records via Integrated Technologies
+ * AMRIT â€“ Accessible Medical Records via Integrated Technologies
  * Integrated EHR (Electronic Health Records) Solution
  *
  * Copyright (C) "Piramal Swasthya Management and Research Institute"
@@ -58,9 +58,9 @@ const FILE_NAME = 'District_Wise_Call_Volume_Report';
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <h3 class="mb-4 text-base font-semibold text-foreground">
+      <h2 class="mb-4 text-base font-semibold text-foreground">
         {{ 'supReports.district.title' | translate: lang() }}
-      </h3>
+      </h2>
 
       @if (runner.serverError()) {
         <div

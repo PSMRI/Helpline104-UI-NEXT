@@ -1,5 +1,5 @@
 /*
- * AMRIT – Accessible Medical Records via Integrated Technologies
+ * AMRIT â€“ Accessible Medical Records via Integrated Technologies
  * Integrated EHR (Electronic Health Records) Solution
  *
  * Copyright (C) "Piramal Swasthya Management and Research Institute"
@@ -46,8 +46,8 @@ const FILE_NAME = 'Complaint_Details_Report';
 /**
  * Complaint Detail report (legacy `SupervisorComplaintDetailReportComponent`):
  * a date range with optional feedback type / nature filters. The common API's
- * `crmReports/getComplaintDetailReport` takes an ARRAY body — one entry per
- * feedback type when none is chosen — and streams the workbook.
+ * `crmReports/getComplaintDetailReport` takes an ARRAY body â€” one entry per
+ * feedback type when none is chosen â€” and streams the workbook.
  */
 @Component({
   selector: 'app-complaint-detail-report',
@@ -57,9 +57,9 @@ const FILE_NAME = 'Complaint_Details_Report';
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <h3 class="mb-4 text-base font-semibold text-foreground">
+      <h2 class="mb-4 text-base font-semibold text-foreground">
         {{ 'supReports.complaint.title' | translate: lang() }}
-      </h3>
+      </h2>
 
       @if (runner.serverError()) {
         <div

@@ -162,9 +162,24 @@ export const routes: Routes = [
       import('./app-modules/supervisor/supervisor-workspace.component').then((m) => m.SupervisorWorkspaceComponent),
     children: [
       {
+        // Legacy opens the console straight on Agent Status
+        // (`104-supervisor.component.ts:37`, Activity_Number = "2") — there is
+        // no landing screen.
         path: '',
+        redirectTo: 'agent-status',
+        pathMatch: 'full',
+      },
+      {
+        // Outbound allocation / re-allocation render inside this shell, as the
+        // legacy console's own *ngSwitchCase panels do (cases 7 and 13).
+        path: 'outbound-allocation',
         loadComponent: () =>
-          import('./app-modules/supervisor/supervisor-home.component').then((m) => m.SupervisorHomeComponent),
+          import('./app-modules/outbound/outbound-search.component').then((m) => m.OutboundSearchComponent),
+      },
+      {
+        path: 'outbound-reallocation',
+        loadComponent: () =>
+          import('./app-modules/outbound/reallocate-calls.component').then((m) => m.ReallocateCallsComponent),
       },
       {
         // Block / unblock a caller number and review nuisance-call recordings.
@@ -197,11 +212,15 @@ export const routes: Routes = [
       },
       {
         // Reports hub: every supervisor report behind one tabbed container.
+        // Each report is its own sidebar destination (legacy lists them under
+        // the Reports menu and its Call Reports submenu), so this path only
+        // groups the URLs — there is no hub screen above them.
         path: 'reports',
-        loadComponent: () =>
-          import('./app-modules/supervisor/reports/reports-hub.component').then((m) => m.SupervisorReportsHubComponent),
         children: [
-          { path: '', redirectTo: 'call-quality', pathMatch: 'full' },
+          { path: '', redirectTo: 'call-type', pathMatch: 'full' },
+          // Diseases Summary lives under Configurations only, as in legacy
+          // (case 30); keep the old report URL pointing at it.
+          { path: 'diseases-summary', redirectTo: '/supervisor/diseases-summary', pathMatch: 'full' },
           {
             path: 'call-quality',
             loadComponent: () =>
@@ -240,13 +259,6 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./app-modules/supervisor/reports/district-call-volume-report.component').then(
                 (m) => m.DistrictCallVolumeReportComponent,
-              ),
-          },
-          {
-            path: 'diseases-summary',
-            loadComponent: () =>
-              import('./app-modules/supervisor/reports/diseases-summary-report.component').then(
-                (m) => m.DiseasesSummaryReportComponent,
               ),
           },
           {
@@ -386,16 +398,9 @@ export const routes: Routes = [
             (m) => m.OutboundCallWorkspaceComponent,
           ),
       },
-      {
-        path: 'search',
-        loadComponent: () =>
-          import('./app-modules/outbound/outbound-search.component').then((m) => m.OutboundSearchComponent),
-      },
-      {
-        path: 'reallocate',
-        loadComponent: () =>
-          import('./app-modules/outbound/reallocate-calls.component').then((m) => m.ReallocateCallsComponent),
-      },
+      // Both now live inside the supervisor shell; keep the old paths working.
+      { path: 'search', redirectTo: '/supervisor/outbound-allocation', pathMatch: 'full' },
+      { path: 'reallocate', redirectTo: '/supervisor/outbound-reallocation', pathMatch: 'full' },
     ],
   },
   {

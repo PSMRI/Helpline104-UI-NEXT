@@ -593,7 +593,7 @@ export const en = {
   'supervisor.nav.overview': 'Overview',
   'supervisor.nav.activities': 'Activities',
   'supervisor.nav.agentStatus': 'Agent Status',
-  'supervisor.nav.blockUnblock': 'Block / Unblock Number',
+  'supervisor.nav.blockUnblock': 'Blacklist a Number',
   'supervisor.nav.outboundAllocation': 'Outbound Call Allocation',
   'supervisor.nav.outboundReallocation': 'Outbound Call Re-allocation',
   'supervisor.nav.qualityAudit': 'Quality Audit',
@@ -607,7 +607,9 @@ export const en = {
   'supervisor.nav.configurations': 'Configurations',
   'supervisor.nav.contentManagement': 'Content Management',
   'supervisor.nav.smsTemplates': 'SMS Templates',
-  'supervisor.nav.bloodUrl': 'Blood Bank URL',
+  'supervisor.nav.bloodUrl': 'Blood URL',
+  'supervisor.nav.callReports': 'Call Reports',
+  'supervisor.nav.reportsGroup': 'Reports',
   'supervisor.nav.diseasesSummary': 'Diseases Summary',
   'supervisor.home.title': 'Supervisor Console',
   'supervisor.home.reportsHint': 'Download call, quality and CRM reports.',
@@ -1317,7 +1319,7 @@ export const en = {
   // Communication nav additions (sidebar)
   'supervisor.nav.alertsNotifications': 'Alerts & Notifications',
   'supervisor.nav.locationMessages': 'Location Messages',
-  'supervisor.nav.trainingResources': 'Training Resources',
+  'supervisor.nav.trainingResources': 'Training Resource',
   'supervisor.nav.emergencyContacts': 'Emergency Contacts',
 
   // Communication screens (location messages + alerts & notifications)
