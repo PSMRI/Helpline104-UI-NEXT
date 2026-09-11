@@ -165,7 +165,19 @@ const MIN_VACCINE_AGE = 12;
             {{ 'hao.caseSheet.firstName' | translate: lang() }}
             <span class="text-destructive" aria-hidden="true">*</span>
           </label>
-          <input z-input id="hao-cs-first-name" type="text" maxlength="50" formControlName="patientFirstName" />
+          <input
+            z-input
+            id="hao-cs-first-name"
+            type="text"
+            maxlength="50"
+            formControlName="patientFirstName"
+            [attr.aria-invalid]="isInvalid('patientFirstName') || null"
+          />
+          @if (isInvalid('patientFirstName')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              {{ 'hao.caseSheet.firstNameInvalid' | translate: lang() }}
+            </p>
+          }
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium" for="hao-cs-last-name">
@@ -182,19 +194,38 @@ const MIN_VACCINE_AGE = 12;
             id="hao-cs-gender"
             formControlName="patientGenderID"
             class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            [attr.aria-invalid]="isInvalid('patientGenderID') || null"
           >
             <option [ngValue]="null">{{ 'hao.caseSheet.selectGender' | translate: lang() }}</option>
             <option value="M">{{ 'hao.caseSheet.genderMale' | translate: lang() }}</option>
             <option value="F">{{ 'hao.caseSheet.genderFemale' | translate: lang() }}</option>
             <option value="T">{{ 'hao.caseSheet.genderTransgender' | translate: lang() }}</option>
           </select>
+          @if (isInvalid('patientGenderID')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              {{ 'hao.caseSheet.genderRequired' | translate: lang() }}
+            </p>
+          }
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium" for="hao-cs-age">
             {{ 'hao.caseSheet.age' | translate: lang() }}
             <span class="text-destructive" aria-hidden="true">*</span>
           </label>
-          <input z-input id="hao-cs-age" type="number" min="1" max="120" formControlName="patientAgeValue" />
+          <input
+            z-input
+            id="hao-cs-age"
+            type="number"
+            min="1"
+            max="120"
+            formControlName="patientAgeValue"
+            [attr.aria-invalid]="isInvalid('patientAgeValue') || null"
+          />
+          @if (isInvalid('patientAgeValue')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              {{ 'hao.caseSheet.ageRequired' | translate: lang() }}
+            </p>
+          }
         </div>
       </div>
 
@@ -254,12 +285,18 @@ const MIN_VACCINE_AGE = 12;
               id="hao-cs-category"
               formControlName="categoryID"
               class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              [attr.aria-invalid]="isInvalid('categoryID') || null"
             >
               <option [ngValue]="null">{{ 'hao.caseSheet.selectCategory' | translate: lang() }}</option>
               @for (c of filteredCategories(); track c.categoryID) {
                 <option [ngValue]="c.categoryID">{{ c.categoryName }}</option>
               }
             </select>
+            @if (isInvalid('categoryID')) {
+              <p class="text-xs font-medium text-destructive" role="alert">
+                {{ 'hao.caseSheet.categoryRequired' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div class="flex flex-col gap-1.5">
@@ -1068,10 +1105,10 @@ export class CaseSheetComponent {
 
   readonly form = this.fb.nonNullable.group({
     isPatientOther: [false],
-    patientFirstName: [''],
+    patientFirstName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
     patientLastName: [''],
-    patientGenderID: this.fb.control<CdssGender | null>(null),
-    patientAgeValue: this.fb.control<number | null>(null),
+    patientGenderID: this.fb.control<CdssGender | null>(null, Validators.required),
+    patientAgeValue: this.fb.control<number | null>(null, Validators.required),
     patientAgeUnit: ['years'],
     patientDOB: this.fb.control<string | null>(null),
     chiefComplaintMode: this.fb.control<ChiefComplaintMode>('complaint'),
@@ -1540,6 +1577,7 @@ export class CaseSheetComponent {
     const diseaseSummaryControl = this.form.controls.diseaseSummaryID;
     const provisionalDiagnosisControl = this.form.controls.provisionalDiagnosis;
     const treatmentRecommendationControl = this.form.controls.treatmentRecommendation;
+    const categoryControl = this.form.controls.categoryID;
 
     const complaintsMaxLength = isCo ? 800 : 2000;
     complaintsControl.setValidators(
@@ -1560,12 +1598,14 @@ export class CaseSheetComponent {
     treatmentRecommendationControl.setValidators(
       isCo ? [Validators.required, Validators.minLength(3), Validators.maxLength(300)] : [],
     );
+    categoryControl.setValidators(isCo ? [Validators.required] : []);
     complaintsControl.updateValueAndValidity();
     recommendedActionControl.updateValueAndValidity();
     actionByRoleControl.updateValueAndValidity();
     diseaseSummaryControl.updateValueAndValidity();
     provisionalDiagnosisControl.updateValueAndValidity();
     treatmentRecommendationControl.updateValueAndValidity();
+    categoryControl.updateValueAndValidity();
   }
 
   /** Legacy opens the prescription form as a modal, not an inline panel. */
