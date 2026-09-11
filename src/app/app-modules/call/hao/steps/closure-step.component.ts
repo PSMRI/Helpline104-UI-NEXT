@@ -606,6 +606,24 @@ export class ClosureStepComponent {
   readonly doTransfer = computed(() => this.selectedTransferService() !== null);
 
   /**
+   * Legacy's "call can't be marked Valid without availing any service" rule
+   * (`closure.component.ts:703-712`): it fires on a Valid disposition that is
+   * not a transfer, when no service was saved during the call, for every role
+   * except RO and CO.
+   */
+  readonly requiresServiceAvailed = computed(() => {
+    const role = this.currentRole();
+    if (role === ROLE_RO || role === ROLE_CO) {
+      return false;
+    }
+    return (
+      this.form.controls.callGroupType.value?.toLowerCase() === 'valid' &&
+      !this.doTransfer() &&
+      !this.serviceAvailed()
+    );
+  });
+
+  /**
    * Legacy `validTrans` (`closure.component.ts:448-468`), which gates the
    * Transfer-to select, the Skill select and the Transfer button. It is driven
    * by the chosen Call Type and whether a beneficiary is attached — NOT by
@@ -775,6 +793,14 @@ export class ClosureStepComponent {
     const benCallID = this.callStore.callId() ?? this.callStore.sessionId();
     if (!benCallID) {
       this.showError('hao.closure.noCallError');
+      return;
+    }
+
+    // A call cannot be dispositioned Valid when nothing was actually delivered.
+    // Legacy blocks this for every role except RO and CO, and only when the
+    // call is not being transferred (closure.component.ts:703-712).
+    if (this.requiresServiceAvailed()) {
+      this.showError('hao.closure.serviceAvailedRequired');
       return;
     }
 

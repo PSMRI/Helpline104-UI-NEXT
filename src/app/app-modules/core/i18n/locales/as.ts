@@ -987,6 +987,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.closedSuccess': 'কল সফলতাৰে বন্ধ কৰা হৈছে',
   'hao.closure.transferredToPrefix': 'কল স্থানান্তৰ কৰা হৈছে',
   'hao.closure.noCallError': 'বন্ধ কৰিবলৈ কোনো সক্ৰিয় কল নাই।',
+  'hao.closure.serviceAvailedRequired':
+    'কোনো সেৱা প্ৰদান নকৰাকৈ এই কলটো বৈধ হিচাপে চিহ্নিত কৰিব নোৱাৰি। প্ৰথমে এটা সেৱা প্ৰদান কৰক, বা আন এটা কলৰ প্ৰকাৰ বাছনি কৰক।',
   'hao.closure.closeError': 'কল বন্ধ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.transferError': 'কল স্থানান্তৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.callTypesLoadError': 'কলৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',

@@ -363,6 +363,11 @@ describe('ClosureStepComponent', () => {
     });
     fixture.detectChanges();
 
+    // A Valid disposition requires a service to have been availed (legacy
+    // closure.component.ts:703-712); this case is about the closeCall body.
+    fixture.componentRef.setInput('serviceAvailed', true);
+    fixture.detectChanges();
+
     // Submit & Close confirms first; take the Ok branch.
     spyOn(TestBed.inject(ConfirmDialogService), 'confirm').and.returnValue(of(true));
     spyOn(TestBed.inject(ConfirmDialogService), 'alert').and.returnValue(of(undefined));

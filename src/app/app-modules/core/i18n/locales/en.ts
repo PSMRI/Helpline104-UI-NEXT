@@ -982,6 +982,8 @@ export const en = {
   'hao.closure.closedSuccess': 'Call closed successfully',
   'hao.closure.transferredToPrefix': 'Call transferred to',
   'hao.closure.noCallError': 'No active call to close.',
+  'hao.closure.serviceAvailedRequired':
+    'This call cannot be marked Valid without availing any service. Provide a service first, or choose another call type.',
   'hao.closure.closeError': 'Unable to close the call. Please try again.',
   'hao.closure.transferError': 'Unable to transfer the call. Please try again.',
   'hao.closure.callTypesLoadError': 'Unable to load call types. Please try again.',

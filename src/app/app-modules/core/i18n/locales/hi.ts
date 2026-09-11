@@ -985,6 +985,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.closedSuccess': 'कॉल सफलतापूर्वक बंद हुआ',
   'hao.closure.transferredToPrefix': 'कॉल को स्थानांतरित किया गया',
   'hao.closure.noCallError': 'बंद करने के लिए कोई सक्रिय कॉल नहीं है।',
+  'hao.closure.serviceAvailedRequired':
+    'किसी भी सेवा का लाभ लिए बिना इस कॉल को वैध चिह्नित नहीं किया जा सकता। पहले कोई सेवा प्रदान करें, या अन्य कॉल प्रकार चुनें।',
   'hao.closure.closeError': 'कॉल बंद करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.transferError': 'कॉल स्थानांतरित करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.callTypesLoadError': 'कॉल प्रकार लोड करने में असमर्थ। कृपया पुनः प्रयास करें।',
