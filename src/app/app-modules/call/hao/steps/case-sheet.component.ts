@@ -225,9 +225,15 @@ const MIN_VACCINE_AGE = 12;
       }
 
       @if (isCo()) {
-        <p class="text-xs text-muted-foreground">{{ 'hao.caseSheet.categoryGuidelineNote' | translate: lang() }}</p>
+        <p class="text-xs text-muted-foreground lg:col-span-full">
+          {{ 'hao.caseSheet.categoryGuidelineNote' | translate: lang() }}
+        </p>
 
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <!-- Legacy puts the Well Being/Information radios, Category, Sub
+             Category and Get Guidelines four across on one row. This is a
+             sub-grid spanning the full width: as a single grid cell its
+             children overflowed onto the chief-complaint column. -->
+        <div class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:col-span-full lg:grid-cols-4">
           <div class="flex gap-4 text-sm">
             <label class="flex items-center gap-2">
               <input type="radio" formControlName="wellbeingOrInfo" value="1" />
@@ -290,7 +296,9 @@ const MIN_VACCINE_AGE = 12;
         </div>
 
         @if (guidelineResults(); as results) {
-          <div class="rounded-md border border-dashed border-border p-3 text-sm">
+          <!-- Legacy drops the guideline file list onto its own row under the
+               category pickers, left-aligned and narrow. -->
+          <div class="rounded-md border border-dashed border-border p-3 text-sm lg:col-span-full lg:max-w-md">
             @if (results.length > 0 && anyGuidelineFile(results)) {
               <ul class="flex flex-col gap-1">
                 @for (detail of results; track $index) {

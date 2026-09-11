@@ -32,6 +32,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
+import { LEGACY_BLUE_BUTTON } from '../legacy-theme';
 import { CallWrapupService } from '../call-wrapup.service';
 import { SERVICE_104, collectServiceScreens } from '../role-workspace/role-screens.util';
 import { HasUnsavedChanges } from '../unsaved-changes.guard';
@@ -101,27 +102,29 @@ const SCREEN_REGISTRATION = 'Registration';
         </cdk-step>
       </app-hao-stepper>
 
-      <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+      <!-- Legacy centres this pair under the card. -->
+      <footer class="mt-4 flex flex-wrap items-center justify-center gap-3 border-t border-border pt-4">
         @if (showBackToRo()) {
           <button z-button type="button" zType="outline" (click)="backToRo()">
             {{ 'hao.workspace.backToRo' | translate: lang() }}
           </button>
-        } @else {
-          <button z-button type="button" zType="outline" (click)="cancelCall()">
-            {{ 'hao.workspace.cancelCall' | translate: lang() }}
-          </button>
         }
-        <div class="ml-auto flex gap-3">
-          @if (stepIndex() === 1) {
-            <button z-button type="button" zType="outline" (click)="cancelToService()">
-              {{ 'hao.workspace.cancel' | translate: lang() }}
-            </button>
-          } @else {
-            <button z-button type="button" (click)="proceedToClosure()">
-              {{ 'hao.workspace.proceedToClosure' | translate: lang() }}
-            </button>
-          }
-        </div>
+        <!-- Same single Cancel/Closure navigation pair legacy uses, and the
+             same pair the MO/CO workspaces render: Cancel steps back to the
+             case sheet and is disabled there, Closure steps forward and is
+             disabled on the closure step (104-hao.component.html:121-133). -->
+        <button z-button type="button" zType="outline" [zDisabled]="stepIndex() === 0" (click)="cancelToService()">
+          {{ 'hao.workspace.cancel' | translate: lang() }}
+        </button>
+        <button
+          z-button
+          type="button"
+          [class]="legacyBlue"
+          [zDisabled]="stepIndex() === 1"
+          (click)="proceedToClosure()"
+        >
+          {{ 'hao.workspace.proceedToClosure' | translate: lang() }}
+        </button>
       </footer>
     </section>
   `,
@@ -135,6 +138,9 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly lang = this.i18n.language;
+
+  /** Legacy's blue primary action (see legacy-theme.ts). */
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
 
   private readonly stepper = viewChild.required(HaoStepperComponent);
 
@@ -223,19 +229,4 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
     void this.router.navigate(['/innerpage']);
   }
 
-  cancelCall(): void {
-    this.confirmDialog
-      .confirm({
-        title: this.i18n.instant('hao.workspace.cancelCallTitle'),
-        message: this.i18n.instant('hao.workspace.cancelCallConfirm'),
-        okText: this.i18n.instant('dashboard.dialog.ok'),
-        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
-      })
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this.callStore.setBeneficiaryId(null);
-          void this.router.navigate(['/innerpage']);
-        }
-      });
-  }
 }

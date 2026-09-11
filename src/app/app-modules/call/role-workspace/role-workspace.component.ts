@@ -203,25 +203,36 @@ const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: s
       <!-- Legacy centres this Cancel/Closure pair under the card rather than
            pushing them to opposite edges (104 MO screenshots). -->
       <footer class="mt-4 flex flex-wrap items-center justify-center gap-3 border-t border-border pt-4">
-        <button z-button type="button" zType="outline" (click)="cancelCall()">
-          {{ 'roleWorkspace.cancelCall' | translate: lang() }}
+        <!-- Legacy's footer is a single Cancel/Closure navigation pair: Cancel
+             steps back to the case sheet and is disabled there, Closure steps
+             forward and is disabled on the closure step
+             (104-co.component.html:74-75, toggled in 104-co.component.ts:
+             184-185/201-202). Rendering a second "cancel the whole call"
+             action beside it put two identically-labelled buttons side by
+             side, one of which discarded the beneficiary. -->
+        <button
+          z-button
+          type="button"
+          zType="outline"
+          [zDisabled]="stepIndex() === 0"
+          (click)="cancelToService()"
+        >
+          {{ 'roleWorkspace.cancel' | translate: lang() }}
         </button>
         @if (showSwitchRole() && switchRoleLabelKey(); as labelKey) {
           <button z-button type="button" zType="outline" (click)="switchRole.emit()">
             {{ labelKey | translate: lang() }}
           </button>
         }
-        @if (stepIndex() === 1) {
-          <!-- Legacy's Closure step marks this Cancel as a primary blue
-               action, not a quiet outline one. -->
-          <button z-button type="button" [class]="legacyBlue" (click)="cancelToService()">
-            {{ 'roleWorkspace.cancel' | translate: lang() }}
-          </button>
-        } @else {
-          <button z-button type="button" [class]="legacyBlue" (click)="proceedToClosure()">
-            {{ 'roleWorkspace.proceedToClosure' | translate: lang() }}
-          </button>
-        }
+        <button
+          z-button
+          type="button"
+          [class]="legacyBlue"
+          [zDisabled]="stepIndex() === 1"
+          (click)="proceedToClosure()"
+        >
+          {{ 'roleWorkspace.proceedToClosure' | translate: lang() }}
+        </button>
       </footer>
     </section>
   `,
@@ -389,21 +400,5 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
 
   onContinue(): void {
     this.stepper().previous();
-  }
-
-  cancelCall(): void {
-    this.confirmDialog
-      .confirm({
-        title: this.i18n.instant('roleWorkspace.cancelCallTitle'),
-        message: this.i18n.instant('roleWorkspace.cancelCallConfirm'),
-        okText: this.i18n.instant('dashboard.dialog.ok'),
-        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
-      })
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this.callStore.setBeneficiaryId(null);
-          void this.router.navigate(['/innerpage']);
-        }
-      });
   }
 }
