@@ -1502,6 +1502,7 @@ export const as: Record<TranslationKey, string> = {
   // Force logout
   'supLogout.title': 'বলপূৰ্বক লগআউট',
   'supLogout.userName': 'ব্যৱহাৰকাৰীৰ নাম',
+  'supLogout.password': 'পাছৱৰ্ড',
   'supLogout.kickout': 'কিকআউট',
   'supLogout.confirm': 'আপুনি সঁচাকৈয়ে কিকআউট কৰিব বিচাৰে নেকি',
   'supLogout.success': 'ব্যৱহাৰকাৰী সফলতাৰে লগ আউট কৰা হৈছে',

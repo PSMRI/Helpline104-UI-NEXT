@@ -1500,6 +1500,7 @@ export const hi: Record<TranslationKey, string> = {
   // Force logout
   'supLogout.title': 'बलपूर्वक लॉगआउट',
   'supLogout.userName': 'उपयोगकर्ता नाम',
+  'supLogout.password': 'पासवर्ड',
   'supLogout.kickout': 'बाहर निकाल देना',
   'supLogout.confirm': 'क्या आप वाकई बाहर करना चाहते हैं',
   'supLogout.success': 'उपयोगकर्ता सफलतापूर्वक लॉग आउट हो गया',
