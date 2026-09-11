@@ -25,11 +25,13 @@ import { Router } from '@angular/router';
 import { environment } from '@env/environment';
 
 import { AuthStore } from '../core/auth/auth.store';
+import { ConfigService } from '../core/services/config.service';
 
 import { CallLifecycleService } from './call-lifecycle.service';
 import { CallStore } from './call.store';
 import { CallWrapupService } from './call-wrapup.service';
 import { parseDisconnectCtiMessage, parseInboundCtiMessage } from './cti-message';
+import { inboundAcceptPath } from './role-workspace/role-screens.util';
 
 /** Feature code of the supervising role, which has no personal agent line. */
 const SUPERVISOR_FEATURE_CODE = 'Supervisor';
@@ -71,9 +73,17 @@ export class InboundCtiService {
   private readonly callWrapup = inject(CallWrapupService);
   private readonly callLifecycle = inject(CallLifecycleService);
   private readonly router = inject(Router);
+  private readonly config = inject(ConfigService);
 
-  /** Origin of the CZentrix telephony server, the only trusted CTI sender. */
-  private readonly telephonyOrigin = safeOrigin(environment.telephoneServer);
+  /**
+   * Origin of the CZentrix telephony server, the only trusted CTI sender.
+   * Derived from {@link ConfigService.getTelephonyServerURL}, the same
+   * https-upgraded URL the CTI iframe itself is loaded from (`CtiPanelStore.ctiUrl`)
+   * — deriving it from the raw, non-upgraded `environment.telephoneServer`
+   * instead left this comparing `https://…` (the iframe's real origin) against
+   * `http://…`, so every genuine inbound-call postMessage was silently dropped.
+   */
+  private readonly telephonyOrigin = safeOrigin(this.config.getTelephonyServerURL());
 
   constructor() {
     const onMessage = (event: MessageEvent): void => {
@@ -115,9 +125,12 @@ export class InboundCtiService {
   }
 
   /**
-   * Parse a CTI payload. On a fresh inbound call, seed state, navigate, and
-   * register the call with the backend; on the caller hanging up mid-call,
-   * start the wrap-up grace period.
+   * Parse a CTI payload. On a fresh inbound call, seed state, navigate to the
+   * agent's role workspace (registration for RO/HAO, the only roles that
+   * identify a new caller; straight to their own workspace for every other
+   * role — e.g. an HAO-to-MO transfer must not bounce the MO agent through
+   * registration, see `inboundAcceptPath`), and register the call with the
+   * backend; on the caller hanging up mid-call, start the wrap-up grace period.
    */
   private handleCtiMessage(data: unknown): void {
     const inbound = parseInboundCtiMessage(data);
@@ -130,7 +143,8 @@ export class InboundCtiService {
         cli: inbound.cli,
         sessionId: inbound.sessionId,
       });
-      void this.router.navigate(['/innerpage', 'registration']);
+      const path = inboundAcceptPath(this.authStore.currentRole()?.featureCode, this.authStore.privileges());
+      void this.router.navigate(['/innerpage', path]);
       this.registerCallStart(inbound.cli, inbound.sessionId);
       return;
     }

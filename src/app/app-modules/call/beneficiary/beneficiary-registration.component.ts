@@ -39,6 +39,7 @@ import { toast } from 'ngx-sonner';
 import { TimeoutError, catchError, throwError, timeout } from 'rxjs';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardDialogService } from '@common-ui/ui/dialog';
 import {
   ZardFormControlComponent,
   ZardFormFieldComponent,
@@ -49,13 +50,22 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 import { ZardPaginationImports } from '@common-ui/ui/pagination';
 import { ZardTableImports } from '@common-ui/ui/table';
 
+import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallerDemographics, CallStore } from '../call.store';
 import { resolveDispatchPath } from '../role-workspace/role-screens.util';
+import { SmsService } from '../sms/sms.service';
 import { HasUnsavedChanges } from '../unsaved-changes.guard';
+import { AbhaDetailsDialogComponent, AbhaDetailsDialogData } from './abha-details-dialog.component';
 import { BeneficiaryService } from './beneficiary.service';
+import {
+  RegistrationSuccessDialogComponent,
+  RegistrationSuccessDialogData,
+  RegistrationSuccessDialogResult,
+} from './registration-success-dialog.component';
 import {
   BeneficiaryError,
   BeneficiaryRecord,
@@ -72,6 +82,7 @@ import {
   Relationship,
   StateOption,
   Title,
+  UpdateBeneficiaryRequest,
   VillageOption,
 } from './beneficiary.models';
 
@@ -83,6 +94,14 @@ const RESULTS_PAGE_SIZE = 10;
 
 /** Indian mobile number: exactly 10 digits. */
 const PHONE_PATTERN = /^[0-9]{10}$/;
+/** Beneficiary ID: exactly 12 digits. */
+const BENEFICIARY_ID_PATTERN = /^\d{12}$/;
+/** ABHA number without hyphens: exactly 14 digits. */
+const ABHA_NUMBER_PATTERN = /^\d{14}$/;
+/** ABHA number already hyphenated: NN-NNNN-NNNN-NNNN. */
+const ABHA_NUMBER_HYPHENATED_PATTERN = /^(\d{2})-(\d{4})-(\d{4})-(\d{4})*$/;
+/** ABHA address, e.g. `name[.suffix]@xxx` (legacy only accepts a 3-letter suffix). */
+const ABHA_ADDRESS_PATTERN = /^([a-zA-Z0-9])+(\.[a-zA-Z0-9]+)?@([a-zA-Z]{3})$/;
 /** Indian pincode: exactly 6 digits. */
 const PINCODE_PATTERN = /^[0-9]{6}$/;
 /** Default phone type id (primary mobile). */
@@ -174,6 +193,18 @@ function toDateInput(date: Date): string {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 }
 
+/** Normalize a backend age unit (singular or plural) to the form's option values. */
+function normalizeAgeUnit(raw: string | undefined): 'years' | 'months' | 'days' {
+  const unit = (raw ?? '').toLowerCase();
+  if (unit.startsWith('month')) {
+    return 'months';
+  }
+  if (unit.startsWith('day')) {
+    return 'days';
+  }
+  return 'years';
+}
+
 /**
  * Parse a `YYYY-MM-DD` date-input value as LOCAL midnight. `new Date('YYYY-MM-DD')`
  * parses as UTC, which shifts the calendar day for IST users; constructing from
@@ -220,6 +251,39 @@ function validDob(control: AbstractControl): ValidationErrors | null {
 }
 
 /**
+ * Route a quick-search term to the right search field, matching legacy's
+ * `validateSearchItem` → `validateBenID` → `checkValidHealthIDNumber` →
+ * `validateHealthIDNumberPattern` → `validateHealthIDPattern` cascade
+ * (`beneficiary-registration-104.component.ts:1992-2082`): a 12-digit term is
+ * a Beneficiary ID; a 14-digit or 17-char hyphenated term is an ABHA number
+ * (`HealthIDNumber`, re-hyphenated into NN-NNNN-NNNN-NNNN when given without
+ * hyphens); anything else that looks like `name[.suffix]@xxx` is an ABHA
+ * address (`HealthID`). Each length-specific check falls through to the
+ * ABHA-address check on a pattern mismatch, exactly as legacy does. Returns
+ * `null` when the term matches none of these (legacy's "Please enter a valid
+ * input" case), so the caller can surface that instead of sending a doomed
+ * `beneficiaryID` search.
+ */
+function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null {
+  if (term.length < 8 || term.length > 32) {
+    return null;
+  }
+  if (term.length === 12 && BENEFICIARY_ID_PATTERN.test(term)) {
+    return { beneficiaryID: term };
+  }
+  if (term.length === 14 && ABHA_NUMBER_PATTERN.test(term)) {
+    return { HealthIDNumber: `${term.slice(0, 2)}-${term.slice(2, 6)}-${term.slice(6, 10)}-${term.slice(10)}` };
+  }
+  if (term.length === 17 && ABHA_NUMBER_HYPHENATED_PATTERN.test(term)) {
+    return { HealthIDNumber: term };
+  }
+  if (ABHA_ADDRESS_PATTERN.test(term)) {
+    return { HealthID: term };
+  }
+  return null;
+}
+
+/**
  * Inbound caller identification + registration (the legacy
  * `beneficiary-registration-104`), rebuilt as the first stop of the on-call RO
  * workspace at `/innerpage/registration`.
@@ -252,11 +316,38 @@ function validDob(control: AbstractControl): ValidationErrors | null {
   viewProviders: [provideIcons({ lucideSearch, lucideUserPlus, lucideLoaderCircle })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
+      <!-- Landing gate (legacy "Have you called earlier?"): nothing else on
+           this screen — table, search, register — shows until answered. -->
+      @if (calledEarlier() === null) {
+        <div class="flex flex-col gap-3">
+          <fieldset class="flex flex-wrap items-center gap-6">
+            <legend class="text-sm font-medium">
+              {{ 'registration.calledEarlier.question' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </legend>
+            <label class="flex cursor-pointer items-center gap-2 text-sm">
+              <input type="radio" class="h-4 w-4 accent-primary" name="calledEarlier" (change)="onCalledEarlier('yes')" />
+              {{ 'registration.field.yes' | translate: lang() }}
+            </label>
+            <label class="flex cursor-pointer items-center gap-2 text-sm">
+              <input type="radio" class="h-4 w-4 accent-primary" name="calledEarlier" (change)="onCalledEarlier('no')" />
+              {{ 'registration.field.no' | translate: lang() }}
+            </label>
+          </fieldset>
+        </div>
+      }
+
+      @if (calledEarlier() !== null) {
       <!-- Action bar: Search / Register new. The registrations list for this
            number shows by default (no tab); these buttons switch to a sub-view.
            Hidden once a sub-view is active (search or register in progress),
            replaced by a single "Back" control so the agent isn't stranded. -->
       <div class="mb-5 flex flex-wrap items-center justify-end gap-2">
+        <!-- Legacy 104-RO shell's always-visible "Cancel" — abandons the current
+             sub-view/entry and restarts the landing gate without ending the call. -->
+        <button z-button type="button" zType="outline" class="mr-auto" (click)="cancelToStart()">
+          {{ 'registration.action.cancel' | translate: lang() }}
+        </button>
         @if (activeView() === 'list') {
           <button
             z-button
@@ -295,6 +386,35 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             }
           </h3>
 
+          @if (calledEarlier() === 'yes') {
+            <div class="mb-4 flex flex-wrap items-center gap-2">
+              <input
+                z-input
+                type="text"
+                class="max-w-xs"
+                [placeholder]="'registration.quickSearch.placeholder' | translate: lang()"
+                [value]="quickSearchTerm()"
+                (input)="quickSearchTerm.set($any($event.target).value)"
+                (keyup.enter)="quickSearchById()"
+              />
+              <button
+                z-button
+                type="button"
+                zType="default"
+                [zLoading]="quickSearchLoading()"
+                [zDisabled]="!quickSearchTerm().trim()"
+                (click)="quickSearchById()"
+              >
+                <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
+              </button>
+              @if (quickSearchResults() !== null) {
+                <button z-button type="button" zType="outline" class="ml-auto" (click)="viewAllHistory()">
+                  {{ 'registration.quickSearch.viewAll' | translate: lang() }}
+                </button>
+              }
+            </div>
+          }
+
           @if (historyLoading()) {
             <div class="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
               <ng-icon name="lucideLoaderCircle" size="16" class="animate-spin" aria-hidden="true" />
@@ -316,7 +436,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             >
               {{ 'registration.history.error' | translate: lang() }}
             </p>
-          } @else if (historyResults().length === 0) {
+          } @else if (displayedHistoryResults().length === 0) {
             <p class="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
               {{ 'registration.history.empty' | translate: lang() }}
             </p>
@@ -368,6 +488,28 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   </option>
                   @for (g of genders(); track g.genderID) {
                     <option [ngValue]="g.genderID">{{ genderDisplay(g) }}</option>
+                  }
+                </select>
+              </z-form-control>
+            </z-form-field>
+            <z-form-field>
+              <label z-form-label for="search-stateID" class="text-base">{{ 'registration.field.state' | translate: lang() }}</label>
+              <z-form-control>
+                <select id="search-stateID" formControlName="stateID" [class]="selectClass" (change)="onSearchStateChange()">
+                  <option [ngValue]="null">{{ 'registration.field.selectPlaceholder' | translate: lang() }}</option>
+                  @for (s of states(); track s.stateID) {
+                    <option [ngValue]="s.stateID">{{ s.stateName }}</option>
+                  }
+                </select>
+              </z-form-control>
+            </z-form-field>
+            <z-form-field>
+              <label z-form-label for="search-districtID" class="text-base">{{ 'registration.field.district' | translate: lang() }}</label>
+              <z-form-control>
+                <select id="search-districtID" formControlName="districtID" [class]="selectClass">
+                  <option [ngValue]="null">{{ 'registration.field.selectPlaceholder' | translate: lang() }}</option>
+                  @for (d of searchDistricts(); track d.districtID) {
+                    <option [ngValue]="d.districtID">{{ d.districtName }}</option>
                   }
                 </select>
               </z-form-control>
@@ -661,7 +803,13 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                   'registration.field.ageUnit' | translate: lang()
                 }}</label>
                 <z-form-control>
-                  <select id="ageUnit" formControlName="ageUnit" [class]="selectClass" (change)="onAgeUnitChange()">
+                  <select
+                    id="ageUnit"
+                    formControlName="ageUnit"
+                    [class]="selectClass"
+                    [attr.aria-invalid]="ariaInvalid('ageUnit')"
+                    (change)="onAgeUnitChange()"
+                  >
                     <option value="years">
                       {{ 'registration.ageUnit.years' | translate: lang() }}
                     </option>
@@ -673,6 +821,9 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                     </option>
                   </select>
                 </z-form-control>
+                @if (showError('ageUnit', 'required')) {
+                  <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+                }
               </z-form-field>
 
               <!-- Relationship to the existing beneficiary on this number -->
@@ -952,15 +1103,29 @@ function validDob(control: AbstractControl): ValidationErrors | null {
               <button z-button type="button" zType="outline" (click)="page.set(1)">
                 {{ 'registration.action.back' | translate: lang() }}
               </button>
-              <button
-                z-button
-                type="submit"
-                zType="default"
-                [zLoading]="registerLoading()"
-                [zDisabled]="registerLoading() || cliMissing()"
-              >
-                {{ 'registration.action.register' | translate: lang() }}
-              </button>
+              <div class="flex gap-3">
+                @if (updateMode()) {
+                  <button
+                    z-button
+                    type="button"
+                    zType="default"
+                    (click)="proceedWithoutModifying()"
+                    [zDisabled]="registerLoading() || modifyLoading()"
+                  >
+                    {{ 'registration.action.proceed' | translate: lang() }}
+                  </button>
+                }
+                <button
+                  z-button
+                  type="submit"
+                  [zType]="updateMode() ? 'outline' : 'default'"
+                  [class]="updateMode() ? 'border-success bg-success text-success-foreground hover:bg-success/90' : ''"
+                  [zLoading]="updateMode() ? modifyLoading() : registerLoading()"
+                  [zDisabled]="(updateMode() ? modifyLoading() : registerLoading()) || cliMissing()"
+                >
+                  {{ (updateMode() ? 'registration.action.modify' : 'registration.action.register') | translate: lang() }}
+                </button>
+              </div>
             </div>
           </div>
         </form>
@@ -976,6 +1141,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
             </button>
           </div>
         }
+      }
       }
     </section>
 
@@ -993,6 +1159,7 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 {{ 'registration.col.relationship' | translate: lang() }}
               </th>
               <th z-table-head>{{ 'registration.col.district' | translate: lang() }}</th>
+              <th z-table-head>{{ 'registration.col.abhaDetails' | translate: lang() }}</th>
               <th z-table-head class="text-right">
                 {{ 'registration.col.action' | translate: lang() }}
               </th>
@@ -1008,6 +1175,11 @@ function validDob(control: AbstractControl): ValidationErrors | null {
                 <td z-table-cell>{{ relationship(row) }}</td>
                 <td z-table-cell>
                   {{ row.i_bendemographics?.m_district?.districtName ?? '—' }}
+                </td>
+                <td z-table-cell>
+                  <button z-button type="button" zType="outline" zSize="sm" (click)="viewAbhaDetails(row)">
+                    {{ 'registration.abha.view' | translate: lang() }}
+                  </button>
                 </td>
                 <td z-table-cell class="text-right">
                   <button z-button type="button" zType="outline" zSize="sm" (click)="selectBeneficiary(row)">
@@ -1028,6 +1200,9 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   private readonly callStore = inject(CallStore);
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
+  private readonly dialog = inject(ZardDialogService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly sms = inject(SmsService);
 
   readonly lang = this.i18n.language;
   readonly cli = this.callStore.cli;
@@ -1049,10 +1224,25 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly historyTimedOut = signal(false);
   /** Current page (1-indexed) of {@link historyResults}. */
   readonly historyPageIndex = signal(1);
+
+  /**
+   * Legacy landing gate ("Have you called earlier?"): `null` shows only the
+   * Yes/No prompt; `'yes'` reveals the registration-history table below (plus
+   * the quick Beneficiary ID/ABHA search); `'no'` jumps straight to the
+   * new-registration form, matching `calledEarlier()`'s two branches.
+   */
+  readonly calledEarlier = signal<'yes' | 'no' | null>(null);
+  readonly quickSearchTerm = signal('');
+  readonly quickSearchLoading = signal(false);
+  /** `null` shows the full CLI history below; set once a quick search runs. */
+  readonly quickSearchResults = signal<BeneficiaryRecord[] | null>(null);
+
+  /** The table shown under "Yes": the quick search's results, else the full CLI history. */
+  readonly displayedHistoryResults = computed(() => this.quickSearchResults() ?? this.historyResults());
   readonly historyTotalPages = computed(() =>
-    Math.max(1, Math.ceil(this.historyResults().length / RESULTS_PAGE_SIZE)),
+    Math.max(1, Math.ceil(this.displayedHistoryResults().length / RESULTS_PAGE_SIZE)),
   );
-  readonly pagedHistoryResults = computed(() => paginate(this.historyResults(), this.historyPageIndex()));
+  readonly pagedHistoryResults = computed(() => paginate(this.displayedHistoryResults(), this.historyPageIndex()));
 
   readonly searchResults = signal<BeneficiaryRecord[]>([]);
   readonly searchLoading = signal(false);
@@ -1098,8 +1288,21 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly parentBenName = signal<string | null>(null);
   private parentBenRegID: number | null = null;
 
+  /**
+   * True once an already-registered beneficiary has been selected for review:
+   * `registerForm` is pre-filled from their full record (legacy
+   * `populateRegistrationFormForUpdate`) and the page-2 footer offers
+   * "Modify" (persist edits) alongside "Proceed" (continue as-is) instead of
+   * "Register beneficiary".
+   */
+  readonly updateMode = signal(false);
+  readonly updateBeneficiaryRegID = signal<number | null>(null);
+  readonly updateDisplayId = signal<string | null>(null);
+  readonly loadingBeneficiaryDetail = signal(false);
+  readonly modifyLoading = signal(false);
+
   // --- Master data --------------------------------------------------------
-  readonly genders = signal<Gender[]>(GENDER_OPTIONS.map((g) => ({ genderID: g.genderID, genderName: g.genderName })));
+  readonly genders = signal<Gender[]>([]);
   readonly titles = signal<Title[]>([]);
   readonly communities = signal<Community[]>([]);
   readonly maritalStatuses = signal<MaritalStatus[]>([]);
@@ -1111,6 +1314,11 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   // --- Location cascade ---------------------------------------------------
   readonly states = signal<StateOption[]>([]);
   readonly districts = signal<DistrictOption[]>([]);
+  /** Districts for the search form's own State filter — kept separate from
+   * {@link districts} (the register-form address cascade) so switching views
+   * cannot leave one form's district list showing options for the other's
+   * selected state. */
+  readonly searchDistricts = signal<DistrictOption[]>([]);
   readonly subDistricts = signal<BlockOption[]>([]);
   readonly villages = signal<VillageOption[]>([]);
 
@@ -1129,6 +1337,8 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     lastName: new FormControl('', { nonNullable: true }),
     beneficiaryID: new FormControl('', { nonNullable: true }),
     genderID: new FormControl<number | null>(null),
+    stateID: new FormControl<number | null>(null),
+    districtID: new FormControl<number | null>(null),
   });
 
   readonly registerForm = new FormGroup({
@@ -1239,12 +1449,134 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
    * buttons also serve as the way back to the list).
    */
   showView(view: 'search' | 'register'): void {
-    this.activeView.set(this.activeView() === view ? 'list' : view);
+    const opening = this.activeView() !== view;
+    this.activeView.set(opening ? view : 'list');
+    // A fresh "Register new" must never carry over a previous "select
+    // existing beneficiary" review/edit session (updateMode + its prefilled
+    // form values) into what should be a blank new-registration form.
+    if (opening && view === 'register' && this.updateMode()) {
+      this.exitUpdateMode();
+    }
   }
 
   /** Return to the default registrations list from an active search/register flow. */
   backToList(): void {
     this.activeView.set('list');
+    if (this.updateMode()) {
+      this.exitUpdateMode();
+    }
+  }
+
+  /**
+   * Legacy 104-RO shell's "Cancel" button (`openDialog` — "Cancel Call"):
+   * abandons whatever registration entry is in progress and restarts the
+   * landing gate, without ending the call itself (that is the separate
+   * Closure step, reached only once a beneficiary is identified).
+   */
+  cancelToStart(): void {
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('registration.cancel.title'),
+        message: this.i18n.instant('registration.cancel.message'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+        if (this.updateMode()) {
+          this.exitUpdateMode();
+        }
+        this.activeView.set('list');
+        this.calledEarlier.set(null);
+        this.quickSearchTerm.set('');
+        this.quickSearchResults.set(null);
+        this.searchForm.reset({ firstName: '', lastName: '', beneficiaryID: '', genderID: null, stateID: null, districtID: null });
+        this.searchAttempted.set(false);
+        this.searchResults.set([]);
+        this.searchDistricts.set([]);
+      });
+  }
+
+  /** View a selected beneficiary's ABHA linkages, or note there are none (legacy `loadAbhaDetails`). */
+  viewAbhaDetails(row: BeneficiaryRecord): void {
+    if (!row.abhaDetails || row.abhaDetails.length === 0) {
+      this.confirmDialog
+        .alert({
+          title: this.i18n.instant('dashboard.dialog.info'),
+          message: this.i18n.instant('registration.abha.notAvailable'),
+          okText: this.i18n.instant('dashboard.dialog.ok'),
+          status: 'info',
+        })
+        .subscribe();
+      return;
+    }
+    this.dialog.create<AbhaDetailsDialogComponent, AbhaDetailsDialogData>({
+      zTitle: this.i18n.instant('registration.abha.title'),
+      zContent: AbhaDetailsDialogComponent,
+      zData: { abhaDetails: row.abhaDetails },
+      zHideFooter: true,
+      zWidth: '36rem',
+    });
+  }
+
+  /** Load districts for the search form's own State filter (independent of the register-form cascade). */
+  onSearchStateChange(): void {
+    const stateID = this.searchForm.controls.stateID.value;
+    this.searchDistricts.set([]);
+    this.searchForm.controls.districtID.setValue(null);
+    if (stateID == null) {
+      return;
+    }
+    this.beneficiary.getDistricts(stateID).subscribe({
+      next: (rows) => {
+        if (this.searchForm.controls.stateID.value === stateID) {
+          this.searchDistricts.set(rows);
+        }
+      },
+      error: () => undefined,
+    });
+  }
+
+  /** Clear review/edit-mode state and blank the form back to its new-registration defaults. */
+  private exitUpdateMode(): void {
+    this.updateMode.set(false);
+    this.updateBeneficiaryRegID.set(null);
+    this.updateDisplayId.set(null);
+    this.parentBenRegID = null;
+    // The summary bar was populated for review only — an abandoned review
+    // (Back to list / fresh Register new) must not leave a beneficiary
+    // "resolved" that the agent never actually proceeded with.
+    this.callStore.setBeneficiaryId(null);
+    this.registerForm.reset({
+      isHealthcareWorker: false,
+      isEmergency: false,
+      ageUnit: 'years',
+      relationshipTypeID: RELATIONSHIP_SELF,
+      govtIdentityNo: '',
+      houseNumber: '',
+      pincode: '',
+      alternateNumber1: '',
+      alternateNumber2: '',
+      alternateNumber3: '',
+      alternateNumber4: '',
+      alternateNumber5: '',
+      firstName: '',
+      lastName: '',
+      dob: '',
+      fatherName: '',
+      spouseName: '',
+    });
+    this.registerForm.controls.govtIdentityNo.disable();
+    this.isHealthcareWorker.set(false);
+    this.isEmergency.set(false);
+    this.idMaxLength.set(ID_VALIDATION_DEFAULT.maxLength);
+    this.districts.set([]);
+    this.subDistricts.set([]);
+    this.villages.set([]);
+    this.page.set(1);
   }
 
   ngOnInit(): void {
@@ -1343,6 +1675,47 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.loadHistory(cli);
   }
 
+  /** Legacy `calledEarlier(value)` — the landing gate's Yes/No choice. */
+  onCalledEarlier(value: 'yes' | 'no'): void {
+    this.calledEarlier.set(value);
+    if (value === 'no') {
+      this.activeView.set('register');
+    }
+  }
+
+  /** Legacy `retriveById` — the landing gate's quick Beneficiary ID/ABHA search. */
+  quickSearchById(): void {
+    const term = this.quickSearchTerm().trim();
+    if (!term) {
+      return;
+    }
+    const criteria = buildQuickSearchCriteria(term);
+    if (!criteria) {
+      toast.error(this.i18n.instant('registration.quickSearch.invalid'));
+      return;
+    }
+    this.quickSearchLoading.set(true);
+    this.beneficiary.searchBeneficiary(criteria).subscribe({
+      next: (rows) => {
+        this.quickSearchLoading.set(false);
+        this.quickSearchResults.set(rows);
+        this.historyPageIndex.set(1);
+      },
+      error: (err: BeneficiaryError) => {
+        this.quickSearchLoading.set(false);
+        this.quickSearchResults.set([]);
+        toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
+      },
+    });
+  }
+
+  /** Legacy `revertFullTable()` — drop the quick search, show the full CLI history again. */
+  viewAllHistory(): void {
+    this.quickSearchTerm.set('');
+    this.quickSearchResults.set(null);
+    this.historyPageIndex.set(1);
+  }
+
   /**
    * If a "Self" beneficiary already exists for this number, link new
    * registrations to it (legacy `setParentBenID`/`setParentBenName`): default
@@ -1381,6 +1754,9 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   onEmergencyChange(): void {
     const emergency = this.registerForm.controls.isEmergency.value;
     this.isEmergency.set(emergency);
+    // Legacy broadcasts this to closure via getCommonData.isEmergency so it can
+    // auto-select "Valid" as the call type for the same call.
+    this.callStore.setEmergencyCall(emergency);
     // Address is required only for non-emergency registrations.
     const addressControls = ['stateID', 'districtID', 'subDistrictID', 'villageID'] as const;
     for (const name of addressControls) {
@@ -1563,7 +1939,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     // Bump the request id first so any in-flight response (including one fired
     // before an empty-criteria reset) is treated as stale and dropped below.
     const requestId = ++this.searchRequestId;
-    const { firstName, lastName, beneficiaryID, genderID } = this.searchForm.getRawValue();
+    const { firstName, lastName, beneficiaryID, genderID, stateID, districtID } = this.searchForm.getRawValue();
     const hasCriteria = !!(firstName.trim() || lastName.trim() || beneficiaryID.trim());
     if (!hasCriteria) {
       this.searchResults.set([]);
@@ -1582,6 +1958,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       lastName: lastName.trim() || undefined,
       beneficiaryID: beneficiaryID.trim() || undefined,
       genderID: genderID ?? undefined,
+      ...(stateID != null || districtID != null ? { i_bendemographics: { stateID, districtID } } : {}),
     };
     this.lastSearchCriteria.set(criteria);
     this.runSearch(criteria, requestId);
@@ -1651,6 +2028,10 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   }
 
   doRegister(): void {
+    if (this.updateMode()) {
+      this.doModify();
+      return;
+    }
     this.registerError.set(null);
     // Hard guard: a disabled form reports as valid, so this must run before the
     // invalid-check below to stop a submit with an empty phoneNo.
@@ -1728,15 +2109,12 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       .subscribe({
         next: (created) => {
           this.registerLoading.set(false);
-          this.resolveBeneficiary(created.beneficiaryRegID, 'registration.toast.registered', v.districtID, {
-            firstName: v.firstName.trim() || null,
-            lastName: v.lastName.trim() || null,
-            // Age captured in years only (the form's default age unit); other
-            // units are left null so the clinical tools don't misread them.
-            age: v.ageUnit === 'years' ? v.age : null,
-            genderId: v.genderID,
-            genderName,
-          });
+          this.showRegistrationSuccess(
+            created.beneficiaryRegID,
+            String(created.beneficiaryID ?? created.beneficiaryRegID),
+            v.districtID,
+            this.buildDemographicsFromForm(String(created.beneficiaryID ?? created.beneficiaryRegID)),
+          );
         },
         error: (err: BeneficiaryError) => {
           this.registerLoading.set(false);
@@ -1775,23 +2153,268 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     );
   }
 
-  /** Select an existing beneficiary for this call. */
+  /**
+   * Select an existing beneficiary for this call. Legacy (`selectBeneficiary`
+   * → `populateUserData` → `retrieveRegHistory` → `populateRegistrationFormForUpdate`)
+   * fetches the full record and lets the agent review/edit it in the same
+   * form used for new registration before proceeding — never navigates
+   * straight into the workspace from the results table.
+   */
   selectBeneficiary(row: BeneficiaryRecord): void {
-    // Age is only meaningful in years for the clinical tools; a months/days
-    // infant age is left null rather than mis-read as years.
-    const ageInYears = row.ageUnits === undefined || /year/i.test(row.ageUnits) ? (row.actualAge ?? null) : null;
-    this.resolveBeneficiary(
-      row.beneficiaryRegID,
-      'registration.toast.selected',
-      readDistrictID(row.i_bendemographics?.['districtID']),
-      {
-        firstName: row.firstName ?? null,
-        lastName: row.lastName ?? null,
-        age: ageInYears,
-        genderId: row.m_gender?.genderID ?? null,
-        genderName: row.m_gender?.genderName ?? null,
+    this.loadingBeneficiaryDetail.set(true);
+    this.beneficiary.retrieveRegHistory(row.beneficiaryRegID).subscribe({
+      next: (records) => {
+        this.loadingBeneficiaryDetail.set(false);
+        const detail = records[0];
+        if (!detail) {
+          toast.error(this.i18n.instant('registration.toast.error'));
+          return;
+        }
+        this.populateFormForUpdate(detail);
       },
+      error: () => {
+        this.loadingBeneficiaryDetail.set(false);
+        toast.error(this.i18n.instant('registration.toast.error'));
+      },
+    });
+  }
+
+  /** Fill `registerForm` from a full beneficiary record and enter review/edit mode. */
+  private populateFormForUpdate(detail: BeneficiaryRecord): void {
+    const demo = detail.i_bendemographics;
+    const isHcw = demo?.healthCareWorkerID != null;
+    this.updateMode.set(true);
+    this.updateBeneficiaryRegID.set(detail.beneficiaryRegID);
+    this.updateDisplayId.set(String(detail.beneficiaryID ?? detail.beneficiaryRegID));
+    // Populate the persistent summary bar immediately, like legacy — it shows
+    // through the whole review/edit flow, not just once the agent proceeds.
+    this.callStore.setBeneficiaryId(detail.beneficiaryRegID, readDistrictID(demo?.districtID));
+    this.callStore.setDemographics(this.buildDemographicsFromDetail(detail));
+    this.isHealthcareWorker.set(isHcw);
+    this.isEmergency.set(false);
+    if (isHcw && this.hcwTypes().length === 0) {
+      this.beneficiary.getHealthCareWorkerTypes().subscribe({
+        next: (types) => this.hcwTypes.set(types),
+        error: () => undefined,
+      });
+    }
+
+    const identityType = detail.govtIdentityTypeID ?? null;
+    const govtIdentityNoControl = this.registerForm.controls.govtIdentityNo;
+    if (identityType == null) {
+      govtIdentityNoControl.disable();
+      this.idMaxLength.set(ID_VALIDATION_DEFAULT.maxLength);
+    } else {
+      const rule = ID_VALIDATION[identityType] ?? ID_VALIDATION_DEFAULT;
+      govtIdentityNoControl.setValidators([optionalPattern(rule.pattern)]);
+      govtIdentityNoControl.enable();
+      this.idMaxLength.set(rule.maxLength);
+    }
+
+    this.registerForm.patchValue({
+      isHealthcareWorker: isHcw,
+      isEmergency: false,
+      healthCareWorkerID: demo?.healthCareWorkerID ?? null,
+      titleId: detail.titleId ?? null,
+      firstName: detail.firstName ?? '',
+      lastName: detail.lastName ?? '',
+      genderID: detail.m_gender?.genderID ?? null,
+      dob: detail.dOB ? toDateInput(new Date(detail.dOB)) : '',
+      age: detail.actualAge ?? null,
+      ageUnit: normalizeAgeUnit(detail.ageUnits),
+      relationshipTypeID: detail.benPhoneMaps?.[0]?.benRelationshipID ?? RELATIONSHIP_SELF,
+      communityID: demo?.communityID ?? null,
+      maritalStatusID: detail.maritalStatusID ?? detail.maritalStatus?.maritalStatusID ?? null,
+      fatherName: detail.fatherName ?? '',
+      spouseName: detail.spouseName ?? '',
+      educationID: demo?.educationID ?? null,
+      identityType,
+      govtIdentityNo: detail.govtIdentityNo ?? '',
+      stateID: readDistrictID(demo?.stateID),
+      districtID: readDistrictID(demo?.districtID),
+      subDistrictID: readDistrictID(demo?.blockID),
+      villageID: readDistrictID(demo?.districtBranchID),
+      houseNumber: demo?.addressLine1 ?? '',
+      pincode: demo?.pinCode ?? '',
+      alternateNumber1: detail.benPhoneMaps?.[1]?.phoneNo ?? '',
+      alternateNumber2: detail.benPhoneMaps?.[2]?.phoneNo ?? '',
+      alternateNumber3: detail.benPhoneMaps?.[3]?.phoneNo ?? '',
+      alternateNumber4: detail.benPhoneMaps?.[4]?.phoneNo ?? '',
+      alternateNumber5: detail.benPhoneMaps?.[5]?.phoneNo ?? '',
+    });
+    this.parentBenRegID = detail.benPhoneMaps?.[0]?.parentBenRegID ?? null;
+    this.cascadeLoadAddress(readDistrictID(demo?.stateID), readDistrictID(demo?.districtID), readDistrictID(demo?.blockID));
+
+    this.activeView.set('register');
+    this.page.set(1);
+  }
+
+  /**
+   * Load the state→district→sub-district→village option lists in sequence
+   * for a pre-filled address, without resetting the (already-set) downstream
+   * form values the way the user-driven `onStateChange`/etc. handlers do.
+   */
+  private cascadeLoadAddress(stateID: number | null, districtID: number | null, subDistrictID: number | null): void {
+    if (stateID == null) {
+      return;
+    }
+    this.beneficiary.getDistricts(stateID).subscribe({
+      next: (rows) => {
+        this.districts.set(rows);
+        if (districtID == null) {
+          return;
+        }
+        this.beneficiary.getSubDistricts(districtID).subscribe({
+          next: (subRows) => {
+            this.subDistricts.set(subRows);
+            if (subDistrictID == null) {
+              return;
+            }
+            this.beneficiary.getVillages(subDistrictID).subscribe({
+              next: (villageRows) => this.villages.set(villageRows),
+              error: () => undefined,
+            });
+          },
+          error: () => undefined,
+        });
+      },
+      error: () => undefined,
+    });
+  }
+
+  /**
+   * Build the demographics summary directly from a fetched record — legacy's
+   * `innerpage.component.ts handleSuccess()` reads the same nested fields
+   * this way, and shows the bar as fetched rather than reactively following
+   * later form edits.
+   */
+  private buildDemographicsFromDetail(detail: BeneficiaryRecord): CallerDemographics {
+    const demo = detail.i_bendemographics;
+    const ageInYears = detail.ageUnits === undefined || /year/i.test(detail.ageUnits) ? (detail.actualAge ?? null) : null;
+    return {
+      firstName: detail.firstName ?? null,
+      lastName: detail.lastName ?? null,
+      age: ageInYears,
+      genderId: detail.m_gender?.genderID ?? null,
+      genderName: detail.m_gender?.genderName ?? null,
+      displayId: String(detail.beneficiaryID ?? detail.beneficiaryRegID),
+      stateName: demo?.m_state?.stateName ?? null,
+      districtName: demo?.m_district?.districtName ?? null,
+      subDistrictName: demo?.m_districtbranchmapping?.blockName ?? null,
+      villageName: demo?.m_districtbranchmapping?.villageName ?? null,
+      maritalStatus: detail.maritalStatus?.status ?? null,
+      category:
+        demo?.healthCareWorkerID != null
+          ? `Healthcare Worker: ${demo.healthCareWorkerType?.healthCareWorkerType ?? ''}`.trim()
+          : 'General Public',
+      communityName: demo?.communityName ?? null,
+      educationName: demo?.educationName ?? null,
+    };
+  }
+
+  /** Build the demographics summary from the form's current values plus resolved master-data labels. */
+  private buildDemographicsFromForm(displayId: string | null): CallerDemographics {
+    const v = this.registerForm.getRawValue();
+    const genderName = this.genders().find((g) => g.genderID === v.genderID)?.genderName ?? '';
+    const hcwType = v.isHealthcareWorker
+      ? this.hcwTypes().find((h) => h.healthCareWorkerID === v.healthCareWorkerID)?.healthCareWorkerType
+      : null;
+    return {
+      firstName: v.firstName.trim() || null,
+      lastName: v.lastName.trim() || null,
+      age: v.ageUnit === 'years' ? v.age : null,
+      genderId: v.genderID,
+      genderName,
+      displayId,
+      stateName: this.states().find((s) => s.stateID === v.stateID)?.stateName ?? null,
+      districtName: this.districts().find((d) => d.districtID === v.districtID)?.districtName ?? null,
+      subDistrictName: this.subDistricts().find((b) => b.blockID === v.subDistrictID)?.blockName ?? null,
+      villageName: this.villages().find((vg) => vg.districtBranchID === v.villageID)?.villageName ?? null,
+      maritalStatus: this.maritalStatuses().find((m) => m.maritalStatusID === v.maritalStatusID)?.status ?? null,
+      category: v.isHealthcareWorker ? `Healthcare Worker: ${hcwType ?? ''}`.trim() : 'General Public',
+      communityName: this.communities().find((c) => c.communityID === v.communityID)?.communityType ?? null,
+      educationName: this.educations().find((e) => e.educationID === v.educationID)?.educationType ?? null,
+    };
+  }
+
+  /** "Proceed" — continue into the workspace with the reviewed (possibly unmodified) details. */
+  proceedWithoutModifying(): void {
+    const beneficiaryRegID = this.updateBeneficiaryRegID();
+    if (beneficiaryRegID === null) {
+      return;
+    }
+    const v = this.registerForm.getRawValue();
+    this.resolveBeneficiary(
+      beneficiaryRegID,
+      'registration.toast.selected',
+      v.districtID,
+      this.buildDemographicsFromForm(this.updateDisplayId()),
     );
+  }
+
+  /** "Modify" — persist the agent's edits (legacy `updateBeneficiary`), then proceed. */
+  doModify(): void {
+    const beneficiaryRegID = this.updateBeneficiaryRegID();
+    if (beneficiaryRegID === null || this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      if (this.isPage1Invalid()) {
+        this.page.set(1);
+      }
+      return;
+    }
+    const v = this.registerForm.getRawValue();
+    if (v.genderID == null) {
+      return;
+    }
+    const createdBy = this.authStore.user()?.userName ?? '';
+    const role = this.authStore.currentRole();
+
+    const payload: UpdateBeneficiaryRequest = {
+      beneficiaryRegID,
+      firstName: v.firstName.trim(),
+      lastName: v.lastName.trim() || null,
+      dOB: v.dob ? `${v.dob}T00:00:00.000Z` : undefined,
+      ageUnits: v.ageUnit,
+      fatherName: v.fatherName.trim() || null,
+      spouseName: v.spouseName.trim() || null,
+      beneficiaryIdentities: [
+        {
+          govtIdentityNo: v.govtIdentityNo.trim(),
+          govtIdentityTypeID: v.identityType ?? '',
+        },
+      ],
+      createdBy,
+      titleId: v.titleId,
+      maritalStatusID: v.maritalStatusID ?? '',
+      genderID: v.genderID,
+      vanID: role?.serviceID ?? null,
+      i_bendemographics: {
+        beneficiaryRegID,
+        educationID: v.educationID ?? '',
+        healthCareWorkerID: v.isHealthcareWorker ? v.healthCareWorkerID : null,
+        communityID: v.communityID,
+        districtID: v.districtID,
+        stateID: v.stateID,
+        pinCode: v.pincode.trim(),
+        blockID: v.subDistrictID,
+        districtBranchID: v.villageID,
+        addressLine1: v.houseNumber.trim(),
+        createdBy,
+      },
+    };
+
+    this.modifyLoading.set(true);
+    this.beneficiary.update(payload).subscribe({
+      next: () => {
+        this.modifyLoading.set(false);
+        toast.success(this.i18n.instant('registration.toast.modified'));
+        this.proceedWithoutModifying();
+      },
+      error: (err: BeneficiaryError) => {
+        this.modifyLoading.set(false);
+        toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
+      },
+    });
   }
 
   hasUnsavedChanges(): boolean {
@@ -1811,6 +2434,99 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     const featureCode = this.authStore.currentRole()?.featureCode;
     const path = resolveDispatchPath(featureCode, this.authStore.privileges());
     void this.router.navigate(path ? ['/innerpage', path] : ['/innerpage']);
+  }
+
+  private showRegistrationSuccess(
+    beneficiaryRegID: number,
+    generatedId: string,
+    districtID: number | null,
+    demographics: CallerDemographics,
+  ): void {
+    this.registerForm.markAsPristine();
+    const dialogRef = this.dialog.create<RegistrationSuccessDialogComponent, RegistrationSuccessDialogData>({
+      zTitle: this.i18n.instant('registration.success.title'),
+      zContent: RegistrationSuccessDialogComponent,
+      zData: { registrationId: generatedId },
+      zHideFooter: true,
+      zMaskClosable: false,
+      zWidth: '26rem',
+    });
+    dialogRef.afterClosed().subscribe((result: RegistrationSuccessDialogResult | undefined) => {
+      const proceed = () => this.proceedAfterRegistration(beneficiaryRegID, districtID, demographics);
+      if (result?.sendSms) {
+        this.sendRegistrationSms(beneficiaryRegID, result.alternateNumber, proceed);
+      } else {
+        proceed();
+      }
+    });
+  }
+
+  private sendRegistrationSms(beneficiaryRegID: number, alternateNumber: string | null, onDone: () => void): void {
+    const role = this.authStore.currentRole();
+    const providerServiceMapID = role?.providerServiceMapID ?? null;
+    const serviceID = role?.serviceID ?? null;
+    const createdBy = this.authStore.user()?.userName ?? '';
+    this.sms.getSmsTypes(serviceID).subscribe({
+      next: (types) => {
+        const smsType = types.find((t) => t.smsType.toLowerCase() === 'registration sms');
+        if (!smsType) {
+          onDone();
+          return;
+        }
+        this.sms.getSmsTemplates(providerServiceMapID, smsType.smsTypeID).subscribe({
+          next: (templates) => {
+            const template = templates.find((t) => t.deleted === false);
+            if (!template) {
+              onDone();
+              return;
+            }
+            this.sms
+              .sendSms([
+                {
+                  beneficiaryRegID,
+                  smsTemplateID: template.smsTemplateID,
+                  smsTemplateTypeID: smsType.smsTypeID,
+                  providerServiceMapID,
+                  createdBy,
+                  alternateNo: alternateNumber,
+                  is1097: false,
+                },
+              ])
+              .subscribe({
+                next: () => {
+                  toast.success(this.i18n.instant('registration.success.smsSent'));
+                  onDone();
+                },
+                error: () => onDone(),
+              });
+          },
+          error: () => onDone(),
+        });
+      },
+      error: () => onDone(),
+    });
+  }
+
+  private proceedAfterRegistration(beneficiaryRegID: number, districtID: number | null, demographics: CallerDemographics): void {
+    this.callStore.setBeneficiaryId(beneficiaryRegID, districtID);
+    this.callStore.setDemographics(demographics);
+    toast.success(this.i18n.instant('registration.toast.registered'));
+    const featureCode = this.authStore.currentRole()?.featureCode;
+    const path = resolveDispatchPath(featureCode, this.authStore.privileges());
+    if (path !== 'hao') {
+      void this.router.navigate(path ? ['/innerpage', path] : ['/innerpage']);
+      return;
+    }
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('registration.continueHao.title'),
+        message: this.i18n.instant('registration.continueHao.message'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+      })
+      .subscribe((confirmed) => {
+        void this.router.navigate(confirmed ? ['/innerpage', 'hao'] : ['/innerpage']);
+      });
   }
 
   // --- Age <-> DOB math ---------------------------------------------------
@@ -1870,6 +2586,7 @@ type RegisterControlName =
   | 'lastName'
   | 'genderID'
   | 'age'
+  | 'ageUnit'
   | 'dob'
   | 'govtIdentityNo'
   | 'stateID'

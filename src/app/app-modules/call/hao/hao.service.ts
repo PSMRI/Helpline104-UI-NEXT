@@ -29,12 +29,22 @@ import { DiseaseSummaryDetail } from '../case-sheet/disease-summary.models';
 import {
   ApiResponse,
   AvailableDisease,
+  AvailableService,
   CallType,
   CampaignSkill,
+  CaseSheetHistoryEntry,
   CaseSheetRequest,
   CaseSheetResponse,
   CloseCallRequest,
+  CovidVaccinationDetails,
+  CovidVaccineMasterData,
+  GuidelineCategory,
+  GuidelineDetail,
+  GuidelineSubCategory,
+  InstituteName,
+  InstituteType,
   PresentCaseSheet,
+  SaveCovidVaccinationRequest,
   TransferCallRequest,
   TransferCampaign,
 } from './hao.models';
@@ -45,7 +55,9 @@ const PATHS = {
   availableDiseases: 'diseaseController/getAvailableDiseases',
   diseaseByID: 'diseaseController/getDiseasesByID',
   presentCaseSheet: 'beneficiary/getPresentCaseSheet',
+  caseSheetHistory: 'beneficiary/get104BenMedHistory',
   saveCaseSheet: 'beneficiary/save/benCaseSheet',
+  availableServices: 'beneficiary/get/services',
   // Closure / call lifecycle — common-api
   callTypes: 'call/getCallTypesV1',
   closeCall: 'call/closeCall',
@@ -53,6 +65,15 @@ const PATHS = {
   transferCampaigns: 'cti/getTransferCampaigns',
   campaignSkills: 'cti/getCampaignSkills',
   transferCall: 'cti/transferCall',
+  // COVID vaccine status (case sheet) — common-api
+  covidVaccineMaster: 'covid/master/VaccinationTypeAndDoseTaken',
+  covidVaccinationDetails: 'covid/getCovidVaccinationDetails',
+  saveCovidVaccination: 'covid/saveCovidVaccinationDetails',
+  guidelineCategories: 'service/category',
+  guidelineSubCategories: 'service/subcategory',
+  guidelineDetails: 'service/getSubCategoryFilesWithURL',
+  instituteTypes: 'institute/getInstituteTypes',
+  instituteNames: 'institute/getInstituteName/',
 } as const;
 
 /**
@@ -159,6 +180,22 @@ export class HaoService {
       );
   }
 
+  /**
+   * Prior 104 case sheets recorded for the beneficiary across previous calls
+   * (legacy `caseSheetService.getCaseSheetData`, rendered by
+   * `case-sheet-history.html`). Resolves to `[]` when none exist yet.
+   */
+  getCaseSheetHistory(beneficiaryRegID: number): Observable<CaseSheetHistoryEntry[]> {
+    return this.http
+      .post<ApiResponse<CaseSheetHistoryEntry[]>>(this.base104 + PATHS.caseSheetHistory, {
+        beneficiaryRegID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? []),
+      );
+  }
+
   /** Persist the Health Advisory case sheet for the active beneficiary. */
   saveCaseSheet(request: CaseSheetRequest): Observable<CaseSheetResponse> {
     return this.http
@@ -166,6 +203,38 @@ export class HaoService {
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => res.data ?? {}),
+      );
+  }
+
+  /** Vaccine-type and dose-taken catalogue for the Covid Vaccine Status form. */
+  getCovidVaccineMasterData(): Observable<CovidVaccineMasterData | null> {
+    return this.http
+      .get<ApiResponse<CovidVaccineMasterData>>(this.baseCommon + PATHS.covidVaccineMaster)
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? null),
+      );
+  }
+
+  /** Previously-recorded vaccination status for the active beneficiary, if any. */
+  getCovidVaccinationDetails(beneficiaryRegID: number): Observable<CovidVaccinationDetails | null> {
+    return this.http
+      .post<ApiResponse<CovidVaccinationDetails>>(this.baseCommon + PATHS.covidVaccinationDetails, {
+        beneficiaryRegID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? null),
+      );
+  }
+
+  /** Persist the Covid Vaccine Status sub-form. */
+  saveCovidVaccinationDetails(request: SaveCovidVaccinationRequest): Observable<CovidVaccinationDetails | null> {
+    return this.http
+      .post<ApiResponse<CovidVaccinationDetails>>(this.baseCommon + PATHS.saveCovidVaccination, request)
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data ?? null),
       );
   }
 
@@ -207,6 +276,21 @@ export class HaoService {
           }
           return res.data;
         }),
+      );
+  }
+
+  getAvailableServices(serviceID: number | null, isInbound: boolean): Observable<AvailableService[]> {
+    if (serviceID === null) {
+      return throwError(() => new Error('getAvailableServices: serviceID is required'));
+    }
+    return this.http
+      .post<ApiResponse<AvailableService[]>>(this.base104 + PATHS.availableServices, {
+        providerServiceMapID: serviceID,
+        ...(isInbound ? { isInbound: true } : { isOutbound: true }),
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
       );
   }
 
@@ -290,6 +374,69 @@ export class HaoService {
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => assertCallActionSucceeded(res, 'transferCall')),
+      );
+  }
+
+  getGuidelineCategories(
+    providerServiceMapID: number | null,
+    subServiceID: number | null,
+  ): Observable<GuidelineCategory[]> {
+    return this.http
+      .post<ApiResponse<GuidelineCategory[]>>(this.baseCommon + PATHS.guidelineCategories, {
+        providerServiceMapID,
+        subServiceID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
+  }
+
+  getGuidelineSubCategories(categoryID: number): Observable<GuidelineSubCategory[]> {
+    return this.http
+      .post<ApiResponse<GuidelineSubCategory[]>>(this.baseCommon + PATHS.guidelineSubCategories, {
+        categoryID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
+  }
+
+  getGuidelineDetails(
+    categoryID: number | null,
+    subCategoryID: number | null,
+    providerServiceMapID: number | null,
+  ): Observable<GuidelineDetail[]> {
+    return this.http
+      .post<ApiResponse<GuidelineDetail[]>>(this.baseCommon + PATHS.guidelineDetails, {
+        categoryID,
+        subCategoryID,
+        providerServiceMapID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
+  }
+
+  getInstituteTypes(providerServiceMapID: number | null): Observable<InstituteType[]> {
+    return this.http
+      .post<ApiResponse<InstituteType[]>>(this.config.getCommonBaseURL() + PATHS.instituteTypes, {
+        providerServiceMapID,
+      })
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
+      );
+  }
+
+  getInstituteNames(institutionTypeID: number): Observable<InstituteName[]> {
+    return this.http
+      .get<ApiResponse<InstituteName[]>>(this.config.getCommonBaseURL() + PATHS.instituteNames + institutionTypeID)
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => (Array.isArray(res.data) ? res.data : [])),
       );
   }
 }

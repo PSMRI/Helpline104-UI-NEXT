@@ -97,7 +97,11 @@ const WEBSITE_PATTERN = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9.-]+\.[a-zA-
               <span class="text-destructive">*</span>
             </label>
             <input id="blood-url" z-input class="w-full" [formControl]="url" />
-            @if (url.hasError('pattern') && url.touched) {
+            @if (url.hasError('required') && url.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            } @else if (url.hasError('pattern') && url.touched) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supBlood.invalidUrl' | translate: lang() }}
               </p>

@@ -66,4 +66,6 @@ export interface SendSmsRequest {
   /** Recipient number; the caller's CLI unless an alternate is entered. */
   alternateNo: string | null;
   is1097: boolean;
+  /** Set only by the prescription "Resend" SMS — one request per selected drug line. */
+  prescribedDrugID?: number;
 }

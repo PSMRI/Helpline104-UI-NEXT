@@ -32,8 +32,10 @@ const ORGANISATION = 'PSMRI';
 /**
  * Shared footer used by the role-selection and dashboard screens: the
  * organisation copyright line and the app version (read dynamically from
- * `package.json`). Screen-specific controls (feedback link, CZentrix toggle, …)
- * are projected into the trailing actions slot via `<ng-content>`.
+ * `package.json`). Screen-specific controls project into two trailing slots:
+ * the default slot (e.g. the feedback link) renders before the version text,
+ * and `[footerCorner]` renders after it — the true bottom-right corner, for
+ * controls that must sit past Version, not just somewhere in that group.
  */
 @Component({
   selector: 'app-shell-footer',
@@ -42,7 +44,7 @@ const ORGANISATION = 'PSMRI';
   imports: [TranslatePipe],
   template: `
     <footer
-      class="flex flex-wrap items-center justify-between gap-2 bg-foreground px-4 py-2 text-xs text-background sm:px-6"
+      class="relative z-[60] flex flex-wrap items-center justify-between gap-2 bg-foreground px-4 py-2 text-xs text-background sm:px-6"
     >
       <span class="flex items-center gap-1">
         <span>{{ copyrightYear }}</span>
@@ -53,6 +55,7 @@ const ORGANISATION = 'PSMRI';
       <div class="flex items-center gap-4">
         <ng-content />
         <span>{{ 'dashboard.footer.version' | translate: lang() }} {{ appVersion }}</span>
+        <ng-content select="[footerCorner]" />
       </div>
     </footer>
   `,

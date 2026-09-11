@@ -24,6 +24,9 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, ou
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideSearch } from '@ng-icons/lucide';
+
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
@@ -42,14 +45,34 @@ import type { CdssGender, CdssSelection } from '../../case-sheet/cdss.models';
 import { DiseaseSummaryDetail } from '../../case-sheet/disease-summary.models';
 import { SnomedSearchComponent } from '../../case-sheet/snomed-search.component';
 import type { SnomedTerm } from '../../case-sheet/snomed.models';
+import { PrescriptionComponent } from '../../case-sheet/prescription.component';
+import { PrescriptionRecord } from '../../case-sheet/prescription.models';
+import { PrescriptionService } from '../../case-sheet/prescription.service';
 import { ViewDiseaseSummaryDetailsComponent } from '../../case-sheet/view-disease-summary-details.component';
-import { AvailableDisease, CaseSheetRequest, PresentCaseSheet } from '../hao.models';
+import {
+  AvailableDisease,
+  CaseSheetRequest,
+  CovidDoseType,
+  CovidVaccineType,
+  GuidelineCategory,
+  GuidelineDetail,
+  GuidelineSubCategory,
+  PresentCaseSheet,
+  SaveCovidVaccinationRequest,
+} from '../hao.models';
 import { HaoService } from '../hao.service';
+import { CaseSheetHistoryComponent } from './case-sheet-history.component';
+
+const MO_FEATURE_CODE = 'MO';
+
+const RECENT_PRESCRIPTION_WINDOW_MS = 5 * 24 * 60 * 60 * 1000;
 
 /** History tabs shown in the case-sheet history section. */
-type HistoryTab = 'mcts' | 'mmu' | 'tm';
+type HistoryTab = 'own' | 'mcts' | 'mmu' | 'tm';
+type ChiefComplaintMode = 'complaint' | 'summary';
+type VaccineStatus = 'YES' | 'NO';
+type WellbeingOrInfo = '1' | '2';
 
-/** Map a gender name (any casing) to the single-letter CDSS gender code. */
 function toCdssGender(genderName: string | null | undefined): CdssGender | null {
   switch (genderName?.trim().charAt(0).toUpperCase()) {
     case 'M':
@@ -63,16 +86,8 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
   }
 }
 
-/**
- * Health Advisory case sheet — the primary HAO service (legacy `<app-case-sheet>`,
- * the default tab of the "Provide Service" step).
- *
- * A focused reactive form capturing the chief complaint, an optional provisional
- * diagnosis (from the disease catalogue), the advice given and remarks. Saving
- * persists the sheet for the active beneficiary and emits {@link serviceAvailed}
- * so the workspace can mark the call valid at closure (legacy
- * `serviceAvailed.next(true)`).
- */
+const MIN_VACCINE_AGE = 12;
+
 @Component({
   selector: 'app-hao-case-sheet',
   standalone: true,
@@ -82,75 +97,398 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
     TranslatePipe,
     ZardButtonComponent,
     ZardInputDirective,
+    CaseSheetHistoryComponent,
+    NgIcon,
     CasesheetHistoryMctsComponent,
     CasesheetHistoryMmuComponent,
     ViewDiseaseSummaryDetailsComponent,
     SnomedSearchComponent,
     CdssComponent,
+    PrescriptionComponent,
   ],
+  viewProviders: [provideIcons({ lucideSearch })],
   template: `
+    <h2 class="mb-2 text-base font-semibold text-foreground">
+      {{ (isCo() ? 'hao.caseSheet.counsellingSheet' : 'hao.caseSheet.caseSheet') | translate: lang() }}
+    </h2>
+
+    <div class="mb-4 rounded-lg border border-border bg-muted/30 p-3 text-sm">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-foreground">
+        <span class="font-semibold">{{ callerName() || '—' }}</span>
+        <span>{{ callStore.cli() || '—' }}</span>
+        @if (patientGenderName(); as g) {
+          <span>{{ g }}</span>
+        }
+        @if (patientAge(); as a) {
+          <span>{{ 'hao.caseSheet.age' | translate: lang() }}: {{ a }}</span>
+        }
+      </div>
+    </div>
+
     <form class="flex flex-col gap-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
       <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium" for="hao-cs-complaints">
-          {{ 'hao.caseSheet.chiefComplaints' | translate: lang() }}
-          <span class="text-destructive" aria-hidden="true">*</span>
-        </label>
-        <textarea
-          z-input
-          id="hao-cs-complaints"
-          rows="3"
-          maxlength="2000"
-          formControlName="chiefComplaints"
-          [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
-          [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
-          [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
-        ></textarea>
-        @if (isInvalid('chiefComplaints')) {
-          <p id="hao-cs-complaints-error" class="text-xs font-medium text-destructive" role="alert">
-            @if (form.controls.chiefComplaints.hasError('maxlength')) {
-              {{ 'hao.caseSheet.chiefComplaintsTooLong' | translate: lang() }}
-            } @else {
-              {{ 'hao.caseSheet.chiefComplaintsRequired' | translate: lang() }}
-            }
-          </p>
-        }
-        <!-- SNOMED CT search: picking a term fills the chief complaint above. -->
-        <app-snomed-search (selected)="onSnomedSelected($event)" />
+        <label class="text-sm font-medium">{{ 'hao.caseSheet.patientIs' | translate: lang() }}</label>
+        <div class="flex gap-4 text-sm">
+          <label class="flex items-center gap-2">
+            <input type="radio" formControlName="isPatientOther" [value]="false" />
+            {{ 'hao.caseSheet.patientIsSelf' | translate: lang() }}
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="radio" formControlName="isPatientOther" [value]="true" />
+            {{ 'hao.caseSheet.patientIsOther' | translate: lang() }}
+          </label>
+        </div>
       </div>
 
-      <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium" for="hao-cs-diagnosis">
-          {{ 'hao.caseSheet.provisionalDiagnosis' | translate: lang() }}
-        </label>
-        <div class="flex flex-wrap items-center gap-2">
-          <select
-            id="hao-cs-diagnosis"
-            formControlName="provisionalDiagnosisID"
-            class="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <option [ngValue]="null">
-              {{ 'hao.caseSheet.selectDiagnosis' | translate: lang() }}
-            </option>
-            @for (disease of diseases(); track disease.diseasesummaryID) {
-              <option [ngValue]="disease.diseasesummaryID">{{ disease.diseaseName }}</option>
-            }
-          </select>
+      @if (form.controls.isPatientOther.value) {
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-first-name">
+              {{ 'hao.caseSheet.firstName' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </label>
+            <input z-input id="hao-cs-first-name" type="text" maxlength="50" formControlName="patientFirstName" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-last-name">
+              {{ 'hao.caseSheet.lastName' | translate: lang() }}
+            </label>
+            <input z-input id="hao-cs-last-name" type="text" maxlength="50" formControlName="patientLastName" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-gender">
+              {{ 'hao.caseSheet.gender' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="hao-cs-gender"
+              formControlName="patientGenderID"
+              class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">{{ 'hao.caseSheet.selectGender' | translate: lang() }}</option>
+              <option value="M">{{ 'hao.caseSheet.genderMale' | translate: lang() }}</option>
+              <option value="F">{{ 'hao.caseSheet.genderFemale' | translate: lang() }}</option>
+              <option value="T">{{ 'hao.caseSheet.genderTransgender' | translate: lang() }}</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-age">
+              {{ 'hao.caseSheet.age' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </label>
+            <input z-input id="hao-cs-age" type="number" min="1" max="120" formControlName="patientAgeValue" />
+          </div>
+        </div>
+        @if (isHao()) {
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium" for="hao-cs-age-unit">
+                {{ 'hao.caseSheet.ageUnit' | translate: lang() }}
+              </label>
+              <select
+                id="hao-cs-age-unit"
+                formControlName="patientAgeUnit"
+                class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="days">{{ 'hao.caseSheet.ageUnitDays' | translate: lang() }}</option>
+                <option value="months">{{ 'hao.caseSheet.ageUnitMonths' | translate: lang() }}</option>
+                <option value="years">{{ 'hao.caseSheet.ageUnitYears' | translate: lang() }}</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium" for="hao-cs-dob">
+                {{ 'hao.caseSheet.dob' | translate: lang() }}
+              </label>
+              <input z-input id="hao-cs-dob" type="date" formControlName="patientDOB" />
+            </div>
+          </div>
+        }
+      }
+
+      @if (isCo()) {
+        <p class="text-xs text-muted-foreground">{{ 'hao.caseSheet.categoryGuidelineNote' | translate: lang() }}</p>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div class="flex gap-4 text-sm">
+            <label class="flex items-center gap-2">
+              <input type="radio" formControlName="wellbeingOrInfo" value="1" />
+              {{ 'hao.caseSheet.wellBeing' | translate: lang() }}
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" formControlName="wellbeingOrInfo" value="2" />
+              {{ 'hao.caseSheet.information' | translate: lang() }}
+            </label>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-category">
+              {{ 'hao.caseSheet.category' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="hao-cs-category"
+              formControlName="categoryID"
+              class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">{{ 'hao.caseSheet.selectCategory' | translate: lang() }}</option>
+              @for (c of filteredCategories(); track c.categoryID) {
+                <option [ngValue]="c.categoryID">{{ c.categoryName }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-subcategory">
+              {{ 'hao.caseSheet.subCategory' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cs-subcategory"
+              formControlName="subCategoryID"
+              class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">{{ 'hao.caseSheet.selectSubCategory' | translate: lang() }}</option>
+              @for (sc of subCategories(); track sc.subCategoryID) {
+                <option [ngValue]="sc.subCategoryID">{{ sc.subCategoryName }}</option>
+              }
+            </select>
+          </div>
+
           <button
             z-button
             type="button"
             zType="outline"
             zSize="sm"
-            [zLoading]="loadingDisease()"
-            [zDisabled]="form.controls.provisionalDiagnosisID.value === null || loadingDisease()"
-            (click)="openDiseaseSummary()"
+            [zLoading]="loadingGuidelines()"
+            [zDisabled]="form.controls.categoryID.value === null || loadingGuidelines()"
+            [attr.aria-label]="'hao.caseSheet.getGuidelines' | translate: lang()"
+            (click)="searchGuidelines()"
           >
-            {{ 'hao.caseSheet.viewDiseaseSummary' | translate: lang() }}
+            <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
           </button>
         </div>
-        @if (diseaseError()) {
-          <p class="text-xs font-medium text-destructive" role="alert">{{ diseaseError() }}</p>
+
+        @if (guidelineResults(); as results) {
+          <div class="rounded-md border border-dashed border-border p-3 text-sm">
+            @if (results.length > 0 && anyGuidelineFile(results)) {
+              <ul class="flex flex-col gap-1">
+                @for (detail of results; track $index) {
+                  @if (detail.subCatFilePath) {
+                    <li>
+                      <a
+                        [href]="detail.subCatFilePath"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-primary underline-offset-2 hover:underline"
+                      >
+                        {{ detail.subCategoryName }}@if (detail.fileManger?.[0]?.fileName) {
+                          : {{ detail.fileManger?.[0]?.fileName }}
+                        }
+                      </a>
+                    </li>
+                  }
+                }
+              </ul>
+            } @else {
+              <span class="text-muted-foreground">{{ 'hao.caseSheet.noDocumentAvailable' | translate: lang() }}</span>
+            }
+          </div>
         }
-      </div>
+      }
+
+      @if (isHaoOrMo()) {
+        <div class="flex gap-4 text-sm">
+          <label class="flex items-center gap-2">
+            <input type="radio" formControlName="chiefComplaintMode" value="complaint" />
+            {{ 'hao.caseSheet.presentChiefComplaint' | translate: lang() }}
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="radio" formControlName="chiefComplaintMode" value="summary" />
+            {{ 'hao.caseSheet.diseasesSummary' | translate: lang() }}
+          </label>
+        </div>
+      }
+
+      @if (form.controls.chiefComplaintMode.value === 'complaint') {
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-complaints">
+            {{ 'hao.caseSheet.chiefComplaints' | translate: lang() }}
+            <span class="text-destructive" aria-hidden="true">*</span>
+          </label>
+          @if (isCo()) {
+            <textarea
+              z-input
+              id="hao-cs-complaints"
+              rows="3"
+              maxlength="800"
+              formControlName="chiefComplaints"
+              [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
+              [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
+            ></textarea>
+          } @else {
+            <textarea
+              z-input
+              id="hao-cs-complaints"
+              rows="3"
+              maxlength="2000"
+              formControlName="chiefComplaints"
+              [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
+              [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
+              [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
+              (blur)="onComplaintBlur()"
+            ></textarea>
+          }
+          @if (isInvalid('chiefComplaints')) {
+            <p id="hao-cs-complaints-error" class="text-xs font-medium text-destructive" role="alert">
+              @if (form.controls.chiefComplaints.hasError('maxlength')) {
+                {{ 'hao.caseSheet.chiefComplaintsTooLong' | translate: lang() }}
+              } @else {
+                {{ 'hao.caseSheet.chiefComplaintsRequired' | translate: lang() }}
+              }
+            </p>
+          }
+          @if (!isCo()) {
+            <app-snomed-search (selected)="onSnomedSelected($event)" />
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-diagnosis">
+            {{ 'hao.caseSheet.provisionalDiagnosis' | translate: lang() }}
+            @if (isCo()) {
+              <span class="text-destructive" aria-hidden="true">*</span>
+            }
+          </label>
+          <textarea
+            z-input
+            id="hao-cs-diagnosis"
+            rows="2"
+            maxlength="100"
+            [readonly]="!isCo()"
+            formControlName="provisionalDiagnosis"
+            [attr.aria-invalid]="isInvalid('provisionalDiagnosis') || null"
+            [placeholder]="'hao.caseSheet.provisionalDiagnosisPlaceholder' | translate: lang()"
+          ></textarea>
+          @if (isInvalid('provisionalDiagnosis')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              @if (form.controls.provisionalDiagnosis.hasError('minlength')) {
+                {{ 'hao.caseSheet.provisionalDiagnosisTooShort' | translate: lang() }}
+              } @else {
+                {{ 'hao.caseSheet.provisionalDiagnosisRequired' | translate: lang() }}
+              }
+            </p>
+          }
+        </div>
+
+        @if (isCo()) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-risk-level">
+              {{ 'hao.caseSheet.riskLevel' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cs-risk-level"
+              formControlName="riskLevel"
+              class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">{{ 'hao.caseSheet.riskLevel' | translate: lang() }}</option>
+              <option value="Mild">{{ 'hao.caseSheet.riskLevelMild' | translate: lang() }}</option>
+              <option value="Moderate">{{ 'hao.caseSheet.riskLevelModerate' | translate: lang() }}</option>
+              <option value="High">{{ 'hao.caseSheet.riskLevelHigh' | translate: lang() }}</option>
+            </select>
+          </div>
+        }
+
+        @if (!isCo()) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-recommended-action">
+              {{ 'hao.caseSheet.recommendedAction' | translate: lang() }}
+              @if (isHaoOrMo()) {
+                <span class="text-destructive" aria-hidden="true">*</span>
+              }
+            </label>
+            <textarea
+              z-input
+              id="hao-cs-recommended-action"
+              rows="2"
+              maxlength="300"
+              formControlName="recommendedAction"
+              [attr.aria-invalid]="isInvalid('recommendedAction') || null"
+            ></textarea>
+            @if (isInvalid('recommendedAction')) {
+              <p class="text-xs font-medium text-destructive" role="alert">
+                {{ 'hao.caseSheet.recommendedActionRequired' | translate: lang() }}
+              </p>
+            }
+          </div>
+        } @else {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cs-treatment-recommendation">
+              {{ 'hao.caseSheet.treatmentRecommendation' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              z-input
+              id="hao-cs-treatment-recommendation"
+              rows="2"
+              minlength="3"
+              maxlength="300"
+              formControlName="treatmentRecommendation"
+              [attr.aria-invalid]="isInvalid('treatmentRecommendation') || null"
+            ></textarea>
+            @if (isInvalid('treatmentRecommendation')) {
+              <p class="text-xs font-medium text-destructive" role="alert">
+                {{ 'hao.caseSheet.treatmentRecommendationRequired' | translate: lang() }}
+              </p>
+            }
+          </div>
+        }
+      } @else {
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-disease-summary">
+            {{ 'hao.caseSheet.diseasesSummary' | translate: lang() }}
+            <span class="text-destructive" aria-hidden="true">*</span>
+          </label>
+          <div class="flex flex-wrap items-center gap-2">
+            <select
+              id="hao-cs-disease-summary"
+              formControlName="diseaseSummaryID"
+              class="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">{{ 'hao.caseSheet.selectDiagnosis' | translate: lang() }}</option>
+              @for (disease of diseases(); track disease.diseasesummaryID) {
+                <option [ngValue]="disease.diseasesummaryID">{{ disease.diseaseName }}</option>
+              }
+            </select>
+            <button
+              z-button
+              type="button"
+              zType="outline"
+              zSize="sm"
+              [zLoading]="loadingDisease()"
+              [zDisabled]="form.controls.diseaseSummaryID.value === null || loadingDisease()"
+              (click)="openDiseaseSummary()"
+            >
+              {{ 'hao.caseSheet.viewDiseaseSummary' | translate: lang() }}
+            </button>
+          </div>
+          @if (diseaseError()) {
+            <p class="text-xs font-medium text-destructive" role="alert">{{ diseaseError() }}</p>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-information-given">
+            {{ 'hao.caseSheet.informationGiven' | translate: lang() }}
+          </label>
+          <textarea
+            z-input
+            id="hao-cs-information-given"
+            rows="2"
+            maxlength="100"
+            readonly
+            formControlName="informationGiven"
+          ></textarea>
+        </div>
+      }
 
       @if (diseaseDetail(); as detail) {
         <app-view-disease-summary-details
@@ -160,18 +498,50 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
         />
       }
 
-      <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium" for="hao-cs-advice">
-          {{ 'hao.caseSheet.healthAdvice' | translate: lang() }}
-        </label>
-        <textarea
-          z-input
-          id="hao-cs-advice"
-          rows="3"
-          formControlName="healthAdvice"
-          [placeholder]="'hao.caseSheet.healthAdvicePlaceholder' | translate: lang()"
-        ></textarea>
-      </div>
+      @if (isHao()) {
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-action-hao">
+            {{ 'hao.caseSheet.actionByHao' | translate: lang() }}
+            <span class="text-destructive" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            z-input
+            id="hao-cs-action-hao"
+            rows="2"
+            minlength="3"
+            maxlength="200"
+            formControlName="actionByRole"
+            [attr.aria-invalid]="isInvalid('actionByRole') || null"
+          ></textarea>
+          @if (isInvalid('actionByRole')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              {{ 'hao.caseSheet.actionByRoleInvalid' | translate: lang() }}
+            </p>
+          }
+        </div>
+      }
+      @if (isMo()) {
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-action-mo">
+            {{ 'hao.caseSheet.actionByMo' | translate: lang() }}
+            <span class="text-destructive" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            z-input
+            id="hao-cs-action-mo"
+            rows="2"
+            minlength="3"
+            maxlength="200"
+            formControlName="actionByRole"
+            [attr.aria-invalid]="isInvalid('actionByRole') || null"
+          ></textarea>
+          @if (isInvalid('actionByRole')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              {{ 'hao.caseSheet.actionByRoleInvalid' | translate: lang() }}
+            </p>
+          }
+        </div>
+      }
 
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium" for="hao-cs-remarks">
@@ -180,8 +550,240 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
         <textarea z-input id="hao-cs-remarks" rows="2" formControlName="remarks"></textarea>
       </div>
 
-      <!-- Clinical decision support: fed the chief complaint above plus the
-           caller's age/gender; accepting a suggestion fills Health Advice. -->
+      @if (isHaoOrMo()) {
+        <div class="flex flex-col gap-2 rounded-lg border border-border p-3">
+          <label class="text-sm font-medium">
+            {{ 'hao.caseSheet.covidQc' | translate: lang() }}
+            <span class="text-destructive" aria-hidden="true">*</span>
+          </label>
+          <div class="flex gap-4 text-sm">
+            <label class="flex items-center gap-2">
+              <input type="radio" formControlName="covidQc" value="yes" />
+              {{ 'hao.caseSheet.yes' | translate: lang() }}
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" formControlName="covidQc" value="no" />
+              {{ 'hao.caseSheet.no' | translate: lang() }}
+            </label>
+          </div>
+
+          @if (form.controls.covidQc.value === 'yes') {
+            <div class="mt-3 flex flex-col gap-3 border-t border-border pt-3">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium">
+                  {{ 'hao.caseSheet.travelledLast14Days' | translate: lang() }}
+                </label>
+                <div class="flex gap-4 text-sm">
+                  <label class="flex items-center gap-2">
+                    <input type="radio" formControlName="covidTravelled" [value]="true" />
+                    {{ 'hao.caseSheet.yes' | translate: lang() }}
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input type="radio" formControlName="covidTravelled" [value]="false" />
+                    {{ 'hao.caseSheet.no' | translate: lang() }}
+                  </label>
+                </div>
+              </div>
+
+              @if (form.controls.covidTravelled.value === true) {
+                <div class="flex flex-col gap-2">
+                  <div class="flex gap-4 text-sm">
+                    <label class="flex items-center gap-2">
+                      <input type="checkbox" formControlName="covidTravelDomestic" />
+                      {{ 'hao.caseSheet.travelDomestic' | translate: lang() }}
+                    </label>
+                    <label class="flex items-center gap-2">
+                      <input type="checkbox" formControlName="covidTravelInternational" />
+                      {{ 'hao.caseSheet.travelInternational' | translate: lang() }}
+                    </label>
+                  </div>
+                  @if (form.controls.covidTravelDomestic.value || form.controls.covidTravelInternational.value) {
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <select
+                        formControlName="covidModeOfTravel"
+                        class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <option [ngValue]="null">{{ 'hao.caseSheet.modeOfTravel' | translate: lang() }}</option>
+                        @if (form.controls.covidTravelDomestic.value) {
+                          <option value="bus">{{ 'hao.caseSheet.modeBus' | translate: lang() }}</option>
+                          <option value="train">{{ 'hao.caseSheet.modeTrain' | translate: lang() }}</option>
+                        }
+                        <option value="flight">{{ 'hao.caseSheet.modeFlight' | translate: lang() }}</option>
+                        <option value="ship">{{ 'hao.caseSheet.modeShip' | translate: lang() }}</option>
+                      </select>
+                      <input
+                        z-input
+                        type="text"
+                        [placeholder]="'hao.caseSheet.travelledFrom' | translate: lang()"
+                        formControlName="covidTravelledFrom"
+                      />
+                      <input
+                        z-input
+                        type="text"
+                        [placeholder]="'hao.caseSheet.travelledTo' | translate: lang()"
+                        formControlName="covidTravelledTo"
+                      />
+                    </div>
+                  }
+                </div>
+              }
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium">{{ 'hao.caseSheet.symptoms' | translate: lang() }}</label>
+                <div class="flex flex-wrap gap-4 text-sm">
+                  <label class="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      formControlName="covidFever"
+                      [attr.disabled]="form.controls.covidNoSymptoms.value ? true : null"
+                    />
+                    {{ 'hao.caseSheet.fever' | translate: lang() }}
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      formControlName="covidCough"
+                      [attr.disabled]="form.controls.covidNoSymptoms.value ? true : null"
+                    />
+                    {{ 'hao.caseSheet.cough' | translate: lang() }}
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      formControlName="covidBreathingDifficulty"
+                      [attr.disabled]="form.controls.covidNoSymptoms.value ? true : null"
+                    />
+                    {{ 'hao.caseSheet.breathingDifficulties' | translate: lang() }}
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      formControlName="covidNoSymptoms"
+                      [attr.disabled]="anySpecificSymptomChecked() ? true : null"
+                    />
+                    {{ 'hao.caseSheet.noSymptoms' | translate: lang() }}
+                  </label>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium">
+                  {{ 'hao.caseSheet.covid19ContactHistory' | translate: lang() }}
+                </label>
+                <div class="flex flex-col gap-1 text-sm">
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" formControlName="covidContactConfirmedCase" />
+                    {{ 'hao.caseSheet.contactConfirmedCase' | translate: lang() }}
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" formControlName="covidContactSymptomatic" />
+                    {{ 'hao.caseSheet.contactSymptomatic' | translate: lang() }}
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" formControlName="covidContactTravelHistory" />
+                    {{ 'hao.caseSheet.contactTravelHistory' | translate: lang() }}
+                  </label>
+                </div>
+              </div>
+
+              @if (anyContactHistoryChecked()) {
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-medium">
+                    {{ 'hao.caseSheet.seekMedicalConsultation' | translate: lang() }}
+                  </label>
+                  <div class="flex gap-4 text-sm">
+                    <label class="flex items-center gap-2">
+                      <input type="radio" formControlName="covidSeekMedicalConsult" [value]="true" />
+                      {{ 'hao.caseSheet.yes' | translate: lang() }}
+                    </label>
+                    <label class="flex items-center gap-2">
+                      <input type="radio" formControlName="covidSeekMedicalConsult" [value]="false" />
+                      {{ 'hao.caseSheet.no' | translate: lang() }}
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="flex flex-col gap-2 rounded-lg border border-border p-3">
+          <label class="flex items-center gap-2 text-sm font-medium">
+            <input type="checkbox" formControlName="isCovidVaccine" />
+            {{ 'hao.caseSheet.covidVaccineStatus' | translate: lang() }}
+          </label>
+
+          @if (form.controls.isCovidVaccine.value) {
+            <div class="mt-2 flex flex-col gap-3 border-t border-border pt-3">
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <p class="text-sm text-muted-foreground">
+                  {{ 'hao.caseSheet.ageGroup' | translate: lang() }}:
+                  {{
+                    (vaccineApplicable() ? 'hao.caseSheet.ageGroupAdult' : 'hao.caseSheet.ageGroupChild')
+                      | translate: lang()
+                  }}
+                </p>
+                <p class="text-sm text-muted-foreground">
+                  {{ 'hao.caseSheet.isApplicableForVaccine' | translate: lang() }}:
+                  {{
+                    (vaccineApplicable()
+                      ? 'hao.caseSheet.applicableForVaccination'
+                      : 'hao.caseSheet.notApplicableForVaccination'
+                    ) | translate: lang()
+                  }}
+                </p>
+              </div>
+
+              @if (vaccineApplicable()) {
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <select
+                    formControlName="vaccineStatus"
+                    class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option [ngValue]="null">{{ 'hao.caseSheet.vaccineStatus' | translate: lang() }}</option>
+                    <option value="YES">{{ 'hao.caseSheet.yes' | translate: lang() }}</option>
+                    <option value="NO">{{ 'hao.caseSheet.no' | translate: lang() }}</option>
+                  </select>
+                  @if (form.controls.vaccineStatus.value === 'YES') {
+                    <select
+                      formControlName="covidVaccineTypeID"
+                      class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option [ngValue]="null">{{ 'hao.caseSheet.vaccineTypes' | translate: lang() }}</option>
+                      @for (v of vaccineTypes(); track v.covidVaccineTypeID) {
+                        <option [ngValue]="v.covidVaccineTypeID">{{ v.vaccineType }}</option>
+                      }
+                    </select>
+                    <select
+                      formControlName="doseTypeID"
+                      class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option [ngValue]="null">{{ 'hao.caseSheet.doseTaken' | translate: lang() }}</option>
+                      @for (d of doseTypes(); track d.covidDoseTypeID) {
+                        <option [ngValue]="d.covidDoseTypeID">{{ d.doseType }}</option>
+                      }
+                    </select>
+                  }
+                </div>
+                <div class="flex justify-end">
+                  <button
+                    z-button
+                    type="button"
+                    zType="outline"
+                    zSize="sm"
+                    [zLoading]="savingVaccine()"
+                    [zDisabled]="!canSaveVaccine() || savingVaccine()"
+                    (click)="saveCovidVaccine()"
+                  >
+                    {{ 'hao.caseSheet.save' | translate: lang() }}
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
       <app-cdss
         [complaint]="complaint()"
         [age]="patientAge()"
@@ -191,12 +793,45 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
         (selection)="onCdssSelection($event)"
       />
 
-      <div class="flex justify-end">
+      <div class="flex flex-wrap justify-end gap-2">
+        @if (showPrescription()) {
+          <button z-button type="button" zType="outline" class="mr-auto" (click)="togglePrescription()">
+            {{ 'hao.service.prescription' | translate: lang() }}
+          </button>
+          @if (recentPrescription()) {
+            <button
+              z-button
+              type="button"
+              zType="outline"
+              class="-ml-1"
+              [title]="'hao.caseSheet.resendPrescriptionHint' | translate: lang()"
+              (click)="openRecentPrescription()"
+            >
+              {{ 'hao.caseSheet.resendPrescription' | translate: lang() }}
+            </button>
+          }
+        }
+        <button z-button type="button" zType="outline" (click)="resetForm()">
+          {{ 'hao.caseSheet.clear' | translate: lang() }}
+        </button>
         <button z-button type="submit" [zLoading]="saving()" [zDisabled]="saving() || beneficiaryId() === null">
           {{ 'hao.caseSheet.save' | translate: lang() }}
         </button>
       </div>
     </form>
+
+    @if (prescriptionOpen()) {
+      <div class="mt-4">
+        <app-prescription
+          [patientName]="patientDisplayName()"
+          [age]="patientAge()"
+          [gender]="patientGenderName()"
+          [initialDiagnosis]="form.controls.informationGiven.value ?? ''"
+          [openHistory]="openPrescriptionHistory()"
+          (saved)="onPrescriptionSaved()"
+        />
+      </div>
+    }
 
     @if (beneficiaryId() !== null) {
       <section class="mt-6 border-t border-border pt-4">
@@ -228,6 +863,9 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
 
           <div class="mt-3">
             @switch (activeTab()) {
+              @case ('own') {
+                <app-case-sheet-history [benRegID]="beneficiaryId()" />
+              }
               @case ('mcts') {
                 <app-casesheet-history-mcts [benRegID]="beneficiaryId()" />
               }
@@ -283,130 +921,481 @@ function toCdssGender(genderName: string | null | undefined): CdssGender | null 
 export class CaseSheetComponent {
   private readonly fb = inject(FormBuilder);
   private readonly haoService = inject(HaoService);
+  private readonly prescriptionService = inject(PrescriptionService);
   private readonly authStore = inject(AuthStore);
-  private readonly callStore = inject(CallStore);
+  readonly callStore = inject(CallStore);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly lang = this.i18n.language;
 
-  /** Beneficiary the case sheet is recorded against (from the CallStore). */
   readonly beneficiaryId = input<number | null>(null);
-  /** AMRIT call id, linked onto the saved sheet when available. */
   readonly callId = input<string | null>(null);
 
-  /** Emitted after a successful save so the call can be marked valid. */
   readonly serviceAvailed = output<void>();
 
   readonly diseases = signal<AvailableDisease[]>([]);
   readonly saving = signal(false);
+  readonly savingVaccine = signal(false);
 
-  /** Disease-summary detail modal state (null = closed). */
+  readonly showPrescription = computed(() => this.roleCode() === MO_FEATURE_CODE);
+  readonly prescriptionOpen = signal(false);
+  readonly openPrescriptionHistory = signal(false);
+  readonly recentPrescription = signal<PrescriptionRecord | null>(null);
+  readonly patientDisplayName = computed(() => {
+    const d = this.callStore.demographics();
+    return [d?.firstName, d?.lastName].filter(Boolean).join(' ');
+  });
+  readonly patientGenderName = computed(() => this.callStore.demographics()?.genderName ?? '');
+
   readonly diseaseDetail = signal<DiseaseSummaryDetail | null>(null);
   readonly loadingDisease = signal(false);
   readonly diseaseError = signal('');
 
-  /** Case-sheet history section state. */
+  readonly vaccineTypes = signal<CovidVaccineType[]>([]);
+  readonly doseTypes = signal<CovidDoseType[]>([]);
+  private existingCovidVSID: number | null = null;
+
+  readonly allCategories = signal<GuidelineCategory[]>([]);
+  readonly subCategories = signal<GuidelineSubCategory[]>([]);
+  readonly guidelineResults = signal<GuidelineDetail[] | null>(null);
+  readonly loadingGuidelines = signal(false);
+
   readonly historyOpen = signal(false);
-  readonly activeTab = signal<HistoryTab>('mcts');
+  readonly activeTab = signal<HistoryTab>('own');
   readonly selectedVisit = signal<MmuVisitRow | null>(null);
 
-  /** History tab definitions (label keys resolved in the template). */
   readonly historyTabs: ReadonlyArray<{ id: HistoryTab; labelKey: TranslationKey }> = [
+    { id: 'own', labelKey: 'casesheetHistory.tabOwn' },
     { id: 'mcts', labelKey: 'casesheetHistory.tabMcts' },
     { id: 'mmu', labelKey: 'casesheetHistory.tabMmu' },
     { id: 'tm', labelKey: 'casesheetHistory.tabTm' },
   ];
 
-  /** Beneficiary whose existing sheet has already been fetched (prefill once). */
   private prefilledFor: number | null = null;
 
   readonly form = this.fb.nonNullable.group({
-    chiefComplaints: ['', [Validators.required, Validators.maxLength(2000)]],
-    provisionalDiagnosisID: this.fb.control<number | null>(null),
-    healthAdvice: this.fb.control<string | null>(null),
+    isPatientOther: [false],
+    patientFirstName: [''],
+    patientLastName: [''],
+    patientGenderID: this.fb.control<CdssGender | null>(null),
+    patientAgeValue: this.fb.control<number | null>(null),
+    patientAgeUnit: ['years'],
+    patientDOB: this.fb.control<string | null>(null),
+    chiefComplaintMode: this.fb.control<ChiefComplaintMode>('complaint'),
+    chiefComplaints: ['', [Validators.maxLength(2000)]],
+    provisionalDiagnosis: this.fb.control<string | null>(null),
+    diseaseSummaryID: this.fb.control<number | null>(null),
+    informationGiven: this.fb.control<string | null>(null),
+    recommendedAction: [''],
+    actionByRole: [''],
     remarks: this.fb.control<string | null>(null),
+    covidQc: this.fb.control<'yes' | 'no'>('no'),
+    covidTravelled: this.fb.control<boolean | null>(null),
+    covidTravelDomestic: [false],
+    covidTravelInternational: [false],
+    covidModeOfTravel: this.fb.control<string | null>(null),
+    covidTravelledFrom: [''],
+    covidTravelledTo: [''],
+    covidFever: [false],
+    covidCough: [false],
+    covidBreathingDifficulty: [false],
+    covidNoSymptoms: [false],
+    covidContactConfirmedCase: [false],
+    covidContactSymptomatic: [false],
+    covidContactTravelHistory: [false],
+    covidSeekMedicalConsult: this.fb.control<boolean | null>(null),
+    isCovidVaccine: [false],
+    vaccineStatus: this.fb.control<VaccineStatus | null>(null),
+    covidVaccineTypeID: this.fb.control<number | null>(null),
+    doseTypeID: this.fb.control<number | null>(null),
+    wellbeingOrInfo: this.fb.control<WellbeingOrInfo>('1'),
+    categoryID: this.fb.control<number | null>(null),
+    subCategoryID: this.fb.control<number | null>(null),
+    riskLevel: this.fb.control<string | null>(null),
+    treatmentRecommendation: [''],
   });
 
-  /** Live chief-complaint text — the symptom the embedded CDSS advises on. */
-  readonly complaint = toSignal(this.form.controls.chiefComplaints.valueChanges, {
-    initialValue: this.form.controls.chiefComplaints.value,
+  /**
+   * CDSS symptom input. Mirrors `chiefComplaints` for every normal edit
+   * (typing, loading an existing case sheet, Clear/reset) — but see
+   * {@link onSnomedSelected}, which deliberately keeps this signal on the
+   * agent's own typed text instead of the SNOMED description it writes into
+   * the form control.
+   */
+  private readonly _complaint = signal(this.form.controls.chiefComplaints.value);
+  readonly complaint = this._complaint.asReadonly();
+
+  private readonly wellbeingOrInfo = toSignal(this.form.controls.wellbeingOrInfo.valueChanges, {
+    initialValue: this.form.controls.wellbeingOrInfo.value,
   });
 
-  /** Patient context for the embedded clinical tools (from the CallStore). */
-  readonly patientAge = computed(() => this.callStore.demographics()?.age ?? null);
-  readonly patientGender = computed<CdssGender | null>(() => toCdssGender(this.callStore.demographics()?.genderName));
-  /** Current role's feature code (CDSS warns non-MO roles to transfer). */
   readonly roleCode = computed(() => this.authStore.currentRole()?.featureCode ?? '');
+  readonly isHao = computed(() => this.roleCode() === 'HAO');
+  readonly isMo = computed(() => this.roleCode() === 'MO');
+  readonly isCo = computed(() => this.roleCode() === 'CO');
+  readonly isHaoOrMo = computed(() => this.isHao() || this.isMo());
 
-  /** A picked SNOMED CT term becomes the chief complaint. */
-  onSnomedSelected(term: SnomedTerm): void {
-    this.form.controls.chiefComplaints.setValue(term.term);
-    this.form.controls.chiefComplaints.markAsDirty();
+  readonly filteredCategories = computed(() => {
+    const wellBeing = this.wellbeingOrInfo() === '1';
+    return this.allCategories().filter((c) => (wellBeing ? c.isWellBeing === true : !c.isWellBeing));
+  });
+
+  readonly callerName = computed(() => {
+    const d = this.callStore.demographics();
+    if (!d) {
+      return '';
+    }
+    return [d.firstName, d.lastName].filter(Boolean).join(' ');
+  });
+
+  readonly patientAge = computed(() =>
+    this.form.controls.isPatientOther.value
+      ? this.form.controls.patientAgeValue.value
+      : (this.callStore.demographics()?.age ?? null),
+  );
+  readonly patientGender = computed<CdssGender | null>(() =>
+    this.form.controls.isPatientOther.value
+      ? this.form.controls.patientGenderID.value
+      : toCdssGender(this.callStore.demographics()?.genderName),
+  );
+
+  readonly anySpecificSymptomChecked = computed(
+    () =>
+      this.form.controls.covidFever.value ||
+      this.form.controls.covidCough.value ||
+      this.form.controls.covidBreathingDifficulty.value,
+  );
+  readonly anyContactHistoryChecked = computed(
+    () =>
+      this.form.controls.covidContactConfirmedCase.value ||
+      this.form.controls.covidContactSymptomatic.value ||
+      this.form.controls.covidContactTravelHistory.value,
+  );
+  readonly vaccineApplicable = computed(() => (this.patientAge() ?? 0) >= MIN_VACCINE_AGE);
+  readonly canSaveVaccine = computed(() => {
+    const status = this.form.controls.vaccineStatus.value;
+    if (status === 'NO') {
+      return true;
+    }
+    if (status === 'YES') {
+      return this.form.controls.covidVaccineTypeID.value !== null && this.form.controls.doseTypeID.value !== null;
+    }
+    return false;
+  });
+
+  anyGuidelineFile(results: GuidelineDetail[]): boolean {
+    return results.some((r) => r.subCatFilePath);
   }
 
-  /** Accepted CDSS advice is written into the health-advice field. */
+  /**
+   * Legacy resolves the Counselling Sheet's Category list two-hop: fetch the
+   * role's available sub-services, then match the one named "Counselling" for
+   * its `subServiceID`, which the category lookup keys on alongside
+   * `providerServiceMapID` (`getSubserviceID` → `getCategories`).
+   */
+  private loadGuidelineCategories(): void {
+    const providerServiceMapID = this.providerServiceMapID();
+    this.haoService.getAvailableServices(providerServiceMapID, true).subscribe({
+      next: (services) => {
+        const subServiceID = services.find((s) => s.subServiceName.includes('Counselling'))?.subServiceID ?? null;
+        this.haoService.getGuidelineCategories(providerServiceMapID, subServiceID).subscribe({
+          next: (categories) => this.allCategories.set(categories),
+          error: () => this.allCategories.set([]),
+        });
+      },
+      error: () => {
+        this.haoService.getGuidelineCategories(providerServiceMapID, null).subscribe({
+          next: (categories) => this.allCategories.set(categories),
+          error: () => this.allCategories.set([]),
+        });
+      },
+    });
+  }
+
+  searchGuidelines(): void {
+    const categoryID = this.form.controls.categoryID.value;
+    if (categoryID === null || this.loadingGuidelines()) {
+      return;
+    }
+    this.loadingGuidelines.set(true);
+    this.haoService
+      .getGuidelineDetails(categoryID, this.form.controls.subCategoryID.value, this.providerServiceMapID())
+      .subscribe({
+        next: (results) => {
+          this.loadingGuidelines.set(false);
+          this.guidelineResults.set(results);
+        },
+        error: () => {
+          this.loadingGuidelines.set(false);
+          this.guidelineResults.set([]);
+        },
+      });
+  }
+
+  private providerServiceMapID(): number | null {
+    return this.authStore.currentRole()?.providerServiceMapID ?? null;
+  }
+
+  /**
+   * A SNOMED CT description ("Fever of unknown origin") is the clinically
+   * correct thing to record, but CDSS's own catalogue keys on plain disease
+   * names ("Fever") and returns nothing for the coded description — so the
+   * case sheet keeps the SNOMED term, while the CDSS symptom input
+   * ({@link complaint}) is deliberately left on whatever the agent had typed
+   * before selecting it. Provisional Diagnosis still gets the fallback fill
+   * from the SNOMED term itself (see {@link fillProvisionalDiagnosisFallback}),
+   * since that field should reflect the precise clinical term regardless of
+   * what CDSS can match on.
+   */
+  onSnomedSelected(term: SnomedTerm): void {
+    const priorComplaint = this._complaint();
+    this.form.controls.chiefComplaints.setValue(term.term);
+    this.form.controls.chiefComplaints.markAsDirty();
+    this._complaint.set(priorComplaint);
+    this.fillProvisionalDiagnosisFallback(term.term);
+  }
+
+  /**
+   * Legacy always keeps the (HAO/MO-readonly) Provisional Diagnosis in sync
+   * with the chief complaint: it defaults to the complaint text itself, and
+   * only a later CDSS accept (see {@link onCdssSelection}) overwrites it with
+   * a clinically-derived diagnosis. Runs on blur (not every keystroke) so it
+   * doesn't fight the field while the agent is still typing; never clobbers a
+   * value already present (typed default or a prior CDSS accept).
+   */
+  onComplaintBlur(): void {
+    if (this.isCo()) {
+      return;
+    }
+    this.fillProvisionalDiagnosisFallback(this.form.controls.chiefComplaints.value);
+  }
+
+  private fillProvisionalDiagnosisFallback(complaint: string | null): void {
+    const trimmed = complaint?.trim().slice(0, 100) ?? '';
+    const diagnosisControl = this.form.controls.provisionalDiagnosis;
+    if (trimmed && !diagnosisControl.value?.trim()) {
+      diagnosisControl.setValue(trimmed);
+      diagnosisControl.markAsDirty();
+    }
+  }
+
   onCdssSelection(selection: CdssSelection): void {
-    const action = selection.recommendedAction?.trim();
+    const diagnosis = selection.diagnoses
+      .map((d) => d.disease)
+      .filter(Boolean)
+      .join(', ')
+      .slice(0, 100);
+    if (diagnosis) {
+      this.form.controls.provisionalDiagnosis.setValue(diagnosis);
+      this.form.controls.provisionalDiagnosis.markAsDirty();
+    }
+    const action = selection.recommendedAction?.trim().slice(0, 300);
     if (action) {
-      this.form.controls.healthAdvice.setValue(action);
-      this.form.controls.healthAdvice.markAsDirty();
+      this.form.controls.recommendedAction.setValue(action);
+      this.form.controls.recommendedAction.markAsDirty();
     }
   }
 
   constructor() {
+    this.form.controls.chiefComplaints.valueChanges.subscribe((value) => {
+      this._complaint.set(value);
+    });
+
     this.haoService.getAvailableDiseases().subscribe({
       next: (diseases) => this.diseases.set(diseases),
-      // A missing catalogue must not block free-text complaints/advice; the
-      // diagnosis selector simply stays empty.
       error: () => this.diseases.set([]),
     });
 
-    // Prefill from any case sheet already saved for the caller, so re-entering
-    // the service step restores prior work instead of starting blank (which
-    // could also trigger a duplicate save). Runs once per beneficiary.
+    this.haoService.getCovidVaccineMasterData().subscribe({
+      next: (master) => {
+        this.vaccineTypes.set(master?.vaccineType ?? []);
+        this.doseTypes.set(master?.doseType ?? []);
+      },
+      error: () => {
+        this.vaccineTypes.set([]);
+        this.doseTypes.set([]);
+      },
+    });
+
+    if (this.isCo()) {
+      this.loadGuidelineCategories();
+    }
+
+    this.form.controls.wellbeingOrInfo.valueChanges.subscribe(() => {
+      this.form.controls.categoryID.setValue(null);
+      this.form.controls.subCategoryID.setValue(null);
+      this.subCategories.set([]);
+      this.guidelineResults.set(null);
+    });
+
+    this.form.controls.categoryID.valueChanges.subscribe((categoryID) => {
+      this.form.controls.subCategoryID.setValue(null);
+      this.subCategories.set([]);
+      this.guidelineResults.set(null);
+      if (categoryID !== null) {
+        this.haoService.getGuidelineSubCategories(categoryID).subscribe({
+          next: (subCategories) => this.subCategories.set(subCategories),
+          error: () => this.subCategories.set([]),
+        });
+      }
+    });
+
+    this.form.controls.subCategoryID.valueChanges.subscribe(() => {
+      this.guidelineResults.set(null);
+    });
+
     effect(() => {
       const id = this.beneficiaryId();
       if (id !== null && id !== this.prefilledFor) {
         this.prefilledFor = id;
         this.loadExistingCaseSheet(id);
+        if (this.isHaoOrMo() && this.vaccineApplicable()) {
+          this.loadExistingVaccineStatus(id);
+        }
       }
+      if (id !== null && this.showPrescription()) {
+        this.loadRecentPrescription(id);
+      }
+    });
+
+    this.setRoleRequiredValidators();
+    this.form.controls.chiefComplaintMode.valueChanges.subscribe(() => this.setRoleRequiredValidators());
+  }
+
+  private setRoleRequiredValidators(): void {
+    const required = this.isHaoOrMo();
+    const isCo = this.isCo();
+    const usingComplaint = this.form.controls.chiefComplaintMode.value === 'complaint';
+    const complaintsControl = this.form.controls.chiefComplaints;
+    const recommendedActionControl = this.form.controls.recommendedAction;
+    const actionByRoleControl = this.form.controls.actionByRole;
+    const diseaseSummaryControl = this.form.controls.diseaseSummaryID;
+    const provisionalDiagnosisControl = this.form.controls.provisionalDiagnosis;
+    const treatmentRecommendationControl = this.form.controls.treatmentRecommendation;
+
+    const complaintsMaxLength = isCo ? 800 : 2000;
+    complaintsControl.setValidators(
+      (required || isCo) && usingComplaint
+        ? [Validators.required, Validators.maxLength(complaintsMaxLength)]
+        : [Validators.maxLength(complaintsMaxLength)],
+    );
+    recommendedActionControl.setValidators(required && usingComplaint ? [Validators.required] : []);
+    actionByRoleControl.setValidators(
+      required ? [Validators.required, Validators.minLength(3), Validators.maxLength(200)] : [],
+    );
+    diseaseSummaryControl.setValidators(required && !usingComplaint ? [Validators.required] : []);
+    provisionalDiagnosisControl.setValidators(
+      isCo ? [Validators.required, Validators.minLength(4), Validators.maxLength(100)] : [],
+    );
+    treatmentRecommendationControl.setValidators(
+      isCo ? [Validators.required, Validators.minLength(3), Validators.maxLength(300)] : [],
+    );
+    complaintsControl.updateValueAndValidity();
+    recommendedActionControl.updateValueAndValidity();
+    actionByRoleControl.updateValueAndValidity();
+    diseaseSummaryControl.updateValueAndValidity();
+    provisionalDiagnosisControl.updateValueAndValidity();
+    treatmentRecommendationControl.updateValueAndValidity();
+  }
+
+  togglePrescription(): void {
+    this.openPrescriptionHistory.set(false);
+    this.prescriptionOpen.update((open) => !open);
+  }
+
+  openRecentPrescription(): void {
+    this.openPrescriptionHistory.set(true);
+    this.prescriptionOpen.set(true);
+  }
+
+  onPrescriptionSaved(): void {
+    const id = this.beneficiaryId();
+    if (id !== null) {
+      this.loadRecentPrescription(id);
+    }
+  }
+
+  private loadRecentPrescription(beneficiaryRegID: number): void {
+    this.prescriptionService.getPrescriptionList(beneficiaryRegID).subscribe({
+      next: (records) => this.recentPrescription.set(this.mostRecentWithinWindow(records)),
+      error: () => this.recentPrescription.set(null),
     });
   }
 
-  /** Fetch and apply any previously saved case sheet for the beneficiary. */
+  private mostRecentWithinWindow(records: PrescriptionRecord[]): PrescriptionRecord | null {
+    const now = Date.now();
+    let latest: PrescriptionRecord | null = null;
+    let latestTime = -Infinity;
+    for (const record of records) {
+      const created = record.createdDate ? Date.parse(record.createdDate) : NaN;
+      if (Number.isNaN(created) || now - created > RECENT_PRESCRIPTION_WINDOW_MS) {
+        continue;
+      }
+      if (created > latestTime) {
+        latest = record;
+        latestTime = created;
+      }
+    }
+    return latest;
+  }
+
+  resetForm(): void {
+    this.clear();
+    this.diseaseDetail.set(null);
+    this.diseaseError.set('');
+    this.prescriptionOpen.set(false);
+  }
+
   private loadExistingCaseSheet(beneficiaryRegID: number): void {
     this.haoService.getPresentCaseSheet(beneficiaryRegID).subscribe({
       next: (sheet) => {
-        // Best-effort prefill: never clobber edits the agent has already made.
         if (sheet && this.form.pristine) {
           this.applyExistingCaseSheet(sheet);
         }
       },
-      // Prefill is best-effort; a failure just leaves a blank form.
       error: () => undefined,
     });
   }
 
-  /** Patch the form from an existing case sheet, keeping it pristine. */
-  private applyExistingCaseSheet(sheet: PresentCaseSheet): void {
-    this.form.patchValue({
-      chiefComplaints: sheet.chiefComplaints ?? '',
-      provisionalDiagnosisID: sheet.provisionalDiagnosisID ?? null,
-      healthAdvice: sheet.healthAdvice ?? null,
-      remarks: sheet.remarks ?? null,
+  private loadExistingVaccineStatus(beneficiaryRegID: number): void {
+    this.haoService.getCovidVaccinationDetails(beneficiaryRegID).subscribe({
+      next: (details) => {
+        if (details?.covidVSID != null) {
+          this.existingCovidVSID = details.covidVSID;
+          this.form.patchValue({
+            isCovidVaccine: true,
+            vaccineStatus: details.vaccineStatus ?? null,
+            covidVaccineTypeID: details.covidVaccineTypeID ?? null,
+            doseTypeID: details.doseTypeID ?? null,
+          });
+        }
+      },
+      error: () => undefined,
     });
   }
 
-  /** True when a control is invalid and has been touched/dirtied. */
+  private applyExistingCaseSheet(sheet: PresentCaseSheet): void {
+    this.form.patchValue({
+      chiefComplaints: sheet.chiefComplaints ?? '',
+      provisionalDiagnosis: sheet.provisionalDiagnosis ?? null,
+      recommendedAction: sheet.addedAdvice ?? '',
+      actionByRole: (this.isHao() ? sheet.actionByHAO : sheet.actionByMO) ?? '',
+      remarks: sheet.remarks ?? null,
+      riskLevel: sheet.riskLevel ?? null,
+      treatmentRecommendation: sheet.treatmentRecommendation ?? '',
+      categoryID: sheet.categoryID ?? null,
+      subCategoryID: sheet.subCategoryID ?? null,
+    });
+  }
+
   isInvalid(controlName: keyof typeof this.form.controls): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && (control.touched || control.dirty);
   }
 
-  /** Fetch and open the disease-summary detail for the selected diagnosis. */
   openDiseaseSummary(): void {
-    const id = this.form.controls.provisionalDiagnosisID.value;
+    const id = this.form.controls.diseaseSummaryID.value;
     const disease = this.diseases().find((d) => d.diseasesummaryID === id);
     if (!disease || this.loadingDisease()) {
       return;
@@ -417,6 +1406,7 @@ export class CaseSheetComponent {
       next: (detail) => {
         this.loadingDisease.set(false);
         this.diseaseDetail.set(detail);
+        this.form.controls.informationGiven.setValue(disease.diseaseName);
       },
       error: () => {
         this.loadingDisease.set(false);
@@ -425,19 +1415,108 @@ export class CaseSheetComponent {
     });
   }
 
-  /** Dismiss the disease-summary detail modal. */
   closeDiseaseSummary(): void {
     this.diseaseDetail.set(null);
   }
 
-  /** Toggle the case-sheet history section. */
   toggleHistory(): void {
     this.historyOpen.update((open) => !open);
   }
 
-  /** Record the visit the agent chose to view from the MMU/TM history. */
   onSelectVisit(visit: MmuVisitRow): void {
     this.selectedVisit.set(visit);
+  }
+
+  clear(): void {
+    this.form.reset({
+      isPatientOther: false,
+      patientFirstName: '',
+      patientLastName: '',
+      patientGenderID: null,
+      patientAgeValue: null,
+      patientAgeUnit: 'years',
+      patientDOB: null,
+      chiefComplaintMode: 'complaint',
+      chiefComplaints: '',
+      provisionalDiagnosis: null,
+      diseaseSummaryID: null,
+      informationGiven: null,
+      recommendedAction: '',
+      actionByRole: '',
+      remarks: null,
+      covidQc: 'no',
+      covidTravelled: null,
+      covidTravelDomestic: false,
+      covidTravelInternational: false,
+      covidModeOfTravel: null,
+      covidTravelledFrom: '',
+      covidTravelledTo: '',
+      covidFever: false,
+      covidCough: false,
+      covidBreathingDifficulty: false,
+      covidNoSymptoms: false,
+      covidContactConfirmedCase: false,
+      covidContactSymptomatic: false,
+      covidContactTravelHistory: false,
+      covidSeekMedicalConsult: null,
+      isCovidVaccine: false,
+      vaccineStatus: null,
+      covidVaccineTypeID: null,
+      doseTypeID: null,
+      wellbeingOrInfo: '1',
+      categoryID: null,
+      subCategoryID: null,
+      riskLevel: null,
+      treatmentRecommendation: '',
+    });
+    this.subCategories.set([]);
+    this.guidelineResults.set(null);
+  }
+
+  saveCovidVaccine(): void {
+    const beneficiaryRegID = this.beneficiaryId();
+    const vaccineStatus = this.form.controls.vaccineStatus.value;
+    if (beneficiaryRegID === null || vaccineStatus === null || !this.canSaveVaccine() || this.savingVaccine()) {
+      return;
+    }
+    const userName = this.authStore.user()?.userName ?? '';
+    const request: SaveCovidVaccinationRequest = {
+      covidVSID: this.existingCovidVSID,
+      beneficiaryRegID,
+      vaccineStatus,
+      covidVaccineTypeID: vaccineStatus === 'YES' ? this.form.controls.covidVaccineTypeID.value : null,
+      doseTypeID: vaccineStatus === 'YES' ? this.form.controls.doseTypeID.value : null,
+      providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
+      createdBy: userName,
+      modifiedBy: this.existingCovidVSID !== null ? userName : null,
+    };
+
+    this.savingVaccine.set(true);
+    this.haoService.saveCovidVaccinationDetails(request).subscribe({
+      next: (result) => {
+        this.savingVaccine.set(false);
+        this.existingCovidVSID = result?.covidVSID ?? this.existingCovidVSID;
+        this.confirmDialog
+          .alert({
+            title: this.i18n.instant('dashboard.dialog.success'),
+            message: this.i18n.instant('hao.caseSheet.covidVaccineSaveSuccess'),
+            okText: this.i18n.instant('dashboard.dialog.ok'),
+            status: 'success',
+          })
+          .subscribe();
+      },
+      error: () => {
+        this.savingVaccine.set(false);
+        this.confirmDialog
+          .alert({
+            title: this.i18n.instant('dashboard.dialog.error'),
+            message: this.i18n.instant('hao.caseSheet.covidVaccineSaveError'),
+            okText: this.i18n.instant('dashboard.dialog.ok'),
+            status: 'error',
+          })
+          .subscribe();
+      },
+    });
   }
 
   save(): void {
@@ -448,20 +1527,61 @@ export class CaseSheetComponent {
     }
 
     const value = this.form.getRawValue();
-    const selectedDisease = this.diseases().find(
-      (disease) => disease.diseasesummaryID === value.provisionalDiagnosisID,
-    );
+    const usingComplaint = value.chiefComplaintMode === 'complaint';
+
+    const symptoms = [
+      value.covidFever ? 'Fever' : null,
+      value.covidCough ? 'Cough' : null,
+      value.covidBreathingDifficulty ? 'Breathing Difficulties' : null,
+      value.covidNoSymptoms ? 'No Symptoms' : null,
+    ]
+      .filter((s): s is string => s !== null)
+      .join(',');
+
+    const contactHistory = [
+      value.covidContactConfirmedCase ? 'Is a confirmed case of COVID-19' : null,
+      value.covidContactSymptomatic ? 'Is having symptoms of Fever, Cough or breathing difficulty' : null,
+      value.covidContactTravelHistory ? 'Has a history of travel to places reporting local transmission' : null,
+    ]
+      .filter((s): s is string => s !== null)
+      .join(',');
+
+    const travelType = [
+      value.covidTravelDomestic ? 'domestic' : null,
+      value.covidTravelInternational ? 'international' : null,
+    ]
+      .filter((s): s is string => s !== null)
+      .join(',');
 
     const request: CaseSheetRequest = {
       beneficiaryRegID,
       benCallID: this.callId(),
-      chiefComplaints: value.chiefComplaints.trim(),
-      provisionalDiagnosisID: value.provisionalDiagnosisID,
-      provisionalDiagnosis: selectedDisease?.diseaseName ?? null,
-      healthAdvice: value.healthAdvice?.trim() || null,
+      chiefComplaints: usingComplaint ? value.chiefComplaints.trim() : '',
+      provisionalDiagnosis: usingComplaint ? value.provisionalDiagnosis : null,
+      healthAdvice: !usingComplaint ? value.informationGiven : null,
+      addedAdvice: usingComplaint ? value.recommendedAction.trim() || null : null,
       remarks: value.remarks?.trim() || null,
       providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
       createdBy: this.authStore.user()?.userName ?? '',
+      isSelf: !value.isPatientOther,
+      actionByHAO: this.isHao() ? value.actionByRole.trim() : null,
+      actionByMO: this.isMo() ? value.actionByRole.trim() : null,
+      ageUnits: value.isPatientOther && this.isHao() ? value.patientAgeUnit : null,
+      dOB: value.isPatientOther && this.isHao() ? value.patientDOB : null,
+      isCOVIDAvailable: value.covidQc === 'yes',
+      travel_14days: value.covidQc === 'yes' ? (value.covidTravelled ? 'yes' : 'no') : null,
+      travel_type: travelType || null,
+      travelledFrom: value.covidTravelledFrom.trim() || null,
+      travelledTo: value.covidTravelledTo.trim() || null,
+      modeOfTravel: value.covidModeOfTravel,
+      symptoms: symptoms || null,
+      COVID19_contact_history: contactHistory || null,
+      medical_consultation:
+        value.covidSeekMedicalConsult === null ? null : value.covidSeekMedicalConsult ? 'true' : 'false',
+      riskLevel: this.isCo() ? value.riskLevel : null,
+      treatmentRecommendation: this.isCo() ? value.treatmentRecommendation.trim() || null : null,
+      categoryID: this.isCo() ? value.categoryID : null,
+      subCategoryID: this.isCo() ? value.subCategoryID : null,
     };
 
     this.saving.set(true);
@@ -471,9 +1591,10 @@ export class CaseSheetComponent {
         this.serviceAvailed.emit();
         this.confirmDialog
           .alert({
-            title: this.i18n.instant('dashboard.dialog.info'),
+            title: this.i18n.instant('dashboard.dialog.success'),
             message: this.i18n.instant('hao.caseSheet.saveSuccess'),
             okText: this.i18n.instant('dashboard.dialog.ok'),
+            status: 'success',
           })
           .subscribe();
       },
@@ -484,6 +1605,7 @@ export class CaseSheetComponent {
             title: this.i18n.instant('dashboard.dialog.error'),
             message: this.i18n.instant('hao.caseSheet.saveError'),
             okText: this.i18n.instant('dashboard.dialog.ok'),
+            status: 'error',
           })
           .subscribe();
       },

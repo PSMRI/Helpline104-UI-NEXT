@@ -96,6 +96,33 @@ export function resolveDispatchPath(
 }
 
 /**
+ * Feature codes whose workspace assumes an already-identified caller — an
+ * inbound CTI accept must land these on `registration` first. `HAO` needs
+ * this despite having its own workspace path: it is the legacy "HYBRID HAO"
+ * role (registration + health-advice combined into one screen), so its
+ * workspace has the same "caller already resolved" precondition as RO's.
+ */
+const REGISTRATION_FIRST_FEATURE_CODES: ReadonlySet<string> = new Set(['RO', 'HAO']);
+
+/**
+ * The `/innerpage` child path to land an agent on when accepting an inbound
+ * CTI call — before any caller is identified for this call. Unlike
+ * {@link resolveDispatchPath} (which routes an already-identified caller), an
+ * inbound CTI event carries no fresh-call-vs-transfer flag (see
+ * `parseInboundCtiMessage`), so this can only be role-based: RO/HAO are the
+ * only roles that ever take a genuinely new, unidentified caller, so they
+ * always go to `registration`; every other role only ever receives an
+ * already-resolved case (a transfer), so it lands directly on its own
+ * workspace — falling back to `registration` if the role has none.
+ */
+export function inboundAcceptPath(featureCode: string | null | undefined, privileges: readonly Privilege[]): string {
+  if (featureCode && REGISTRATION_FIRST_FEATURE_CODES.has(featureCode)) {
+    return 'registration';
+  }
+  return resolveDispatchPath(featureCode, privileges) ?? 'registration';
+}
+
+/**
  * Gather the distinct screen names the agent holds on a given service, across
  * all of that service's roles. Mirrors the legacy `dataService.screens` list the
  * `<md-tab-group>` gated its service tabs against (see also

@@ -24,7 +24,20 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { SessionStorageService } from '../core/services/session-storage.service';
-import { CALL_STORAGE_KEYS, CallStore } from './call.store';
+import { CALL_STORAGE_KEYS, CallerDemographics, CallStore } from './call.store';
+
+/** The demographics fields added after this file's original name/age/gender fixtures. */
+const NULL_EXTRA_DEMOGRAPHICS: Omit<CallerDemographics, 'firstName' | 'lastName' | 'age' | 'genderId' | 'genderName'> = {
+  displayId: null,
+  stateName: null,
+  districtName: null,
+  subDistrictName: null,
+  villageName: null,
+  maritalStatus: null,
+  category: null,
+  communityName: null,
+  educationName: null,
+};
 
 /**
  * Rehydration contract for the persisted call state.
@@ -56,7 +69,14 @@ describe('CallStore beneficiary persistence', () => {
     const seeding = freshStore();
     seeding.startCall({ cli: '9876543210', sessionId: '1786467593314' });
     seeding.setBeneficiaryId(5006622, 54);
-    seeding.setDemographics({ firstName: 'Test', lastName: null, age: 36, genderId: 1, genderName: 'Male' });
+    seeding.setDemographics({
+      firstName: 'Test',
+      lastName: null,
+      age: 36,
+      genderId: 1,
+      genderName: 'Male',
+      ...NULL_EXTRA_DEMOGRAPHICS,
+    });
 
     const reloaded = freshStore();
 
@@ -69,6 +89,7 @@ describe('CallStore beneficiary persistence', () => {
       age: 36,
       genderId: 1,
       genderName: 'Male',
+      ...NULL_EXTRA_DEMOGRAPHICS,
     });
   });
 
@@ -78,6 +99,7 @@ describe('CallStore beneficiary persistence', () => {
     age: 36,
     genderId: 1,
     genderName: 'Male',
+    ...NULL_EXTRA_DEMOGRAPHICS,
   });
 
   it('clears the persisted beneficiary when it is released ("Back to RO")', () => {
@@ -117,6 +139,7 @@ describe('CallStore beneficiary persistence', () => {
     seeding.setCallId('4242');
     seeding.setBeneficiaryId(5006622, 54);
     seeding.setDemographics(demographicsOf('Test'));
+    seeding.setEmergencyCall(true);
 
     // Every key the store owns is populated before the call ends, so the
     // assertion below cannot pass simply because a key was never written.
@@ -288,6 +311,7 @@ describe('CallStore beneficiary persistence', () => {
         age: null,
         genderId: null,
         genderName: null,
+        ...NULL_EXTRA_DEMOGRAPHICS,
       });
     });
 

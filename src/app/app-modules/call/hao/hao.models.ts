@@ -59,17 +59,18 @@ export type HaoScreenName =
 
 /**
  * Stable identifiers for the service tabs of the "Provide Service" step. The
- * always-on tabs (health advice, the prescription tool, the diabetic and BP
- * screenings, and the SMS sender) are shown for every HAO agent; the rest are
- * gated by {@link HaoScreenName}. (SNOMED and CDSS are not tabs — they live
- * inside the Health Advisory case sheet, which supplies their chief complaint.)
+ * always-on tabs (health advice, the diabetic and BP screenings) are shown
+ * for every HAO agent; the rest are gated by {@link HaoScreenName}. (SNOMED
+ * and CDSS are not tabs — they live inside the Health Advisory case sheet,
+ * which supplies their chief complaint. There is no SMS tab: legacy sends an
+ * SMS as a side effect of saving the case sheet, not a screen of its own.
+ * Prescription is not a tab either: legacy gates it to MO only, so it lives
+ * in the case sheet's MO-only Prescription control, not the service tabs.)
  */
 export type HaoServiceId =
   | 'healthAdvice'
-  | 'prescription'
   | 'diabeticScreening'
   | 'bpScreening'
-  | 'sms'
   | 'bloodOnCall'
   | 'directory'
   | 'epidemic'
@@ -115,6 +116,32 @@ export interface CaseSheetRequest {
   remarks?: string | null;
   providerServiceMapID?: number | null;
   createdBy: string;
+  /** True when the call is on behalf of the caller themselves (legacy `isSelf`). */
+  isSelf?: boolean;
+  /** CDSS-derived action, editable by the agent (legacy `addedAdvice`). */
+  addedAdvice?: string | null;
+  /** Required, role-labelled action field (legacy `actionByHAO`). */
+  actionByHAO?: string | null;
+  /** Required, role-labelled action field (legacy `actionByMO`). */
+  actionByMO?: string | null;
+  /** Patient's age unit when entered as "Other" under HAO (legacy `ageUnits`). */
+  ageUnits?: string | null;
+  /** Patient's date of birth when entered as "Other" under HAO (legacy `dOB`). */
+  dOB?: string | null;
+  /** True once the COVID (QC) section has been filled (legacy `isCOVIDAvailable`). */
+  isCOVIDAvailable?: boolean;
+  travel_14days?: string | null;
+  travel_type?: string | null;
+  travelledFrom?: string | null;
+  travelledTo?: string | null;
+  modeOfTravel?: string | null;
+  symptoms?: string | null;
+  COVID19_contact_history?: string | null;
+  medical_consultation?: string | null;
+  riskLevel?: string | null;
+  treatmentRecommendation?: string | null;
+  categoryID?: number | null;
+  subCategoryID?: number | null;
 }
 
 /** Response of a successful `beneficiary/save/benCaseSheet`. */
@@ -134,6 +161,39 @@ export interface PresentCaseSheet {
   provisionalDiagnosis?: string | null;
   healthAdvice?: string | null;
   remarks?: string | null;
+  isSelf?: boolean;
+  addedAdvice?: string | null;
+  actionByHAO?: string | null;
+  actionByMO?: string | null;
+  riskLevel?: string | null;
+  treatmentRecommendation?: string | null;
+  categoryID?: number | null;
+  subCategoryID?: number | null;
+  [key: string]: unknown;
+}
+
+/**
+ * One entry in the beneficiary's prior 104 case sheets, returned by
+ * `beneficiary/get104BenMedHistory` ({104}). Field names keep the legacy
+ * spelling (`selecteDiagnosis`, `addedAdvice`) since that is the wire
+ * contract, ported from the Angular 4 `case-sheet-history.html` list.
+ */
+export interface CaseSheetHistoryEntry {
+  benHistoryID?: number;
+  requestID?: number;
+  createdDate?: string;
+  patientName?: string;
+  patientAge?: number | string;
+  diseaseSummary?: string;
+  selecteDiagnosis?: string;
+  isChiefComplaint?: boolean;
+  algorithm?: string;
+  riskLevel?: string;
+  addedAdvice?: string;
+  actionByHAO?: string;
+  actionByMO?: string;
+  actionByPD?: string;
+  treatmentRecommendation?: string;
   [key: string]: unknown;
 }
 
@@ -193,10 +253,22 @@ export interface CloseCallRequest {
   isFollowupRequired: boolean;
   /** Follow-up datetime; present only when {@link isFollowupRequired} (legacy name). */
   prefferedDateTime?: string | null;
+  /**
+   * Feature (screen) the follow-up routes back to; present only when
+   * {@link isFollowupRequired} — the role's own screen, or the agent's
+   * explicit choice when they hold more than one (legacy `requestedFeature`).
+   */
+  requestedFeature?: string | null;
   /** Remarks (legacy field name). */
   requestedFor?: string | null;
   isEmergency: boolean;
   isSuicidal: boolean;
+  /**
+   * Whether an IVR feedback call is required (legacy `isFeedbackRequiredFlag`),
+   * only meaningful — and only shown to the agent — when {@link callType} is
+   * "Valid".
+   */
+  isFeedback: boolean;
   /** Selected service id (legacy sent `current_service.serviceID` here). */
   providerServiceMapID: number | null;
   agentID: number | null;
@@ -205,6 +277,25 @@ export interface CloseCallRequest {
   /** HAO workspace is the inbound flow. */
   IsOutbound: boolean;
   createdBy: string;
+  externalRefferal?: string | null;
+  instTypeId?: number | null;
+  instNames?: string[] | null;
+  /** Logged-in user's own id (legacy `saved_data.uid`), distinct from the telephony {@link agentID}. */
+  callEndUserID?: number | null;
+  /** Agent IP, resolved via `cti/getAgentIPAddress`; null when unavailable. */
+  agentIPAddress?: string | null;
+}
+
+export interface InstituteType {
+  institutionTypeID: number;
+  institutionType: string;
+  [key: string]: unknown;
+}
+
+export interface InstituteName {
+  institutionID?: number;
+  institutionName: string;
+  [key: string]: unknown;
 }
 
 /**
@@ -214,6 +305,12 @@ export interface CloseCallRequest {
  */
 export interface TransferCampaign {
   campaignName: string;
+  [key: string]: unknown;
+}
+
+export interface AvailableService {
+  subServiceName: string;
+  subServiceID?: number;
   [key: string]: unknown;
 }
 
@@ -248,4 +345,61 @@ export interface TransferCallRequest {
   callType: string;
   /** Chosen sub-type id, same value {@link CloseCallRequest.callTypeID} sends. */
   callTypeID: number;
+}
+
+// --- COVID vaccine status (case sheet) --------------------------------------
+
+export interface CovidVaccineType {
+  covidVaccineTypeID: number;
+  vaccineType: string;
+  [key: string]: unknown;
+}
+
+export interface CovidDoseType {
+  covidDoseTypeID: number;
+  doseType: string;
+  [key: string]: unknown;
+}
+
+export interface CovidVaccineMasterData {
+  vaccineType: CovidVaccineType[];
+  doseType: CovidDoseType[];
+}
+
+export interface CovidVaccinationDetails {
+  covidVSID?: number | null;
+  vaccineStatus?: 'YES' | 'NO' | null;
+  covidVaccineTypeID?: number | null;
+  doseTypeID?: number | null;
+}
+
+export interface SaveCovidVaccinationRequest {
+  covidVSID?: number | null;
+  beneficiaryRegID: number;
+  vaccineStatus: 'YES' | 'NO';
+  covidVaccineTypeID?: number | null;
+  doseTypeID?: number | null;
+  providerServiceMapID?: number | null;
+  createdBy: string;
+  modifiedBy?: string | null;
+}
+
+export interface GuidelineCategory {
+  categoryID: number;
+  categoryName: string;
+  isWellBeing?: boolean | null;
+  [key: string]: unknown;
+}
+
+export interface GuidelineSubCategory {
+  subCategoryID: number;
+  subCategoryName: string;
+  [key: string]: unknown;
+}
+
+export interface GuidelineDetail {
+  subCategoryName?: string | null;
+  subCatFilePath?: string | null;
+  fileManger?: { fileName?: string | null }[];
+  [key: string]: unknown;
 }

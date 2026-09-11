@@ -126,6 +126,11 @@ type RiskLevel = 'low' | 'medium' | 'high';
                       <option [ngValue]="a.score">{{ a.answer }}</option>
                     }
                   </select>
+                  @if (criteriaCtrlInvalid(q.questionID)) {
+                    <p class="mt-0.5 text-xs text-destructive">
+                      {{ 'registration.validation.required' | translate: lang() }}
+                    </p>
+                  }
                 </div>
               }
             </div>
@@ -434,6 +439,12 @@ export class DiabeticScreeningComponent implements OnInit {
     }
     this.riskForm = this.fb.group(group);
     this.riskQuestions.set(selectable);
+  }
+
+  /** Whether a dynamically-built criteria question control is invalid+touched. */
+  criteriaCtrlInvalid(questionID: number): boolean {
+    const control = this.criteriaForm.get(questionID.toString());
+    return !!control && control.invalid && control.touched;
   }
 
   /** The (typed) translation key for a risk level's result message. */

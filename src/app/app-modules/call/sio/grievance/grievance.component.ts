@@ -38,6 +38,7 @@ import { lucideMessageSquareWarning } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../../../core/auth/auth.store';
@@ -73,7 +74,14 @@ import {
   selector: 'app-sio-grievance',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardFormMessageComponent,
+    ZardInputDirective,
+  ],
   viewProviders: [provideIcons({ lucideMessageSquareWarning })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -107,6 +115,9 @@ import {
                 <option [ngValue]="n.feedbackNatureID">{{ n.feedbackNature }}</option>
               }
             </select>
+            @if (showError('feedbackNatureID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -169,6 +180,9 @@ import {
               maxlength="25"
               formControlName="grievanceAgainst"
             />
+            @if (showError('grievanceAgainst', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -181,6 +195,9 @@ import {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
             </select>
+            @if (showError('state', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -193,6 +210,9 @@ import {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
             </select>
+            @if (showError('district', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -524,5 +544,10 @@ export class GrievanceServiceComponent implements OnInit {
 
   private setError(err: SioError): void {
     this.errorMessage.set(err.errorMessage || this.i18n.instant('sio.common.loadError'));
+  }
+
+  showError(control: keyof typeof this.form.controls, error: string): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.hasError(error);
   }
 }

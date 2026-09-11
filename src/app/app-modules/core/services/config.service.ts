@@ -23,6 +23,31 @@
 import { Injectable } from '@angular/core';
 import { environment } from '@env/environment';
 
+const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
+
+/**
+ * Upgrades an absolute `http://` URL to `https://`, leaving relative paths and
+ * loopback hosts (dev servers) untouched. The loopback check parses the URL
+ * and compares the exact hostname — never a prefix match, which a hostname
+ * like `127.0.0.1.evil.example` or a userinfo trick like `127.0.0.1@evil.example`
+ * could otherwise use to masquerade as loopback.
+ */
+export function upgradeToHttps(url: string): string {
+  if (!url.startsWith('http://')) {
+    return url;
+  }
+  let hostname: string;
+  try {
+    hostname = new URL(url).hostname;
+  } catch {
+    return url;
+  }
+  if (LOOPBACK_HOSTNAMES.has(hostname)) {
+    return url;
+  }
+  return `https://${url.slice('http://'.length)}`;
+}
+
 /**
  * Central access point for environment-derived configuration.
  *
@@ -34,46 +59,46 @@ import { environment } from '@env/environment';
 export class ConfigService {
   // --- API base URLs -------------------------------------------------------
   getCommonBaseURL(): string {
-    return this.upgradeToHttps(environment.commonAPI);
+    return upgradeToHttps(environment.commonAPI);
   }
 
   /** Licensing calls historically share the common API host. */
   getCommonBaseURLLicense(): string {
-    return this.upgradeToHttps(environment.commonAPI);
+    return upgradeToHttps(environment.commonAPI);
   }
 
   /** Open (unauthenticated) endpoints share the common API host. */
   getOpenCommonBaseURL(): string {
-    return this.upgradeToHttps(environment.commonAPI);
+    return upgradeToHttps(environment.commonAPI);
   }
 
   get104BaseURL(): string {
-    return environment.ip104;
+    return upgradeToHttps(environment.ip104);
   }
 
   get1097BaseURL(): string {
-    return environment.ip1097;
+    return upgradeToHttps(environment.ip1097);
   }
 
   getAdminBaseURL(): string {
-    return environment.adminAPI;
+    return upgradeToHttps(environment.adminAPI);
   }
 
   /** MMU shared the admin host in the legacy config. */
   getMMUBaseURL(): string {
-    return environment.mmuAPI;
+    return upgradeToHttps(environment.mmuAPI);
   }
 
   getTMBaseURL(): string {
-    return environment.tmAPI;
+    return upgradeToHttps(environment.tmAPI);
   }
 
   getFHIRBaseURL(): string {
-    return environment.fhirAPI;
+    return upgradeToHttps(environment.fhirAPI);
   }
 
   getTelephonyServerURL(): string {
-    return this.upgradeToHttps(environment.telephoneServer);
+    return upgradeToHttps(environment.telephoneServer);
   }
 
   /**
@@ -81,7 +106,7 @@ export class ConfigService {
    * per environment; must NOT embed credentials — the server handles auth.
    */
   getOpenKmBaseURL(): string {
-    return environment.openKmBaseUrl;
+    return upgradeToHttps(environment.openKmBaseUrl);
   }
 
   // --- Behaviour flags -----------------------------------------------------
@@ -109,16 +134,5 @@ export class ConfigService {
 
   isCaptchaEnabled(): boolean {
     return environment.enableCaptcha;
-  }
-
-  private upgradeToHttps(url: string): string {
-    if (!url.startsWith('http://')) {
-      return url;
-    }
-    const host = url.slice('http://'.length);
-    if (host === 'localhost' || host.startsWith('localhost:') || host.startsWith('localhost/') || host.startsWith('127.0.0.1')) {
-      return url;
-    }
-    return `https://${host}`;
   }
 }

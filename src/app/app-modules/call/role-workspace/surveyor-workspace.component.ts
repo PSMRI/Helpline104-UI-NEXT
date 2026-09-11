@@ -25,6 +25,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallTypeReportComponent } from '../../reports/call-type-report.component';
+import { HasUnsavedChanges } from '../unsaved-changes.guard';
 
 /**
  * Surveyor on-call workspace (route `/innerpage/surveyor`).
@@ -56,7 +57,11 @@ import { CallTypeReportComponent } from '../../reports/call-type-report.componen
     </section>
   `,
 })
-export class SurveyorWorkspaceComponent {
+export class SurveyorWorkspaceComponent implements HasUnsavedChanges {
   private readonly i18n = inject(I18nService);
   readonly lang = this.i18n.language;
+
+  hasUnsavedChanges(): boolean {
+    return false;
+  }
 }
