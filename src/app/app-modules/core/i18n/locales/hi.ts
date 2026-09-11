@@ -107,10 +107,6 @@ export const hi: Record<TranslationKey, string> = {
   'dashboard.activity.noKmDocs': 'कोई केएम दस्तावेज़ नहीं मिला',
   'dashboard.activity.viewDocument': 'दस्तावेज़ देखें',
 
-  // Rating panel
-  'dashboard.rating.title': 'रेटिंग',
-  'dashboard.rating.empty': 'कोई रेटिंग डेटा उपलब्ध नहीं है',
-
   // Emergency contacts modal
   'dashboard.contacts.name': 'नाम',
   'dashboard.contacts.number': 'नंबर',

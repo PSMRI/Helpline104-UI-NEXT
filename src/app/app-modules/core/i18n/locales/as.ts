@@ -107,10 +107,6 @@ export const as: Record<TranslationKey, string> = {
   'dashboard.activity.noKmDocs': 'কোনো কেএম নথি পোৱা নগ’ল',
   'dashboard.activity.viewDocument': 'নথি চাওক',
 
-  // Rating panel
-  'dashboard.rating.title': 'মূল্যাংকন',
-  'dashboard.rating.empty': 'কোনো মূল্যাংকন তথ্য উপলব্ধ নাই',
-
   // Emergency contacts modal
   'dashboard.contacts.name': 'নাম',
   'dashboard.contacts.number': 'নম্বৰ',

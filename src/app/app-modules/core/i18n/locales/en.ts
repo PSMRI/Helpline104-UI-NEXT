@@ -105,10 +105,6 @@ export const en = {
   'dashboard.activity.noKmDocs': 'No KM Docs documents found',
   'dashboard.activity.viewDocument': 'View document',
 
-  // Rating panel
-  'dashboard.rating.title': 'Rating',
-  'dashboard.rating.empty': 'No rating data available',
-
   // Emergency contacts modal
   'dashboard.contacts.name': 'Name',
   'dashboard.contacts.number': 'Number',
