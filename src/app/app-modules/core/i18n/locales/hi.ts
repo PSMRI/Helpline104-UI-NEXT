@@ -1255,6 +1255,7 @@ export const hi: Record<TranslationKey, string> = {
   'supGrievance.title': 'शिकायत ट्रैकिंग',
   'supGrievance.loading': 'लोड हो रहा है…',
   'supGrievance.noRecords': 'कोई रिकॉर्ड नहीं मिला',
+  'supGrievance.lookupError': 'कुछ संदर्भ सूचियाँ लोड नहीं हो सकीं। विकल्प अपूर्ण हो सकते हैं — कृपया पृष्ठ पुनः लोड करें या सहायता से संपर्क करें।',
   'supGrievance.search': 'खोजें',
   'supGrievance.startDate': 'आरंभ करने की तिथि',
   'supGrievance.endDate': 'समाप्ति तिथि',

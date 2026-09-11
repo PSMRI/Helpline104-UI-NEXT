@@ -1252,6 +1252,7 @@ export const en = {
   'supGrievance.title': 'Grievance Tracking',
   'supGrievance.loading': 'Loading…',
   'supGrievance.noRecords': 'No record found',
+  'supGrievance.lookupError': 'Some reference lists could not be loaded. Options may be incomplete — please reload or contact support.',
   'supGrievance.search': 'Search',
   'supGrievance.startDate': 'Start Date',
   'supGrievance.endDate': 'End Date',

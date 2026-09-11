@@ -1256,6 +1256,7 @@ export const as: Record<TranslationKey, string> = {
   'supGrievance.title': 'অভিযোগ অনুসৰণ',
   'supGrievance.loading': 'ল’ড হৈ আছে…',
   'supGrievance.noRecords': 'কোনো ৰেকৰ্ড পোৱা নগ’ল',
+  'supGrievance.lookupError': 'কিছুমান প্ৰসংগ তালিকা ল’ড কৰিব পৰা নগ’ল। বিকল্পসমূহ অসম্পূৰ্ণ হ’ব পাৰে — অনুগ্ৰহ কৰি পুনৰ ল’ড কৰক বা সহায়ৰ সৈতে যোগাযোগ কৰক।',
   'supGrievance.search': 'অনুসন্ধান',
   'supGrievance.startDate': 'আৰম্ভৰ তাৰিখ',
   'supGrievance.endDate': 'অন্তিম তাৰিখ',
