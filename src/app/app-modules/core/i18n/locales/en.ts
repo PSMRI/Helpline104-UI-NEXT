@@ -876,7 +876,6 @@ export const en = {
   'hao.caseSheet.firstNameInvalid': 'First name is required (at least 3 characters).',
   'hao.caseSheet.genderRequired': 'Gender is required.',
   'hao.caseSheet.ageRequired': 'Age is required.',
-  'hao.caseSheet.categoryRequired': 'Category is required.',
   'hao.caseSheet.covidQc': 'COVID19 (QC)',
   'hao.caseSheet.yes': 'Yes',
   'hao.caseSheet.no': 'No',

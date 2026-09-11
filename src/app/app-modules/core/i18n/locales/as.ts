@@ -880,7 +880,6 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.firstNameInvalid': 'প্ৰথম নাম আৱশ্যক (অতি কমেও 3টা আখৰ)।',
   'hao.caseSheet.genderRequired': 'লিংগ আৱশ্যক।',
   'hao.caseSheet.ageRequired': 'বয়স আৱশ্যক।',
-  'hao.caseSheet.categoryRequired': 'শ্ৰেণী আৱশ্যক।',
   'hao.caseSheet.covidQc': 'COVID19 (QC)',
   'hao.caseSheet.yes': 'হয়',
   'hao.caseSheet.no': 'নহয়',

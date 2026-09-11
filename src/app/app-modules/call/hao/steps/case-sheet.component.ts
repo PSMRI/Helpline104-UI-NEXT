@@ -285,18 +285,12 @@ const MIN_VACCINE_AGE = 12;
               id="hao-cs-category"
               formControlName="categoryID"
               class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              [attr.aria-invalid]="isInvalid('categoryID') || null"
             >
               <option [ngValue]="null">{{ 'hao.caseSheet.selectCategory' | translate: lang() }}</option>
               @for (c of filteredCategories(); track c.categoryID) {
                 <option [ngValue]="c.categoryID">{{ c.categoryName }}</option>
               }
             </select>
-            @if (isInvalid('categoryID')) {
-              <p class="text-xs font-medium text-destructive" role="alert">
-                {{ 'hao.caseSheet.categoryRequired' | translate: lang() }}
-              </p>
-            }
           </div>
 
           <div class="flex flex-col gap-1.5">
@@ -1598,7 +1592,11 @@ export class CaseSheetComponent {
     treatmentRecommendationControl.setValidators(
       isCo ? [Validators.required, Validators.minLength(3), Validators.maxLength(300)] : [],
     );
-    categoryControl.setValidators(isCo ? [Validators.required] : []);
+    // Category is deliberately NOT required on this form. Legacy puts its
+    // `required` on a separate `catSubcatForm` whose only consumer is the Get
+    // Guidelines button's [disabled] (case-sheet.component.html:208-265) —
+    // "Category is mandatory only for guideline search". Save never gates on it.
+    categoryControl.clearValidators();
     complaintsControl.updateValueAndValidity();
     recommendedActionControl.updateValueAndValidity();
     actionByRoleControl.updateValueAndValidity();
