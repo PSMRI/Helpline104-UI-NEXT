@@ -1172,6 +1172,13 @@ export class CaseSheetComponent {
   readonly isMo = computed(() => this.roleCode() === 'MO');
   readonly isCo = computed(() => this.roleCode() === 'CO');
   readonly isHaoOrMo = computed(() => this.isHao() || this.isMo());
+  /**
+   * Whether the Action by HAO/MO field is on screen at all. The validator is
+   * keyed off this same signal the template renders the field and its required
+   * marker from, so a starred field is always an enforced one — legacy marks
+   * both textareas `required` outright rather than gating them on the role.
+   */
+  readonly showActionByRole = computed(() => this.showActionByHao() || this.isMo());
 
   readonly filteredCategories = computed(() => {
     const wellBeing = this.wellbeingOrInfo() === '1';
@@ -1542,7 +1549,9 @@ export class CaseSheetComponent {
     );
     recommendedActionControl.setValidators(required && usingComplaint ? [Validators.required] : []);
     actionByRoleControl.setValidators(
-      required ? [Validators.required, Validators.minLength(3), Validators.maxLength(200)] : [],
+      this.showActionByRole()
+        ? [Validators.required, Validators.minLength(3), Validators.maxLength(200)]
+        : [],
     );
     diseaseSummaryControl.setValidators(required && !usingComplaint ? [Validators.required] : []);
     provisionalDiagnosisControl.setValidators(
