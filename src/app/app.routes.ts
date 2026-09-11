@@ -356,6 +356,15 @@ export const routes: Routes = [
             (m) => m.AgentStatusComponent,
           ),
       },
+      {
+        // Legacy's first Reports menu entry: the CZentrix report console,
+        // embedded rather than reimplemented (legacy owns no catalogue).
+        path: 'telephony-reports',
+        loadComponent: () =>
+          import('./app-modules/supervisor/telephony-reports/telephony-reports.component').then(
+            (m) => m.TelephonyReportsComponent,
+          ),
+      },
     ],
   },
   {

@@ -608,7 +608,8 @@ export const as: Record<TranslationKey, string> = {
   'supervisor.nav.uploadSymptoms': 'লক্ষণ আপল’ড কৰক',
   'supervisor.nav.communication': 'যোগাযোগ',
   'supervisor.nav.forceLogout': 'ফৰ্চ লগআউট',
-  'supervisor.nav.reports': 'প্ৰতিবেদন',
+  'supervisor.nav.reports': 'চিআৰএম প্ৰতিবেদন',
+  'supervisor.nav.telephonyReports': 'টেলিফোনী প্ৰতিবেদন',
   'supervisor.nav.configurations': 'কনফিগাৰেচন',
   'supervisor.nav.contentManagement': 'সমল ব্যৱস্থাপনা',
   'supervisor.nav.smsTemplates': 'এছএমএছ টেমপ্লেট',
@@ -1528,6 +1529,9 @@ export const as: Record<TranslationKey, string> = {
   'supKm.noCategory': 'কোনো শ্ৰেণী পোৱা নগ’ল',
 
   // Supervisor agent status
+  'supervisor.telephonyReports.title': 'টেলিফোনী প্ৰতিবেদন',
+  'supervisor.telephonyReports.unavailable':
+    'টেলিফোনী প্ৰতিবেদন এই মুহূৰ্তত উপলব্ধ নহয়। অনুগ্ৰহ কৰি পুনৰ লগইন কৰি চাওক।',
   'supervisor.agentStatus.title': 'এজেণ্টৰ স্থিতি',
   'supervisor.agentStatus.unavailable':
     'এজেণ্টৰ স্থিতি এতিয়া উপলব্ধ নহয়। অনুগ্ৰহ কৰি পুনৰ লগইন কৰাৰ চেষ্টা কৰক।',

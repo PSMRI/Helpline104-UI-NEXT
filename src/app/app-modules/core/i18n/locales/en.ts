@@ -606,7 +606,8 @@ export const en = {
   'supervisor.nav.uploadSymptoms': 'Upload Symptoms',
   'supervisor.nav.communication': 'Communication',
   'supervisor.nav.forceLogout': 'Force Logout',
-  'supervisor.nav.reports': 'Reports',
+  'supervisor.nav.reports': 'CRM Reports',
+  'supervisor.nav.telephonyReports': 'Telephony Reports',
   'supervisor.nav.configurations': 'Configurations',
   'supervisor.nav.contentManagement': 'Content Management',
   'supervisor.nav.smsTemplates': 'SMS Templates',
@@ -1523,6 +1524,9 @@ export const en = {
   'supKm.noCategory': 'No category found',
 
   // Supervisor agent status
+  'supervisor.telephonyReports.title': 'Telephony Reports',
+  'supervisor.telephonyReports.unavailable':
+    'Telephony Reports is unavailable right now. Please try logging in again.',
   'supervisor.agentStatus.title': 'Agent Status',
   'supervisor.agentStatus.unavailable': 'Agent Status is unavailable right now. Please try logging in again.',
   // Login

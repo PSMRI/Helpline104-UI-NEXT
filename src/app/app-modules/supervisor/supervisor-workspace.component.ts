@@ -106,6 +106,12 @@ const ACTIVITIES_NAV: readonly SupervisorNavItem[] = [
 ];
 
 const REPORTS_NAV: readonly SupervisorNavItem[] = [
+  // Legacy orders the Reports menu telephony-first (104-supervisor.component.html:93-96).
+  {
+    labelKey: 'supervisor.nav.telephonyReports',
+    icon: 'lucidePhoneCall',
+    link: '/supervisor/telephony-reports',
+  },
   { labelKey: 'supervisor.nav.reports', icon: 'lucideChartColumn', link: '/supervisor/reports' },
 ];
 

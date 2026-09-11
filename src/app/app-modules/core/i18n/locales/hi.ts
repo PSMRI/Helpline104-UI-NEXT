@@ -607,7 +607,8 @@ export const hi: Record<TranslationKey, string> = {
   'supervisor.nav.uploadSymptoms': 'लक्षण अपलोड करें',
   'supervisor.nav.communication': 'संचार',
   'supervisor.nav.forceLogout': 'फोर्स लॉगआउट',
-  'supervisor.nav.reports': 'रिपोर्ट',
+  'supervisor.nav.reports': 'सीआरएम रिपोर्ट',
+  'supervisor.nav.telephonyReports': 'टेलीफोनी रिपोर्ट',
   'supervisor.nav.configurations': 'कॉन्फ़िगरेशन',
   'supervisor.nav.contentManagement': 'सामग्री प्रबंधन',
   'supervisor.nav.smsTemplates': 'एसएमएस टेम्पलेट',
@@ -1526,6 +1527,9 @@ export const hi: Record<TranslationKey, string> = {
   'supKm.noCategory': 'कोई श्रेणी नहीं मिली',
 
   // Supervisor agent status
+  'supervisor.telephonyReports.title': 'टेलीफोनी रिपोर्ट',
+  'supervisor.telephonyReports.unavailable':
+    'टेलीफोनी रिपोर्ट अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
   'supervisor.agentStatus.title': 'एजेंट स्थिति',
   'supervisor.agentStatus.unavailable': 'एजेंट स्थिति अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
   // Login
