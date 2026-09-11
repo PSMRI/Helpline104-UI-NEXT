@@ -342,6 +342,7 @@ export const hi: Record<TranslationKey, string> = {
   'prescription.noContext': 'कोई सक्रिय कॉल / लाभार्थी नहीं — प्रिस्क्रिप्शन सहेजा नहीं जा सकता।',
   'prescription.showHistory': 'पर्चे का इतिहास दिखाएं',
   'prescription.historyTitle': 'पर्चे  का इतिहास',
+  'prescription.recentHistoryTitle': 'हाल ही में पर्चे का इतिहास (पिछले 5 दिनों का)',
   'prescription.hideHistory': 'इतिहास छुपाएं',
   'prescription.prescriptionId': 'प्रिस्क्रिप्शन ID',
   'prescription.createdDate': 'निर्मित',

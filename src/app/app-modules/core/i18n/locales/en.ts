@@ -342,6 +342,7 @@ export const en = {
   'prescription.noContext': 'No active call / beneficiary — a prescription cannot be saved.',
   'prescription.showHistory': 'Show Prescription History',
   'prescription.historyTitle': 'Prescription History',
+  'prescription.recentHistoryTitle': 'Recent Prescription History (Last 5 Days)',
   'prescription.hideHistory': 'Hide history',
   'prescription.prescriptionId': 'Prescription ID',
   'prescription.createdDate': 'Created',

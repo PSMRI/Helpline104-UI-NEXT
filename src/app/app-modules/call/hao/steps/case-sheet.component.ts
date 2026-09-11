@@ -40,6 +40,10 @@ import { TranslationKey } from '../../../core/i18n/locales';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
 import { LEGACY_BLUE_BUTTON, LEGACY_DIALOG_CHROME, LEGACY_GREEN_BUTTON } from '../../legacy-theme';
+import {
+  RecentPrescriptionDialogComponent,
+  RecentPrescriptionDialogData,
+} from '../../case-sheet/recent-prescription-dialog.component';
 import { CasesheetHistoryMctsComponent } from '../../casesheet-history/casesheet-history-mcts.component';
 import { CasesheetHistoryMmuComponent } from '../../casesheet-history/casesheet-history-mmu.component';
 import { MmuVisitRow } from '../../casesheet-history/other-helpline.models';
@@ -855,7 +859,7 @@ const MIN_VACCINE_AGE = 12;
           <button z-button type="button" [class]="legacyGreen + ' mr-auto'" (click)="openPrescription()">
             {{ 'hao.service.prescription' | translate: lang() }}
           </button>
-          @if (recentPrescription()) {
+          @if (recentPrescriptions().length > 0) {
             <button
               z-button
               type="button"
@@ -1007,7 +1011,7 @@ export class CaseSheetComponent {
   readonly savingVaccine = signal(false);
 
   readonly showPrescription = computed(() => this.roleCode() === MO_FEATURE_CODE);
-  readonly recentPrescription = signal<PrescriptionRecord | null>(null);
+  readonly recentPrescriptions = signal<PrescriptionRecord[]>([]);
   readonly patientDisplayName = computed(() => {
     const d = this.callStore.demographics();
     return [d?.firstName, d?.lastName].filter(Boolean).join(' ');
@@ -1545,7 +1549,7 @@ export class CaseSheetComponent {
   }
 
   /** Legacy opens the prescription form as a modal, not an inline panel. */
-  openPrescription(showHistory = false): void {
+  openPrescription(): void {
     const ref = this.dialog.create<PrescriptionDialogComponent, PrescriptionDialogData>({
       zTitle: this.i18n.instant('prescription.title'),
       zContent: PrescriptionDialogComponent,
@@ -1555,7 +1559,7 @@ export class CaseSheetComponent {
         gender: this.patientGenderName(),
         initialDiagnosis: this.form.controls.informationGiven.value ?? '',
         provisionalDiagnosis: this.form.controls.chiefComplaintMode.value === 'complaint',
-        openHistory: showHistory,
+        openHistory: false,
       },
       zHideFooter: true,
       zMaskClosable: false,
@@ -1582,8 +1586,21 @@ export class CaseSheetComponent {
     });
   }
 
+  /**
+   * Legacy's Resend Prescription opens its own "Recent Prescription History
+   * (Last 5 Days)" modal — a different dialog from the prescription form's own
+   * history table, and the only one carrying the Resend checkboxes.
+   */
   openRecentPrescription(): void {
-    this.openPrescription(true);
+    this.dialog.create<RecentPrescriptionDialogComponent, RecentPrescriptionDialogData>({
+      zTitle: this.i18n.instant('prescription.recentHistoryTitle'),
+      zContent: RecentPrescriptionDialogComponent,
+      zData: { records: this.recentPrescriptions() },
+      zHideFooter: true,
+      zMaskClosable: false,
+      zWidth: '68rem',
+      zCustomClasses: LEGACY_DIALOG_CHROME,
+    });
   }
 
   onPrescriptionSaved(): void {
@@ -1595,26 +1612,22 @@ export class CaseSheetComponent {
 
   private loadRecentPrescription(beneficiaryRegID: number): void {
     this.prescriptionService.getPrescriptionList(beneficiaryRegID).subscribe({
-      next: (records) => this.recentPrescription.set(this.mostRecentWithinWindow(records)),
-      error: () => this.recentPrescription.set(null),
+      next: (records) => this.recentPrescriptions.set(this.withinWindow(records)),
+      error: () => this.recentPrescriptions.set([]),
     });
   }
 
-  private mostRecentWithinWindow(records: PrescriptionRecord[]): PrescriptionRecord | null {
+  /**
+   * Legacy's Resend modal is titled "Last 5 Days" and lists every prescription
+   * in that window, newest first — not just the most recent one.
+   */
+  private withinWindow(records: PrescriptionRecord[]): PrescriptionRecord[] {
     const now = Date.now();
-    let latest: PrescriptionRecord | null = null;
-    let latestTime = -Infinity;
-    for (const record of records) {
-      const created = record.createdDate ? Date.parse(record.createdDate) : NaN;
-      if (Number.isNaN(created) || now - created > RECENT_PRESCRIPTION_WINDOW_MS) {
-        continue;
-      }
-      if (created > latestTime) {
-        latest = record;
-        latestTime = created;
-      }
-    }
-    return latest;
+    return records
+      .map((record) => ({ record, created: record.createdDate ? Date.parse(record.createdDate) : NaN }))
+      .filter(({ created }) => !Number.isNaN(created) && now - created <= RECENT_PRESCRIPTION_WINDOW_MS)
+      .sort((a, b) => b.created - a.created)
+      .map(({ record }) => record);
   }
 
   resetForm(): void {

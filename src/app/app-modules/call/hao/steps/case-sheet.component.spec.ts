@@ -92,7 +92,7 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.showPrescription()).toBeTrue();
-    expect(fixture.componentInstance.recentPrescription()).not.toBeNull();
+    expect(fixture.componentInstance.recentPrescriptions().length).toBe(1);
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
     expect(buttons.some((b) => b.textContent?.includes('Resend Prescription'))).toBeTrue();
   });
@@ -104,7 +104,7 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     flushInit([{ createdDate: eightDaysAgo }]);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.recentPrescription()).toBeNull();
+    expect(fixture.componentInstance.recentPrescriptions().length).toBe(0);
   });
 
   it('does not show Prescription for HAO', () => {

@@ -343,6 +343,7 @@ export const as: Record<TranslationKey, string> = {
   'prescription.noContext': 'কোনো সক্ৰিয় কল / হিতাধিকাৰী নাই — প্ৰেছক্ৰিপচন সংৰক্ষণ কৰিব নোৱাৰি।',
   'prescription.showHistory': 'প্ৰেছক্ৰিপচন ইতিহাস দেখুৱাওক',
   'prescription.historyTitle': 'প্ৰেছক্ৰিপচন ইতিহাস',
+  'prescription.recentHistoryTitle': 'শেহতীয়া প্ৰেছক্ৰিপচন ইতিহাস (অন্তিম 5 দিন)',
   'prescription.hideHistory': 'ইতিহাস লুকুৱাওক',
   'prescription.prescriptionId': 'প্ৰেছক্ৰিপচন ID',
   'prescription.createdDate': 'সৃষ্টি',

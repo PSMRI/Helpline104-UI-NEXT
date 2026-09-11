@@ -54,10 +54,9 @@ import {
   STRENGTH_NA,
   SavePrescriptionRequest,
 } from './prescription.models';
-import { SmsService } from '../sms/sms.service';
 import { LEGACY_BLUE_BUTTON, LEGACY_GREEN_BUTTON } from '../legacy-theme';
+import { PrescriptionSmsService } from './prescription-sms.service';
 
-const PRESCRIPTION_SMS_TYPE = 'prescription sms';
 const ALTERNATE_NUMBER_PATTERN = /^\d{10}$/;
 
 /** Shared Tailwind classes for native `<select>` controls (no custom CSS). */
@@ -486,82 +485,41 @@ function optionalMinLength(min: number) {
             @if (history().length === 0) {
               <p class="text-sm text-muted-foreground">{{ 'prescription.noHistory' | translate: lang() }}</p>
             } @else {
+              <!-- Legacy's in-dialog history: eight columns, one row per
+                   prescribed drug, and no Resend checkbox — resending lives in
+                   the separate Recent Prescription modal
+                   (prescription.component.html:195-240). -->
               <div class="overflow-x-auto rounded-md border border-border">
                 <table class="w-full text-left text-sm">
                   <thead class="bg-muted/50 text-xs text-muted-foreground">
-                    <tr>
+                    <tr class="whitespace-nowrap">
                       <th class="px-3 py-2 font-medium">{{ 'prescription.prescriptionId' | translate: lang() }}</th>
-                      <th class="px-3 py-2 font-medium">{{ 'prescription.resend' | translate: lang() }}</th>
                       <th class="px-3 py-2 font-medium">
                         {{ 'prescription.diagnosisProvisional' | translate: lang() }}
                       </th>
                       <th class="px-3 py-2 font-medium">{{ 'prescription.drug' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.strength' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.frequency' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.noOfDays' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.remarks' | translate: lang() }}</th>
                       <th class="px-3 py-2 font-medium">{{ 'prescription.createdDate' | translate: lang() }}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    @for (rec of history(); track $index) {
-                      <tr class="border-t border-border align-top">
-                        <td class="px-3 py-2">{{ rec.prescriptionID ?? '—' }}</td>
-                        <td class="px-3 py-2">
-                          @for (d of rec.prescribedDrugs ?? []; track $index) {
-                            @if (d.prescribedDrugID != null) {
-                              <label class="flex items-center gap-1.5">
-                                <input
-                                  type="checkbox"
-                                  class="h-4 w-4 accent-primary"
-                                  [checked]="isDrugSelected(d.prescribedDrugID)"
-                                  (change)="toggleResendDrug(d.prescribedDrugID)"
-                                  [attr.aria-label]="'prescription.resend' | translate: lang()"
-                                />
-                              </label>
-                            }
-                          }
-                        </td>
-                        <td class="px-3 py-2">{{ rec.diagnosisProvided || '—' }}</td>
-                        <td class="px-3 py-2">
-                          @for (d of rec.prescribedDrugs ?? []; track $index) {
-                            <span class="block">{{ d.drugName }}</span>
-                          }
-                        </td>
-                        <td class="px-3 py-2">{{ rec.createdDate || '—' }}</td>
+                    @for (row of historyRows(); track $index) {
+                      <tr class="border-t border-border">
+                        <td class="px-3 py-2">{{ row.prescriptionID ?? '—' }}</td>
+                        <td class="px-3 py-2">{{ row.diagnosisProvided || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.drugName || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.dosage || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.frequency || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.noOfDays || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.remarks || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.createdDate || '—' }}</td>
                       </tr>
                     }
                   </tbody>
                 </table>
-              </div>
-
-              <div class="mt-3 flex flex-wrap items-end gap-3">
-                <div class="flex flex-col gap-1.5">
-                  <label for="rx-resend-alt-number" class="text-xs font-medium text-muted-foreground">
-                    {{ 'prescription.alternateNumber' | translate: lang() }}
-                  </label>
-                  <input
-                    id="rx-resend-alt-number"
-                    z-input
-                    class="w-48"
-                    inputmode="numeric"
-                    maxlength="10"
-                    [value]="resendAltNumber()"
-                    (input)="resendAltNumber.set($any($event.target).value)"
-                    [attr.aria-invalid]="!altNumberValid() || null"
-                  />
-                  @if (!altNumberValid()) {
-                    <p class="text-xs font-medium text-destructive" role="alert">
-                      {{ 'prescription.alternateNumberInvalid' | translate: lang() }}
-                    </p>
-                  }
-                </div>
-                <button
-                  z-button
-                  type="button"
-                  [class]="legacyGreen"
-                  [zLoading]="sendingSms()"
-                  [zDisabled]="!canSendResend()"
-                  (click)="sendResendSms()"
-                >
-                  {{ 'prescription.sendSms' | translate: lang() }}
-                </button>
               </div>
             }
 
@@ -579,7 +537,7 @@ function optionalMinLength(min: number) {
 export class PrescriptionComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly rx = inject(PrescriptionService);
-  private readonly sms = inject(SmsService);
+  private readonly prescriptionSms = inject(PrescriptionSmsService);
   private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
   private readonly i18n = inject(I18nService);
@@ -637,16 +595,25 @@ export class PrescriptionComponent implements OnInit {
   readonly saving = signal(false);
   readonly errorMessage = signal('');
 
-  /** Legacy "Resend Prescription" — drug lines checked for the resend SMS. */
-  readonly selectedResendDrugIds = signal<ReadonlySet<number>>(new Set());
-  readonly resendAltNumber = signal('');
   readonly sendingSms = signal(false);
-  readonly altNumberValid = computed(() => {
-    const v = this.resendAltNumber().trim();
-    return v === '' || ALTERNATE_NUMBER_PATTERN.test(v);
-  });
-  readonly canSendResend = computed(
-    () => this.selectedResendDrugIds().size > 0 && !this.sendingSms() && this.altNumberValid(),
+
+  /**
+   * Legacy's in-dialog history is one row per prescribed drug, with the
+   * prescription-level columns repeated down the rows.
+   */
+  readonly historyRows = computed(() =>
+    this.history().flatMap((record) =>
+      (record.prescribedDrugs ?? []).map((drug) => ({
+        prescriptionID: record.prescriptionID,
+        diagnosisProvided: record.diagnosisProvided,
+        drugName: drug.drugName,
+        dosage: drug.dosage,
+        frequency: drug.frequency,
+        noOfDays: drug.noOfDays,
+        remarks: record.remarks,
+        createdDate: record.createdDate,
+      })),
+    ),
   );
 
   /**
@@ -827,108 +794,6 @@ export class PrescriptionComponent implements OnInit {
     this.showHistory.update((v) => !v);
   }
 
-  isDrugSelected(prescribedDrugID: number): boolean {
-    return this.selectedResendDrugIds().has(prescribedDrugID);
-  }
-
-  toggleResendDrug(prescribedDrugID: number | undefined): void {
-    if (prescribedDrugID == null) {
-      return;
-    }
-    this.selectedResendDrugIds.update((ids) => {
-      const next = new Set(ids);
-      if (next.has(prescribedDrugID)) {
-        next.delete(prescribedDrugID);
-      } else {
-        next.add(prescribedDrugID);
-      }
-      return next;
-    });
-  }
-
-  /**
-   * Legacy "Resend Prescription" — sends the "Prescription SMS"-type template
-   * (one request per selected drug line) to the beneficiary's registered
-   * number, or the entered alternate number. Mirrors the registration-SMS
-   * flow: a missing SMS type/template for the service silently no-ops (as
-   * legacy did), rather than surfacing a hard error over a soft-config gap.
-   */
-  sendResendSms(): void {
-    if (!this.canSendResend()) {
-      return;
-    }
-    this.sendPrescriptionSms([...this.selectedResendDrugIds()], this.resendAltNumber().trim() || null, () => {
-      this.selectedResendDrugIds.set(new Set());
-      this.resendAltNumber.set('');
-    });
-  }
-
-  /**
-   * Send the "Prescription SMS"-type template, one request per drug line, to
-   * the beneficiary's registered number or `alternateNo` (legacy `sendSMS`).
-   * A missing SMS type/template for the service silently no-ops, as legacy did,
-   * rather than surfacing a hard error over a soft-config gap.
-   */
-  private sendPrescriptionSms(drugIds: number[], alternateNo: string | null, onSent?: () => void): void {
-    const beneficiaryRegID = this.callStore.beneficiaryId();
-    if (beneficiaryRegID === null || drugIds.length === 0) {
-      return;
-    }
-    const role = this.authStore.currentRole();
-    const providerServiceMapID = role?.providerServiceMapID ?? null;
-    const serviceID = role?.serviceID ?? null;
-    const createdBy = this.authStore.user()?.userName ?? '';
-
-    this.sendingSms.set(true);
-    this.sms
-      .getSmsTypes(serviceID)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (types) => {
-          const smsType = types.find((t) => t.smsType.toLowerCase() === PRESCRIPTION_SMS_TYPE);
-          if (!smsType) {
-            this.sendingSms.set(false);
-            return;
-          }
-          this.sms
-            .getSmsTemplates(providerServiceMapID, smsType.smsTypeID)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: (templates) => {
-                const template = templates.find((t) => t.deleted === false);
-                if (!template) {
-                  this.sendingSms.set(false);
-                  return;
-                }
-                const requests = drugIds.map((prescribedDrugID) => ({
-                  beneficiaryRegID,
-                  smsTemplateID: template.smsTemplateID,
-                  smsTemplateTypeID: smsType.smsTypeID,
-                  providerServiceMapID,
-                  createdBy,
-                  alternateNo,
-                  is1097: false,
-                  prescribedDrugID,
-                }));
-                this.sms
-                  .sendSms(requests)
-                  .pipe(takeUntilDestroyed(this.destroyRef))
-                  .subscribe({
-                    next: () => {
-                      this.sendingSms.set(false);
-                      onSent?.();
-                      toast.success(this.i18n.instant('prescription.smsSent'));
-                    },
-                    error: () => this.sendingSms.set(false),
-                  });
-              },
-              error: () => this.sendingSms.set(false),
-            });
-        },
-        error: () => this.sendingSms.set(false),
-      });
-  }
-
   /**
    * Persist the prescription. With `sendSms` the saved drug lines are then
    * texted to the beneficiary (or the alternate number), which is legacy's
@@ -987,7 +852,20 @@ export class PrescriptionComponent implements OnInit {
             const drugIds = (res.prescribedDrugs ?? [])
               .map((d) => d.prescribedDrugID)
               .filter((v): v is number => v != null);
-            this.sendPrescriptionSms(drugIds, this.useAltNumber() ? this.saveAltNumber().trim() : null);
+            const alternateNo = this.useAltNumber() ? this.saveAltNumber().trim() : null;
+            this.sendingSms.set(true);
+            this.prescriptionSms
+              .send(drugIds, alternateNo)
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe({
+                next: (sent) => {
+                  this.sendingSms.set(false);
+                  if (sent) {
+                    toast.success(this.i18n.instant('prescription.smsSent'));
+                  }
+                },
+                error: () => this.sendingSms.set(false),
+              });
             this.useAltNumber.set(false);
             this.saveAltNumber.set('');
           }
