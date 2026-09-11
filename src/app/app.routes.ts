@@ -142,7 +142,7 @@ export const routes: Routes = [
           ),
       },
       {
-        // PD (Psychiatrist / Programme Division) case-sheet workspace.
+        // PD (Psychiatrist) case-sheet workspace.
         path: 'pd',
         canActivate: [beneficiaryGuard, roleWorkspaceGuard],
         canDeactivate: [unsavedChangesGuard],

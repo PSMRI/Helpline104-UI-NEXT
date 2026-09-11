@@ -763,7 +763,7 @@ export const as: Record<TranslationKey, string> = {
   'roleWorkspace.hihlCaseSheetTab': 'বিস্তৃত HIHL CO কেছ শ্বীট',
   'roleWorkspace.sio.title': 'ছাৰ্ভিচ ইনফৰমেচন অফিচাৰ (SIO)',
   'roleWorkspace.sio.subtitle': 'কলাৰক এটা SIO সেৱা আগবঢ়াওক, তাৰ পিছত কল সমাপ্ত কৰক।',
-  'roleWorkspace.pd.title': 'প্ৰ’গ্ৰাম ডিভিজন (PD)',
+  'roleWorkspace.pd.title': 'মনোৰোগ বিশেষজ্ঞ (PD)',
   'roleWorkspace.pd.subtitle': 'কেছ শ্বীট লিপিবদ্ধ কৰক, তাৰ পিছত কল সমাপ্ত কৰক।',
   'roleWorkspace.pd.switchToMo': 'চিকিৎসা সেৱা (MO)',
   'roleWorkspace.surveyor.title': 'জৰীপকৰ্তা',

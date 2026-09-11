@@ -761,7 +761,7 @@ export const hi: Record<TranslationKey, string> = {
   'roleWorkspace.hihlCaseSheetTab': 'विस्तृत HIHL CO केस शीट',
   'roleWorkspace.sio.title': 'सर्विस इंफॉर्मेशन ऑफिसर (SIO)',
   'roleWorkspace.sio.subtitle': 'कॉलर को SIO सेवा प्रदान करें, फिर कॉल समाप्त करें।',
-  'roleWorkspace.pd.title': 'प्रोग्राम डिवीज़न (PD)',
+  'roleWorkspace.pd.title': 'मनोचिकित्सक (PD)',
   'roleWorkspace.pd.subtitle': 'केस शीट दर्ज करें, फिर कॉल समाप्त करें।',
   'roleWorkspace.pd.switchToMo': 'चिकित्सा सेवा (MO)',
   'roleWorkspace.surveyor.title': 'सर्वेयर',

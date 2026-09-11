@@ -760,7 +760,7 @@ export const en = {
   'roleWorkspace.hihlCaseSheetTab': 'Detailed HIHL CO case sheet',
   'roleWorkspace.sio.title': 'Service Information Officer (SIO)',
   'roleWorkspace.sio.subtitle': 'Provide an SIO service to the caller, then close the call.',
-  'roleWorkspace.pd.title': 'Programme Division (PD)',
+  'roleWorkspace.pd.title': 'Psychiatrist (PD)',
   'roleWorkspace.pd.subtitle': 'Record the case sheet, then close the call.',
   'roleWorkspace.pd.switchToMo': 'Medical service (MO)',
   'roleWorkspace.surveyor.title': 'Surveyor',
