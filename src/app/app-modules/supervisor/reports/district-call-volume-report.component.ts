@@ -34,6 +34,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
+import { SupervisorError } from '../shared/supervisor-api';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
 import { DistrictOption } from './reports.models';
@@ -182,7 +183,7 @@ export class DistrictCallVolumeReportComponent implements OnInit {
       this.service
         .getDistricts(stateID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.districts.set(list), error: () => undefined });
+        .subscribe({ next: (list) => this.districts.set(list), error: (err: SupervisorError) => this.runner.setError(err) });
     }
   }
 

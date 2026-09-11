@@ -34,6 +34,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
+import { SupervisorError } from '../shared/supervisor-api';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
 import { ComplaintDetailRequest, FeedbackNatureOption, FeedbackTypeOption } from './reports.models';
@@ -195,7 +196,7 @@ export class ComplaintDetailReportComponent implements OnInit {
     this.service
       .getFeedbackTypes(this.providerServiceMapID())
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (types) => this.feedbackTypes.set(types), error: () => undefined });
+      .subscribe({ next: (types) => this.feedbackTypes.set(types), error: (err: SupervisorError) => this.runner.setError(err) });
   }
 
   onStartChange(): void {
@@ -215,7 +216,7 @@ export class ComplaintDetailReportComponent implements OnInit {
       this.service
         .getFeedbackNatureTypes(this.providerServiceMapID(), type.feedbackTypeID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.feedbackNatures.set(list), error: () => undefined });
+        .subscribe({ next: (list) => this.feedbackNatures.set(list), error: (err: SupervisorError) => this.runner.setError(err) });
     }
   }
 

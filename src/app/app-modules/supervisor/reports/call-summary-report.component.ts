@@ -35,6 +35,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
+import { SupervisorError } from '../shared/supervisor-api';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
 import { CallTypeGroup, CallTypeOption, RoleOption } from './reports.models';
@@ -229,11 +230,11 @@ export class CallSummaryReportComponent implements OnInit {
     this.service
       .getRoles(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (roles) => this.roles.set(roles), error: () => undefined });
+      .subscribe({ next: (roles) => this.roles.set(roles), error: (err: SupervisorError) => this.runner.setError(err) });
     this.service
       .getCallTypeGroups(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (groups) => this.callTypeGroups.set(groups), error: () => undefined });
+      .subscribe({ next: (groups) => this.callTypeGroups.set(groups), error: (err: SupervisorError) => this.runner.setError(err) });
   }
 
   onStartChange(): void {

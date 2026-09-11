@@ -63,6 +63,26 @@ export function readSupervisorData<T>(res: ApiResponse<T>): T | undefined {
   return res.data;
 }
 
+/**
+ * The body the CRM report endpoints return, with HTTP 500, when the filters
+ * matched nothing — verified live: `crmReports/getUnblockedUserReport` answers
+ * 500 with a body of exactly `No data found`.
+ */
+const NO_DATA_BODY = 'no data found';
+
+/**
+ * Whether a failure is the backend's "empty result" rather than a fault.
+ *
+ * Deliberately keyed on that one exact body and nothing else. Treating *every*
+ * report 5xx as an empty result is what this codebase used to do, and it hid
+ * real outages (see {@link ReportRunner.messageFor}'s note); keying on the body
+ * separates the two cases instead of trading one for the other. Any other 5xx
+ * body — a stack trace, the JDBC connection error — stays a server fault.
+ */
+export function isNoDataFound(err: SupervisorError): boolean {
+  return err.errorMessage.trim().toLowerCase() === NO_DATA_BODY;
+}
+
 /** Normalise any thrown value (timeout, envelope, HTTP error) to a {@link SupervisorError}. */
 export function toSupervisorError(err: unknown): SupervisorError {
   if (err instanceof TimeoutError) {

@@ -35,6 +35,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
+import { SupervisorError } from '../shared/supervisor-api';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
 import {
@@ -448,22 +449,22 @@ export class CallTypeReportsComponent implements OnInit {
           this.feedbackTypes.set(types);
           this.grievanceTypes.set(types.filter((t) => GRIEVANCE_TYPE_NAMES.includes(t.feedbackTypeName ?? '')));
         },
-        error: () => undefined,
+        error: (err: SupervisorError) => this.runner.setError(err),
       });
     this.service_
       .getRoles(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (roles) => this.roles.set(roles), error: () => undefined });
+      .subscribe({ next: (roles) => this.roles.set(roles), error: (err: SupervisorError) => this.runner.setError(err) });
     this.service_
       .getWorkLocations(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (list) => this.workLocations.set(list), error: () => undefined });
+      .subscribe({ next: (list) => this.workLocations.set(list), error: (err: SupervisorError) => this.runner.setError(err) });
     const stateID = stateIDForRole(this.authStore.privileges(), this.authStore.currentRole());
     if (stateID != null) {
       this.service_
         .getDistricts(stateID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.districts.set(list), error: () => undefined });
+        .subscribe({ next: (list) => this.districts.set(list), error: (err: SupervisorError) => this.runner.setError(err) });
     }
   }
 
@@ -542,7 +543,7 @@ export class CallTypeReportsComponent implements OnInit {
       this.service_
         .getSubDistricts(districtID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.subDistricts.set(list), error: () => undefined });
+        .subscribe({ next: (list) => this.subDistricts.set(list), error: (err: SupervisorError) => this.runner.setError(err) });
     }
   }
 
@@ -554,7 +555,7 @@ export class CallTypeReportsComponent implements OnInit {
       this.service_
         .getVillages(blockID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.villages.set(list), error: () => undefined });
+        .subscribe({ next: (list) => this.villages.set(list), error: (err: SupervisorError) => this.runner.setError(err) });
     }
   }
 
@@ -566,7 +567,7 @@ export class CallTypeReportsComponent implements OnInit {
       this.service_
         .getFeedbackNatureTypes(this.providerServiceMapID(), type.feedbackTypeID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.feedbackNatures.set(list), error: () => undefined });
+        .subscribe({ next: (list) => this.feedbackNatures.set(list), error: (err: SupervisorError) => this.runner.setError(err) });
     }
   }
 
