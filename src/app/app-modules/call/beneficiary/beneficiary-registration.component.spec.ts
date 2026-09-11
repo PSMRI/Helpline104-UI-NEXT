@@ -33,7 +33,6 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { AuthStore } from '../../core/auth/auth.store';
 import { CurrentRole } from '../../core/auth/auth.models';
-import { CallStore } from '../call.store';
 import { BeneficiaryRegistrationComponent } from './beneficiary-registration.component';
 
 function currentRole(): CurrentRole {
