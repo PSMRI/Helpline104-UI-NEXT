@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:uat": "ng serve --proxy-config proxy.config.js",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "build-ci": "node scripts/ci-prebuild.js && ng build --configuration=production,ci",
