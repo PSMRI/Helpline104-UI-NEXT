@@ -31,7 +31,6 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
-import { AuthStore } from '../../../core/auth/auth.store';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { SupervisorError } from '../../shared/supervisor-api';
@@ -59,20 +58,38 @@ import { ForceLogoutService } from './force-logout.service';
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
       }
 
-      <form class="flex flex-wrap items-end gap-4" (ngSubmit)="kickout()">
+      <form class="flex flex-wrap items-end gap-4" [formGroup]="form" (ngSubmit)="kickout()">
         <div class="w-full max-w-xs">
           <label for="fl-username" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supLogout.userName' | translate: lang() }}
             <span class="text-destructive">*</span>
           </label>
-          <input id="fl-username" z-input class="w-full" [formControl]="userName" />
+          <input id="fl-username" z-input class="w-full" formControlName="userName" />
           @if (userName.hasError('required') && userName.touched) {
             <p class="mt-1 text-xs font-medium text-destructive">
               {{ 'registration.validation.required' | translate: lang() }}
             </p>
           }
         </div>
-        <button z-button type="submit" zType="default" [zLoading]="saving()" [zDisabled]="userName.invalid || saving()">
+        <div class="w-full max-w-xs">
+          <label for="fl-password" class="mb-1 block text-xs font-medium text-muted-foreground">
+            {{ 'supLogout.password' | translate: lang() }}
+            <span class="text-destructive">*</span>
+          </label>
+          <input id="fl-password" z-input type="password" class="w-full" formControlName="password" />
+          @if (password.hasError('required') && password.touched) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
+        </div>
+        <button
+          z-button
+          type="submit"
+          zType="default"
+          [zLoading]="saving()"
+          [zDisabled]="userName.invalid || password.invalid || saving()"
+        >
           {{ 'supLogout.kickout' | translate: lang() }}
         </button>
       </form>
@@ -82,7 +99,6 @@ import { ForceLogoutService } from './force-logout.service';
 export class ForceLogoutComponent {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(ForceLogoutService);
-  private readonly authStore = inject(AuthStore);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly destroyRef = inject(DestroyRef);
@@ -91,14 +107,30 @@ export class ForceLogoutComponent {
   readonly saving = signal(false);
   readonly errorMessage = signal('');
 
-  readonly userName = this.fb.control('', {
-    nonNullable: true,
-    validators: [Validators.required, Validators.minLength(3)],
+  /**
+   * Bound to the `<form>` so `(ngSubmit)` is Angular's output rather than a
+   * native submit — without a `formGroup` the browser reloaded the page and
+   * the kickout never reached the API.
+   */
+  readonly form = this.fb.group({
+    userName: this.fb.control('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(3)],
+    }),
+    /** The supervisor's own password, re-entered to authorise the kickout. */
+    password: this.fb.control('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
   });
 
+  readonly userName = this.form.controls.userName;
+  readonly password = this.form.controls.password;
+
   kickout(): void {
-    if (this.userName.invalid) {
+    if (this.userName.invalid || this.password.invalid) {
       this.userName.markAsTouched();
+      this.password.markAsTouched();
       return;
     }
     const userName = this.userName.value.trim();
@@ -121,7 +153,7 @@ export class ForceLogoutComponent {
     this.saving.set(true);
     this.errorMessage.set('');
     this.service
-      .forceLogout(userName, this.authStore.currentRole()?.providerServiceMapID ?? null)
+      .forceLogout(userName, this.password.value)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -132,13 +164,18 @@ export class ForceLogoutComponent {
           } else {
             this.errorMessage.set(res?.errorMessage || this.i18n.instant('supLogout.failed'));
           }
-          this.userName.reset('');
+          this.resetForm();
         },
         error: (err: SupervisorError) => {
           this.saving.set(false);
           this.errorMessage.set(err.errorMessage);
-          this.userName.reset('');
+          this.resetForm();
         },
       });
+  }
+
+  private resetForm(): void {
+    this.userName.reset('');
+    this.password.reset('');
   }
 }

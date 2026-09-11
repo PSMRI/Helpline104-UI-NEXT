@@ -21,7 +21,7 @@
  */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslationKey } from '../../core/i18n/locales';
@@ -50,9 +50,6 @@ function formatDuration(totalSeconds: number): string {
 /**
  * Call-statistics panel: today's call duration, break and free time (each with
  * Hrs/Mins/Secs sub-labels) plus the total call count.
- *
- * In `blank` mode (supervisors, who have no personal call metrics) the tiles
- * render their labels with no numeric values, matching the legacy dashboard.
  */
 @Component({
   selector: 'app-call-statistics',
@@ -73,11 +70,9 @@ function formatDuration(totalSeconds: number): string {
       <dl class="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
         @for (card of durationCards(); track card.labelKey) {
           <div class="flex flex-col items-center gap-1 bg-card px-4 py-6">
-            @if (!blank()) {
-              <dd class="text-3xl font-bold tabular-nums text-primary">
-                {{ card.value }}
-              </dd>
-            }
+            <dd class="text-3xl font-bold tabular-nums text-primary">
+              {{ card.value }}
+            </dd>
             <div class="flex gap-4 text-xs text-muted-foreground">
               <span>{{ 'dashboard.callStatistics.hrs' | translate: lang() }}</span>
               <span>{{ 'dashboard.callStatistics.mins' | translate: lang() }}</span>
@@ -90,11 +85,9 @@ function formatDuration(totalSeconds: number): string {
         }
 
         <div class="flex flex-col items-center justify-center gap-1 bg-card px-4 py-6">
-          @if (!blank()) {
-            <dd class="text-3xl font-bold tabular-nums text-primary">
-              {{ totalCalls() }}
-            </dd>
-          }
+          <dd class="text-3xl font-bold tabular-nums text-primary">
+            {{ totalCalls() }}
+          </dd>
           <dt class="text-center text-sm text-muted-foreground">
             {{ 'dashboard.callStatistics.totalCalls' | translate: lang() }}
           </dt>
@@ -110,8 +103,6 @@ export class CallStatisticsComponent {
   private readonly _today = signal(new Date());
 
   readonly lang = this.i18n.language;
-  /** When true, render labels only (no numeric values) — used for supervisors. */
-  readonly blank = input(false);
 
   /** Today's date, refreshed periodically so it stays correct across midnight. */
   readonly today = this._today.asReadonly();

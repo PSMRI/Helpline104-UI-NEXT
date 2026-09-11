@@ -21,6 +21,7 @@
  */
 
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -28,6 +29,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideSearch } from '@ng-icons/lucide';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardDialogService } from '@common-ui/ui/dialog';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
@@ -37,18 +39,27 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslationKey } from '../../../core/i18n/locales';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { CallStore } from '../../call.store';
+import { LEGACY_BLUE_BUTTON, LEGACY_DIALOG_CHROME, LEGACY_GREEN_BUTTON } from '../../legacy-theme';
+import {
+  RecentPrescriptionDialogComponent,
+  RecentPrescriptionDialogData,
+} from '../../case-sheet/recent-prescription-dialog.component';
 import { CasesheetHistoryMctsComponent } from '../../casesheet-history/casesheet-history-mcts.component';
 import { CasesheetHistoryMmuComponent } from '../../casesheet-history/casesheet-history-mmu.component';
 import { MmuVisitRow } from '../../casesheet-history/other-helpline.models';
-import { CdssComponent } from '../../case-sheet/cdss.component';
-import type { CdssGender, CdssSelection } from '../../case-sheet/cdss.models';
+import { CdssFlowService } from '../../case-sheet/cdss-flow.service';
+import { CdssService } from '../../case-sheet/cdss.service';
+import type { CdssGender, CdssPatientContext, CdssSelection } from '../../case-sheet/cdss.models';
 import { DiseaseSummaryDetail } from '../../case-sheet/disease-summary.models';
-import { SnomedSearchComponent } from '../../case-sheet/snomed-search.component';
-import type { SnomedTerm } from '../../case-sheet/snomed.models';
-import { PrescriptionComponent } from '../../case-sheet/prescription.component';
+import { SNOMED_NO_MATCH, SnomedService } from '../../case-sheet/snomed.service';
+import {
+  PrescriptionDialogComponent,
+  PrescriptionDialogData,
+} from '../../case-sheet/prescription-dialog.component';
 import { PrescriptionRecord } from '../../case-sheet/prescription.models';
 import { PrescriptionService } from '../../case-sheet/prescription.service';
 import { ViewDiseaseSummaryDetailsComponent } from '../../case-sheet/view-disease-summary-details.component';
+import { SERVICE_104, collectServiceScreens } from '../../role-workspace/role-screens.util';
 import {
   AvailableDisease,
   CaseSheetRequest,
@@ -61,6 +72,9 @@ import {
   SaveCovidVaccinationRequest,
 } from '../hao.models';
 import { HaoService } from '../hao.service';
+import { HihlCaseSheetHistoryComponent } from '../../counsellor/hihl-case-sheet-history.component';
+import { HihlCaseSheetService } from '../../counsellor/hihl-case-sheet.service';
+import type { HihlHistoryRow } from '../../counsellor/hihl-case-sheet.models';
 import { CaseSheetHistoryComponent } from './case-sheet-history.component';
 
 const MO_FEATURE_CODE = 'MO';
@@ -68,7 +82,7 @@ const MO_FEATURE_CODE = 'MO';
 const RECENT_PRESCRIPTION_WINDOW_MS = 5 * 24 * 60 * 60 * 1000;
 
 /** History tabs shown in the case-sheet history section. */
-type HistoryTab = 'own' | 'mcts' | 'mmu' | 'tm';
+type HistoryTab = 'own' | 'mcts' | 'mmu' | 'tm' | 'hihl';
 type ChiefComplaintMode = 'complaint' | 'summary';
 type VaccineStatus = 'YES' | 'NO';
 type WellbeingOrInfo = '1' | '2';
@@ -98,35 +112,37 @@ const MIN_VACCINE_AGE = 12;
     ZardButtonComponent,
     ZardInputDirective,
     CaseSheetHistoryComponent,
+    HihlCaseSheetHistoryComponent,
     NgIcon,
     CasesheetHistoryMctsComponent,
     CasesheetHistoryMmuComponent,
     ViewDiseaseSummaryDetailsComponent,
-    SnomedSearchComponent,
-    CdssComponent,
-    PrescriptionComponent,
   ],
   viewProviders: [provideIcons({ lucideSearch })],
   template: `
-    <h2 class="mb-2 text-base font-semibold text-foreground">
-      {{ (isCo() ? 'hao.caseSheet.counsellingSheet' : 'hao.caseSheet.caseSheet') | translate: lang() }}
-    </h2>
-
-    <div class="mb-4 rounded-lg border border-border bg-muted/30 p-3 text-sm">
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-foreground">
-        <span class="font-semibold">{{ callerName() || '—' }}</span>
-        <span>{{ callStore.cli() || '—' }}</span>
-        @if (patientGenderName(); as g) {
-          <span>{{ g }}</span>
-        }
-        @if (patientAge(); as a) {
-          <span>{{ 'hao.caseSheet.age' | translate: lang() }}: {{ a }}</span>
-        }
-      </div>
+    <!-- Legacy puts the green History button at the card's top right, level
+         with the "Case Sheet" heading (104 MO screenshots). -->
+    <div class="mb-2 flex items-start justify-between gap-3">
+      <h2 class="text-base font-semibold text-foreground">
+        {{ (isCo() ? 'hao.caseSheet.counsellingSheet' : 'hao.caseSheet.caseSheet') | translate: lang() }}
+      </h2>
+      @if (beneficiaryId() !== null && !historyOpen()) {
+        <button z-button type="button" [class]="legacyGreen" (click)="toggleHistory()">
+          {{ 'casesheetHistory.show' | translate: lang() }}
+        </button>
+      }
     </div>
 
-    <form class="flex flex-col gap-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
-      <div class="flex flex-col gap-1.5">
+    <!-- Legacy lays the case sheet out four fields across on a wide screen
+         (Bootstrap col-lg-3), stacking on narrow ones. Blocks that legacy puts
+         on their own row carry lg:col-span-full. -->
+    <form
+      class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2 lg:grid-cols-4"
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      novalidate
+    >
+      <div class="flex flex-col gap-1.5 lg:col-span-full">
         <label class="text-sm font-medium">{{ 'hao.caseSheet.patientIs' | translate: lang() }}</label>
         <div class="flex gap-4 text-sm">
           <label class="flex items-center gap-2">
@@ -140,75 +156,115 @@ const MIN_VACCINE_AGE = 12;
         </div>
       </div>
 
-      @if (form.controls.isPatientOther.value) {
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Legacy renders these four whatever "Patient is" says, disabling them
+           for Self and populating them from the beneficiary
+           (case-sheet.component.html:51-133, patientDetailsFields()). -->
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-full lg:grid-cols-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-first-name">
+            {{ 'hao.caseSheet.firstName' | translate: lang() }}
+            <span class="text-destructive" aria-hidden="true">*</span>
+          </label>
+          <input
+            z-input
+            id="hao-cs-first-name"
+            type="text"
+            maxlength="50"
+            formControlName="patientFirstName"
+            [attr.aria-invalid]="isInvalid('patientFirstName') || null"
+          />
+          @if (isInvalid('patientFirstName')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              {{ 'hao.caseSheet.firstNameInvalid' | translate: lang() }}
+            </p>
+          }
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-last-name">
+            {{ 'hao.caseSheet.lastName' | translate: lang() }}
+          </label>
+          <input z-input id="hao-cs-last-name" type="text" maxlength="50" formControlName="patientLastName" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-gender">
+            {{ 'hao.caseSheet.gender' | translate: lang() }}
+            <span class="text-destructive" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="hao-cs-gender"
+            formControlName="patientGenderID"
+            class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            [attr.aria-invalid]="isInvalid('patientGenderID') || null"
+          >
+            <option [ngValue]="null">{{ 'hao.caseSheet.selectGender' | translate: lang() }}</option>
+            <option value="M">{{ 'hao.caseSheet.genderMale' | translate: lang() }}</option>
+            <option value="F">{{ 'hao.caseSheet.genderFemale' | translate: lang() }}</option>
+            <option value="T">{{ 'hao.caseSheet.genderTransgender' | translate: lang() }}</option>
+          </select>
+          @if (isInvalid('patientGenderID')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              {{ 'hao.caseSheet.genderRequired' | translate: lang() }}
+            </p>
+          }
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-age">
+            {{ 'hao.caseSheet.age' | translate: lang() }}
+            <span class="text-destructive" aria-hidden="true">*</span>
+          </label>
+          <input
+            z-input
+            id="hao-cs-age"
+            type="number"
+            min="1"
+            max="120"
+            formControlName="patientAgeValue"
+            [attr.aria-invalid]="isInvalid('patientAgeValue') || null"
+          />
+          @if (isInvalid('patientAgeValue')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              {{ 'hao.caseSheet.ageRequired' | translate: lang() }}
+            </p>
+          }
+        </div>
+      </div>
+
+      <!-- Age unit and DOB are Other-plus-HAO only, as in legacy. -->
+      @if (form.controls.isPatientOther.value && isHao()) {
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-full lg:grid-cols-4">
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium" for="hao-cs-first-name">
-              {{ 'hao.caseSheet.firstName' | translate: lang() }}
-              <span class="text-destructive" aria-hidden="true">*</span>
-            </label>
-            <input z-input id="hao-cs-first-name" type="text" maxlength="50" formControlName="patientFirstName" />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium" for="hao-cs-last-name">
-              {{ 'hao.caseSheet.lastName' | translate: lang() }}
-            </label>
-            <input z-input id="hao-cs-last-name" type="text" maxlength="50" formControlName="patientLastName" />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium" for="hao-cs-gender">
-              {{ 'hao.caseSheet.gender' | translate: lang() }}
-              <span class="text-destructive" aria-hidden="true">*</span>
+            <label class="text-sm font-medium" for="hao-cs-age-unit">
+              {{ 'hao.caseSheet.ageUnit' | translate: lang() }}
             </label>
             <select
-              id="hao-cs-gender"
-              formControlName="patientGenderID"
+              id="hao-cs-age-unit"
+              formControlName="patientAgeUnit"
               class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <option [ngValue]="null">{{ 'hao.caseSheet.selectGender' | translate: lang() }}</option>
-              <option value="M">{{ 'hao.caseSheet.genderMale' | translate: lang() }}</option>
-              <option value="F">{{ 'hao.caseSheet.genderFemale' | translate: lang() }}</option>
-              <option value="T">{{ 'hao.caseSheet.genderTransgender' | translate: lang() }}</option>
+              <option value="days">{{ 'hao.caseSheet.ageUnitDays' | translate: lang() }}</option>
+              <option value="months">{{ 'hao.caseSheet.ageUnitMonths' | translate: lang() }}</option>
+              <option value="years">{{ 'hao.caseSheet.ageUnitYears' | translate: lang() }}</option>
             </select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium" for="hao-cs-age">
-              {{ 'hao.caseSheet.age' | translate: lang() }}
-              <span class="text-destructive" aria-hidden="true">*</span>
+            <label class="text-sm font-medium" for="hao-cs-dob">
+              {{ 'hao.caseSheet.dob' | translate: lang() }}
             </label>
-            <input z-input id="hao-cs-age" type="number" min="1" max="120" formControlName="patientAgeValue" />
+            <input z-input id="hao-cs-dob" type="date" formControlName="patientDOB" />
           </div>
         </div>
-        @if (isHao()) {
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium" for="hao-cs-age-unit">
-                {{ 'hao.caseSheet.ageUnit' | translate: lang() }}
-              </label>
-              <select
-                id="hao-cs-age-unit"
-                formControlName="patientAgeUnit"
-                class="h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="days">{{ 'hao.caseSheet.ageUnitDays' | translate: lang() }}</option>
-                <option value="months">{{ 'hao.caseSheet.ageUnitMonths' | translate: lang() }}</option>
-                <option value="years">{{ 'hao.caseSheet.ageUnitYears' | translate: lang() }}</option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium" for="hao-cs-dob">
-                {{ 'hao.caseSheet.dob' | translate: lang() }}
-              </label>
-              <input z-input id="hao-cs-dob" type="date" formControlName="patientDOB" />
-            </div>
-          </div>
-        }
       }
 
       @if (isCo()) {
-        <p class="text-xs text-muted-foreground">{{ 'hao.caseSheet.categoryGuidelineNote' | translate: lang() }}</p>
+        <p class="text-xs text-muted-foreground lg:col-span-full">
+          {{ 'hao.caseSheet.categoryGuidelineNote' | translate: lang() }}
+        </p>
 
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <!-- Legacy puts the Well Being/Information radios, Category, Sub
+             Category and Get Guidelines four across on one row. This is a
+             sub-grid spanning the full width: as a single grid cell its
+             children overflowed onto the chief-complaint column. -->
+        <div class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:col-span-full lg:grid-cols-4">
           <div class="flex gap-4 text-sm">
             <label class="flex items-center gap-2">
               <input type="radio" formControlName="wellbeingOrInfo" value="1" />
@@ -253,22 +309,27 @@ const MIN_VACCINE_AGE = 12;
             </select>
           </div>
 
+          <!-- Legacy renders Get Guidelines as a round green icon button. -->
           <button
             z-button
             type="button"
-            zType="outline"
-            zSize="sm"
+            zShape="circle"
+            zSize="icon-lg"
+            [class]="legacyGreen"
             [zLoading]="loadingGuidelines()"
             [zDisabled]="form.controls.categoryID.value === null || loadingGuidelines()"
+            [title]="'hao.caseSheet.getGuidelines' | translate: lang()"
             [attr.aria-label]="'hao.caseSheet.getGuidelines' | translate: lang()"
             (click)="searchGuidelines()"
           >
-            <ng-icon name="lucideSearch" size="16" aria-hidden="true" />
+            <ng-icon name="lucideSearch" size="18" aria-hidden="true" />
           </button>
         </div>
 
         @if (guidelineResults(); as results) {
-          <div class="rounded-md border border-dashed border-border p-3 text-sm">
+          <!-- Legacy drops the guideline file list onto its own row under the
+               category pickers, left-aligned and narrow. -->
+          <div class="rounded-md border border-dashed border-border p-3 text-sm lg:col-span-full lg:max-w-md">
             @if (results.length > 0 && anyGuidelineFile(results)) {
               <ul class="flex flex-col gap-1">
                 @for (detail of results; track $index) {
@@ -296,7 +357,7 @@ const MIN_VACCINE_AGE = 12;
       }
 
       @if (isHaoOrMo()) {
-        <div class="flex gap-4 text-sm">
+        <div class="flex gap-4 text-sm lg:col-span-full">
           <label class="flex items-center gap-2">
             <input type="radio" formControlName="chiefComplaintMode" value="complaint" />
             {{ 'hao.caseSheet.presentChiefComplaint' | translate: lang() }}
@@ -325,17 +386,57 @@ const MIN_VACCINE_AGE = 12;
               [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
             ></textarea>
           } @else {
-            <textarea
-              z-input
-              id="hao-cs-complaints"
-              rows="3"
-              maxlength="2000"
-              formControlName="chiefComplaints"
-              [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
-              [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
-              [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
-              (blur)="onComplaintBlur()"
-            ></textarea>
+            <!--
+              Legacy renders this field as an <md2-autocomplete> over the
+              CDSS chief-complaint list (case-sheet.component.html:357-378):
+              typing filters the list, and picking an entry fires
+              invokeDialog() straight into the Symptoms popup. The dropdown
+              below reproduces that; there is deliberately no second
+              SNOMED search box, which legacy never had.
+            -->
+            <div class="relative">
+              <textarea
+                z-input
+                id="hao-cs-complaints"
+                rows="3"
+                maxlength="2000"
+                formControlName="chiefComplaints"
+                role="combobox"
+                autocomplete="off"
+                [attr.aria-expanded]="complaintDropdownOpen()"
+                aria-controls="hao-cs-complaint-options"
+                [attr.aria-invalid]="isInvalid('chiefComplaints') || null"
+                [attr.aria-describedby]="isInvalid('chiefComplaints') ? 'hao-cs-complaints-error' : null"
+                [placeholder]="'hao.caseSheet.chiefComplaintsPlaceholder' | translate: lang()"
+                [title]="complaintSctid()"
+                (input)="onComplaintInput()"
+                (focus)="onComplaintInput()"
+                (keydown.escape)="closeComplaintDropdown()"
+                (blur)="onComplaintBlur()"
+              ></textarea>
+              @if (complaintDropdownOpen() && filteredComplaints().length > 0) {
+                <ul
+                  id="hao-cs-complaint-options"
+                  role="listbox"
+                  class="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-md"
+                >
+                  @for (option of filteredComplaints(); track option) {
+                    <li role="option" [attr.aria-selected]="false">
+                      <button
+                        type="button"
+                        class="w-full px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:outline-none"
+                        (mousedown)="selectComplaint(option)"
+                      >
+                        {{ option }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+            @if (complaintSctid()) {
+              <p class="text-xs text-muted-foreground">{{ complaintSctid() }}</p>
+            }
           }
           @if (isInvalid('chiefComplaints')) {
             <p id="hao-cs-complaints-error" class="text-xs font-medium text-destructive" role="alert">
@@ -345,9 +446,6 @@ const MIN_VACCINE_AGE = 12;
                 {{ 'hao.caseSheet.chiefComplaintsRequired' | translate: lang() }}
               }
             </p>
-          }
-          @if (!isCo()) {
-            <app-snomed-search (selected)="onSnomedSelected($event)" />
           }
         </div>
 
@@ -498,7 +596,7 @@ const MIN_VACCINE_AGE = 12;
         />
       }
 
-      @if (isHao()) {
+      @if (showActionByHao()) {
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium" for="hao-cs-action-hao">
             {{ 'hao.caseSheet.actionByHao' | translate: lang() }}
@@ -517,6 +615,8 @@ const MIN_VACCINE_AGE = 12;
             <p class="text-xs font-medium text-destructive" role="alert">
               {{ 'hao.caseSheet.actionByRoleInvalid' | translate: lang() }}
             </p>
+          } @else {
+            <p class="text-xs text-muted-foreground">{{ 'hao.caseSheet.max200' | translate: lang() }}</p>
           }
         </div>
       }
@@ -539,19 +639,14 @@ const MIN_VACCINE_AGE = 12;
             <p class="text-xs font-medium text-destructive" role="alert">
               {{ 'hao.caseSheet.actionByRoleInvalid' | translate: lang() }}
             </p>
+          } @else {
+            <p class="text-xs text-muted-foreground">{{ 'hao.caseSheet.max200' | translate: lang() }}</p>
           }
         </div>
       }
 
-      <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium" for="hao-cs-remarks">
-          {{ 'hao.caseSheet.remarks' | translate: lang() }}
-        </label>
-        <textarea z-input id="hao-cs-remarks" rows="2" formControlName="remarks"></textarea>
-      </div>
-
       @if (isHaoOrMo()) {
-        <div class="flex flex-col gap-2 rounded-lg border border-border p-3">
+        <div class="flex flex-col gap-2 lg:col-span-full">
           <label class="text-sm font-medium">
             {{ 'hao.caseSheet.covidQc' | translate: lang() }}
             <span class="text-destructive" aria-hidden="true">*</span>
@@ -707,7 +802,7 @@ const MIN_VACCINE_AGE = 12;
           }
         </div>
 
-        <div class="flex flex-col gap-2 rounded-lg border border-border p-3">
+        <div class="flex flex-col gap-2 lg:col-span-full">
           <label class="flex items-center gap-2 text-sm font-medium">
             <input type="checkbox" formControlName="isCovidVaccine" />
             {{ 'hao.caseSheet.covidVaccineStatus' | translate: lang() }}
@@ -784,26 +879,33 @@ const MIN_VACCINE_AGE = 12;
         </div>
       }
 
-      <app-cdss
-        [complaint]="complaint()"
-        [age]="patientAge()"
-        [gender]="patientGender()"
-        [role]="roleCode()"
-        [disabled]="saving()"
-        (selection)="onCdssSelection($event)"
-      />
+      <!--
+        No inline CDSS panel: legacy drives CDSS entirely through the popups
+        the chief-complaint pick opens (Symptoms → Symptom Results →
+        Diseases), so the only thing shown here is the loading/error state of
+        that chain.
+      -->
+      @if (cdssBusy()) {
+        <p class="text-xs text-muted-foreground">{{ 'cdss.title' | translate: lang() }}…</p>
+      }
+      @if (cdssError()) {
+        <p class="text-xs font-medium text-destructive" role="alert">
+          {{ 'cdss.noQuestions' | translate: lang() }}
+        </p>
+      }
 
-      <div class="flex flex-wrap justify-end gap-2">
+      <!-- Legacy: Prescription green on the left, Clear blue then Save green on
+           the right (case-sheet.component.html / 104 MO screenshots). -->
+      <div class="flex flex-wrap justify-end gap-2 lg:col-span-full">
         @if (showPrescription()) {
-          <button z-button type="button" zType="outline" class="mr-auto" (click)="togglePrescription()">
+          <button z-button type="button" [class]="legacyGreen + ' mr-auto'" (click)="openPrescription()">
             {{ 'hao.service.prescription' | translate: lang() }}
           </button>
-          @if (recentPrescription()) {
+          @if (recentPrescriptions().length > 0) {
             <button
               z-button
               type="button"
-              zType="outline"
-              class="-ml-1"
+              [class]="legacyGreen"
               [title]="'hao.caseSheet.resendPrescriptionHint' | translate: lang()"
               (click)="openRecentPrescription()"
             >
@@ -811,55 +913,56 @@ const MIN_VACCINE_AGE = 12;
             </button>
           }
         }
-        <button z-button type="button" zType="outline" (click)="resetForm()">
+        <button z-button type="button" [class]="legacyBlue" (click)="resetForm()">
           {{ 'hao.caseSheet.clear' | translate: lang() }}
         </button>
-        <button z-button type="submit" [zLoading]="saving()" [zDisabled]="saving() || beneficiaryId() === null">
+        <button
+          z-button
+          type="submit"
+          [class]="legacyGreen"
+          [zLoading]="saving()"
+          [zDisabled]="saving() || beneficiaryId() === null"
+        >
           {{ 'hao.caseSheet.save' | translate: lang() }}
         </button>
       </div>
     </form>
 
-    @if (prescriptionOpen()) {
-      <div class="mt-4">
-        <app-prescription
-          [patientName]="patientDisplayName()"
-          [age]="patientAge()"
-          [gender]="patientGenderName()"
-          [initialDiagnosis]="form.controls.informationGiven.value ?? ''"
-          [openHistory]="openPrescriptionHistory()"
-          (saved)="onPrescriptionSaved()"
-        />
-      </div>
-    }
-
-    @if (beneficiaryId() !== null) {
+    @if (beneficiaryId() !== null && historyOpen()) {
       <section class="mt-6 border-t border-border pt-4">
-        <div class="flex items-center justify-between">
+        <!-- Legacy labels this "History" with an ✕ chip that closes it, and
+             renders the tabs as underlined text tabs rather than buttons. -->
+        <div class="flex items-center gap-2">
           <h2 class="text-sm font-semibold text-foreground">
             {{ 'casesheetHistory.sectionTitle' | translate: lang() }}
           </h2>
-          <button z-button type="button" zType="ghost" zSize="sm" (click)="toggleHistory()">
-            {{ (historyOpen() ? 'casesheetHistory.hide' : 'casesheetHistory.show') | translate: lang() }}
+          <button
+            type="button"
+            class="flex size-5 items-center justify-center rounded bg-foreground text-xs font-bold text-background hover:bg-foreground/80"
+            [attr.aria-label]="'casesheetHistory.hide' | translate: lang()"
+            (click)="toggleHistory()"
+          >
+            ✕
           </button>
         </div>
 
-        @if (historyOpen()) {
-          <div class="mt-3 flex flex-wrap gap-2" role="tablist">
-            @for (tab of historyTabs; track tab.id) {
-              <button
-                z-button
-                type="button"
-                [zType]="activeTab() === tab.id ? 'default' : 'outline'"
-                zSize="sm"
-                role="tab"
-                [attr.aria-selected]="activeTab() === tab.id"
-                (click)="activeTab.set(tab.id)"
-              >
-                {{ tab.labelKey | translate: lang() }}
-              </button>
-            }
-          </div>
+        <div class="mt-3 flex flex-wrap gap-x-6 border-b border-border" role="tablist">
+          @for (tab of historyTabs; track tab.id) {
+            <button
+              type="button"
+              class="-mb-px border-b-2 px-1 pb-2 text-sm font-semibold"
+              [class.border-primary]="activeTab() === tab.id"
+              [class.text-foreground]="activeTab() === tab.id"
+              [class.border-transparent]="activeTab() !== tab.id"
+              [class.text-muted-foreground]="activeTab() !== tab.id"
+              role="tab"
+              [attr.aria-selected]="activeTab() === tab.id"
+              (click)="selectHistoryTab(tab.id)"
+            >
+              {{ tab.labelKey | translate: lang() }}
+            </button>
+          }
+        </div>
 
           <div class="mt-3">
             @switch (activeTab()) {
@@ -878,6 +981,9 @@ const MIN_VACCINE_AGE = 12;
                   [isTm]="true"
                   (selectVisit)="onSelectVisit($event)"
                 />
+              }
+              @case ('hihl') {
+                <app-hihl-case-sheet-history [rows]="hihlHistoryRows()" [loading]="hihlHistoryLoading()" />
               }
             }
 
@@ -912,8 +1018,7 @@ const MIN_VACCINE_AGE = 12;
                 </p>
               </div>
             }
-          </div>
-        }
+        </div>
       </section>
     }
   `,
@@ -925,7 +1030,16 @@ export class CaseSheetComponent {
   private readonly authStore = inject(AuthStore);
   readonly callStore = inject(CallStore);
   private readonly i18n = inject(I18nService);
+  private readonly dialog = inject(ZardDialogService);
+
+  /** Legacy's button accents (see legacy-theme.ts). */
+  readonly legacyGreen = LEGACY_GREEN_BUTTON;
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly cdss = inject(CdssService);
+  private readonly cdssFlow = inject(CdssFlowService);
+  private readonly hihlService = inject(HihlCaseSheetService);
+  private readonly snomed = inject(SnomedService);
 
   readonly lang = this.i18n.language;
 
@@ -939,9 +1053,7 @@ export class CaseSheetComponent {
   readonly savingVaccine = signal(false);
 
   readonly showPrescription = computed(() => this.roleCode() === MO_FEATURE_CODE);
-  readonly prescriptionOpen = signal(false);
-  readonly openPrescriptionHistory = signal(false);
-  readonly recentPrescription = signal<PrescriptionRecord | null>(null);
+  readonly recentPrescriptions = signal<PrescriptionRecord[]>([]);
   readonly patientDisplayName = computed(() => {
     const d = this.callStore.demographics();
     return [d?.firstName, d?.lastName].filter(Boolean).join(' ');
@@ -965,21 +1077,32 @@ export class CaseSheetComponent {
   readonly activeTab = signal<HistoryTab>('own');
   readonly selectedVisit = signal<MmuVisitRow | null>(null);
 
+  /**
+   * 104-HIHL case-sheet history (legacy's 5th tab, `benHihlData`). The other
+   * four tabs' components fetch their own rows from a `benRegID` input; this
+   * one takes rows as an input, so the case sheet loads them — lazily, the
+   * first time the tab is opened for a beneficiary.
+   */
+  readonly hihlHistoryRows = signal<HihlHistoryRow[]>([]);
+  readonly hihlHistoryLoading = signal(false);
+  private hihlHistoryLoadedFor: number | null = null;
+
   readonly historyTabs: ReadonlyArray<{ id: HistoryTab; labelKey: TranslationKey }> = [
     { id: 'own', labelKey: 'casesheetHistory.tabOwn' },
     { id: 'mcts', labelKey: 'casesheetHistory.tabMcts' },
     { id: 'mmu', labelKey: 'casesheetHistory.tabMmu' },
     { id: 'tm', labelKey: 'casesheetHistory.tabTm' },
+    { id: 'hihl', labelKey: 'casesheetHistory.tabHihl' },
   ];
 
   private prefilledFor: number | null = null;
 
   readonly form = this.fb.nonNullable.group({
     isPatientOther: [false],
-    patientFirstName: [''],
+    patientFirstName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
     patientLastName: [''],
-    patientGenderID: this.fb.control<CdssGender | null>(null),
-    patientAgeValue: this.fb.control<number | null>(null),
+    patientGenderID: this.fb.control<CdssGender | null>(null, Validators.required),
+    patientAgeValue: this.fb.control<number | null>(null, Validators.required),
     patientAgeUnit: ['years'],
     patientDOB: this.fb.control<string | null>(null),
     chiefComplaintMode: this.fb.control<ChiefComplaintMode>('complaint'),
@@ -989,7 +1112,6 @@ export class CaseSheetComponent {
     informationGiven: this.fb.control<string | null>(null),
     recommendedAction: [''],
     actionByRole: [''],
-    remarks: this.fb.control<string | null>(null),
     covidQc: this.fb.control<'yes' | 'no'>('no'),
     covidTravelled: this.fb.control<boolean | null>(null),
     covidTravelDomestic: [false],
@@ -1017,14 +1139,50 @@ export class CaseSheetComponent {
   });
 
   /**
-   * CDSS symptom input. Mirrors `chiefComplaints` for every normal edit
-   * (typing, loading an existing case sheet, Clear/reset) — but see
-   * {@link onSnomedSelected}, which deliberately keeps this signal on the
-   * agent's own typed text instead of the SNOMED description it writes into
-   * the form control.
+   * CDSS symptom input. Mirrors `chiefComplaints` for every edit — including
+   * picking an entry from the chief-complaint dropdown, which legacy feeds
+   * straight into `invokeDialog()`/`getQuestions` as the symptom
+   * (`case-sheet.component.ts:1294-1299`).
    */
   private readonly _complaint = signal(this.form.controls.chiefComplaints.value);
   readonly complaint = this._complaint.asReadonly();
+
+  /**
+   * Chief-complaint options for the field's dropdown — legacy's
+   * `chiefCompliants`, loaded from `CDSS/Symptoms` for the patient's age and
+   * gender (`fetchChiefComplaintsBasedOnGender()`).
+   */
+  private readonly complaintOptions = signal<string[]>([]);
+  /** `age|gender` the option list was last loaded for; see {@link loadChiefComplaintOptions}. */
+  private complaintOptionsKey: string | null = null;
+  private readonly complaintQuery = signal('');
+  readonly complaintDropdownOpen = signal(false);
+
+  /**
+   * `SCTID: <conceptID>` for the picked complaint. Legacy resolves this behind
+   * the scenes on selection (`getSnomedCTRecord`) and shows it as the field's
+   * tooltip (`sctID_pcc`).
+   */
+  readonly complaintSctid = signal('');
+
+  /** True while the CDSS questionnaire for a freshly picked complaint loads. */
+  readonly cdssBusy = signal(false);
+  /** Set when the CDSS chain fails, so the agent sees why nothing opened. */
+  readonly cdssError = signal(false);
+
+  /**
+   * Substring match, case-insensitive — what legacy's `<md2-autocomplete>`
+   * does in the browser (its own `filter()` helper is prefix-based but is
+   * never wired to the template, so it is dead code there).
+   */
+  readonly filteredComplaints = computed(() => {
+    const query = this.complaintQuery().trim().toLowerCase();
+    const options = this.complaintOptions();
+    if (query.length === 0) {
+      return options;
+    }
+    return options.filter((option) => option.toLowerCase().includes(query));
+  });
 
   private readonly wellbeingOrInfo = toSignal(this.form.controls.wellbeingOrInfo.valueChanges, {
     initialValue: this.form.controls.wellbeingOrInfo.value,
@@ -1032,9 +1190,26 @@ export class CaseSheetComponent {
 
   readonly roleCode = computed(() => this.authStore.currentRole()?.featureCode ?? '');
   readonly isHao = computed(() => this.roleCode() === 'HAO');
+  /**
+   * Action by HAO is the one field legacy does NOT gate on the role code alone
+   * (`case-sheet.component.html:593`): a hybrid RO+HAO agent's feature code is
+   * remapped to `RO` by `getSelectedFeature()`, so legacy ORs in the
+   * Health_Advice screen privilege to keep the field visible for them. Every
+   * other HAO check in that template is a plain role comparison.
+   */
+  readonly showActionByHao = computed(
+    () => this.isHao() || collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes('Health_Advice'),
+  );
   readonly isMo = computed(() => this.roleCode() === 'MO');
   readonly isCo = computed(() => this.roleCode() === 'CO');
   readonly isHaoOrMo = computed(() => this.isHao() || this.isMo());
+  /**
+   * Whether the Action by HAO/MO field is on screen at all. The validator is
+   * keyed off this same signal the template renders the field and its required
+   * marker from, so a starred field is always an enforced one — legacy marks
+   * both textareas `required` outright rather than gating them on the role.
+   */
+  readonly showActionByRole = computed(() => this.showActionByHao() || this.isMo());
 
   readonly filteredCategories = computed(() => {
     const wellBeing = this.wellbeingOrInfo() === '1';
@@ -1137,23 +1312,90 @@ export class CaseSheetComponent {
     return this.authStore.currentRole()?.providerServiceMapID ?? null;
   }
 
+  /** Typing in the chief-complaint field re-filters and opens its dropdown. */
+  onComplaintInput(): void {
+    this.complaintQuery.set(this.form.controls.chiefComplaints.value ?? '');
+    this.complaintDropdownOpen.set(true);
+  }
+
+  closeComplaintDropdown(): void {
+    this.complaintDropdownOpen.set(false);
+  }
+
   /**
-   * A SNOMED CT description ("Fever of unknown origin") is the clinically
-   * correct thing to record, but CDSS's own catalogue keys on plain disease
-   * names ("Fever") and returns nothing for the coded description — so the
-   * case sheet keeps the SNOMED term, while the CDSS symptom input
-   * ({@link complaint}) is deliberately left on whatever the agent had typed
-   * before selecting it. Provisional Diagnosis still gets the fallback fill
-   * from the SNOMED term itself (see {@link fillProvisionalDiagnosisFallback}),
-   * since that field should reflect the precise clinical term regardless of
-   * what CDSS can match on.
+   * Pick a complaint from the dropdown — legacy's `<md2-autocomplete>`
+   * `(change)="invokeDialog(pcc)"`. Unlike the retired SNOMED box this feeds
+   * the CDSS symptom input ({@link complaint}) with the picked name, because
+   * that name is exactly what legacy posts to `getQuestions` as `symptom`
+   * (`case-sheet.component.ts:1297`), and resolves the term's SNOMED concept
+   * id behind the scenes for the field's `SCTID:` hint (legacy `sctID_pcc`).
    */
-  onSnomedSelected(term: SnomedTerm): void {
-    const priorComplaint = this._complaint();
-    this.form.controls.chiefComplaints.setValue(term.term);
+  selectComplaint(option: string): void {
+    this.form.controls.chiefComplaints.setValue(option);
     this.form.controls.chiefComplaints.markAsDirty();
-    this._complaint.set(priorComplaint);
-    this.fillProvisionalDiagnosisFallback(term.term);
+    this._complaint.set(option);
+    this.complaintQuery.set(option);
+    this.closeComplaintDropdown();
+    this.fillProvisionalDiagnosisFallback(option);
+    this.complaintSctid.set('');
+    this.snomed.getRecordConceptId(option).subscribe((conceptId) => {
+      this.complaintSctid.set(conceptId === SNOMED_NO_MATCH ? '' : `SCTID: ${conceptId}`);
+    });
+    void this.openCdssFlow(option);
+  }
+
+  /**
+   * Legacy's `invokeDialog()`: picking a complaint goes straight into the
+   * Symptoms → Symptom Results → Diseases popups, and saving there fills
+   * Provisional Diagnosis + Recommended Action.
+   */
+  private async openCdssFlow(symptom: string): Promise<void> {
+    const age = this.patientAge();
+    const gender = this.patientGender();
+    if (age === null || gender === null) {
+      return;
+    }
+    const patient: CdssPatientContext = { age, gender, symptom };
+    this.cdssBusy.set(true);
+    try {
+      const questionnaire = await firstValueFrom(this.cdss.getQuestions(patient));
+      const selection = await this.cdssFlow.run(patient, questionnaire.id, questionnaire.questions, (selected) =>
+        firstValueFrom(this.cdss.getResult({ complaintId: questionnaire.id, selected })),
+      );
+      if (selection) {
+        this.onCdssSelection(selection);
+      }
+    } catch {
+      this.cdssError.set(true);
+    } finally {
+      this.cdssBusy.set(false);
+    }
+  }
+
+  /**
+   * Load legacy's `chiefCompliants` for the patient's age + gender. Deduped on
+   * the age/gender pair: the patient fields feeding it are plain form controls
+   * (not signals), so the callers below can fire on edits that leave the pair
+   * unchanged, and legacy only refetches when the pair actually changes.
+   */
+  private loadChiefComplaintOptions(): void {
+    const age = this.patientAge();
+    const gender = this.patientGender();
+    if (age === null || gender === null) {
+      return;
+    }
+    const key = `${age}|${gender}`;
+    if (key === this.complaintOptionsKey) {
+      return;
+    }
+    this.complaintOptionsKey = key;
+    this.cdss.getChiefComplaints({ age, gender }).subscribe({
+      next: (options) => this.complaintOptions.set(options),
+      error: () => {
+        this.complaintOptionsKey = null;
+        this.complaintOptions.set([]);
+      },
+    });
   }
 
   /**
@@ -1165,6 +1407,7 @@ export class CaseSheetComponent {
    * value already present (typed default or a prior CDSS accept).
    */
   onComplaintBlur(): void {
+    this.closeComplaintDropdown();
     if (this.isCo()) {
       return;
     }
@@ -1259,8 +1502,63 @@ export class CaseSheetComponent {
       }
     });
 
+    // Legacy loads the chief-complaint list per patient age + gender
+    // (`fetchChiefComplaintsBasedOnGender`). The demographics path is a signal;
+    // the "Patient is: Other" fields are plain form controls, so they need
+    // their own subscriptions to reach the (deduped) loader.
+    effect(() => {
+      this.callStore.demographics();
+      this.loadChiefComplaintOptions();
+    });
+    const reloadComplaints = () => this.loadChiefComplaintOptions();
+    this.form.controls.isPatientOther.valueChanges.subscribe(reloadComplaints);
+    this.form.controls.patientAgeValue.valueChanges.subscribe(reloadComplaints);
+    this.form.controls.patientGenderID.valueChanges.subscribe(reloadComplaints);
+
     this.setRoleRequiredValidators();
     this.form.controls.chiefComplaintMode.valueChanges.subscribe(() => this.setRoleRequiredValidators());
+
+    // Legacy's `patientDetailsFields`: Self fills the four identity fields from
+    // the beneficiary and locks them; Other clears them and hands them over.
+    this.applyPatientIdentityMode();
+    this.form.controls.isPatientOther.valueChanges.subscribe(() => this.applyPatientIdentityMode());
+    effect(() => {
+      this.callStore.demographics();
+      this.applyPatientIdentityMode();
+    });
+  }
+
+  /**
+   * Populate-and-lock (Self) or clear-and-unlock (Other) the first name, last
+   * name, gender and age controls, matching legacy `patientDetailsFields()` /
+   * `benDataInboundPopulationg()`. The controls stay rendered either way, as
+   * legacy renders them.
+   */
+  private applyPatientIdentityMode(): void {
+    const { patientFirstName, patientLastName, patientGenderID, patientAgeValue } = this.form.controls;
+    const identity = [patientFirstName, patientLastName, patientGenderID, patientAgeValue];
+
+    if (this.form.controls.isPatientOther.value) {
+      if (patientFirstName.disabled) {
+        for (const control of identity) {
+          control.enable({ emitEvent: false });
+        }
+        patientFirstName.setValue('', { emitEvent: false });
+        patientLastName.setValue('', { emitEvent: false });
+        patientGenderID.setValue(null, { emitEvent: false });
+        patientAgeValue.setValue(null, { emitEvent: false });
+      }
+      return;
+    }
+
+    const demographics = this.callStore.demographics();
+    patientFirstName.setValue(demographics?.firstName ?? '', { emitEvent: false });
+    patientLastName.setValue(demographics?.lastName ?? '', { emitEvent: false });
+    patientGenderID.setValue(toCdssGender(demographics?.genderName), { emitEvent: false });
+    patientAgeValue.setValue(demographics?.age ?? null, { emitEvent: false });
+    for (const control of identity) {
+      control.disable({ emitEvent: false });
+    }
   }
 
   private setRoleRequiredValidators(): void {
@@ -1273,6 +1571,7 @@ export class CaseSheetComponent {
     const diseaseSummaryControl = this.form.controls.diseaseSummaryID;
     const provisionalDiagnosisControl = this.form.controls.provisionalDiagnosis;
     const treatmentRecommendationControl = this.form.controls.treatmentRecommendation;
+    const categoryControl = this.form.controls.categoryID;
 
     const complaintsMaxLength = isCo ? 800 : 2000;
     complaintsControl.setValidators(
@@ -1282,7 +1581,9 @@ export class CaseSheetComponent {
     );
     recommendedActionControl.setValidators(required && usingComplaint ? [Validators.required] : []);
     actionByRoleControl.setValidators(
-      required ? [Validators.required, Validators.minLength(3), Validators.maxLength(200)] : [],
+      this.showActionByRole()
+        ? [Validators.required, Validators.minLength(3), Validators.maxLength(200)]
+        : [],
     );
     diseaseSummaryControl.setValidators(required && !usingComplaint ? [Validators.required] : []);
     provisionalDiagnosisControl.setValidators(
@@ -1291,22 +1592,73 @@ export class CaseSheetComponent {
     treatmentRecommendationControl.setValidators(
       isCo ? [Validators.required, Validators.minLength(3), Validators.maxLength(300)] : [],
     );
+    // Category is deliberately NOT required on this form. Legacy puts its
+    // `required` on a separate `catSubcatForm` whose only consumer is the Get
+    // Guidelines button's [disabled] (case-sheet.component.html:208-265) —
+    // "Category is mandatory only for guideline search". Save never gates on it.
+    categoryControl.clearValidators();
     complaintsControl.updateValueAndValidity();
     recommendedActionControl.updateValueAndValidity();
     actionByRoleControl.updateValueAndValidity();
     diseaseSummaryControl.updateValueAndValidity();
     provisionalDiagnosisControl.updateValueAndValidity();
     treatmentRecommendationControl.updateValueAndValidity();
+    categoryControl.updateValueAndValidity();
   }
 
-  togglePrescription(): void {
-    this.openPrescriptionHistory.set(false);
-    this.prescriptionOpen.update((open) => !open);
+  /** Legacy opens the prescription form as a modal, not an inline panel. */
+  openPrescription(): void {
+    const ref = this.dialog.create<PrescriptionDialogComponent, PrescriptionDialogData>({
+      zTitle: this.i18n.instant('prescription.title'),
+      zContent: PrescriptionDialogComponent,
+      zData: {
+        patientName: this.patientDisplayName(),
+        age: this.patientAge(),
+        gender: this.patientGenderName(),
+        initialDiagnosis: this.form.controls.informationGiven.value ?? '',
+        provisionalDiagnosis: this.form.controls.chiefComplaintMode.value === 'complaint',
+        openHistory: false,
+      },
+      zHideFooter: true,
+      zMaskClosable: false,
+      zWidth: '68rem',
+      zCustomClasses: LEGACY_DIALOG_CHROME,
+      // Dismissing asks first; the guard keeps the dialog open until confirmed.
+      zOnCancel: (instance) => instance.confirmClose(),
+    });
+
+    ref.afterClosed().subscribe((prescriptionID) => {
+      if (prescriptionID == null) {
+        return;
+      }
+      this.onPrescriptionSaved();
+      // Legacy closes the prescription dialog and then announces the save in a
+      // green Success dialog, not a passing toast (prescription.component.ts:
+      // 323-324, and the 104 MO screenshots).
+      void this.confirmDialog.alert({
+        title: this.i18n.instant('dialog.successTitle'),
+        message: this.i18n.instant('prescription.savedPrefix') + prescriptionID,
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        status: 'success',
+      });
+    });
   }
 
+  /**
+   * Legacy's Resend Prescription opens its own "Recent Prescription History
+   * (Last 5 Days)" modal — a different dialog from the prescription form's own
+   * history table, and the only one carrying the Resend checkboxes.
+   */
   openRecentPrescription(): void {
-    this.openPrescriptionHistory.set(true);
-    this.prescriptionOpen.set(true);
+    this.dialog.create<RecentPrescriptionDialogComponent, RecentPrescriptionDialogData>({
+      zTitle: this.i18n.instant('prescription.recentHistoryTitle'),
+      zContent: RecentPrescriptionDialogComponent,
+      zData: { records: this.recentPrescriptions() },
+      zHideFooter: true,
+      zMaskClosable: false,
+      zWidth: '68rem',
+      zCustomClasses: LEGACY_DIALOG_CHROME,
+    });
   }
 
   onPrescriptionSaved(): void {
@@ -1318,33 +1670,28 @@ export class CaseSheetComponent {
 
   private loadRecentPrescription(beneficiaryRegID: number): void {
     this.prescriptionService.getPrescriptionList(beneficiaryRegID).subscribe({
-      next: (records) => this.recentPrescription.set(this.mostRecentWithinWindow(records)),
-      error: () => this.recentPrescription.set(null),
+      next: (records) => this.recentPrescriptions.set(this.withinWindow(records)),
+      error: () => this.recentPrescriptions.set([]),
     });
   }
 
-  private mostRecentWithinWindow(records: PrescriptionRecord[]): PrescriptionRecord | null {
+  /**
+   * Legacy's Resend modal is titled "Last 5 Days" and lists every prescription
+   * in that window, newest first — not just the most recent one.
+   */
+  private withinWindow(records: PrescriptionRecord[]): PrescriptionRecord[] {
     const now = Date.now();
-    let latest: PrescriptionRecord | null = null;
-    let latestTime = -Infinity;
-    for (const record of records) {
-      const created = record.createdDate ? Date.parse(record.createdDate) : NaN;
-      if (Number.isNaN(created) || now - created > RECENT_PRESCRIPTION_WINDOW_MS) {
-        continue;
-      }
-      if (created > latestTime) {
-        latest = record;
-        latestTime = created;
-      }
-    }
-    return latest;
+    return records
+      .map((record) => ({ record, created: record.createdDate ? Date.parse(record.createdDate) : NaN }))
+      .filter(({ created }) => !Number.isNaN(created) && now - created <= RECENT_PRESCRIPTION_WINDOW_MS)
+      .sort((a, b) => b.created - a.created)
+      .map(({ record }) => record);
   }
 
   resetForm(): void {
     this.clear();
     this.diseaseDetail.set(null);
     this.diseaseError.set('');
-    this.prescriptionOpen.set(false);
   }
 
   private loadExistingCaseSheet(beneficiaryRegID: number): void {
@@ -1380,8 +1727,7 @@ export class CaseSheetComponent {
       chiefComplaints: sheet.chiefComplaints ?? '',
       provisionalDiagnosis: sheet.provisionalDiagnosis ?? null,
       recommendedAction: sheet.addedAdvice ?? '',
-      actionByRole: (this.isHao() ? sheet.actionByHAO : sheet.actionByMO) ?? '',
-      remarks: sheet.remarks ?? null,
+      actionByRole: (this.showActionByHao() ? sheet.actionByHAO : sheet.actionByMO) ?? '',
       riskLevel: sheet.riskLevel ?? null,
       treatmentRecommendation: sheet.treatmentRecommendation ?? '',
       categoryID: sheet.categoryID ?? null,
@@ -1421,6 +1767,36 @@ export class CaseSheetComponent {
 
   toggleHistory(): void {
     this.historyOpen.update((open) => !open);
+    if (this.historyOpen()) {
+      this.loadHihlHistoryIfNeeded();
+    }
+  }
+
+  selectHistoryTab(tab: HistoryTab): void {
+    this.activeTab.set(tab);
+    if (tab === 'hihl') {
+      this.loadHihlHistoryIfNeeded();
+    }
+  }
+
+  private loadHihlHistoryIfNeeded(): void {
+    const beneficiaryRegID = this.beneficiaryId();
+    if (beneficiaryRegID === null || this.activeTab() !== 'hihl' || this.hihlHistoryLoadedFor === beneficiaryRegID) {
+      return;
+    }
+    this.hihlHistoryLoadedFor = beneficiaryRegID;
+    this.hihlHistoryLoading.set(true);
+    this.hihlService.getHistory(beneficiaryRegID).subscribe({
+      next: (rows) => {
+        this.hihlHistoryLoading.set(false);
+        this.hihlHistoryRows.set(rows);
+      },
+      error: () => {
+        this.hihlHistoryLoading.set(false);
+        this.hihlHistoryLoadedFor = null;
+        this.hihlHistoryRows.set([]);
+      },
+    });
   }
 
   onSelectVisit(visit: MmuVisitRow): void {
@@ -1443,7 +1819,6 @@ export class CaseSheetComponent {
       informationGiven: null,
       recommendedAction: '',
       actionByRole: '',
-      remarks: null,
       covidQc: 'no',
       covidTravelled: null,
       covidTravelDomestic: false,
@@ -1560,11 +1935,18 @@ export class CaseSheetComponent {
       provisionalDiagnosis: usingComplaint ? value.provisionalDiagnosis : null,
       healthAdvice: !usingComplaint ? value.informationGiven : null,
       addedAdvice: usingComplaint ? value.recommendedAction.trim() || null : null,
-      remarks: value.remarks?.trim() || null,
+      // Legacy has no remarks input on the case sheet: it reads a
+      // `notesComments` field that exists only in the class, so the wire value
+      // is always null. Kept on the payload for contract parity.
+      remarks: null,
       providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
       createdBy: this.authStore.user()?.userName ?? '',
       isSelf: !value.isPatientOther,
-      actionByHAO: this.isHao() ? value.actionByRole.trim() : null,
+      // Written off the same signal that renders the field and requires it, so
+      // a hybrid RO+HAO agent (featureCode remapped to RO) does not fill a
+      // mandatory box that then ships as null. Legacy writes actionByHAO
+      // unconditionally from the form value (case-sheet.component.ts:1657).
+      actionByHAO: this.showActionByHao() ? value.actionByRole.trim() : null,
       actionByMO: this.isMo() ? value.actionByRole.trim() : null,
       ageUnits: value.isPatientOther && this.isHao() ? value.patientAgeUnit : null,
       dOB: value.isPatientOther && this.isHao() ? value.patientDOB : null,

@@ -36,6 +36,7 @@ import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
 import { Community, Education } from '../../beneficiary/beneficiary.models';
 import { CallStore } from '../../call.store';
+import { LEGACY_BLUE_BUTTON, LEGACY_GREEN_BUTTON } from '../../legacy-theme';
 import { CallWrapupService } from '../../call-wrapup.service';
 import { OutboundStore } from '../../../outbound/outbound.store';
 import { collectServiceScreens, SERVICE_104 } from '../../role-workspace/role-screens.util';
@@ -212,7 +213,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
           </div>
         }
 
-        @if (canTransfer() && currentRole() !== roleCO && skills().length > 0) {
+        @if (canTransfer() && skills().length > 0 && skillRoleAllowed()) {
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium" for="hao-cl-skill">
               {{ 'hao.closure.transferSkill' | translate: lang() }}
@@ -241,10 +242,19 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
       }
 
       <div class="flex flex-col gap-3">
-        <label class="flex cursor-pointer items-center gap-2 text-sm">
-          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" />
-          {{ 'hao.closure.followUpRequired' | translate: lang() }}
-        </label>
+        <!-- Legacy asks this as a Yes/No radio group, not a checkbox
+             (closure.component.html:28-32). -->
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <span class="font-medium">{{ 'hao.closure.followUpRequired' | translate: lang() }}</span>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input type="radio" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" [value]="true" />
+            {{ 'hao.closure.yes' | translate: lang() }}
+          </label>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input type="radio" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" [value]="false" />
+            {{ 'hao.closure.no' | translate: lang() }}
+          </label>
+        </div>
         @if (followUpRequired() && features().length > 1) {
           <div class="flex flex-col gap-1.5 sm:max-w-xs">
             <label class="text-sm font-medium" for="hao-cl-feature">
@@ -393,70 +403,6 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
         <input z-input id="hao-cl-remarks" type="text" maxlength="100" formControlName="remarks" />
       </div>
 
-      @if (currentRole() === roleCO) {
-        <div class="grid gap-5 sm:grid-cols-3">
-          <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium" for="hao-cl-external-referral">
-              {{ 'hao.closure.externalReferral' | translate: lang() }}
-            </label>
-            <select
-              id="hao-cl-external-referral"
-              formControlName="externalRefferal"
-              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option [ngValue]="null">
-                {{ 'hao.closure.selectExternalReferral' | translate: lang() }}
-              </option>
-              <option [ngValue]="'Yes'">{{ 'hao.closure.yes' | translate: lang() }}</option>
-              <option [ngValue]="'No'">{{ 'hao.closure.no' | translate: lang() }}</option>
-            </select>
-          </div>
-
-          @if (enableInstitute()) {
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium" for="hao-cl-institute-type">
-                {{ 'hao.closure.instituteType' | translate: lang() }}
-              </label>
-              <select
-                id="hao-cl-institute-type"
-                formControlName="institutionID"
-                class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option [ngValue]="null">
-                  {{ 'hao.closure.selectInstituteType' | translate: lang() }}
-                </option>
-                @for (type of instituteTypes(); track type.institutionTypeID) {
-                  <option [ngValue]="type.institutionTypeID">{{ type.institutionType }}</option>
-                }
-              </select>
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium" for="hao-cl-institute-name">
-                {{ 'hao.closure.instituteName' | translate: lang() }}
-              </label>
-              <select
-                id="hao-cl-institute-name"
-                formControlName="instituteName"
-                multiple
-                class="h-24 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                @for (name of instituteNames(); track name.institutionName) {
-                  <option [ngValue]="name.institutionName">{{ name.institutionName }}</option>
-                }
-              </select>
-            </div>
-          }
-        </div>
-      }
-
-      <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium" for="hao-cl-remarks">
-          {{ 'hao.closure.remarks' | translate: lang() }}
-        </label>
-        <input z-input id="hao-cl-remarks" type="text" maxlength="100" formControlName="remarks" />
-      </div>
-
       @if (showAppointment()) {
         <app-schedule-appointment (saved)="onAppointmentSaved()" (cancelled)="onAppointmentCancelled()" />
       }
@@ -469,8 +415,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
           <button
             z-button
             type="button"
-            zType="outline"
-            class="border-success bg-success text-success-foreground hover:bg-success/90"
+            [class]="legacyGreen"
             [zLoading]="transferring()"
             [zDisabled]="actionBusy() || !selectedCampaign() || disconnectedByCaller()"
             (click)="transfer()"
@@ -481,8 +426,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
         <button
           z-button
           type="button"
-          zType="outline"
-          class="border-success bg-success text-success-foreground hover:bg-success/90"
+          [class]="legacyGreen"
           [zLoading]="submitting()"
           [zDisabled]="actionBusy() || doTransfer() || nuisanceBlock()"
           (click)="submit(true)"
@@ -492,8 +436,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
         <button
           z-button
           type="button"
-          zType="outline"
-          class="border-success bg-success text-success-foreground hover:bg-success/90"
+          [class]="legacyGreen"
           [zLoading]="submitting()"
           [zDisabled]="actionBusy() || doTransfer()"
           (click)="submit(false)"
@@ -517,6 +460,10 @@ export class ClosureStepComponent {
   private readonly outboundStore = inject(OutboundStore);
 
   readonly lang = this.i18n.language;
+
+  /** Legacy's button accents (see legacy-theme.ts). */
+  readonly legacyGreen = LEGACY_GREEN_BUTTON;
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
   readonly roleRO = ROLE_RO;
   readonly roleCO = ROLE_CO;
 
@@ -658,8 +605,54 @@ export class ClosureStepComponent {
    */
   readonly doTransfer = computed(() => this.selectedTransferService() !== null);
 
-  /** Whether there is anything to transfer to at all (legacy `validTrans`). */
-  readonly canTransfer = computed(() => this.transferServices().length > 0);
+  /**
+   * Legacy's "call can't be marked Valid without availing any service" rule
+   * (`closure.component.ts:703-712`): it fires on a Valid disposition that is
+   * not a transfer, when no service was saved during the call, for every role
+   * except RO and CO.
+   */
+  readonly requiresServiceAvailed = computed(() => {
+    const role = this.currentRole();
+    if (role === ROLE_RO || role === ROLE_CO) {
+      return false;
+    }
+    return (
+      this.form.controls.callGroupType.value?.toLowerCase() === 'valid' &&
+      !this.doTransfer() &&
+      !this.serviceAvailed()
+    );
+  });
+
+  /**
+   * Legacy `validTrans` (`closure.component.ts:448-468`), which gates the
+   * Transfer-to select, the Skill select and the Transfer button. It is driven
+   * by the chosen Call Type and whether a beneficiary is attached — NOT by
+   * whether any transfer services came back:
+   *
+   *   - initialised `true`, so the controls show before a Call Type is picked;
+   *   - Valid / Transfer / Referral: true when a beneficiary is attached,
+   *     otherwise true only for Transfer;
+   *   - any other (nuisance) call type: false.
+   */
+  readonly canTransfer = computed(() => {
+    const group = this.selectedCallGroup()?.toLowerCase() ?? null;
+    if (group === null) {
+      return true;
+    }
+    if (group !== 'valid' && group !== 'transfer' && group !== 'referral') {
+      return false;
+    }
+    return this.hasBeneficiary() || group === 'transfer';
+  });
+
+  /**
+   * Roles legacy shows the Skill select to — an allowlist, not "anyone but CO"
+   * (`closure.component.html:116`: `current_role == 'MO' || 'HAO' || 'RO'`).
+   */
+  readonly skillRoleAllowed = computed(() => {
+    const role = this.currentRole();
+    return role === ROLE_MO || role === ROLE_HAO || role === ROLE_RO;
+  });
 
   readonly nuisanceBlock = computed(() => {
     const group = this.selectedCallGroup()?.toLowerCase() ?? null;
@@ -803,6 +796,14 @@ export class ClosureStepComponent {
       return;
     }
 
+    // A call cannot be dispositioned Valid when nothing was actually delivered.
+    // Legacy blocks this for every role except RO and CO, and only when the
+    // call is not being transferred (closure.component.ts:703-712).
+    if (this.requiresServiceAvailed()) {
+      this.showError('hao.closure.serviceAvailedRequired');
+      return;
+    }
+
     const value = this.form.getRawValue();
     // The mandatory call disposition (callType group + numeric callTypeID +
     // fitToBlock) is derived entirely from the chosen sub-type object. If none
@@ -846,7 +847,16 @@ export class ClosureStepComponent {
       isEmergency: value.isEmergency,
       isSuicidal: value.isSuicidal,
       isFeedback: value.isFeedback,
-      providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
+      // Must be the real providerServiceMapID, not serviceID: when
+      // isFollowupRequired is set, the backend re-reads this same body as an
+      // OutboundCallRequest and persists this value to
+      // t_outboundcallrequest.ProviderServiceMapID
+      // (BeneficiaryCallServiceImpl.closeCall:396-398), which every outbound
+      // worklist query then filters on. Sending serviceID stamped follow-ups
+      // with an id no worklist looks for, losing them silently. Legacy is
+      // correct here: its `current_service.serviceID` holds the
+      // providerServiceMapID despite the name (data.service.ts:52).
+      providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
       agentID: this.authStore.user()?.agentID ?? null,
       endCall: !andContinue,
       IsOutbound: this.outboundStore.hasSelection(),

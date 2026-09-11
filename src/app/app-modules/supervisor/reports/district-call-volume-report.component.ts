@@ -1,5 +1,5 @@
 /*
- * AMRIT – Accessible Medical Records via Integrated Technologies
+ * AMRIT â€“ Accessible Medical Records via Integrated Technologies
  * Integrated EHR (Electronic Health Records) Solution
  *
  * Copyright (C) "Piramal Swasthya Management and Research Institute"
@@ -34,6 +34,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
+import { SupervisorError } from '../shared/supervisor-api';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
 import { DistrictOption } from './reports.models';
@@ -57,9 +58,9 @@ const FILE_NAME = 'District_Wise_Call_Volume_Report';
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <h3 class="mb-4 text-base font-semibold text-foreground">
+      <h2 class="mb-4 text-base font-semibold text-foreground">
         {{ 'supReports.district.title' | translate: lang() }}
-      </h3>
+      </h2>
 
       @if (runner.serverError()) {
         <div
@@ -182,7 +183,7 @@ export class DistrictCallVolumeReportComponent implements OnInit {
       this.service
         .getDistricts(stateID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.districts.set(list), error: () => undefined });
+        .subscribe({ next: (list) => this.districts.set(list), error: (err: SupervisorError) => this.runner.setError(err) });
     }
   }
 

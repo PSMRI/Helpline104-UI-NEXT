@@ -90,6 +90,9 @@ type GrievanceAction = 'view' | 'edit' | 'update';
       @if (errorMessage()) {
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
       }
+      @if (lookupError()) {
+        <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ lookupError() }}</p>
+      }
 
       <!-- Search + list -->
       @if (action() === 'view') {
@@ -587,6 +590,15 @@ export class SupervisorGrievanceComponent implements OnInit {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly errorMessage = signal('');
+  /**
+   * Failures loading the filter/reference lists, kept apart from
+   * {@link errorMessage}: a search clears its own error, and used to clear
+   * these with it — so a dead lookup (live: `feedback/getFeedbackType`
+   * answering statusCode 5000 "Unable to acquire JDBC Connection") left an
+   * empty required dropdown and no explanation at all. Carries translated
+   * copy only; the raw envelope message can be a stack trace.
+   */
+  readonly lookupError = signal('');
 
   readonly feedbackTypes = signal<FeedbackType[]>([]);
   readonly feedbackStatuses = signal<FeedbackStatus[]>([]);
@@ -674,42 +686,42 @@ export class SupervisorGrievanceComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (types) => this.feedbackTypes.set(types),
-        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+        error: () => this.lookupError.set(this.i18n.instant('supGrievance.lookupError')),
       });
     this.service
       .getFeedbackStatuses()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (s) => this.feedbackStatuses.set(s),
-        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+        error: () => this.lookupError.set(this.i18n.instant('supGrievance.lookupError')),
       });
     this.service
       .getEmailStatuses()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (s) => this.emailStatuses.set(s),
-        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+        error: () => this.lookupError.set(this.i18n.instant('supGrievance.lookupError')),
       });
     this.service
       .getSeverities(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (s) => this.severities.set(s),
-        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+        error: () => this.lookupError.set(this.i18n.instant('supGrievance.lookupError')),
       });
     this.service
       .getDesignations()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (d) => this.designations.set(d),
-        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+        error: () => this.lookupError.set(this.i18n.instant('supGrievance.lookupError')),
       });
     this.service
       .getInstituteTypes(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (t) => this.instituteTypes.set(t),
-        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+        error: () => this.lookupError.set(this.i18n.instant('supGrievance.lookupError')),
       });
 
     this.onSearch();
@@ -861,7 +873,11 @@ export class SupervisorGrievanceComponent implements OnInit {
             this.instituteNames.set(names);
           }
         },
-        error: () => undefined,
+        error: () => {
+          if (reqId === this.namesReqId) {
+            this.lookupError.set(this.i18n.instant('supGrievance.lookupError'));
+          }
+        },
       });
   }
 
@@ -876,7 +892,11 @@ export class SupervisorGrievanceComponent implements OnInit {
             this.natures.set(natures);
           }
         },
-        error: () => undefined,
+        error: () => {
+          if (reqId === this.naturesReqId) {
+            this.lookupError.set(this.i18n.instant('supGrievance.lookupError'));
+          }
+        },
       });
   }
 

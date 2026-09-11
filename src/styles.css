@@ -46,12 +46,15 @@
   --border: #dee2e6;
   --input: #dee2e6;
   --ring: #0277bd;
-  --success: #198754;
+  /* Legacy's banner/primary-action green and chrome blue, sampled from the
+     running legacy 104 app; the dialog status headers are their only
+     consumers (dialog.component.ts:204-209). */
+  --success: #018c4f;
   --success-foreground: #ffffff;
   --warning: #ffc107;
   --warning-foreground: #212529;
-  --info: #0dcaf0;
-  --info-foreground: #212529;
+  --info: #0070c1;
+  --info-foreground: #ffffff;
   --chart-1: #0277bd;
   --chart-2: #198754;
   --chart-3: #0dcaf0;
@@ -79,9 +82,9 @@
   --border: rgba(255, 255, 255, 0.12);
   --input: rgba(255, 255, 255, 0.15);
   --ring: #4fc3f7;
-  --success: #2fb380;
+  --success: #12a361;
   --warning: #ffca2c;
-  --info: #3dd5f3;
+  --info: #2a8fd4;
   --chart-1: #4fc3f7;
   --chart-2: #2fb380;
   --chart-3: #3dd5f3;

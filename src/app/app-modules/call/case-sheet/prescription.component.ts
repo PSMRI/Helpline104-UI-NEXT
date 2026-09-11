@@ -54,9 +54,9 @@ import {
   STRENGTH_NA,
   SavePrescriptionRequest,
 } from './prescription.models';
-import { SmsService } from '../sms/sms.service';
+import { LEGACY_BLUE_BUTTON, LEGACY_GREEN_BUTTON } from '../legacy-theme';
+import { PrescriptionSmsService } from './prescription-sms.service';
 
-const PRESCRIPTION_SMS_TYPE = 'prescription sms';
 const ALTERNATE_NUMBER_PATTERN = /^\d{10}$/;
 
 /** Shared Tailwind classes for native `<select>` controls (no custom CSS). */
@@ -95,13 +95,15 @@ function optionalMinLength(min: number) {
   imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
   viewProviders: [provideIcons({ lucidePill, lucidePlus, lucidePencil, lucideTrash2 })],
   template: `
-    <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <header class="mb-4 flex items-center gap-2">
-        <ng-icon name="lucidePill" size="18" class="text-primary" aria-hidden="true" />
-        <h3 class="text-sm font-semibold text-foreground">
-          {{ 'prescription.title' | translate: lang() }}
-        </h3>
-      </header>
+    <section [class]="inDialog() ? '' : 'rounded-lg border border-border bg-card p-5 sm:p-6'">
+      @if (!inDialog()) {
+        <header class="mb-4 flex items-center gap-2">
+          <ng-icon name="lucidePill" size="18" class="text-primary" aria-hidden="true" />
+          <h3 class="text-sm font-semibold text-foreground">
+            {{ 'prescription.title' | translate: lang() }}
+          </h3>
+        </header>
+      }
 
       <!-- Patient header (read-only context) -->
       <dl class="mb-4 grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
@@ -170,20 +172,46 @@ function optionalMinLength(min: number) {
             <label for="rx-drug" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'prescription.drug' | translate: lang() }} *
             </label>
-            <select
-              id="rx-drug"
-              formControlName="drugName"
-              [class]="selectClass"
-              [attr.aria-invalid]="ctrlInvalid('drugName')"
-              (change)="onDrugNameChange()"
-            >
-              <option [ngValue]="null" disabled>
-                {{ 'prescription.selectDrug' | translate: lang() }}
-              </option>
-              @for (name of drugNames(); track name) {
-                <option [ngValue]="name">{{ name }}</option>
+            <!-- Legacy's md2-autocomplete (prescription.component.html:52-64):
+                 substring match over the drug list, not a 115-option select. -->
+            <div class="relative">
+              <input
+                id="rx-drug"
+                z-input
+                class="w-full"
+                type="text"
+                role="combobox"
+                autocomplete="off"
+                [attr.aria-expanded]="drugDropdownOpen()"
+                aria-controls="rx-drug-options"
+                [attr.aria-invalid]="ctrlInvalid('drugName')"
+                [placeholder]="'prescription.selectDrug' | translate: lang()"
+                [value]="drugQuery()"
+                (input)="onDrugInput($any($event.target).value)"
+                (focus)="drugDropdownOpen.set(true)"
+                (keydown.escape)="drugDropdownOpen.set(false)"
+                (blur)="onDrugBlur()"
+              />
+              @if (drugDropdownOpen() && filteredDrugNames().length > 0) {
+                <ul
+                  id="rx-drug-options"
+                  role="listbox"
+                  class="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-md"
+                >
+                  @for (name of filteredDrugNames(); track name) {
+                    <li role="option" [attr.aria-selected]="false">
+                      <button
+                        type="button"
+                        class="w-full px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:outline-none"
+                        (mousedown)="selectDrug(name)"
+                      >
+                        {{ name }}
+                      </button>
+                    </li>
+                  }
+                </ul>
               }
-            </select>
+            </div>
             @if (lineForm.controls.drugName.invalid && lineForm.controls.drugName.touched) {
               <p class="mt-0.5 text-xs text-destructive">
                 {{ 'prescription.drugRequired' | translate: lang() }}
@@ -302,9 +330,19 @@ function optionalMinLength(min: number) {
             }
           </div>
 
-          <div class="flex items-end">
-            <button z-button type="submit" zType="outline" [zDisabled]="lineForm.invalid || !hasContext()">
-              <ng-icon name="lucidePlus" size="16" aria-hidden="true" />
+          <!-- Legacy's row: "Show Prescription History" pull-left, "Add"
+               pull-right, both primary/blue
+               (prescription.component.html:123-130). The Show button appears
+               only while the history is hidden and there is history to show. -->
+          <div class="flex items-end justify-between gap-2 sm:col-span-2 lg:col-span-3">
+            @if (!showHistory() && history().length > 0) {
+              <button z-button type="button" [class]="legacyBlue" (click)="toggleHistory()">
+                {{ 'prescription.showHistory' | translate: lang() }}
+              </button>
+            } @else {
+              <span></span>
+            }
+            <button z-button type="submit" [class]="legacyBlue" [zDisabled]="lineForm.invalid || !hasContext()">
               {{ 'prescription.addDrug' | translate: lang() }}
             </button>
           </div>
@@ -325,6 +363,9 @@ function optionalMinLength(min: number) {
             <table class="w-full text-left text-sm">
               <thead class="bg-muted/50 text-xs text-muted-foreground">
                 <tr>
+                  <th class="px-3 py-2 font-medium">
+                    {{ 'prescription.diagnosisProvisional' | translate: lang() }}
+                  </th>
                   <th class="px-3 py-2 font-medium">{{ 'prescription.drug' | translate: lang() }}</th>
                   <th class="px-3 py-2 font-medium">{{ 'prescription.strength' | translate: lang() }}</th>
                   <th class="px-3 py-2 font-medium">{{ 'prescription.frequency' | translate: lang() }}</th>
@@ -336,6 +377,7 @@ function optionalMinLength(min: number) {
               <tbody>
                 @for (line of lines(); track $index; let i = $index) {
                   <tr class="border-t border-border">
+                    <td class="px-3 py-2">{{ diagnosis.value.trim() || '—' }}</td>
                     <td class="px-3 py-2">
                       <span class="font-medium text-foreground">{{ line.drugName }}</span>
                       @if (line.drugGroupName) {
@@ -372,11 +414,55 @@ function optionalMinLength(min: number) {
             </table>
           </div>
 
-          <div class="mt-4 flex flex-wrap gap-2">
+          <!-- Legacy footer: alternate-number opt-in + Save & Send on the left,
+               Save on the right (prescription.component.html:173-193). -->
+          <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <label class="flex items-center gap-1.5 text-sm text-foreground">
+              <input
+                type="checkbox"
+                class="h-4 w-4 accent-primary"
+                [checked]="useAltNumber()"
+                (change)="toggleAltNumber()"
+              />
+              {{ 'prescription.alternateNumber' | translate: lang() }}:
+            </label>
+
+            @if (useAltNumber()) {
+              <div class="flex flex-col gap-1">
+                <input
+                  id="rx-save-alt-number"
+                  z-input
+                  class="w-44"
+                  inputmode="numeric"
+                  maxlength="10"
+                  [attr.aria-label]="'prescription.alternateNumber' | translate: lang()"
+                  [value]="saveAltNumber()"
+                  (input)="saveAltNumber.set($any($event.target).value)"
+                  [attr.aria-invalid]="saveAltNumberValid() ? null : true"
+                />
+                @if (!saveAltNumberValid()) {
+                  <p class="text-xs font-medium text-destructive" role="alert">
+                    {{ 'prescription.alternateNumberInvalid' | translate: lang() }}
+                  </p>
+                }
+              </div>
+            }
+
             <button
               z-button
               type="button"
-              zType="default"
+              [class]="legacyGreen"
+              [zLoading]="saving() || sendingSms()"
+              [zDisabled]="!canSaveAndSend()"
+              (click)="saveAndSend()"
+            >
+              {{ 'prescription.saveAndSend' | translate: lang() }}
+            </button>
+
+            <button
+              z-button
+              type="button"
+              [class]="legacyGreen + ' sm:ml-auto'"
               [zLoading]="saving()"
               [zDisabled]="!canSave()"
               (click)="save()"
@@ -387,104 +473,71 @@ function optionalMinLength(min: number) {
         }
       </div>
 
-      <!-- History -->
-      <div class="mt-5 border-t border-border pt-4">
-        <button z-button type="button" zType="ghost" (click)="toggleHistory()">
-          {{ (showHistory() ? 'prescription.hideHistory' : 'prescription.showHistory') | translate: lang() }}
-        </button>
-        @if (showHistory()) {
+      <!-- History. Legacy titles this section and closes it with a blue
+           "Hide History" under the table, rather than a toggle above it
+           (prescription.component.html:195-240). -->
+      @if (showHistory()) {
+        <div class="mt-5 border-t border-border pt-4">
+          <h4 class="mb-3 text-sm font-semibold text-foreground">
+            {{ 'prescription.historyTitle' | translate: lang() }}
+          </h4>
           <div class="mt-3">
             @if (history().length === 0) {
               <p class="text-sm text-muted-foreground">{{ 'prescription.noHistory' | translate: lang() }}</p>
             } @else {
+              <!-- Legacy's in-dialog history: eight columns, one row per
+                   prescribed drug, and no Resend checkbox — resending lives in
+                   the separate Recent Prescription modal
+                   (prescription.component.html:195-240). -->
               <div class="overflow-x-auto rounded-md border border-border">
                 <table class="w-full text-left text-sm">
                   <thead class="bg-muted/50 text-xs text-muted-foreground">
-                    <tr>
+                    <tr class="whitespace-nowrap">
                       <th class="px-3 py-2 font-medium">{{ 'prescription.prescriptionId' | translate: lang() }}</th>
-                      <th class="px-3 py-2 font-medium">{{ 'prescription.resend' | translate: lang() }}</th>
                       <th class="px-3 py-2 font-medium">
                         {{ 'prescription.diagnosisProvisional' | translate: lang() }}
                       </th>
                       <th class="px-3 py-2 font-medium">{{ 'prescription.drug' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.strength' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.frequency' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.noOfDays' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.remarks' | translate: lang() }}</th>
                       <th class="px-3 py-2 font-medium">{{ 'prescription.createdDate' | translate: lang() }}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    @for (rec of history(); track $index) {
-                      <tr class="border-t border-border align-top">
-                        <td class="px-3 py-2">{{ rec.prescriptionID ?? '—' }}</td>
-                        <td class="px-3 py-2">
-                          @for (d of rec.prescribedDrugs ?? []; track $index) {
-                            @if (d.prescribedDrugID != null) {
-                              <label class="flex items-center gap-1.5">
-                                <input
-                                  type="checkbox"
-                                  class="h-4 w-4 accent-primary"
-                                  [checked]="isDrugSelected(d.prescribedDrugID)"
-                                  (change)="toggleResendDrug(d.prescribedDrugID)"
-                                  [attr.aria-label]="'prescription.resend' | translate: lang()"
-                                />
-                              </label>
-                            }
-                          }
-                        </td>
-                        <td class="px-3 py-2">{{ rec.diagnosisProvided || '—' }}</td>
-                        <td class="px-3 py-2">
-                          @for (d of rec.prescribedDrugs ?? []; track $index) {
-                            <span class="block">{{ d.drugName }}</span>
-                          }
-                        </td>
-                        <td class="px-3 py-2">{{ rec.createdDate || '—' }}</td>
+                    @for (row of historyRows(); track $index) {
+                      <tr class="border-t border-border">
+                        <td class="px-3 py-2">{{ row.prescriptionID ?? '—' }}</td>
+                        <td class="px-3 py-2">{{ row.diagnosisProvided || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.drugName || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.dosage || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.frequency || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.noOfDays || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.remarks || '—' }}</td>
+                        <td class="px-3 py-2">{{ row.createdDate || '—' }}</td>
                       </tr>
                     }
                   </tbody>
                 </table>
               </div>
-
-              <div class="mt-3 flex flex-wrap items-end gap-3">
-                <div class="flex flex-col gap-1.5">
-                  <label for="rx-resend-alt-number" class="text-xs font-medium text-muted-foreground">
-                    {{ 'prescription.alternateNumber' | translate: lang() }}
-                  </label>
-                  <input
-                    id="rx-resend-alt-number"
-                    z-input
-                    class="w-48"
-                    inputmode="numeric"
-                    maxlength="10"
-                    [value]="resendAltNumber()"
-                    (input)="resendAltNumber.set($any($event.target).value)"
-                    [attr.aria-invalid]="!altNumberValid() || null"
-                  />
-                  @if (!altNumberValid()) {
-                    <p class="text-xs font-medium text-destructive" role="alert">
-                      {{ 'prescription.alternateNumberInvalid' | translate: lang() }}
-                    </p>
-                  }
-                </div>
-                <button
-                  z-button
-                  type="button"
-                  zType="outline"
-                  [zLoading]="sendingSms()"
-                  [zDisabled]="!canSendResend()"
-                  (click)="sendResendSms()"
-                >
-                  {{ 'prescription.sendSms' | translate: lang() }}
-                </button>
-              </div>
             }
+
+            <div class="mt-3 flex justify-end">
+              <button z-button type="button" [class]="legacyBlue" (click)="toggleHistory()">
+                {{ 'prescription.hideHistory' | translate: lang() }}
+              </button>
+            </div>
           </div>
-        }
-      </div>
+        </div>
+      }
     </section>
   `,
 })
 export class PrescriptionComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly rx = inject(PrescriptionService);
-  private readonly sms = inject(SmsService);
+  private readonly prescriptionSms = inject(PrescriptionSmsService);
   private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
   private readonly i18n = inject(I18nService);
@@ -499,12 +552,16 @@ export class PrescriptionComponent implements OnInit {
   /** Label toggle: provisional diagnosis (true) vs "information given" (false). */
   readonly provisionalDiagnosis = input(true);
   readonly openHistory = input(false);
+  /** Rendered inside the prescription modal: the dialog supplies the chrome. */
+  readonly inDialog = input(false);
 
   /** Emits the created prescription id after a successful save. */
   readonly saved = output<number>();
 
   readonly lang = this.i18n.language;
   readonly selectClass = SELECT_CLASS;
+  readonly legacyGreen = LEGACY_GREEN_BUTTON;
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
   readonly diagnosisMax = DIAGNOSIS_MAX;
   readonly strengthNA = STRENGTH_NA;
 
@@ -538,16 +595,36 @@ export class PrescriptionComponent implements OnInit {
   readonly saving = signal(false);
   readonly errorMessage = signal('');
 
-  /** Legacy "Resend Prescription" — drug lines checked for the resend SMS. */
-  readonly selectedResendDrugIds = signal<ReadonlySet<number>>(new Set());
-  readonly resendAltNumber = signal('');
   readonly sendingSms = signal(false);
-  readonly altNumberValid = computed(() => {
-    const v = this.resendAltNumber().trim();
-    return v === '' || ALTERNATE_NUMBER_PATTERN.test(v);
-  });
-  readonly canSendResend = computed(
-    () => this.selectedResendDrugIds().size > 0 && !this.sendingSms() && this.altNumberValid(),
+
+  /**
+   * Legacy's in-dialog history is one row per prescribed drug, with the
+   * prescription-level columns repeated down the rows.
+   */
+  readonly historyRows = computed(() =>
+    this.history().flatMap((record) =>
+      (record.prescribedDrugs ?? []).map((drug) => ({
+        prescriptionID: record.prescriptionID,
+        diagnosisProvided: record.diagnosisProvided,
+        drugName: drug.drugName,
+        dosage: drug.dosage,
+        frequency: drug.frequency,
+        noOfDays: drug.noOfDays,
+        remarks: record.remarks,
+        createdDate: record.createdDate,
+      })),
+    ),
+  );
+
+  /**
+   * Legacy "Save & Send" footer: an alternate-number opt-in (legacy `altNum`)
+   * and the number itself. With the box unticked the SMS goes to the
+   * beneficiary's registered number, exactly as legacy does.
+   */
+  readonly useAltNumber = signal(false);
+  readonly saveAltNumber = signal('');
+  readonly saveAltNumberValid = computed(
+    () => !this.useAltNumber() || ALTERNATE_NUMBER_PATTERN.test(this.saveAltNumber().trim()),
   );
 
   /** Drug name currently selected in the line form (drives the group list). */
@@ -566,6 +643,20 @@ export class PrescriptionComponent implements OnInit {
   });
 
   readonly groupOptions = computed(() => this.drugs().filter((d) => d.drugName === this.selectedDrugName()));
+
+  /** What the agent has typed into the drug autocomplete. */
+  readonly drugQuery = signal('');
+  readonly drugDropdownOpen = signal(false);
+
+  /** Substring match, as legacy's md2-autocomplete did. */
+  readonly filteredDrugNames = computed(() => {
+    const query = this.drugQuery().trim().toLowerCase();
+    const names = this.drugNames();
+    if (query.length === 0) {
+      return names;
+    }
+    return names.filter((name) => name.toLowerCase().includes(query));
+  });
 
   readonly hasContext = computed(() => this.callStore.beneficiaryId() !== null);
 
@@ -590,12 +681,62 @@ export class PrescriptionComponent implements OnInit {
     return this.hasContext() && !this.saving() && this.diagnosis.valid && this.lines().length > 0;
   }
 
+  /**
+   * Save & Send additionally needs a usable destination number: legacy
+   * disables it while the alternate-number box is ticked but the number is not
+   * yet 10 digits (`[disabled]="altNum && !validNumber"`).
+   */
+  canSaveAndSend(): boolean {
+    return this.canSave() && !this.sendingSms() && this.saveAltNumberValid();
+  }
+
+  toggleAltNumber(): void {
+    this.useAltNumber.update((v) => !v);
+    if (!this.useAltNumber()) {
+      this.saveAltNumber.set('');
+    }
+  }
+
+  /** Legacy `save_and_sendSMS` — save first, then SMS the saved drug lines. */
+  saveAndSend(): void {
+    if (!this.canSaveAndSend()) {
+      return;
+    }
+    this.save(true);
+  }
+
   onDrugNameChange(): void {
     const name = this.lineForm.controls.drugName.value;
     this.selectedDrugName.set(name);
     const groups = this.drugs().filter((d) => d.drugName === name);
     // Auto-select when a drug maps to exactly one group; else clear the choice.
     this.lineForm.controls.drugMapID.setValue(groups.length === 1 ? groups[0].drugMapID : null);
+  }
+
+  /** Typing filters the list and clears any previously committed drug. */
+  onDrugInput(value: string): void {
+    this.drugQuery.set(value);
+    this.drugDropdownOpen.set(true);
+    if (this.lineForm.controls.drugName.value !== value) {
+      this.lineForm.controls.drugName.setValue(null);
+      this.onDrugNameChange();
+    }
+  }
+
+  selectDrug(name: string): void {
+    this.lineForm.controls.drugName.setValue(name);
+    this.lineForm.controls.drugName.markAsDirty();
+    this.drugQuery.set(name);
+    this.drugDropdownOpen.set(false);
+    this.onDrugNameChange();
+  }
+
+  /** Free text that matches no drug is not a selection; drop it on blur. */
+  onDrugBlur(): void {
+    this.drugDropdownOpen.set(false);
+    this.lineForm.controls.drugName.markAsTouched();
+    const committed = this.lineForm.controls.drugName.value;
+    this.drugQuery.set(committed ?? '');
   }
 
   addLine(): void {
@@ -632,6 +773,7 @@ export class PrescriptionComponent implements OnInit {
       return;
     }
     this.selectedDrugName.set(line.drugName);
+    this.drugQuery.set(line.drugName);
     this.lineForm.reset({
       drugName: line.drugName,
       drugMapID: line.drugMapID,
@@ -652,96 +794,12 @@ export class PrescriptionComponent implements OnInit {
     this.showHistory.update((v) => !v);
   }
 
-  isDrugSelected(prescribedDrugID: number): boolean {
-    return this.selectedResendDrugIds().has(prescribedDrugID);
-  }
-
-  toggleResendDrug(prescribedDrugID: number | undefined): void {
-    if (prescribedDrugID == null) {
-      return;
-    }
-    this.selectedResendDrugIds.update((ids) => {
-      const next = new Set(ids);
-      if (next.has(prescribedDrugID)) {
-        next.delete(prescribedDrugID);
-      } else {
-        next.add(prescribedDrugID);
-      }
-      return next;
-    });
-  }
-
   /**
-   * Legacy "Resend Prescription" — sends the "Prescription SMS"-type template
-   * (one request per selected drug line) to the beneficiary's registered
-   * number, or the entered alternate number. Mirrors the registration-SMS
-   * flow: a missing SMS type/template for the service silently no-ops (as
-   * legacy did), rather than surfacing a hard error over a soft-config gap.
+   * Persist the prescription. With `sendSms` the saved drug lines are then
+   * texted to the beneficiary (or the alternate number), which is legacy's
+   * "Save & Send" — one save, then one SMS per saved line.
    */
-  sendResendSms(): void {
-    const beneficiaryRegID = this.callStore.beneficiaryId();
-    const drugIds = [...this.selectedResendDrugIds()];
-    if (!this.canSendResend() || beneficiaryRegID === null || drugIds.length === 0) {
-      return;
-    }
-    const role = this.authStore.currentRole();
-    const providerServiceMapID = role?.providerServiceMapID ?? null;
-    const serviceID = role?.serviceID ?? null;
-    const createdBy = this.authStore.user()?.userName ?? '';
-    const alternateNo = this.resendAltNumber().trim() || null;
-
-    this.sendingSms.set(true);
-    this.sms
-      .getSmsTypes(serviceID)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (types) => {
-          const smsType = types.find((t) => t.smsType.toLowerCase() === PRESCRIPTION_SMS_TYPE);
-          if (!smsType) {
-            this.sendingSms.set(false);
-            return;
-          }
-          this.sms
-            .getSmsTemplates(providerServiceMapID, smsType.smsTypeID)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: (templates) => {
-                const template = templates.find((t) => t.deleted === false);
-                if (!template) {
-                  this.sendingSms.set(false);
-                  return;
-                }
-                const requests = drugIds.map((prescribedDrugID) => ({
-                  beneficiaryRegID,
-                  smsTemplateID: template.smsTemplateID,
-                  smsTemplateTypeID: smsType.smsTypeID,
-                  providerServiceMapID,
-                  createdBy,
-                  alternateNo,
-                  is1097: false,
-                  prescribedDrugID,
-                }));
-                this.sms
-                  .sendSms(requests)
-                  .pipe(takeUntilDestroyed(this.destroyRef))
-                  .subscribe({
-                    next: () => {
-                      this.sendingSms.set(false);
-                      this.selectedResendDrugIds.set(new Set());
-                      this.resendAltNumber.set('');
-                      toast.success(this.i18n.instant('prescription.smsSent'));
-                    },
-                    error: () => this.sendingSms.set(false),
-                  });
-              },
-              error: () => this.sendingSms.set(false),
-            });
-        },
-        error: () => this.sendingSms.set(false),
-      });
-  }
-
-  save(): void {
+  save(sendSms = false): void {
     if (!this.canSave()) {
       return;
     }
@@ -779,11 +837,37 @@ export class PrescriptionComponent implements OnInit {
         next: (res) => {
           this.saving.set(false);
           const id = res.prescriptionID;
-          toast.success(
-            id != null ? this.i18n.instant('prescription.savedPrefix') + id : this.i18n.instant('prescription.saved'),
-          );
+          // In the dialog, the case sheet announces the save in legacy's green
+          // Success dialog once this one closes — don't also toast it.
+          if (!this.inDialog()) {
+            toast.success(
+              id != null ? this.i18n.instant('prescription.savedPrefix') + id : this.i18n.instant('prescription.saved'),
+            );
+          }
           if (id != null) {
             this.saved.emit(id);
+          }
+          if (sendSms) {
+            // Legacy addresses the SMS by the ids the save response hands back.
+            const drugIds = (res.prescribedDrugs ?? [])
+              .map((d) => d.prescribedDrugID)
+              .filter((v): v is number => v != null);
+            const alternateNo = this.useAltNumber() ? this.saveAltNumber().trim() : null;
+            this.sendingSms.set(true);
+            this.prescriptionSms
+              .send(drugIds, alternateNo)
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe({
+                next: (sent) => {
+                  this.sendingSms.set(false);
+                  if (sent) {
+                    toast.success(this.i18n.instant('prescription.smsSent'));
+                  }
+                },
+                error: () => this.sendingSms.set(false),
+              });
+            this.useAltNumber.set(false);
+            this.saveAltNumber.set('');
           }
           this.lines.set([]);
           this.diagnosis.reset('');
@@ -810,6 +894,8 @@ export class PrescriptionComponent implements OnInit {
       remarks: '',
     });
     this.selectedDrugName.set(null);
+    this.drugQuery.set('');
+    this.drugDropdownOpen.set(false);
   }
 
   private loadMasters(): void {

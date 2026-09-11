@@ -185,7 +185,11 @@ export interface CaseSheetHistoryEntry {
   patientName?: string;
   patientAge?: number | string;
   diseaseSummary?: string;
+  /** SCTID shown as the Disease Summary cell's tooltip (legacy `mdTooltip`). */
+  diseaseSummaryID?: string;
   selecteDiagnosis?: string;
+  /** SCTID shown as the diagnosis cells' tooltip (legacy `mdTooltip`). */
+  selecteDiagnosisID?: string;
   isChiefComplaint?: boolean;
   algorithm?: string;
   riskLevel?: string;

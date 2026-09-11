@@ -32,10 +32,23 @@ import { HaoService } from '../hao.service';
 /**
  * 104 case-sheet history tab: the beneficiary's prior 104 case sheets from
  * earlier calls (legacy `case-sheet-history.html`, fed by
- * `beneficiary/get104BenMedHistory`). Read-only, a flat list rather than the
- * legacy's full multi-column table — the same four fields the workspace's
- * closure/case-sheet views already surface elsewhere (date, chief complaint,
- * diagnosis, advice).
+ * `beneficiary/get104BenMedHistory`). Read-only.
+ *
+ * All 15 of legacy's columns, in legacy's order, bound to legacy's fields —
+ * including three pairings whose header does not describe the field behind it.
+ * These are inherited legacy quirks, reproduced deliberately rather than
+ * corrected, so the table reads the same as the app it replaces:
+ *
+ *   - "Present Chief Complaint" renders `diseaseSummary`;
+ *   - "Symptoms" renders `algorithm`;
+ *   - "Information Given" repeats the "Disease Summary" expression verbatim,
+ *     so those two columns always show the same value.
+ *
+ * `isChiefComplaint` is legacy's switch on `selecteDiagnosis`: when set, the
+ * value shows under "Provisional / Selected Diagnosis"; when not, under
+ * "Disease Summary" and "Information Given". Legacy's 16th column (a second
+ * "Action by MO") and its `actionByCO` cell are commented out upstream and so
+ * are not rendered here either.
  *
  * Standalone, OnPush + signals, mirroring the MCTS/MMU history tab
  * components' load-on-input-change convention.
@@ -67,20 +80,58 @@ import { HaoService } from '../hao.service';
         <div class="overflow-x-auto rounded-md border border-border">
           <table class="w-full text-left text-sm">
             <thead class="bg-muted/50 text-xs text-muted-foreground">
-              <tr>
+              <tr class="whitespace-nowrap">
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.id' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.name' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.age' | translate: lang() }}</th>
                 <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.date' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.chiefComplaint' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.diagnosis' | translate: lang() }}</th>
-                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.advice' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.own.presentChiefComplaint' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.diseaseSummary' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.symptoms' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.own.provisionalSelectedDiagnosis' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.riskLevel' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.informationGiven' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.own.recommendedAction' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.actionByHao' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.actionByMo' | translate: lang() }}</th>
+                <th class="px-3 py-2 font-medium">
+                  {{ 'casesheetHistory.own.treatmentRecommendation' | translate: lang() }}
+                </th>
+                <th class="px-3 py-2 font-medium">{{ 'casesheetHistory.own.actionByPd' | translate: lang() }}</th>
               </tr>
             </thead>
             <tbody>
               @for (row of rows(); track $index) {
                 <tr class="border-t border-border align-top">
+                  <td class="px-3 py-2">{{ row.requestID || row.benHistoryID || '—' }}</td>
+                  <td class="px-3 py-2">{{ row.patientName || '—' }}</td>
+                  <td class="px-3 py-2">{{ row.patientAge || '—' }}</td>
                   <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
-                  <td class="px-3 py-2">{{ row.diseaseSummary || '—' }}</td>
-                  <td class="px-3 py-2">{{ row.selecteDiagnosis || '—' }}</td>
+                  <!-- Header/field pairings 5, 7 and 10 look wrong because they are
+                       wrong in legacy; see the class doc comment. Ported as-is. -->
+                  <td class="px-3 py-2" [title]="row.diseaseSummaryID || ''">{{ row.diseaseSummary || '—' }}</td>
+                  <td class="px-3 py-2" [title]="row.selecteDiagnosisID || ''">
+                    {{ (row.isChiefComplaint ? '' : row.selecteDiagnosis) || '—' }}
+                  </td>
+                  <td class="px-3 py-2">{{ row.algorithm || '—' }}</td>
+                  <td class="px-3 py-2" [title]="row.selecteDiagnosisID || ''">
+                    {{ (row.isChiefComplaint ? row.selecteDiagnosis : '') || '—' }}
+                  </td>
+                  <td class="px-3 py-2">{{ row.riskLevel || '—' }}</td>
+                  <td class="px-3 py-2" [title]="row.selecteDiagnosisID || ''">
+                    {{ (row.isChiefComplaint ? '' : row.selecteDiagnosis) || '—' }}
+                  </td>
                   <td class="px-3 py-2">{{ row.addedAdvice || '—' }}</td>
+                  <td class="px-3 py-2">{{ row.actionByHAO || '—' }}</td>
+                  <td class="px-3 py-2">{{ row.actionByMO || '—' }}</td>
+                  <td class="px-3 py-2">{{ row.treatmentRecommendation || '—' }}</td>
+                  <td class="px-3 py-2">{{ row.actionByPD || '—' }}</td>
                 </tr>
               }
             </tbody>

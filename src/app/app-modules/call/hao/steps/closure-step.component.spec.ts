@@ -25,6 +25,10 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { of } from 'rxjs';
+
+import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+
 import { AuthStore } from '../../../core/auth/auth.store';
 import { CurrentRole } from '../../../core/auth/auth.models';
 import { CallStore } from '../../call.store';
@@ -316,5 +320,72 @@ describe('ClosureStepComponent', () => {
 
     component.form.controls.selectedFeature.setValue('Blood Request');
     expect(component.form.controls.selectedFeature.valid).toBeTrue();
+  });
+
+  /**
+   * closeCall must carry the real providerServiceMapID, not serviceID. When
+   * isFollowupRequired is set the backend re-reads the very same body as an
+   * OutboundCallRequest and persists this value to
+   * t_outboundcallrequest.ProviderServiceMapID
+   * (BeneficiaryCallServiceImpl.closeCall:396-398), and every outbound
+   * worklist query filters on it. The wrong id there loses the follow-up
+   * silently — no error, the row simply never appears in any worklist.
+   */
+  it('sends the providerServiceMapID (not serviceID) when closing a call with follow-up required', () => {
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    callStore.setBeneficiaryId(123, null);
+    callStore.setCallId('555');
+    fixture.detectChanges();
+
+    // subTypes is derived from the loaded call types, so seed those.
+    component.callTypes.set([
+      {
+        callGroupType: 'Valid',
+        callTypes: [
+          {
+            callTypeID: 9,
+            callTypeDesc: 'Valid',
+            callGroupType: 'Valid',
+            isInbound: true,
+            isOutbound: false,
+            fitToBlock: false,
+            fitForFollowUp: true,
+          },
+        ],
+      },
+    ]);
+    component.form.patchValue({
+      callGroupType: 'Valid',
+      callSubTypeID: 9,
+      isFollowupRequired: true,
+      followUpDate: '2026-12-01',
+    });
+    fixture.detectChanges();
+
+    // A Valid disposition requires a service to have been availed (legacy
+    // closure.component.ts:703-712); this case is about the closeCall body.
+    fixture.componentRef.setInput('serviceAvailed', true);
+    fixture.detectChanges();
+
+    // Submit & Close confirms first; take the Ok branch.
+    spyOn(TestBed.inject(ConfirmDialogService), 'confirm').and.returnValue(of(true));
+    spyOn(TestBed.inject(ConfirmDialogService), 'alert').and.returnValue(of(undefined));
+
+    component.submit(false);
+
+    const req = http.expectOne((r) => r.url.includes('call/closeCall'));
+    const body = req.request.body as { providerServiceMapID: number; isFollowupRequired: boolean };
+    expect(body.isFollowupRequired).toBeTrue();
+    expect(body.providerServiceMapID).toBe(1);
+    // The role's serviceID is 42 in this harness; it must not leak through.
+    expect(body.providerServiceMapID).not.toBe(42);
+    req.flush({ data: 1 });
+    // Closure also pushes caste/education for the attached beneficiary.
+    http
+      .match((r) => r.url.includes('updateCommunityorEducation'))
+      .forEach((r) => r.flush({ data: 1 }));
+
+    callStore.setBeneficiaryId(null, null);
   });
 });

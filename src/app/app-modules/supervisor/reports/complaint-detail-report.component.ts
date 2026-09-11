@@ -1,5 +1,5 @@
 /*
- * AMRIT – Accessible Medical Records via Integrated Technologies
+ * AMRIT â€“ Accessible Medical Records via Integrated Technologies
  * Integrated EHR (Electronic Health Records) Solution
  *
  * Copyright (C) "Piramal Swasthya Management and Research Institute"
@@ -34,6 +34,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
+import { SupervisorError } from '../shared/supervisor-api';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
 import { ComplaintDetailRequest, FeedbackNatureOption, FeedbackTypeOption } from './reports.models';
@@ -45,8 +46,8 @@ const FILE_NAME = 'Complaint_Details_Report';
 /**
  * Complaint Detail report (legacy `SupervisorComplaintDetailReportComponent`):
  * a date range with optional feedback type / nature filters. The common API's
- * `crmReports/getComplaintDetailReport` takes an ARRAY body — one entry per
- * feedback type when none is chosen — and streams the workbook.
+ * `crmReports/getComplaintDetailReport` takes an ARRAY body â€” one entry per
+ * feedback type when none is chosen â€” and streams the workbook.
  */
 @Component({
   selector: 'app-complaint-detail-report',
@@ -56,9 +57,9 @@ const FILE_NAME = 'Complaint_Details_Report';
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <h3 class="mb-4 text-base font-semibold text-foreground">
+      <h2 class="mb-4 text-base font-semibold text-foreground">
         {{ 'supReports.complaint.title' | translate: lang() }}
-      </h3>
+      </h2>
 
       @if (runner.serverError()) {
         <div
@@ -195,7 +196,7 @@ export class ComplaintDetailReportComponent implements OnInit {
     this.service
       .getFeedbackTypes(this.providerServiceMapID())
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (types) => this.feedbackTypes.set(types), error: () => undefined });
+      .subscribe({ next: (types) => this.feedbackTypes.set(types), error: (err: SupervisorError) => this.runner.setError(err) });
   }
 
   onStartChange(): void {
@@ -215,7 +216,7 @@ export class ComplaintDetailReportComponent implements OnInit {
       this.service
         .getFeedbackNatureTypes(this.providerServiceMapID(), type.feedbackTypeID)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({ next: (list) => this.feedbackNatures.set(list), error: () => undefined });
+        .subscribe({ next: (list) => this.feedbackNatures.set(list), error: (err: SupervisorError) => this.runner.setError(err) });
     }
   }
 

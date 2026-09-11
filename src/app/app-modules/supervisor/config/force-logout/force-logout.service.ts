@@ -27,9 +27,15 @@ import { Observable, catchError, map, throwError, timeout } from 'rxjs';
 import { ConfigService } from '../../../core/services/config.service';
 import { ApiResponse, SUPERVISOR_TIMEOUT_MS, readSupervisorData, toSupervisorError } from '../../shared/supervisor-api';
 
-const FORCE_LOGOUT_PATH = 'user/forceLogout';
+/**
+ * The supervisor console's own endpoint. Legacy defines both this and
+ * `user/forceLogout` side by side (`forceLogoutService.service.ts:43-44`) and
+ * the Force Logout screen posts to this one, authenticated with the
+ * supervisor's password.
+ */
+const FORCE_LOGOUT_PATH = 'user/userForceLogout';
 
-/** Result payload of `user/forceLogout` (the legacy checked `response`). */
+/** Result payload of `user/userForceLogout` (the legacy checked `response`). */
 export interface ForceLogoutResult {
   response?: string;
   errorMessage?: string;
@@ -44,11 +50,11 @@ export class ForceLogoutService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(ConfigService);
 
-  forceLogout(userName: string, providerServiceMapID: number | null): Observable<ForceLogoutResult | undefined> {
+  forceLogout(userName: string, password: string): Observable<ForceLogoutResult | undefined> {
     return this.http
       .post<ApiResponse<ForceLogoutResult>>(this.config.getCommonBaseURL() + FORCE_LOGOUT_PATH, {
         userName,
-        providerServiceMapID,
+        password,
       })
       .pipe(
         timeout(SUPERVISOR_TIMEOUT_MS),

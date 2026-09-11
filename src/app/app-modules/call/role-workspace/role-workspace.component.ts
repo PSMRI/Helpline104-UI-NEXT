@@ -40,6 +40,7 @@ import { GrievanceServiceComponent } from '../sio/grievance/grievance.component'
 import { OrganDonationComponent } from '../sio/organ-donation/organ-donation.component';
 import { SchemeServiceComponent } from '../sio/scheme/scheme.component';
 import { CallStore } from '../call.store';
+import { LEGACY_BLUE_BUTTON } from '../legacy-theme';
 import { CallWrapupService } from '../call-wrapup.service';
 import { HihlCaseSheetComponent } from '../counsellor/hihl-case-sheet.component';
 import { HaoStepperComponent } from '../hao/hao-stepper.component';
@@ -127,10 +128,10 @@ const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: s
   ],
   template: `
     <section class="rounded-xl border border-border bg-card p-4 sm:p-6">
-      <header class="mb-2 flex flex-col gap-1">
-        <h1 class="text-lg font-semibold text-foreground">{{ titleKey() | translate: lang() }}</h1>
-        <p class="text-sm text-muted-foreground">{{ subtitleKey() | translate: lang() }}</p>
-      </header>
+      <!-- Legacy shows no workspace title or subtitle above the stepper: the
+           role is already in the page chrome, and the card starts at the
+           stepper (104-mo.component.html). Title kept for the a11y label. -->
+      <h1 class="sr-only">{{ titleKey() | translate: lang() }}</h1>
 
       <app-hao-stepper [linear]="true" (selectionChange)="stepIndex.set($event.selectedIndex)">
         <cdk-step [label]="'roleWorkspace.stepService' | translate: lang()" [completed]="true">
@@ -199,32 +200,54 @@ const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: s
         </cdk-step>
       </app-hao-stepper>
 
+      <!-- Legacy centres this Cancel/Closure pair under the card rather than
+           pushing them to opposite edges (104 MO screenshots). -->
+      <!-- Legacy's footer is one Cancel/Closure navigation pair, centred:
+           Cancel steps back to the case sheet and is disabled there, Closure
+           steps forward and is disabled on the closure step
+           (104-co.component.html:74-75, toggled in 104-co.component.ts:
+           184-185/201-202). "Cancel Call" is a rewrite-only escape hatch for a
+           wrongly-picked beneficiary, which legacy has nowhere in this footer;
+           it sits apart on the left, under its own label, so it can never be
+           mistaken for the step-back Cancel beside Closure. -->
       <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
-        <button z-button type="button" zType="outline" (click)="cancelCall()">
-          {{ 'roleWorkspace.cancelCall' | translate: lang() }}
-        </button>
-        @if (showSwitchRole() && switchRoleLabelKey(); as labelKey) {
-          <button z-button type="button" zType="outline" (click)="switchRole.emit()">
-            {{ labelKey | translate: lang() }}
+        <div class="flex flex-wrap gap-3 sm:flex-1">
+          <button z-button type="button" zType="outline" (click)="cancelCall()">
+            {{ 'roleWorkspace.cancelCall' | translate: lang() }}
           </button>
-        }
-        <div class="ml-auto flex gap-3">
-          @if (stepIndex() === 1) {
-            <button z-button type="button" zType="outline" (click)="cancelToService()">
-              {{ 'roleWorkspace.cancel' | translate: lang() }}
-            </button>
-          } @else {
-            <button z-button type="button" (click)="proceedToClosure()">
-              {{ 'roleWorkspace.proceedToClosure' | translate: lang() }}
+          @if (showSwitchRole() && switchRoleLabelKey(); as labelKey) {
+            <button z-button type="button" zType="outline" (click)="switchRole.emit()">
+              {{ labelKey | translate: lang() }}
             </button>
           }
         </div>
+
+        <div class="flex flex-wrap justify-center gap-3">
+          <button z-button type="button" zType="outline" [zDisabled]="stepIndex() === 0" (click)="cancelToService()">
+            {{ 'roleWorkspace.cancel' | translate: lang() }}
+          </button>
+          <button
+            z-button
+            type="button"
+            [class]="legacyBlue"
+            [zDisabled]="stepIndex() === 1"
+            (click)="proceedToClosure()"
+          >
+            {{ 'roleWorkspace.proceedToClosure' | translate: lang() }}
+          </button>
+        </div>
+
+        <!-- Balances the left zone so the legacy pair stays centred. -->
+        <div class="hidden sm:block sm:flex-1"></div>
       </footer>
     </section>
   `,
 })
 export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
   private readonly callStore = inject(CallStore);
+
+  /** Legacy's blue primary action (see legacy-theme.ts). */
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
   private readonly authStore = inject(AuthStore);
   private readonly callWrapup = inject(CallWrapupService);
   private readonly router = inject(Router);
@@ -385,6 +408,11 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
     this.stepper().previous();
   }
 
+  /**
+   * Abandon a wrongly-picked beneficiary and go back to selection. A rewrite
+   * addition — legacy offers no such shortcut, which is why it is labelled and
+   * placed apart from the Cancel that merely steps back to the case sheet.
+   */
   cancelCall(): void {
     this.confirmDialog
       .confirm({

@@ -84,7 +84,7 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     http.match((req) => req.url.includes('covid/master/VaccinationTypeAndDoseTaken')).forEach((req) => req.flush({ data: null }));
   }
 
-  it('shows Prescription and Resend Last Prescription for MO with a prescription in the last 5 days', () => {
+  it('shows Prescription and Resend Prescription for MO with a prescription in the last 5 days', () => {
     setRole(authStore, 'MO');
     const fixture = render();
     const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
@@ -92,19 +92,19 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.showPrescription()).toBeTrue();
-    expect(fixture.componentInstance.recentPrescription()).not.toBeNull();
+    expect(fixture.componentInstance.recentPrescriptions().length).toBe(1);
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
-    expect(buttons.some((b) => b.textContent?.includes('Resend Last Prescription'))).toBeTrue();
+    expect(buttons.some((b) => b.textContent?.includes('Resend Prescription'))).toBeTrue();
   });
 
-  it('hides Resend Last Prescription for MO when the only prescription is older than 5 days', () => {
+  it('hides Resend Prescription for MO when the only prescription is older than 5 days', () => {
     setRole(authStore, 'MO');
     const fixture = render();
     const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
     flushInit([{ createdDate: eightDaysAgo }]);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.recentPrescription()).toBeNull();
+    expect(fixture.componentInstance.recentPrescriptions().length).toBe(0);
   });
 
   it('does not show Prescription for HAO', () => {
@@ -126,11 +126,11 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     fixture.detectChanges();
 
     fixture.componentInstance.form.controls.chiefComplaints.setValue('some complaint');
-    fixture.componentInstance.form.controls.remarks.setValue('some remark');
+    fixture.componentInstance.form.controls.recommendedAction.setValue('some action');
     fixture.componentInstance.resetForm();
 
     expect(fixture.componentInstance.form.controls.chiefComplaints.value).toBe('');
-    expect(fixture.componentInstance.form.controls.remarks.value).toBeNull();
+    expect(fixture.componentInstance.form.controls.recommendedAction.value).toBe('');
   });
 });
 
