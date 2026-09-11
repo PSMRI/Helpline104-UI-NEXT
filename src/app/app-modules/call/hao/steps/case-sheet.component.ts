@@ -1727,7 +1727,7 @@ export class CaseSheetComponent {
       chiefComplaints: sheet.chiefComplaints ?? '',
       provisionalDiagnosis: sheet.provisionalDiagnosis ?? null,
       recommendedAction: sheet.addedAdvice ?? '',
-      actionByRole: (this.isHao() ? sheet.actionByHAO : sheet.actionByMO) ?? '',
+      actionByRole: (this.showActionByHao() ? sheet.actionByHAO : sheet.actionByMO) ?? '',
       riskLevel: sheet.riskLevel ?? null,
       treatmentRecommendation: sheet.treatmentRecommendation ?? '',
       categoryID: sheet.categoryID ?? null,
@@ -1942,7 +1942,11 @@ export class CaseSheetComponent {
       providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
       createdBy: this.authStore.user()?.userName ?? '',
       isSelf: !value.isPatientOther,
-      actionByHAO: this.isHao() ? value.actionByRole.trim() : null,
+      // Written off the same signal that renders the field and requires it, so
+      // a hybrid RO+HAO agent (featureCode remapped to RO) does not fill a
+      // mandatory box that then ships as null. Legacy writes actionByHAO
+      // unconditionally from the form value (case-sheet.component.ts:1657).
+      actionByHAO: this.showActionByHao() ? value.actionByRole.trim() : null,
       actionByMO: this.isMo() ? value.actionByRole.trim() : null,
       ageUnits: value.isPatientOther && this.isHao() ? value.patientAgeUnit : null,
       dOB: value.isPatientOther && this.isHao() ? value.patientDOB : null,
