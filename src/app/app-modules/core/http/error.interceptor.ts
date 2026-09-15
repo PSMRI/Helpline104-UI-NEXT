@@ -46,6 +46,7 @@ const POLLING_URLS: readonly string[] = [
   'cti/getloginkey',
   'cti/doagentlogin',
   'user/getloginresponse',
+  'cti/getagentcallstats',
 ];
 
 /**
