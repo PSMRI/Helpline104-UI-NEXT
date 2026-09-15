@@ -32,6 +32,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallStore } from '../call.store';
+import { LEGACY_BLUE_BUTTON } from '../legacy-theme';
 import { CallWrapupService } from '../call-wrapup.service';
 import { SERVICE_104, collectServiceScreens } from '../role-workspace/role-screens.util';
 import { HasUnsavedChanges } from '../unsaved-changes.guard';
@@ -101,27 +102,40 @@ const SCREEN_REGISTRATION = 'Registration';
         </cdk-step>
       </app-hao-stepper>
 
+      <!-- Same shape as the MO/CO footer: legacy's centred Cancel/Closure
+           navigation pair (104-hao.component.html:121-133), with the
+           rewrite-only "Back to RO" / "Cancel Call" actions kept apart on the
+           left so neither reads as the step-back Cancel. -->
       <footer class="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
-        @if (showBackToRo()) {
-          <button z-button type="button" zType="outline" (click)="backToRo()">
-            {{ 'hao.workspace.backToRo' | translate: lang() }}
-          </button>
-        } @else {
-          <button z-button type="button" zType="outline" (click)="cancelCall()">
-            {{ 'hao.workspace.cancelCall' | translate: lang() }}
-          </button>
-        }
-        <div class="ml-auto flex gap-3">
-          @if (stepIndex() === 1) {
-            <button z-button type="button" zType="outline" (click)="cancelToService()">
-              {{ 'hao.workspace.cancel' | translate: lang() }}
+        <div class="flex flex-wrap gap-3 sm:flex-1">
+          @if (showBackToRo()) {
+            <button z-button type="button" zType="outline" (click)="backToRo()">
+              {{ 'hao.workspace.backToRo' | translate: lang() }}
             </button>
           } @else {
-            <button z-button type="button" (click)="proceedToClosure()">
-              {{ 'hao.workspace.proceedToClosure' | translate: lang() }}
+            <button z-button type="button" zType="outline" (click)="cancelCall()">
+              {{ 'hao.workspace.cancelCall' | translate: lang() }}
             </button>
           }
         </div>
+
+        <div class="flex flex-wrap justify-center gap-3">
+          <button z-button type="button" zType="outline" [zDisabled]="stepIndex() === 0" (click)="cancelToService()">
+            {{ 'hao.workspace.cancel' | translate: lang() }}
+          </button>
+          <button
+            z-button
+            type="button"
+            [class]="legacyBlue"
+            [zDisabled]="stepIndex() === 1"
+            (click)="proceedToClosure()"
+          >
+            {{ 'hao.workspace.proceedToClosure' | translate: lang() }}
+          </button>
+        </div>
+
+        <!-- Balances the left zone so the legacy pair stays centred. -->
+        <div class="hidden sm:block sm:flex-1"></div>
       </footer>
     </section>
   `,
@@ -135,6 +149,9 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly lang = this.i18n.language;
+
+  /** Legacy's blue primary action (see legacy-theme.ts). */
+  readonly legacyBlue = LEGACY_BLUE_BUTTON;
 
   private readonly stepper = viewChild.required(HaoStepperComponent);
 
@@ -223,6 +240,13 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
     void this.router.navigate(['/innerpage']);
   }
 
+  /**
+   * Abandon a wrongly-picked beneficiary and go back to selection. A rewrite
+   * addition — legacy offers no such shortcut, which is why it is labelled and
+   * placed apart from the Cancel that merely steps back to the case sheet.
+   * Only shown when the agent does not also hold RO, where "Back to RO"
+   * already covers the same ground.
+   */
   cancelCall(): void {
     this.confirmDialog
       .confirm({

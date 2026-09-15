@@ -30,7 +30,7 @@ import * as XLSX from 'xlsx';
 import { DataTableColumn } from '@/shared/components/data-table';
 
 import { I18nService } from '../../core/i18n/i18n.service';
-import { SupervisorError } from '../shared/supervisor-api';
+import { SupervisorError, isNoDataFound } from '../shared/supervisor-api';
 
 /** A row parsed out of the server-generated workbook. */
 export type ReportRow = Record<string, unknown>;
@@ -116,6 +116,13 @@ export class ReportRunner {
         this.searched.set(true);
         this.columns.set([]);
         this.rows.set([]);
+        // An empty result arrives as a 500 whose body is "No data found";
+        // that is a successful search with nothing in range, not a fault.
+        if (isNoDataFound(err)) {
+          this.errorMessage.set('');
+          this.serverError.set(false);
+          return;
+        }
         this.errorMessage.set(this.messageFor(err));
       },
     });
@@ -144,6 +151,11 @@ export class ReportRunner {
           return;
         }
         this.exporting.set(false);
+        // Nothing in range is not a failed export; say so plainly.
+        if (isNoDataFound(err)) {
+          toast.info(this.i18n.instant('supReports.noData'));
+          return;
+        }
         this.errorMessage.set(this.messageFor(err));
       },
     });
@@ -204,6 +216,10 @@ export class ReportRunner {
    * outage indistinguishable from a genuinely empty report (all six failing UAT
    * report endpoints looked like empty reports). The raw `errorMessage` is never
    * surfaced; only these translated strings are.
+   *
+   * The empty-result case is now separated by BODY rather than by status, in
+   * {@link isNoDataFound}, so it never reaches here — which keeps a real outage
+   * loud without mislabelling an empty range.
    */
   private messageFor(err: SupervisorError): string {
     if (err.status >= 500) {

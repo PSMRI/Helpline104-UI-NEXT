@@ -38,7 +38,6 @@ import { DashboardFooterComponent } from './components/dashboard-footer.componen
 import { DashboardHeaderComponent } from './components/dashboard-header.component';
 import { DashboardSidebarComponent } from './components/dashboard-sidebar.component';
 import { ReportsPanelComponent } from './components/reports-panel.component';
-import { RatingPanelComponent } from './components/rating-panel.component';
 import { DashboardStore } from './dashboard.store';
 
 /** Feature code of the supervising role, which has no personal agent line. */
@@ -85,7 +84,6 @@ const ON_CALL_STATES: readonly string[] = ['INCALL', 'CLOSURE'];
     AlertsPanelComponent,
     ReportsPanelComponent,
     ActivityPanelComponent,
-    RatingPanelComponent,
   ],
   template: `
     <div class="flex min-h-screen flex-col bg-background text-foreground">
@@ -107,16 +105,18 @@ const ON_CALL_STATES: readonly string[] = ['INCALL', 'CLOSURE'];
               </div>
             }
 
-            <app-call-statistics [blank]="isSupervisor()" />
+            <app-call-statistics />
 
             <div class="grid gap-6 lg:grid-cols-2">
               <app-alerts-panel />
               <app-reports-panel />
             </div>
 
-            <div class="grid gap-6 lg:grid-cols-2">
+            <!-- Legacy's Rating card is dead: it fetched notification types and
+                 never rendered them, so there is no behaviour to keep parity
+                 with. Removed rather than reproduced. -->
+            <div class="grid gap-6">
               <app-activity-panel />
-              <app-rating-panel />
             </div>
           </div>
         </main>
@@ -168,14 +168,16 @@ export class DashboardComponent {
       .subscribe((state) => this.applyAgentState(state));
 
     // Poll the agent's shift call statistics (legacy CallStatisticsComponent:
-    // immediate call + every 60 s). Supervisors have no personal call metrics
-    // (the tile renders blank for them), so they are never polled; a failed
-    // poll is swallowed and retried on the next tick rather than zeroing out
-    // metrics already on screen.
+    // immediate call + every 60 s). Legacy polls this for every role that
+    // reaches the dashboard, supervisors included — it renders the same tile
+    // and calls cti/getAgentCallStats with whatever agentID the session holds
+    // — so the role is not filtered here either. A failed poll is swallowed
+    // and retried on the next tick rather than zeroing out metrics already on
+    // screen.
     timer(0, CALL_STATISTICS_POLL_MS)
       .pipe(
         takeUntilDestroyed(),
-        filter(() => !this.isSupervisor() && this.authStore.user()?.agentID != null),
+        filter(() => this.authStore.user()?.agentID != null),
         switchMap(() =>
           this.callStatisticsApi
             .getCallStatistics(this.authStore.user()?.agentID ?? 0)

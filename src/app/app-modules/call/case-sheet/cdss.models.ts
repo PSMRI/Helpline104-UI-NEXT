@@ -138,3 +138,25 @@ export interface CdssSelection {
   diagnoses: CdssAcceptedDiagnosis[];
   recommendedAction: string;
 }
+
+// --- Popup results (legacy Symptoms / Symptom Results / Diseases modals) -----
+
+/**
+ * Symptoms popup result: the index of the question the agent picked. Legacy's
+ * dialog has no footer — choosing a radio advances straight on — so dismissing
+ * it resolves to `undefined` instead.
+ */
+export type CdssSymptomsResult = { questionIndex: number } | undefined;
+
+/**
+ * Symptom Results popup result. `markedSymptoms[i]` holds the symptom indexes
+ * the agent marked present on diagnosis `i`. `Back` returns to the Symptoms
+ * popup; `Result` advances to the Diseases table.
+ */
+export type CdssSymptomResultsResult = { action: 'back' } | { action: 'result'; markedSymptoms: number[][] } | undefined;
+
+/**
+ * Diseases popup result. `savedIndexes` are the rows whose Save box is ticked;
+ * `Back` returns to Symptom Results.
+ */
+export type CdssDiseasesResult = { action: 'back' } | { action: 'save'; savedIndexes: number[] } | undefined;

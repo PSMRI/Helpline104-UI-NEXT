@@ -1,5 +1,5 @@
 /*
- * AMRIT – Accessible Medical Records via Integrated Technologies
+ * AMRIT â€“ Accessible Medical Records via Integrated Technologies
  * Integrated EHR (Electronic Health Records) Solution
  *
  * Copyright (C) "Piramal Swasthya Management and Research Institute"
@@ -35,6 +35,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SUP_SELECT_CLASS } from '../shared/supervisor-ui';
+import { SupervisorError } from '../shared/supervisor-api';
 import { ReportRunner } from './report-runner';
 import { ReportResultsComponent } from './report-results.component';
 import { CallTypeGroup, CallTypeOption, RoleOption } from './reports.models';
@@ -62,9 +63,9 @@ import { clampEndDate, maxEndFor, rangeEndIso, rangeStartIso, todayInput } from 
   viewProviders: [provideIcons({ lucideDownload, lucideEye })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
-      <h3 class="mb-4 text-base font-semibold text-foreground">
+      <h2 class="mb-4 text-base font-semibold text-foreground">
         {{ 'supReports.callSummary.title' | translate: lang() }}
-      </h3>
+      </h2>
 
       @if (runner.serverError()) {
         <div
@@ -229,11 +230,11 @@ export class CallSummaryReportComponent implements OnInit {
     this.service
       .getRoles(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (roles) => this.roles.set(roles), error: () => undefined });
+      .subscribe({ next: (roles) => this.roles.set(roles), error: (err: SupervisorError) => this.runner.setError(err) });
     this.service
       .getCallTypeGroups(psmID)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (groups) => this.callTypeGroups.set(groups), error: () => undefined });
+      .subscribe({ next: (groups) => this.callTypeGroups.set(groups), error: (err: SupervisorError) => this.runner.setError(err) });
   }
 
   onStartChange(): void {

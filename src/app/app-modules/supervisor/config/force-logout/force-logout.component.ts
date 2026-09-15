@@ -59,20 +59,26 @@ import { ForceLogoutService } from './force-logout.service';
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
       }
 
-      <form class="flex flex-wrap items-end gap-4" (ngSubmit)="kickout()">
+      <form class="flex flex-wrap items-end gap-4" [formGroup]="form" (ngSubmit)="kickout()">
         <div class="w-full max-w-xs">
           <label for="fl-username" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supLogout.userName' | translate: lang() }}
             <span class="text-destructive">*</span>
           </label>
-          <input id="fl-username" z-input class="w-full" [formControl]="userName" />
+          <input id="fl-username" z-input class="w-full" formControlName="userName" />
           @if (userName.hasError('required') && userName.touched) {
             <p class="mt-1 text-xs font-medium text-destructive">
               {{ 'registration.validation.required' | translate: lang() }}
             </p>
           }
         </div>
-        <button z-button type="submit" zType="default" [zLoading]="saving()" [zDisabled]="userName.invalid || saving()">
+        <button
+          z-button
+          type="submit"
+          zType="default"
+          [zLoading]="saving()"
+          [zDisabled]="userName.invalid || saving()"
+        >
           {{ 'supLogout.kickout' | translate: lang() }}
         </button>
       </form>
@@ -82,19 +88,28 @@ import { ForceLogoutService } from './force-logout.service';
 export class ForceLogoutComponent {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(ForceLogoutService);
-  private readonly authStore = inject(AuthStore);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly authStore = inject(AuthStore);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly lang = this.i18n.language;
   readonly saving = signal(false);
   readonly errorMessage = signal('');
 
-  readonly userName = this.fb.control('', {
-    nonNullable: true,
-    validators: [Validators.required, Validators.minLength(3)],
+  /**
+   * Bound to the `<form>` so `(ngSubmit)` is Angular's output rather than a
+   * native submit — without a `formGroup` the browser reloaded the page and
+   * the kickout never reached the API.
+   */
+  readonly form = this.fb.group({
+    userName: this.fb.control('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(3)],
+    }),
   });
+
+  readonly userName = this.form.controls.userName;
 
   kickout(): void {
     if (this.userName.invalid) {
@@ -132,13 +147,17 @@ export class ForceLogoutComponent {
           } else {
             this.errorMessage.set(res?.errorMessage || this.i18n.instant('supLogout.failed'));
           }
-          this.userName.reset('');
+          this.resetForm();
         },
         error: (err: SupervisorError) => {
           this.saving.set(false);
           this.errorMessage.set(err.errorMessage);
-          this.userName.reset('');
+          this.resetForm();
         },
       });
+  }
+
+  private resetForm(): void {
+    this.userName.reset('');
   }
 }

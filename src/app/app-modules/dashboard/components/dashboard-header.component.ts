@@ -40,14 +40,13 @@ import { SessionStorageService } from '../../core/services/session-storage.servi
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { EmergencyContactsViewComponent } from '../../call/emergency-contacts/emergency-contacts-view.component';
+import { SCREEN_HEALTH_ADVICE, collectServiceScreens } from '../../call/role-workspace/role-screens.util';
 
 const FEEDBACK_ROUTE = '/feedback';
 const SERVICE_104 = '104';
 /** Relative to {@link ConfigService.getCommonBaseURLLicense}. */
 const LICENSE_PATH = 'license.html';
 
-/** Title aliases — empty: each role displays its own code (HAO shows as HAO Dashboard). */
-const TITLE_ROLE_ALIASES: Record<string, string> = {};
 
 /**
  * Top navigation bar: AMRIT branding, the centered "{role} Dashboard" title, a
@@ -184,10 +183,20 @@ export class DashboardHeaderComponent {
   readonly profileOpen = this.profileOpen_.asReadonly();
   readonly helpOpen = this.helpOpen_.asReadonly();
 
-  /** Role code for the title, e.g. "RO" for the HAO/RO hybrid role. */
+  /**
+   * Role code for the title. A hybrid RO+HAO agent carries the feature code
+   * `RO` (legacy remaps it in `getSelectedFeature()`) but works as an HAO, so
+   * the title says HAO. Display only — routing, guards and payloads continue
+   * to key off the real feature code. Keyed on the Health_Advice screen rather
+   * than the code alone, so a registration-only RO still reads "RO Dashboard".
+   */
   private readonly roleCode = computed(() => {
     const code = this.authStore.currentRole()?.featureCode ?? '';
-    return TITLE_ROLE_ALIASES[code] ?? code;
+    if (code !== 'RO') {
+      return code;
+    }
+    const screens = collectServiceScreens(this.authStore.privileges(), SERVICE_104);
+    return screens.includes(SCREEN_HEALTH_ADVICE) ? 'HAO' : code;
   });
 
   /** Centered header title, e.g. "RO Dashboard". */

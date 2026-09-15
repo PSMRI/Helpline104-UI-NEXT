@@ -55,6 +55,7 @@ const PATHS = {
   availableDiseases: 'diseaseController/getAvailableDiseases',
   diseaseByID: 'diseaseController/getDiseasesByID',
   presentCaseSheet: 'beneficiary/getPresentCaseSheet',
+  // ...except the 104 history, which legacy posts to the common base.
   caseSheetHistory: 'beneficiary/get104BenMedHistory',
   saveCaseSheet: 'beneficiary/save/benCaseSheet',
   availableServices: 'beneficiary/get/services',
@@ -184,10 +185,17 @@ export class HaoService {
    * Prior 104 case sheets recorded for the beneficiary across previous calls
    * (legacy `caseSheetService.getCaseSheetData`, rendered by
    * `case-sheet-history.html`). Resolves to `[]` when none exist yet.
+   *
+   * On the COMMON base, not the 104 one: legacy posts this to
+   * `commenBaseUrl` (`caseSheet.service.ts:60`, where
+   * `commenBaseUrl = getCommonBaseURL()` — which resolves to the same
+   * `environment.commonAPI` as this class's `baseCommon`). Verified against
+   * UAT: the same body returns 404 on the 104 base and 200 with rows on the
+   * common base.
    */
   getCaseSheetHistory(beneficiaryRegID: number): Observable<CaseSheetHistoryEntry[]> {
     return this.http
-      .post<ApiResponse<CaseSheetHistoryEntry[]>>(this.base104 + PATHS.caseSheetHistory, {
+      .post<ApiResponse<CaseSheetHistoryEntry[]>>(this.baseCommon + PATHS.caseSheetHistory, {
         beneficiaryRegID,
       })
       .pipe(

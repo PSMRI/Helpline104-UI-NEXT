@@ -106,13 +106,21 @@ export interface CaseSheetRequest {
   benFlowID?: number | null;
   /** AMRIT call id, linked once the call is registered with the backend. */
   benCallID?: string | null;
-  /** Patient's reported complaint(s). */
-  chiefComplaints: string;
-  /** Selected provisional diagnosis disease id, or null when free-text only. */
-  provisionalDiagnosisID?: number | null;
-  provisionalDiagnosis?: string | null;
-  /** Health advice / counselling given to the caller. */
-  healthAdvice?: string | null;
+  patientName?: string | null;
+  patientAge?: number | string | null;
+  patientGenderID?: number | null;
+  /** Present chief complaint text (legacy `diseaseSummary`). */
+  diseaseSummary?: string | null;
+  /** SNOMED concept id of the complaint, or `NA` when none resolved. */
+  diseaseSummaryID?: string | null;
+  /** Provisional diagnosis (complaint mode) or picked disease name (summary mode). */
+  selecteDiagnosis?: string | null;
+  /** SNOMED concept id(s) or disease-summary id backing {@link selecteDiagnosis}. */
+  selecteDiagnosisID?: string | number | null;
+  isChiefComplaint?: boolean;
+  /** CDSS symptoms marked present, space-joined (legacy `algorithm`). */
+  algorithm?: string | null;
+  deleted?: boolean;
   remarks?: string | null;
   providerServiceMapID?: number | null;
   createdBy: string;
@@ -156,6 +164,9 @@ export interface CaseSheetResponse {
  * the active beneficiary, used to pre-fill the form on re-entry.
  */
 export interface PresentCaseSheet {
+  diseaseSummary?: string | null;
+  selecteDiagnosis?: string | null;
+  selecteDiagnosisID?: string | number | null;
   chiefComplaints?: string | null;
   provisionalDiagnosisID?: number | null;
   provisionalDiagnosis?: string | null;
@@ -185,7 +196,11 @@ export interface CaseSheetHistoryEntry {
   patientName?: string;
   patientAge?: number | string;
   diseaseSummary?: string;
+  /** SCTID shown as the Disease Summary cell's tooltip (legacy `mdTooltip`). */
+  diseaseSummaryID?: string;
   selecteDiagnosis?: string;
+  /** SCTID shown as the diagnosis cells' tooltip (legacy `mdTooltip`). */
+  selecteDiagnosisID?: string;
   isChiefComplaint?: boolean;
   algorithm?: string;
   riskLevel?: string;
@@ -280,6 +295,9 @@ export interface CloseCallRequest {
   externalRefferal?: string | null;
   instTypeId?: number | null;
   instNames?: string[] | null;
+  isTransfered?: boolean;
+  /** Sub-service the follow-up is requested for (legacy `subServiceID`). */
+  requestedServiceID?: number | null;
   /** Logged-in user's own id (legacy `saved_data.uid`), distinct from the telephony {@link agentID}. */
   callEndUserID?: number | null;
   /** Agent IP, resolved via `cti/getAgentIPAddress`; null when unavailable. */

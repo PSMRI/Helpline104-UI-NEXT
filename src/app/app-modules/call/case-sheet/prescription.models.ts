@@ -127,6 +127,12 @@ export interface SavePrescriptionRequest {
 /** Response from beneficiary/save/prescription. */
 export interface SavePrescriptionResponse {
   prescriptionID?: number;
+  /**
+   * The saved drug lines, each with its generated `prescribedDrugID`. Legacy's
+   * "Save & Send" reads these straight off the save response to address one
+   * prescription SMS per line.
+   */
+  prescribedDrugs?: Array<{ prescribedDrugID?: number }>;
   [key: string]: unknown;
 }
 

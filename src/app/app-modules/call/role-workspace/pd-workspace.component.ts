@@ -31,7 +31,7 @@ import { RoleWorkspaceComponent } from './role-workspace.component';
 const ROLE_MO = 'MO';
 
 /**
- * PD (Psychiatrist / Programme Division) on-call workspace (route
+ * PD (Psychiatrist) on-call workspace (route
  * `/innerpage/pd`).
  *
  * Ported from the legacy `104-pd` inbound flow: a case-sheet → closure wizard.
