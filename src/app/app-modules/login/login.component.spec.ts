@@ -64,7 +64,7 @@ describe('LoginComponent', () => {
     expect(el.querySelector('#password')).not.toBeNull();
   });
 
-  it('renders the title and submit button from translation keys, reactive to a language switch', () => {
+  it('renders the title and submit button from translation keys, reactive to a language switch', async () => {
     const fixture = render();
     const i18n = TestBed.inject(I18nService);
     const el = fixture.nativeElement as HTMLElement;
@@ -72,7 +72,7 @@ describe('LoginComponent', () => {
     expect(el.textContent).toContain('AMRIT 104 Helpline');
     expect(el.querySelector('button[type="submit"]')?.textContent?.trim()).toBe('Login');
 
-    i18n.setLanguage('hi');
+    await i18n.setLanguage('hi');
     fixture.detectChanges();
 
     expect(el.textContent).toContain('AMRIT 104 हेल्पलाइन');

@@ -21,16 +21,29 @@
  */
 
 import { Language, LanguageOption } from '../i18n.types';
-import { as } from './as';
 import { en, TranslationKey } from './en';
-import { hi } from './hi';
 
 /** Loaded locale dictionaries, keyed by implemented language code. */
-export const DICTIONARIES: Record<Language, Record<TranslationKey, string>> = {
-  en,
-  hi,
-  as,
+export type Dictionary = Record<TranslationKey, string>;
+
+export const IMPLEMENTED_LANGUAGES: readonly Language[] = ['en', 'hi', 'as'];
+
+export const DICTIONARIES: Partial<Record<Language, Dictionary>> & { en: Dictionary } = { en };
+
+const LOADERS: Record<Exclude<Language, 'en'>, () => Promise<Dictionary>> = {
+  hi: () => import('./hi').then((m) => m.hi),
+  as: () => import('./as').then((m) => m.as),
 };
+
+export async function loadDictionary(language: Language): Promise<Dictionary> {
+  const loaded = DICTIONARIES[language];
+  if (loaded) {
+    return loaded;
+  }
+  const dictionary = await LOADERS[language as Exclude<Language, 'en'>]();
+  DICTIONARIES[language] = dictionary;
+  return dictionary;
+}
 
 /**
  * Every language offered in the header selector, in display order (endonyms).

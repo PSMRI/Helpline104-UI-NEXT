@@ -66,14 +66,14 @@ describe('SetSecurityQuestionsComponent', () => {
     }
   });
 
-  it('renders the heading from a translation key, reactive to a language switch', () => {
+  it('renders the heading from a translation key, reactive to a language switch', async () => {
     const fixture = render();
     const i18n = TestBed.inject(I18nService);
     const el = fixture.nativeElement as HTMLElement;
 
     expect(el.textContent).toContain('Set security questions');
 
-    i18n.setLanguage('hi');
+    await i18n.setLanguage('hi');
     fixture.detectChanges();
 
     expect(el.textContent).toContain('सुरक्षा प्रश्न सेट करें');
