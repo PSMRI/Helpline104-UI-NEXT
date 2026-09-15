@@ -63,6 +63,7 @@ const FOLLOW_UP_SERVICE_NEEDLES: Readonly<Partial<Record<string, readonly string
   [ROLE_HAO]: ['Health'],
   [ROLE_CO]: ['Counselling'],
   [ROLE_MO]: ['Medical'],
+  PD: ['Psychiatrist'],
   SIO: ['Blood', 'Organ'],
 };
 

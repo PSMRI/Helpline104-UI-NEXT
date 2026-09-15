@@ -107,6 +107,19 @@ describe('CaseSheetComponent — Prescription (MO-only)', () => {
     expect(fixture.componentInstance.recentPrescriptions().length).toBe(0);
   });
 
+  it('shows Prescription and Action by PD for PD', () => {
+    setRole(authStore, 'PD');
+    const fixture = render();
+    http.match(() => true).forEach((req) => req.flush({ data: [] }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showPrescription()).toBeTrue();
+    expect(fixture.componentInstance.showActionByRole()).toBeTrue();
+    expect(fixture.nativeElement.querySelector('#hao-cs-action-pd')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#hao-cs-category')).not.toBeNull();
+    http.match(() => true).forEach((req) => req.flush({ data: [] }));
+  });
+
   it('does not show Prescription for HAO', () => {
     setRole(authStore, 'HAO');
     const fixture = render();

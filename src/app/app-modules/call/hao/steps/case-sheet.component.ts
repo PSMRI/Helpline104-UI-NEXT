@@ -78,6 +78,7 @@ import type { HihlHistoryRow } from '../../counsellor/hihl-case-sheet.models';
 import { CaseSheetHistoryComponent } from './case-sheet-history.component';
 
 const MO_FEATURE_CODE = 'MO';
+const PD_FEATURE_CODE = 'PD';
 
 const RECENT_PRESCRIPTION_WINDOW_MS = 5 * 24 * 60 * 60 * 1000;
 
@@ -257,7 +258,7 @@ const MIN_VACCINE_AGE = 12;
         </div>
       }
 
-      @if (isCo()) {
+      @if (isCoOrPd()) {
         <p class="text-xs text-muted-foreground lg:col-span-full">
           {{ 'hao.caseSheet.categoryGuidelineNote' | translate: lang() }}
         </p>
@@ -631,6 +632,31 @@ const MIN_VACCINE_AGE = 12;
           <textarea
             z-input
             id="hao-cs-action-mo"
+            rows="2"
+            minlength="3"
+            maxlength="200"
+            formControlName="actionByRole"
+            [attr.aria-invalid]="isInvalid('actionByRole') || null"
+          ></textarea>
+          @if (isInvalid('actionByRole')) {
+            <p class="text-xs font-medium text-destructive" role="alert">
+              {{ 'hao.caseSheet.actionByRoleInvalid' | translate: lang() }}
+            </p>
+          } @else {
+            <p class="text-xs text-muted-foreground">{{ 'hao.caseSheet.max200' | translate: lang() }}</p>
+          }
+        </div>
+      }
+
+      @if (isPd()) {
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium" for="hao-cs-action-pd">
+            {{ 'hao.caseSheet.actionByPd' | translate: lang() }}
+            <span class="text-destructive" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            z-input
+            id="hao-cs-action-pd"
             rows="2"
             minlength="3"
             maxlength="200"
@@ -1054,7 +1080,7 @@ export class CaseSheetComponent {
   readonly saving = signal(false);
   readonly savingVaccine = signal(false);
 
-  readonly showPrescription = computed(() => this.roleCode() === MO_FEATURE_CODE);
+  readonly showPrescription = computed(() => this.roleCode() === MO_FEATURE_CODE || this.roleCode() === PD_FEATURE_CODE);
   readonly recentPrescriptions = signal<PrescriptionRecord[]>([]);
   readonly patientDisplayName = computed(() => {
     const d = this.callStore.demographics();
@@ -1207,6 +1233,8 @@ export class CaseSheetComponent {
   );
   readonly isMo = computed(() => this.roleCode() === 'MO');
   readonly isCo = computed(() => this.roleCode() === 'CO');
+  readonly isPd = computed(() => this.roleCode() === PD_FEATURE_CODE);
+  readonly isCoOrPd = computed(() => this.isCo() || this.isPd());
   readonly isHaoOrMo = computed(() => this.isHao() || this.isMo());
   /**
    * Whether the Action by HAO/MO field is on screen at all. The validator is
@@ -1214,7 +1242,7 @@ export class CaseSheetComponent {
    * marker from, so a starred field is always an enforced one — legacy marks
    * both textareas `required` outright rather than gating them on the role.
    */
-  readonly showActionByRole = computed(() => this.showActionByHao() || this.isMo());
+  readonly showActionByRole = computed(() => this.showActionByHao() || this.isMo() || this.isPd());
 
   readonly filteredCategories = computed(() => {
     const wellBeing = this.wellbeingOrInfo() === '1';
@@ -1285,7 +1313,8 @@ export class CaseSheetComponent {
     const providerServiceMapID = this.providerServiceMapID();
     this.haoService.getAvailableServices(providerServiceMapID, true).subscribe({
       next: (services) => {
-        const subServiceID = services.find((s) => s.subServiceName.includes('Counselling'))?.subServiceID ?? null;
+        const needle = this.isPd() ? 'Psychiatrist' : 'Counselling';
+        const subServiceID = services.find((s) => s.subServiceName.includes(needle))?.subServiceID ?? null;
         this.haoService.getGuidelineCategories(providerServiceMapID, subServiceID).subscribe({
           next: (categories) => this.allCategories.set(categories),
           error: () => this.allCategories.set([]),
@@ -1485,7 +1514,7 @@ export class CaseSheetComponent {
       },
     });
 
-    if (this.isCo()) {
+    if (this.isCoOrPd()) {
       this.loadGuidelineCategories();
     }
 
@@ -1751,7 +1780,7 @@ export class CaseSheetComponent {
       chiefComplaints: sheet.diseaseSummary ?? sheet.chiefComplaints ?? '',
       provisionalDiagnosis: sheet.selecteDiagnosis ?? sheet.provisionalDiagnosis ?? null,
       recommendedAction: sheet.addedAdvice ?? '',
-      actionByRole: (this.showActionByHao() ? sheet.actionByHAO : sheet.actionByMO) ?? '',
+      actionByRole: (this.showActionByHao() ? sheet.actionByHAO : this.isPd() ? sheet.actionByPD : sheet.actionByMO) ?? '',
       riskLevel: sheet.riskLevel ?? null,
       treatmentRecommendation: sheet.treatmentRecommendation ?? '',
       categoryID: sheet.categoryID ?? null,
@@ -1996,6 +2025,7 @@ export class CaseSheetComponent {
       // unconditionally from the form value (case-sheet.component.ts:1657).
       actionByHAO: this.showActionByHao() ? value.actionByRole.trim() : null,
       actionByMO: this.isMo() ? value.actionByRole.trim() : null,
+      actionByPD: this.isPd() ? value.actionByRole.trim() : null,
       ageUnits: value.isPatientOther && this.isHao() ? value.patientAgeUnit : null,
       dOB: value.isPatientOther && this.isHao() ? value.patientDOB : null,
       isCOVIDAvailable: value.covidQc === 'yes',
@@ -2010,8 +2040,9 @@ export class CaseSheetComponent {
         value.covidSeekMedicalConsult === null ? null : value.covidSeekMedicalConsult ? 'true' : 'false',
       riskLevel: this.isCo() ? value.riskLevel : null,
       treatmentRecommendation: this.isCo() ? value.treatmentRecommendation.trim() || null : null,
-      categoryID: this.isCo() ? value.categoryID : null,
-      subCategoryID: this.isCo() ? value.subCategoryID : null,
+      categoryID: this.isCoOrPd() ? value.categoryID : null,
+      subCategoryID: this.isCoOrPd() ? value.subCategoryID : null,
+      districtID: this.isCoOrPd() ? this.callStore.districtID() : null,
     };
 
     this.saving.set(true);

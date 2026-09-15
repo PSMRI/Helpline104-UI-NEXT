@@ -130,19 +130,60 @@ describe('InboundCtiService', () => {
     flushStartCall();
   });
 
-  it('routes an MO agent straight to their own workspace, not registration', () => {
+  /** A transferred call: `call/startCall` hands back the beneficiary the previous leg identified. */
+  function flushStartCallWithBeneficiary(): void {
+    http.expectOne((req) => req.url.includes('call/startCall')).flush({
+      data: {
+        benCallID: 'ben-1',
+        i_beneficiary: {
+          beneficiaryRegID: 555,
+          firstName: 'Asha',
+          actualAge: 30,
+          m_gender: { genderID: 2, genderName: 'Female' },
+          i_bendemographics: { districtID: 9 },
+        },
+      },
+    });
+  }
+
+  it('sends the receiving role and called service on startCall', () => {
     setRole('MO');
     acceptInboundCall('1539175449.1040000002');
 
-    expect(router.navigate).toHaveBeenCalledWith(['/innerpage', 'mo']);
-    flushStartCall();
+    const req = http.expectOne((r) => r.url.includes('call/startCall'));
+    expect(req.request.body.receivedRoleName).toBe('MO');
+    expect(req.request.body.calledServiceID).toBe(42);
+    req.flush({ data: { benCallID: 'ben-1' } });
   });
 
-  it('routes a CO agent straight to their own workspace, not registration', () => {
+  it('routes an MO agent to their own workspace once startCall returns the transferred beneficiary', () => {
+    setRole('MO');
+    acceptInboundCall('1539175449.1040000002');
+    expect(router.navigate).not.toHaveBeenCalled();
+
+    flushStartCallWithBeneficiary();
+
+    expect(callStore.beneficiaryId()).toBe(555);
+    expect(callStore.demographics()?.firstName).toBe('Asha');
+    expect(router.navigate).toHaveBeenCalledWith(['/innerpage', 'mo']);
+  });
+
+  it('routes a CO agent to their own workspace once startCall returns the transferred beneficiary', () => {
     setRole('CO');
     acceptInboundCall('1539175449.1040000003');
 
+    flushStartCallWithBeneficiary();
+
     expect(router.navigate).toHaveBeenCalledWith(['/innerpage', 'co']);
+  });
+
+  it('falls back to registration for an MO agent when startCall carries no beneficiary', () => {
+    setRole('MO');
+    acceptInboundCall('1539175449.1040000004');
+
     flushStartCall();
+
+    expect(callStore.beneficiaryId()).toBeNull();
+    expect(router.navigate).toHaveBeenCalledWith(['/innerpage', 'registration']);
   });
 });

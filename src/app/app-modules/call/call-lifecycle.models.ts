@@ -20,6 +20,8 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
+import { BeneficiaryRecord } from './beneficiary/beneficiary.models';
+
 /**
  * Shapes for `call/startCall` (legacy `callservice.service.ts#storeCallID`,
  * called from `beneficiary-registration-104.component.ts` right when an
@@ -35,13 +37,9 @@ export interface ApiResponse<T> {
 }
 
 /**
- * Request for `call/startCall`. Legacy's request object carries several more
- * fields (`remarks`, `servicesProvided`, `callClosureType`, `category`,
- * `subCategory`, `receivedRoleName`, `calledServiceID`) — those are closure-
- * time concerns on a shared mutable object reused across the legacy
- * component's whole lifecycle, and are still unset at the point legacy
- * itself calls this endpoint. Only the fields genuinely meaningful when a
- * call starts are sent here.
+ * Body of `call/startCall` — legacy `innerpage.component.ts` `storeCallID()`
+ * (`callerObj`, lines 263-283): beneficiary, CTI call id, caller number, agent,
+ * the receiving role's name and the called service's providerServiceMapID.
  */
 export interface StartCallRequest {
   /** Null: no beneficiary is identified yet when the call starts. */
@@ -54,10 +52,22 @@ export interface StartCallRequest {
   /** Legacy `callerObj.callReceivedUserID` (`getCommonData.uid`). */
   callReceivedUserID: number | null;
   isOutbound: boolean;
+  /** Legacy `callerObj.receivedRoleName` (`current_roleName`). */
+  receivedRoleName?: string | null;
+  /** Legacy `callerObj.calledServiceID` (`current_service.serviceID`, i.e. the providerServiceMapID). */
+  calledServiceID?: number | null;
 }
 
-/** Response of `call/startCall` — `benCallID` is the real AMRIT call id. */
+/**
+ * Response of `call/startCall` — `benCallID` is the real AMRIT call id. On a
+ * transferred call the backend also returns the beneficiary the previous leg
+ * identified (`i_beneficiary`), which legacy stores as
+ * `beneficiaryDataAcrossApp.beneficiaryDetails` and the MO/CO case sheet
+ * reads (`case-sheet.component.ts` `benDataInboundPopulationg`).
+ */
 export interface StartCallResponse {
   benCallID: string;
+  beneficiaryRegID?: number | null;
+  i_beneficiary?: BeneficiaryRecord | null;
   [key: string]: unknown;
 }

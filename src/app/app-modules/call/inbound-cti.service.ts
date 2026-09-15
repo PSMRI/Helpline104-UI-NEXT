@@ -31,10 +31,12 @@ import { CallLifecycleService } from './call-lifecycle.service';
 import { CallStore } from './call.store';
 import { CallWrapupService } from './call-wrapup.service';
 import { parseDisconnectCtiMessage, parseInboundCtiMessage } from './cti-message';
+import { toCallerDemographics } from './beneficiary/caller-demographics.util';
 import { inboundAcceptPath } from './role-workspace/role-screens.util';
 
 /** Feature code of the supervising role, which has no personal agent line. */
 const SUPERVISOR_FEATURE_CODE = 'Supervisor';
+const REGISTRATION_PATH = 'registration';
 
 /**
  * Extract the origin from a configured base URL. Returns a token that can never
@@ -144,8 +146,15 @@ export class InboundCtiService {
         sessionId: inbound.sessionId,
       });
       const path = inboundAcceptPath(this.authStore.currentRole()?.featureCode, this.authStore.privileges());
-      void this.router.navigate(['/innerpage', path]);
-      this.registerCallStart(inbound.cli, inbound.sessionId);
+      if (path === REGISTRATION_PATH) {
+        void this.router.navigate(['/innerpage', path]);
+        this.registerCallStart(inbound.cli, inbound.sessionId);
+        return;
+      }
+      this.registerCallStart(inbound.cli, inbound.sessionId, () => {
+        const target = this.callStore.beneficiaryId() !== null ? path : REGISTRATION_PATH;
+        void this.router.navigate(['/innerpage', target]);
+      });
       return;
     }
 
@@ -161,8 +170,9 @@ export class InboundCtiService {
    * to registration regardless, and every downstream call-lifecycle request
    * already falls back to the CTI session id when this hasn't resolved yet.
    */
-  private registerCallStart(cli: string, sessionId: string): void {
+  private registerCallStart(cli: string, sessionId: string, onSettled?: () => void): void {
     const user = this.authStore.user();
+    const role = this.authStore.currentRole();
     this.callLifecycle
       .startCall({
         beneficiaryRegID: this.callStore.beneficiaryId(),
@@ -172,14 +182,33 @@ export class InboundCtiService {
         createdBy: user?.userName ?? '',
         callReceivedUserID: user?.userID ?? null,
         isOutbound: false,
+        receivedRoleName: role?.roleName ?? null,
+        calledServiceID: role?.providerServiceMapID ?? null,
       })
       .subscribe({
         next: (response) => {
-          if (this.callStore.sessionId() === sessionId && response.benCallID) {
+          if (this.callStore.sessionId() !== sessionId) {
+            return;
+          }
+          if (response.benCallID) {
             this.callStore.setCallId(response.benCallID);
           }
+          const ben = response.i_beneficiary;
+          const benRegId = ben?.beneficiaryRegID ?? response.beneficiaryRegID ?? null;
+          if (this.callStore.beneficiaryId() === null && benRegId !== null) {
+            this.callStore.setBeneficiaryId(benRegId, ben?.i_bendemographics?.districtID ?? null);
+            if (ben) {
+              this.callStore.setDemographics(toCallerDemographics(ben));
+            }
+          }
+          onSettled?.();
         },
-        error: (err: unknown) => console.warn('startCall failed; falling back to the CTI session id', err),
+        error: (err: unknown) => {
+          console.warn('startCall failed; falling back to the CTI session id', err);
+          if (this.callStore.sessionId() === sessionId) {
+            onSettled?.();
+          }
+        },
       });
   }
 }

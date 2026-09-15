@@ -876,6 +876,7 @@ export const as: Record<TranslationKey, string> = {
   'hao.caseSheet.recommendedActionRequired': 'পৰামৰ্শিত ব্যৱস্থা আৱশ্যক।',
   'hao.caseSheet.actionByHao': 'HAO দ্বাৰা ব্যৱস্থা',
   'hao.caseSheet.actionByMo': 'MO দ্বাৰা ব্যৱস্থা',
+  'hao.caseSheet.actionByPd': 'PD দ্বাৰা ব্যৱস্থা',
   'hao.caseSheet.actionByRoleInvalid': 'অতি কমেও 3টা আখৰ দিয়ক।',
   'hao.caseSheet.firstNameInvalid': 'প্ৰথম নাম আৱশ্যক (অতি কমেও 3টা আখৰ)।',
   'hao.caseSheet.genderRequired': 'লিংগ আৱশ্যক।',
