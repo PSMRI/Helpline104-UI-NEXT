@@ -137,4 +137,10 @@ describe('errorInterceptor', () => {
     httpMock.expectOne(() => true).flush({ data: {} });
     expect(activity).not.toHaveBeenCalled();
   });
+
+  it('does not count the dashboard call-statistics poll as agent activity', () => {
+    fire('common-api/cti/getAgentCallStats');
+    httpMock.expectOne(() => true).flush({ data: {} });
+    expect(activity).not.toHaveBeenCalled();
+  });
 });
