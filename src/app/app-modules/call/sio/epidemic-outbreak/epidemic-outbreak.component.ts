@@ -38,6 +38,7 @@ import { lucideActivity } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../../../core/auth/auth.store';
@@ -66,7 +67,14 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
   selector: 'app-sio-epidemic-outbreak',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardFormMessageComponent,
+    ZardInputDirective,
+  ],
   viewProviders: [provideIcons({ lucideActivity })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -95,6 +103,9 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
                 <option [ngValue]="n.feedbackNature">{{ n.feedbackNature }}</option>
               }
             </select>
+            @if (showError('natureOfComplaint', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -111,6 +122,9 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
               max="999999999"
               formControlName="totalPeopleAffected"
             />
+            @if (showError('totalPeopleAffected', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -123,6 +137,9 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
             </select>
+            @if (showError('stateID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -135,6 +152,9 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
             </select>
+            @if (showError('districtID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -152,6 +172,9 @@ import { EpidemicComplaintRow, NatureOfComplaint } from './epidemic-outbreak.mod
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
               }
             </select>
+            @if (showError('subDistrictID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -394,5 +417,10 @@ export class EpidemicOutbreakComponent implements OnInit {
 
   private setError(err: SioError): void {
     this.errorMessage.set(err.errorMessage || this.i18n.instant('sio.common.loadError'));
+  }
+
+  showError(control: keyof typeof this.form.controls, error: string): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.hasError(error);
   }
 }

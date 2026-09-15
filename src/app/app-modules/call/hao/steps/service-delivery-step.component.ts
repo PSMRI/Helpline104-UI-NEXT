@@ -28,12 +28,10 @@ import type { TranslationKey } from '../../../core/i18n/locales';
 import { HaoScreenName, HaoServiceId } from '../hao.models';
 import { CallStore } from '../../call.store';
 import { CaseSheetComponent } from './case-sheet.component';
-import { PrescriptionComponent } from '../../case-sheet/prescription.component';
 import { DiabeticScreeningComponent } from '../../screening/diabetic-screening.component';
 import { BpScreeningComponent } from '../../screening/bp-screening.component';
 import { DirectoryServicesComponent } from '../../directory/directory-services.component';
 import { CovidServiceComponent } from '../../covid/covid-service.component';
-import { SmsTemplateComponent } from '../../sms/sms-template.component';
 import { BloodOnCallComponent } from '../../sio/blood-on-call/blood-on-call.component';
 import { EpidemicOutbreakComponent } from '../../sio/epidemic-outbreak/epidemic-outbreak.component';
 import { FoodSafetyComponent } from '../../sio/food-safety/food-safety.component';
@@ -61,15 +59,18 @@ interface ServiceTab {
  */
 const SERVICE_TABS: readonly ServiceTab[] = [
   { id: 'healthAdvice', labelKey: 'hao.service.healthAdvisory', requiresScreen: 'Health_Advice' },
-  // Prescription and the SMS sender carry no dedicated screen mapping, so they
-  // ride the always-on group (shown for HAO, hidden for SIO via
-  // showAlwaysOnScreenings) alongside the screenings. SNOMED and CDSS are NOT
-  // tabs here — they need a chief complaint, so they live inside the Health
-  // Advisory case sheet.
-  { id: 'prescription', labelKey: 'hao.service.prescription', requiresScreen: null },
+  // The diabetic and BP screenings are the legacy `<md-tab-group>`'s
+  // always-on tabs (shown for HAO, hidden for SIO via showAlwaysOnScreenings).
+  // SNOMED and CDSS are NOT tabs here — they need a chief complaint, so they
+  // live inside the Health Advisory case sheet. There is no SMS tab: legacy
+  // sends an SMS as a side effect of saving the case sheet, not a screen the
+  // agent opens. Prescription is not a tab here either: legacy gates the
+  // whole Prescription control to `current_role === 'MO'` in
+  // case-sheet.component.html, so it lives only in the MO case sheet
+  // (case-sheet.component.ts's showPrescription/MO_FEATURE_CODE gate), never
+  // in HAO's service-delivery tabs.
   { id: 'diabeticScreening', labelKey: 'hao.service.diabeticScreening', requiresScreen: null },
   { id: 'bpScreening', labelKey: 'hao.service.bpScreening', requiresScreen: null },
-  { id: 'sms', labelKey: 'hao.service.sms', requiresScreen: null },
   { id: 'bloodOnCall', labelKey: 'hao.service.bloodOnCall', requiresScreen: 'Blood Request' },
   { id: 'directory', labelKey: 'hao.service.directory', requiresScreen: 'Directory Information Service' },
   { id: 'epidemic', labelKey: 'hao.service.epidemic', requiresScreen: 'Epidemic Outbreak Service' },
@@ -98,12 +99,10 @@ const SERVICE_TABS: readonly ServiceTab[] = [
   imports: [
     TranslatePipe,
     CaseSheetComponent,
-    PrescriptionComponent,
     DiabeticScreeningComponent,
     BpScreeningComponent,
     DirectoryServicesComponent,
     CovidServiceComponent,
-    SmsTemplateComponent,
     BloodOnCallComponent,
     EpidemicOutbreakComponent,
     FoodSafetyComponent,
@@ -146,14 +145,6 @@ const SERVICE_TABS: readonly ServiceTab[] = [
               (serviceAvailed)="serviceAvailed.emit()"
             />
           }
-          @case ('prescription') {
-            <app-prescription
-              [patientName]="patientName()"
-              [age]="age()"
-              [gender]="genderName()"
-              (saved)="serviceAvailed.emit()"
-            />
-          }
           @case ('diabeticScreening') {
             <app-diabetic-screening
               [patientName]="patientName()"
@@ -169,9 +160,6 @@ const SERVICE_TABS: readonly ServiceTab[] = [
               [genderId]="genderId()"
               (saved)="serviceAvailed.emit()"
             />
-          }
-          @case ('sms') {
-            <app-sms-template (sent)="serviceAvailed.emit()" />
           }
           @case ('bloodOnCall') {
             <app-sio-blood-on-call (serviceProvided)="serviceAvailed.emit()" />

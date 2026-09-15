@@ -38,6 +38,7 @@ import { lucideShieldAlert } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../../../core/auth/auth.store';
@@ -72,7 +73,14 @@ import { BalVivahRow } from './bal-vivah.models';
   selector: 'app-sio-bal-vivah',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardFormMessageComponent,
+    ZardInputDirective,
+  ],
   viewProviders: [provideIcons({ lucideShieldAlert })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -102,6 +110,9 @@ import { BalVivahRow } from './bal-vivah.models';
               maxlength="100"
               formControlName="subjectOfComplaint"
             ></textarea>
+            @if (showError('subjectOfComplaint', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -109,6 +120,9 @@ import { BalVivahRow } from './bal-vivah.models';
               {{ 'sio.balVivah.childName' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input id="bv-child-name" z-input class="w-full" type="text" maxlength="50" formControlName="childName" />
+            @if (showError('childName', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -123,6 +137,9 @@ import { BalVivahRow } from './bal-vivah.models';
               maxlength="50"
               formControlName="childFatherName"
             />
+            @if (showError('childFatherName', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -139,6 +156,9 @@ import { BalVivahRow } from './bal-vivah.models';
               max="17"
               formControlName="childAge"
             />
+            @if (showError('childAge', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -151,6 +171,9 @@ import { BalVivahRow } from './bal-vivah.models';
                 <option [ngValue]="g.genderID">{{ g.genderName }}</option>
               }
             </select>
+            @if (showError('childGender', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -158,6 +181,9 @@ import { BalVivahRow } from './bal-vivah.models';
               {{ 'sio.balVivah.marriageDate' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input id="bv-marriage-date" z-input class="w-full" type="date" formControlName="marriageDate" />
+            @if (showError('marriageDate', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <!-- Child location cascade -->
@@ -182,6 +208,9 @@ import { BalVivahRow } from './bal-vivah.models';
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
             </select>
+            @if (showError('childState', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -199,6 +228,9 @@ import { BalVivahRow } from './bal-vivah.models';
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
             </select>
+            @if (showError('childDistrict', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -216,6 +248,9 @@ import { BalVivahRow } from './bal-vivah.models';
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
               }
             </select>
+            @if (showError('childSubDistrict', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -252,6 +287,9 @@ import { BalVivahRow } from './bal-vivah.models';
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
             </select>
+            @if (showError('fatherState', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -269,6 +307,9 @@ import { BalVivahRow } from './bal-vivah.models';
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
             </select>
+            @if (showError('fatherDistrict', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -286,6 +327,9 @@ import { BalVivahRow } from './bal-vivah.models';
                 <option [ngValue]="b.blockID">{{ b.blockName }}</option>
               }
             </select>
+            @if (showError('fatherSubDistrict', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -586,5 +630,10 @@ export class BalVivahComponent implements OnInit {
 
   private setError(err: SioError): void {
     this.errorMessage.set(err.errorMessage || this.i18n.instant('sio.common.loadError'));
+  }
+
+  showError(control: keyof typeof this.form.controls, error: string): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.hasError(error);
   }
 }

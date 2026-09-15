@@ -96,6 +96,11 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
                 <option [ngValue]="t.smsTypeID">{{ t.smsType }}</option>
               }
             </select>
+            @if (form.controls.smsTypeID.invalid && form.controls.smsTypeID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -108,6 +113,11 @@ const PHONE_PATTERN = /^[0-9]{10}$/;
                 <option [ngValue]="tpl.smsTemplateID">{{ tpl.smsTemplateName }}</option>
               }
             </select>
+            @if (form.controls.smsTemplateID.invalid && form.controls.smsTemplateID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div class="sm:col-span-2">

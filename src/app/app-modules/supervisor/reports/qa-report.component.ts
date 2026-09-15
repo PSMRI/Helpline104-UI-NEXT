@@ -99,6 +99,11 @@ const CALL_ANALYSIS_REPORT_TYPE_ID = 8;
             [max]="maxDate"
             (change)="onStartChange()"
           />
+          @if (form.controls.startDate.touched && form.controls.startDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="qa-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -112,6 +117,11 @@ const CALL_ANALYSIS_REPORT_TYPE_ID = 8;
             [min]="form.controls.startDate.value"
             [max]="endMax()"
           />
+          @if (form.controls.endDate.touched && form.controls.endDate.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
         <div>
           <label for="qa-report" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -125,6 +135,11 @@ const CALL_ANALYSIS_REPORT_TYPE_ID = 8;
               <option [ngValue]="type">{{ type.ReportType }}</option>
             }
           </select>
+          @if (form.controls.report.touched && form.controls.report.hasError('required')) {
+            <p class="mt-1 text-xs font-medium text-destructive">
+              {{ 'registration.validation.required' | translate: lang() }}
+            </p>
+          }
         </div>
 
         @if (showAgentFilters()) {

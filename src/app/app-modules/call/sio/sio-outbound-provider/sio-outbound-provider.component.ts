@@ -30,6 +30,7 @@ import { lucideBuilding2 } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../../../core/auth/auth.store';
@@ -55,7 +56,14 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
   selector: 'app-sio-outbound-provider',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardFormMessageComponent,
+    ZardInputDirective,
+  ],
   viewProviders: [provideIcons({ lucideBuilding2 })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -109,6 +117,9 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
               {{ 'sio.outbound.contactPerson' | translate: lang() }} <span class="text-destructive">*</span>
             </label>
             <input id="ob-person" z-input class="w-full" type="text" maxlength="25" formControlName="contactPerson" />
+            @if (showError('contactPerson', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -123,6 +134,9 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
               maxlength="25"
               formControlName="designation"
             />
+            @if (showError('designation', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -138,6 +152,9 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
               maxlength="10"
               formControlName="mobileNo"
             />
+            @if (showError('mobileNo', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
@@ -151,6 +168,9 @@ import { BloodRequestDetail, OutboundProviderInput } from './sio-outbound-provid
               maxlength="100"
               formControlName="address"
             ></textarea>
+            @if (showError('address', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div class="sm:col-span-2 lg:col-span-3">
@@ -272,6 +292,11 @@ export class SioOutboundProviderComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((detail) => this.detail.set(detail));
+  }
+
+  showError(control: keyof typeof this.form.controls, error: string): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.hasError(error);
   }
 
   save(): void {

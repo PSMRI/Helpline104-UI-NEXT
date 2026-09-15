@@ -39,6 +39,7 @@ export const CALL_STORAGE_KEYS = {
   beneficiaryId: 'callBeneficiaryId',
   districtId: 'callDistrictId',
   demographics: 'callDemographics',
+  isEmergencyCall: 'callIsEmergencyCall',
 } as const;
 
 /** Sentinel the legacy app wrote to `sessionStorage.onCall` for a live call. */
@@ -65,6 +66,18 @@ export interface CallerDemographics {
   readonly age: number | null;
   readonly genderId: number | null;
   readonly genderName: string | null;
+  /** Human-facing registration number (legacy `beneficiaryID`), for display only. */
+  readonly displayId: string | null;
+  readonly stateName: string | null;
+  readonly districtName: string | null;
+  readonly subDistrictName: string | null;
+  readonly villageName: string | null;
+  readonly maritalStatus: string | null;
+  /** "General Public" or "Healthcare Worker: <type>" (legacy `selectedBenData.type`). */
+  readonly category: string | null;
+  /** Caste (legacy `selectedBenData.caste` / `communityName`). */
+  readonly communityName: string | null;
+  readonly educationName: string | null;
 }
 
 /**
@@ -108,6 +121,11 @@ export class CallStore {
       ? null
       : readStoredDemographics(this.storage.getItem(CALL_STORAGE_KEYS.demographics)),
   );
+  // Legacy `getCommonData.isEmergency` broadcast from registration to closure,
+  // for the same call — not beneficiary-scoped, so it survives independently.
+  private readonly _isEmergencyCall = signal<boolean>(
+    this.storage.getItem(CALL_STORAGE_KEYS.isEmergencyCall) === 'true',
+  );
 
   /** True while an inbound call is connected; gates the on-call workspace. */
   readonly onCall = this._onCall.asReadonly();
@@ -127,6 +145,12 @@ export class CallStore {
   readonly districtID = this._districtID.asReadonly();
   /** Demographics of the resolved beneficiary, or null until identified. */
   readonly demographics = this._demographics.asReadonly();
+  /**
+   * True when the agent marked this call emergency during registration
+   * (legacy `getCommonData.isEmergency` broadcast). Read by the closure step
+   * to auto-select the "Valid" call type, mirroring legacy `handleEmergency`.
+   */
+  readonly isEmergencyCall = this._isEmergencyCall.asReadonly();
   /** Epoch ms when the active call connected, or null when not on a call. */
   readonly startedAt = this._startedAt.asReadonly();
 
@@ -171,12 +195,14 @@ export class CallStore {
     this._beneficiaryId.set(null);
     this._districtID.set(null);
     this._demographics.set(null);
+    this._isEmergencyCall.set(false);
 
     this.storage.setItem(CALL_STORAGE_KEYS.onCall, ON_CALL_YES);
     this.storage.setItem(CALL_STORAGE_KEYS.cli, seed.cli);
     this.storage.setItem(CALL_STORAGE_KEYS.sessionId, seed.sessionId);
     this.storage.setItem(CALL_STORAGE_KEYS.startedAt, String(startedAt));
     this.storage.removeItem(CALL_STORAGE_KEYS.callId);
+    this.storage.removeItem(CALL_STORAGE_KEYS.isEmergencyCall);
     // The persisted beneficiary must be dropped with the signals above, or the
     // new caller would inherit the previous call's patient after a reload.
     this.clearBeneficiaryStorage();
@@ -242,8 +268,33 @@ export class CallStore {
       this.storage.removeItem(CALL_STORAGE_KEYS.demographics);
       return;
     }
-    this._demographics.set(demographics);
-    this.storage.setItem(CALL_STORAGE_KEYS.demographics, JSON.stringify(demographics));
+    // Re-validated the same way readStoredDemographics() re-validates on
+    // rehydration — callers feed this from backend responses (`actualAge`,
+    // etc.) and from `<input type="number">` controls bound through this
+    // app's custom z-input directive, either of which can hand a numeric
+    // *string* to a field TypeScript only claims is a `number`. Without this,
+    // age/gender surviving in memory (typeof never checked) could still fail
+    // `readAge`/`toId`'s strict `typeof === 'number'` check the moment the
+    // page reloads and rehydrates from storage — patientAge()/patientGender()
+    // silently going null mid-call, and CDSS's `hasContext()` with them.
+    const validated: CallerDemographics = {
+      firstName: readString(demographics.firstName),
+      lastName: readString(demographics.lastName),
+      age: readAge(demographics.age),
+      genderId: toId(demographics.genderId),
+      genderName: readString(demographics.genderName),
+      displayId: readString(demographics.displayId),
+      stateName: readString(demographics.stateName),
+      districtName: readString(demographics.districtName),
+      subDistrictName: readString(demographics.subDistrictName),
+      villageName: readString(demographics.villageName),
+      maritalStatus: readString(demographics.maritalStatus),
+      category: readString(demographics.category),
+      communityName: readString(demographics.communityName),
+      educationName: readString(demographics.educationName),
+    };
+    this._demographics.set(validated);
+    this.storage.setItem(CALL_STORAGE_KEYS.demographics, JSON.stringify(validated));
   }
 
   /** Clear all live-call state (signals + persisted keys) on call close. */
@@ -256,13 +307,30 @@ export class CallStore {
     this._beneficiaryId.set(null);
     this._districtID.set(null);
     this._demographics.set(null);
+    this._isEmergencyCall.set(false);
 
     this.storage.removeItem(CALL_STORAGE_KEYS.onCall);
     this.storage.removeItem(CALL_STORAGE_KEYS.cli);
     this.storage.removeItem(CALL_STORAGE_KEYS.sessionId);
     this.storage.removeItem(CALL_STORAGE_KEYS.callId);
     this.storage.removeItem(CALL_STORAGE_KEYS.startedAt);
+    this.storage.removeItem(CALL_STORAGE_KEYS.isEmergencyCall);
     this.clearBeneficiaryStorage();
+  }
+
+  /**
+   * Record whether the agent marked this call emergency during registration
+   * (legacy `getCommonData.isEmergency` broadcast). The closure step reads
+   * this to auto-select the "Valid" call type for the same call, mirroring
+   * legacy `closure.component.ts`'s `handleEmergency`.
+   */
+  setEmergencyCall(isEmergency: boolean): void {
+    this._isEmergencyCall.set(isEmergency);
+    if (isEmergency) {
+      this.storage.setItem(CALL_STORAGE_KEYS.isEmergencyCall, 'true');
+    } else {
+      this.storage.removeItem(CALL_STORAGE_KEYS.isEmergencyCall);
+    }
   }
 
   /** Drop every persisted beneficiary key (id, district, demographics). */
@@ -299,9 +367,20 @@ function readStoredId(raw: string | null): number | null {
   return toId(Number(raw));
 }
 
-/** Narrow an already-parsed value to a positive whole id, or null. */
+/**
+ * Narrow an already-parsed value to a positive whole id, or null.
+ *
+ * `beneficiary/create` (and other endpoints) return large ids as JSON
+ * *strings* (e.g. `"10690089"`), not numbers — despite the response type
+ * declaring `beneficiaryRegID: number` — so a strict `typeof === 'number'`
+ * check silently dropped every beneficiary id from a fresh registration.
+ * `beneficiaryGuard` then saw `beneficiaryId() === null` and bounced the
+ * agent back to `/innerpage/registration` with no error, which is why
+ * "Do you want to proceed to Health Advisory?" looked like it did nothing.
+ */
 function toId(value: unknown): number | null {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : null;
+  const numeric = typeof value === 'number' ? value : typeof value === 'string' ? Number(value.trim()) : NaN;
+  return Number.isSafeInteger(numeric) && numeric > 0 ? numeric : null;
 }
 
 /**
@@ -334,6 +413,15 @@ function readStoredDemographics(raw: string | null): CallerDemographics | null {
       age: readAge(value.age),
       genderId: toId(value.genderId),
       genderName: readString(value.genderName),
+      displayId: readString(value.displayId),
+      stateName: readString(value.stateName),
+      districtName: readString(value.districtName),
+      subDistrictName: readString(value.subDistrictName),
+      villageName: readString(value.villageName),
+      maritalStatus: readString(value.maritalStatus),
+      category: readString(value.category),
+      communityName: readString(value.communityName),
+      educationName: readString(value.educationName),
     };
   } catch {
     return null;
@@ -351,5 +439,11 @@ function readString(value: unknown): string | null {
  * rather than positive; fractional and negative values are discarded.
  */
 function readAge(value: unknown): number | null {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
+  // Same string-vs-number laxity as toId() above: a numeric age can arrive as
+  // a JSON string, from a backend field (`actualAge`) or a form control bound
+  // through this app's custom z-input directive, which doesn't coerce
+  // `type="number"` inputs to a real number the way Angular's own
+  // NumberValueAccessor would.
+  const numeric = typeof value === 'number' ? value : typeof value === 'string' ? Number(value.trim()) : NaN;
+  return Number.isSafeInteger(numeric) && numeric >= 0 ? numeric : null;
 }

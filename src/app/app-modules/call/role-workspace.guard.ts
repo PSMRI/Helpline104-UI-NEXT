@@ -27,7 +27,7 @@ import { AuthStore } from '../core/auth/auth.store';
 import { resolveDispatchPath } from './role-workspace/role-screens.util';
 
 /**
- * Guards the `hao`/`mo`/`co`/`counsellor`/`surveyor`/`pd` children of
+ * Guards the `hao`/`mo`/`co`/`surveyor`/`pd` children of
  * `/innerpage` on top of {@link inboundGuard}'s active-call check, the same
  * way {@link sioGuard} already guards `sio`.
  *

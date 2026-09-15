@@ -195,6 +195,11 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
                 <option [ngValue]="d.designationID">{{ d.designationName }}</option>
               }
             </select>
+            @if (contactForm.controls.designationID.invalid && contactForm.controls.designationID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="ec-location" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -331,6 +336,11 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
                 <option [ngValue]="d.designationID">{{ d.designationName }}</option>
               }
             </select>
+            @if (contactForm.controls.designationID.invalid && contactForm.controls.designationID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="ec-e-location" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -338,6 +348,11 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
               <span class="text-destructive">*</span>
             </label>
             <input id="ec-e-location" z-input class="w-full" maxlength="90" formControlName="location" />
+            @if (contactForm.controls.location.invalid && contactForm.controls.location.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'supEmerg.minThreeChars' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="ec-e-number" class="mb-1 block text-xs font-medium text-muted-foreground">

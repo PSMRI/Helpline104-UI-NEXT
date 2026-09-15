@@ -38,6 +38,7 @@ import { lucideClipboardList } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../../../core/auth/auth.store';
@@ -67,7 +68,14 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
   selector: 'app-sio-imr-mmr',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardFormMessageComponent,
+    ZardInputDirective,
+  ],
   viewProviders: [provideIcons({ lucideClipboardList })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -100,6 +108,9 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
                 {{ 'sio.imrMmr.mdsr' | translate: lang() }}
               </label>
             </div>
+            @if (showError('typeOfInformation', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -114,6 +125,9 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
               maxlength="25"
               formControlName="informerName"
             />
+            @if (showError('informerName', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -129,6 +143,9 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
               maxlength="10"
               formControlName="informerMobileNumber"
             />
+            @if (showError('informerMobileNumber', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div class="sm:col-span-2 lg:col-span-1">
@@ -142,6 +159,9 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
               maxlength="100"
               formControlName="informerAddress"
             ></textarea>
+            @if (showError('informerAddress', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -156,6 +176,9 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
               maxlength="25"
               formControlName="victimName"
             />
+            @if (showError('victimName', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -175,6 +198,9 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
               maxlength="25"
               formControlName="victimGuardian"
             />
+            @if (showError('victimGuardian', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -203,6 +229,9 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
             </select>
+            @if (showError('stateID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -215,6 +244,9 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
             </select>
+            @if (showError('districtID', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
 
           <div>
@@ -265,6 +297,9 @@ import { ImrMmrInfoType, ImrMmrRow } from './imr-mmr.models';
               maxlength="100"
               formControlName="reasonOfDeath"
             ></textarea>
+            @if (showError('reasonOfDeath', 'required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </div>
         </form>
 
@@ -504,5 +539,10 @@ export class ImrMmrComponent implements OnInit {
 
   private setError(err: SioError): void {
     this.errorMessage.set(err.errorMessage || this.i18n.instant('sio.common.loadError'));
+  }
+
+  showError(control: keyof typeof this.form.controls, error: string): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.hasError(error);
   }
 }

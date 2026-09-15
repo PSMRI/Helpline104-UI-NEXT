@@ -25,12 +25,6 @@
  *
  * Migrated from the legacy `ConfirmationDialogsService.confirm(title, message, ...)`
  * positional API to a single options object.
- *
- * The legacy `status` argument (info/success/error header coloring) is intentionally
- * omitted: every legacy `confirm()` call site used the default `'info'`; the
- * non-default statuses were only ever used with `alert()`. A `status` field will be
- * reintroduced alongside the deferred `alert()` wrapper if/when a call site needs it,
- * rather than added now as a prop the ZardUI dialog cannot yet render.
  */
 export interface ConfirmDialogOptions {
   /** Heading shown at the top of the dialog. */
@@ -46,6 +40,12 @@ export interface ConfirmDialogOptions {
    * Use for irreversible actions such as delete. Defaults to `false`.
    */
   destructive?: boolean;
+  /**
+   * Colors the dialog header, matching legacy's info(blue)/success(green)/
+   * error(red) status banners. Omitted (the default) renders the plain
+   * neutral heading every call site used before this option existed.
+   */
+  status?: 'info' | 'success' | 'error';
   /**
    * CSS width of the dialog (e.g. `'28rem'`). Defaults to a compact, centered
    * width so notices never stretch full-width across the viewport.
@@ -64,6 +64,12 @@ export interface AlertDialogOptions {
   message: string;
   /** Label for the acknowledge button. Defaults to `'OK'`. */
   okText?: string;
+  /**
+   * Colors the dialog header, matching legacy's info(blue)/success(green)/
+   * error(red) status banners. Omitted (the default) renders the plain
+   * neutral heading every call site used before this option existed.
+   */
+  status?: 'info' | 'success' | 'error';
   /**
    * CSS width of the dialog (e.g. `'28rem'`). Defaults to a compact, centered
    * width so notices never stretch full-width across the viewport.

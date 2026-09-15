@@ -69,6 +69,11 @@ interface SaveSymptomResult {
         [formControl]="algorithm"
         [placeholder]="'insertComplaint.placeholder' | translate: lang()"
       ></textarea>
+      @if (algorithm.invalid && algorithm.touched) {
+        <p class="mt-1 text-xs font-medium text-destructive">
+          {{ 'registration.validation.required' | translate: lang() }}
+        </p>
+      }
 
       <div class="mt-4 flex items-center gap-3">
         <button

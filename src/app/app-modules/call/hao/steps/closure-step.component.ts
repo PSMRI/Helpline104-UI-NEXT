@@ -30,13 +30,71 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { AuthStore } from '../../../core/auth/auth.store';
+import { CzentrixService } from '../../../core/services/czentrix.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
+import { BeneficiaryService } from '../../beneficiary/beneficiary.service';
+import { Community, Education } from '../../beneficiary/beneficiary.models';
 import { CallStore } from '../../call.store';
 import { CallWrapupService } from '../../call-wrapup.service';
+import { OutboundStore } from '../../../outbound/outbound.store';
+import { collectServiceScreens, SERVICE_104 } from '../../role-workspace/role-screens.util';
 import { ScheduleAppointmentComponent } from '../../schedule-appointment/schedule-appointment.component';
-import { CallSubType, CallType, CampaignSkill, CloseCallRequest, TransferCampaign } from '../hao.models';
+import {
+  AvailableService,
+  CallSubType,
+  CallType,
+  CampaignSkill,
+  CloseCallRequest,
+  InstituteName,
+  InstituteType,
+  TransferCampaign,
+} from '../hao.models';
 import { HaoService } from '../hao.service';
+
+const ROLE_HAO = 'HAO';
+const ROLE_MO = 'MO';
+const ROLE_CO = 'CO';
+const ROLE_RO = 'RO';
+
+const HEALTH_ADVISORY_SERVICE_NAME = 'Health Advisory Service';
+
+/** Legacy `getOutboundCallFeatures()` — the follow-up "feature" (screen) per role. */
+const ROLE_FEATURE_NAME: Readonly<Partial<Record<string, string>>> = {
+  HAO: 'Health_Advice',
+  CO: 'Counselling',
+  MO: 'Medical_Advice',
+  PD: 'Psychiatrist',
+};
+
+/** Extra follow-up feature legacy always appends when the role also holds this screen. */
+const BLOOD_REQUEST_SCREEN = 'Blood Request';
+
+type TransferRole = 'hao' | 'co' | 'mo';
+
+function roleForService(serviceName: string): TransferRole | null {
+  const name = serviceName.toLowerCase();
+  if (name.includes('health advisory')) {
+    return 'hao';
+  }
+  if (name.includes('counselling')) {
+    return 'co';
+  }
+  if (name.includes('medical')) {
+    return 'mo';
+  }
+  return null;
+}
+
+function getCampaignName(campaigns: TransferCampaign[], role: TransferRole): string | undefined {
+  return campaigns.find((c) => c.campaignName.toLowerCase().includes(role))?.campaignName;
+}
+
+const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
+  hao: 'hao.closure.configureHaoCampaign',
+  co: 'hao.closure.configureCoCampaign',
+  mo: 'hao.closure.configureMoCampaign',
+} as const;
 
 /**
  * "Closure" step of the HAO workspace (legacy carousel slide 1 — `<app-closure>`).
@@ -67,18 +125,20 @@ import { HaoService } from '../hao.service';
         </p>
       }
 
-      <fieldset class="flex flex-wrap gap-6">
-        <label class="flex cursor-pointer items-center gap-2 text-sm">
-          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isEmergency" />
-          {{ 'hao.closure.emergency' | translate: lang() }}
-        </label>
-        <label class="flex cursor-pointer items-center gap-2 text-sm">
-          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isSuicidal" />
-          {{ 'hao.closure.suicidal' | translate: lang() }}
-        </label>
-      </fieldset>
+      @if (currentRole() === roleRO) {
+        <fieldset class="flex flex-wrap gap-6">
+          <label class="flex cursor-pointer items-center gap-2 text-sm">
+            <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isEmergency" />
+            {{ 'hao.closure.emergency' | translate: lang() }}
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 text-sm">
+            <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isSuicidal" />
+            {{ 'hao.closure.suicidal' | translate: lang() }}
+          </label>
+        </fieldset>
+      }
 
-      <div class="grid gap-5 sm:grid-cols-2">
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium" for="hao-cl-type">
             {{ 'hao.closure.callType' | translate: lang() }}
@@ -87,13 +147,14 @@ import { HaoService } from '../hao.service';
           <select
             id="hao-cl-type"
             formControlName="callGroupType"
-            class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            [disabled]="disableCallType()"
+            class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             [attr.aria-invalid]="isInvalid('callGroupType') || null"
           >
             <option [ngValue]="null">
               {{ 'hao.closure.selectCallType' | translate: lang() }}
             </option>
-            @for (type of callTypes(); track type.callGroupType) {
+            @for (type of visibleCallTypes(); track type.callGroupType) {
               <option [ngValue]="type.callGroupType">{{ type.callGroupType }}</option>
             }
           </select>
@@ -130,13 +191,79 @@ import { HaoService } from '../hao.service';
             </p>
           }
         </div>
+
+        @if (canTransfer()) {
+          <div class="flex flex-col gap-1.5" [class.cursor-not-allowed]="disconnectedByCaller()">
+            <label class="text-sm font-medium" for="hao-cl-transfer-service">
+              {{ 'hao.closure.transferService' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cl-transfer-service"
+              formControlName="transferService"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            >
+              <option [ngValue]="null">
+                {{ 'hao.closure.selectTransferService' | translate: lang() }}
+              </option>
+              @for (service of transferServices(); track service.subServiceName) {
+                <option [ngValue]="service.subServiceName">{{ service.subServiceName }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (canTransfer() && currentRole() !== roleCO && skills().length > 0) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cl-skill">
+              {{ 'hao.closure.transferSkill' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cl-skill"
+              formControlName="skill"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            >
+              <option [ngValue]="null">
+                {{ 'hao.closure.selectSkill' | translate: lang() }}
+              </option>
+              @for (skill of skills(); track skill.skillName) {
+                <option [ngValue]="skill.skillName">{{ skill.skillName }}</option>
+              }
+            </select>
+          </div>
+        }
       </div>
+
+      @if (showFeedbackRequired()) {
+        <label class="flex cursor-pointer items-center gap-2 text-sm">
+          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFeedback" />
+          {{ 'hao.closure.ivrFeedbackRequired' | translate: lang() }}
+        </label>
+      }
 
       <div class="flex flex-col gap-3">
         <label class="flex cursor-pointer items-center gap-2 text-sm">
           <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="isFollowupRequired" />
           {{ 'hao.closure.followUpRequired' | translate: lang() }}
         </label>
+        @if (followUpRequired() && features().length > 1) {
+          <div class="flex flex-col gap-1.5 sm:max-w-xs">
+            <label class="text-sm font-medium" for="hao-cl-feature">
+              {{ 'hao.closure.feature' | translate: lang() }}
+              <span class="text-destructive" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="hao-cl-feature"
+              formControlName="selectedFeature"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              [attr.aria-invalid]="isInvalid('selectedFeature') || null"
+            >
+              <option [ngValue]="null">{{ 'hao.closure.selectFeature' | translate: lang() }}</option>
+              @for (feature of features(); track feature) {
+                <option [ngValue]="feature">{{ feature }}</option>
+              }
+            </select>
+          </div>
+        }
         @if (followUpRequired()) {
           <div class="flex flex-col gap-1.5 sm:max-w-xs">
             <label class="text-sm font-medium" for="hao-cl-followup">
@@ -160,90 +287,217 @@ import { HaoService } from '../hao.service';
         }
       </div>
 
-      <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium" for="hao-cl-remarks">
-          {{ 'hao.closure.remarks' | translate: lang() }}
-        </label>
-        <textarea z-input id="hao-cl-remarks" rows="2" formControlName="remarks"></textarea>
-      </div>
-
-      <div class="flex flex-col gap-3 rounded-lg border border-border p-4">
-        <label class="flex items-center gap-2 text-sm font-medium" [class.cursor-not-allowed]="disconnectedByCaller()" [class.cursor-pointer]="!disconnectedByCaller()">
-          <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="doTransfer" />
-          {{ 'hao.closure.transferCall' | translate: lang() }}
-        </label>
-        @if (doTransfer()) {
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium" for="hao-cl-campaign">
-                {{ 'hao.closure.transferCampaign' | translate: lang() }}
-                <span class="text-destructive" aria-hidden="true">*</span>
-              </label>
-              <select
-                id="hao-cl-campaign"
-                formControlName="campaign"
-                class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option [ngValue]="null">
-                  {{ 'hao.closure.selectCampaign' | translate: lang() }}
-                </option>
-                @for (campaign of campaigns(); track campaign.campaignName) {
-                  <option [ngValue]="campaign.campaignName">{{ campaign.campaignName }}</option>
-                }
-              </select>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium" for="hao-cl-skill">
-                {{ 'hao.closure.transferSkill' | translate: lang() }}
-              </label>
-              <select
-                id="hao-cl-skill"
-                formControlName="skill"
-                class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-              >
-                <option [ngValue]="null">
-                  {{ 'hao.closure.selectSkill' | translate: lang() }}
-                </option>
-                @for (skill of skills(); track skill.skillName) {
-                  <option [ngValue]="skill.skillName">{{ skill.skillName }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          <div class="flex justify-end">
-            <button
-              z-button
-              type="button"
-              zType="outline"
-              [zLoading]="transferring()"
-              [zDisabled]="actionBusy() || !selectedCampaign()"
-              (click)="transfer()"
+      <div class="grid gap-5 sm:grid-cols-2">
+        @if (currentRole() !== roleRO && hasBeneficiary()) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cl-caste">
+              {{ 'hao.closure.caste' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cl-caste"
+              formControlName="caste"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              {{ 'hao.closure.transfer' | translate: lang() }}
-            </button>
+              <option [ngValue]="null">
+                {{ 'hao.closure.selectCaste' | translate: lang() }}
+              </option>
+              @for (community of communities(); track community.communityID) {
+                <option [ngValue]="community.communityID">{{ community.communityType }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (currentRole() === roleCO && hasBeneficiary()) {
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cl-education">
+              {{ 'hao.closure.education' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cl-education"
+              formControlName="education"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">
+                {{ 'hao.closure.selectEducation' | translate: lang() }}
+              </option>
+              @for (educ of educations(); track educ.educationID) {
+                <option [ngValue]="educ.educationID">{{ educ.educationType }}</option>
+              }
+            </select>
           </div>
         }
       </div>
 
+      @if (currentRole() === roleCO) {
+        <div class="grid gap-5 sm:grid-cols-3">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cl-external-referral">
+              {{ 'hao.closure.externalReferral' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cl-external-referral"
+              formControlName="externalRefferal"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">
+                {{ 'hao.closure.selectExternalReferral' | translate: lang() }}
+              </option>
+              <option [ngValue]="'Yes'">{{ 'hao.closure.yes' | translate: lang() }}</option>
+              <option [ngValue]="'No'">{{ 'hao.closure.no' | translate: lang() }}</option>
+            </select>
+          </div>
+
+          @if (enableInstitute()) {
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium" for="hao-cl-institute-type">
+                {{ 'hao.closure.instituteType' | translate: lang() }}
+              </label>
+              <select
+                id="hao-cl-institute-type"
+                formControlName="institutionID"
+                class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option [ngValue]="null">
+                  {{ 'hao.closure.selectInstituteType' | translate: lang() }}
+                </option>
+                @for (type of instituteTypes(); track type.institutionTypeID) {
+                  <option [ngValue]="type.institutionTypeID">{{ type.institutionType }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium" for="hao-cl-institute-name">
+                {{ 'hao.closure.instituteName' | translate: lang() }}
+              </label>
+              <select
+                id="hao-cl-institute-name"
+                formControlName="instituteName"
+                multiple
+                class="h-24 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                @for (name of instituteNames(); track name.institutionName) {
+                  <option [ngValue]="name.institutionName">{{ name.institutionName }}</option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium" for="hao-cl-remarks">
+          {{ 'hao.closure.remarks' | translate: lang() }}
+        </label>
+        <input z-input id="hao-cl-remarks" type="text" maxlength="100" formControlName="remarks" />
+      </div>
+
+      @if (currentRole() === roleCO) {
+        <div class="grid gap-5 sm:grid-cols-3">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium" for="hao-cl-external-referral">
+              {{ 'hao.closure.externalReferral' | translate: lang() }}
+            </label>
+            <select
+              id="hao-cl-external-referral"
+              formControlName="externalRefferal"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option [ngValue]="null">
+                {{ 'hao.closure.selectExternalReferral' | translate: lang() }}
+              </option>
+              <option [ngValue]="'Yes'">{{ 'hao.closure.yes' | translate: lang() }}</option>
+              <option [ngValue]="'No'">{{ 'hao.closure.no' | translate: lang() }}</option>
+            </select>
+          </div>
+
+          @if (enableInstitute()) {
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium" for="hao-cl-institute-type">
+                {{ 'hao.closure.instituteType' | translate: lang() }}
+              </label>
+              <select
+                id="hao-cl-institute-type"
+                formControlName="institutionID"
+                class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option [ngValue]="null">
+                  {{ 'hao.closure.selectInstituteType' | translate: lang() }}
+                </option>
+                @for (type of instituteTypes(); track type.institutionTypeID) {
+                  <option [ngValue]="type.institutionTypeID">{{ type.institutionType }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium" for="hao-cl-institute-name">
+                {{ 'hao.closure.instituteName' | translate: lang() }}
+              </label>
+              <select
+                id="hao-cl-institute-name"
+                formControlName="instituteName"
+                multiple
+                class="h-24 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                @for (name of instituteNames(); track name.institutionName) {
+                  <option [ngValue]="name.institutionName">{{ name.institutionName }}</option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium" for="hao-cl-remarks">
+          {{ 'hao.closure.remarks' | translate: lang() }}
+        </label>
+        <input z-input id="hao-cl-remarks" type="text" maxlength="100" formControlName="remarks" />
+      </div>
+
       @if (showAppointment()) {
-        <app-schedule-appointment (saved)="showAppointment.set(false)" (cancelled)="showAppointment.set(false)" />
+        <app-schedule-appointment (saved)="onAppointmentSaved()" (cancelled)="onAppointmentCancelled()" />
       }
 
       <div class="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
-        <button z-button type="button" zType="outline" [zDisabled]="actionBusy()" (click)="showAppointment.set(true)">
+        <button z-button type="button" zType="outline" [zDisabled]="actionBusy()" (click)="openAppointmentManually()">
           {{ 'hao.closure.scheduleAppointment' | translate: lang() }}
+        </button>
+        @if (canTransfer()) {
+          <button
+            z-button
+            type="button"
+            zType="outline"
+            class="border-success bg-success text-success-foreground hover:bg-success/90"
+            [zLoading]="transferring()"
+            [zDisabled]="actionBusy() || !selectedCampaign() || disconnectedByCaller()"
+            (click)="transfer()"
+          >
+            {{ 'hao.closure.transfer' | translate: lang() }}
+          </button>
+        }
+        <button
+          z-button
+          type="button"
+          zType="outline"
+          class="border-success bg-success text-success-foreground hover:bg-success/90"
+          [zLoading]="submitting()"
+          [zDisabled]="actionBusy() || doTransfer() || nuisanceBlock()"
+          (click)="submit(true)"
+        >
+          {{ 'hao.closure.submitContinue' | translate: lang() }}
         </button>
         <button
           z-button
           type="button"
           zType="outline"
+          class="border-success bg-success text-success-foreground hover:bg-success/90"
           [zLoading]="submitting()"
-          [zDisabled]="actionBusy()"
-          (click)="submit(true)"
+          [zDisabled]="actionBusy() || doTransfer()"
+          (click)="submit(false)"
         >
-          {{ 'hao.closure.submitContinue' | translate: lang() }}
-        </button>
-        <button z-button type="button" [zLoading]="submitting()" [zDisabled]="actionBusy()" (click)="submit(false)">
           {{ 'hao.closure.submitClose' | translate: lang() }}
         </button>
       </div>
@@ -253,13 +507,18 @@ import { HaoService } from '../hao.service';
 export class ClosureStepComponent {
   private readonly fb = inject(FormBuilder);
   private readonly haoService = inject(HaoService);
+  private readonly beneficiaryService = inject(BeneficiaryService);
   private readonly authStore = inject(AuthStore);
+  private readonly czentrix = inject(CzentrixService);
   private readonly callStore = inject(CallStore);
   private readonly callWrapup = inject(CallWrapupService);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly outboundStore = inject(OutboundStore);
 
   readonly lang = this.i18n.language;
+  readonly roleRO = ROLE_RO;
+  readonly roleCO = ROLE_CO;
 
   /** True once the caller has hung up — Transfer is disabled, there is no live call left to hand off. */
   readonly disconnectedByCaller = this.callWrapup.disconnectedByCaller;
@@ -277,14 +536,43 @@ export class ClosureStepComponent {
   /** Lowest selectable follow-up date — today, in ISO `yyyy-MM-dd`. */
   readonly today = new Date().toISOString().slice(0, 10);
 
+  readonly currentRole = computed(() => this.authStore.currentRole()?.featureCode ?? null);
+  readonly hasBeneficiary = computed(() => this.callStore.beneficiaryId() !== null);
+
+  /**
+   * Follow-up "feature" (screen) choices (legacy `getOutboundCallFeatures()`):
+   * the role's own screen, plus Blood Request when the role also holds it.
+   * The follow-up "Feature" select only appears when there is more than one —
+   * with a single feature legacy sends it without asking.
+   */
+  readonly features = computed<string[]>(() => {
+    const role = this.currentRole();
+    const primary = role ? ROLE_FEATURE_NAME[role] : undefined;
+    const list = primary ? [primary] : [];
+    if (collectServiceScreens(this.authStore.privileges(), SERVICE_104).includes(BLOOD_REQUEST_SCREEN)) {
+      list.push(BLOOD_REQUEST_SCREEN);
+    }
+    return list;
+  });
+
   readonly callTypes = signal<CallType[]>([]);
   readonly campaigns = signal<TransferCampaign[]>([]);
+  readonly services = signal<AvailableService[]>([]);
   readonly skills = signal<CampaignSkill[]>([]);
+  readonly communities = signal<Community[]>([]);
+  readonly educations = signal<Education[]>([]);
+  readonly instituteTypes = signal<InstituteType[]>([]);
+  readonly instituteNames = signal<InstituteName[]>([]);
   readonly submitting = signal(false);
   readonly transferring = signal(false);
 
+  /** Agent IP, resolved once on init (legacy caches it the same way on `saved_data.ipAddress`); null until resolved/on failure. */
+  readonly agentIPAddress = signal<string | null>(null);
+
   /** Whether the schedule-appointment form is shown (legacy referral flow). */
   readonly showAppointment = signal(false);
+  private readonly referralAppointment = signal(false);
+  readonly disableCallType = signal(false);
   /** A confirmation dialog is open for a terminal action (close/continue/transfer). */
   readonly confirming = signal(false);
 
@@ -299,8 +587,9 @@ export class ClosureStepComponent {
   // Form values mirrored to signals so conditional UI updates under zoneless CD.
   private readonly selectedCallGroup = signal<string | null>(null);
   readonly followUpRequired = signal(false);
-  readonly doTransfer = signal(false);
   readonly selectedCampaign = signal<string | null>(null);
+  private readonly selectedTransferService = signal<string | null>(null);
+  readonly enableInstitute = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     isEmergency: [false],
@@ -309,12 +598,27 @@ export class ClosureStepComponent {
     // chosen nested sub-type's numeric callTypeID.
     callGroupType: this.fb.control<string | null>(null, Validators.required),
     callSubTypeID: this.fb.control<number | null>(null),
+    isFeedback: [false],
     isFollowupRequired: [false],
     followUpDate: this.fb.control<string | null>(null),
-    doTransfer: [false],
-    campaign: this.fb.control<string | null>(null),
+    selectedFeature: this.fb.control<string | null>(null),
+    caste: this.fb.control<number | null>(null),
+    education: this.fb.control<number | null>(null),
+    externalRefferal: this.fb.control<'Yes' | 'No' | null>(null),
+    institutionID: this.fb.control<number | null>(null),
+    instituteName: this.fb.nonNullable.control<string[]>([]),
+    transferService: this.fb.control<string | null>(null),
     skill: this.fb.control<string | null>(null),
     remarks: this.fb.control<string | null>(null),
+  });
+
+  readonly visibleCallTypes = computed<CallType[]>(() => {
+    const role = this.currentRole();
+    const groups = this.callTypes();
+    if (role === ROLE_HAO || role === ROLE_MO) {
+      return groups;
+    }
+    return groups.filter((g) => g.callGroupType.toLowerCase() !== 'referral');
   });
 
   /**
@@ -324,18 +628,62 @@ export class ClosureStepComponent {
    */
   readonly subTypes = computed<CallSubType[]>(() => {
     const group = this.selectedCallGroup();
-    return this.callTypes().find((t) => t.callGroupType === group)?.callTypes ?? [];
+    return this.visibleCallTypes().find((t) => t.callGroupType === group)?.callTypes ?? [];
   });
+
+  /**
+   * Verified against legacy `closure.component.ts`: `populateTransferDropDown()`
+   * renders the full backend-returned service list for every role with no
+   * role-based `*ngIf`/filter (a code comment there even confirms an explicit
+   * past change request to let HAO transfer directly to CO). The only
+   * transfer-target restriction legacy has at all is RO-without-a-beneficiary,
+   * below — CO is not restricted to MO-only client-side; whatever targets CO
+   * can actually reach is entirely a function of which services the backend
+   * returns for CO's `providerServiceMapID` ({@link loadServices}). Do not add
+   * a CO-specific client-side ban here — that would invent behavior legacy
+   * doesn't have.
+   */
+  readonly transferServices = computed<AvailableService[]>(() => {
+    const list = this.services();
+    if (this.currentRole() === ROLE_RO && !this.hasBeneficiary()) {
+      return list.filter((s) => s.subServiceName === HEALTH_ADVISORY_SERVICE_NAME);
+    }
+    return list;
+  });
+
+  /**
+   * Whether a transfer target is currently chosen — legacy's Transfer Call
+   * select and action button are always visible (see {@link canTransfer}),
+   * not behind a checkbox; "transferring" is simply "a service is selected".
+   */
+  readonly doTransfer = computed(() => this.selectedTransferService() !== null);
+
+  /** Whether there is anything to transfer to at all (legacy `validTrans`). */
+  readonly canTransfer = computed(() => this.transferServices().length > 0);
+
+  readonly nuisanceBlock = computed(() => {
+    const group = this.selectedCallGroup()?.toLowerCase() ?? null;
+    return group !== null && group !== 'valid' && group !== 'transfer' && group !== 'referral';
+  });
+
+  /** IVR feedback is only offered for the "Valid" call-type group (legacy `showFeedbackRequiredFlag`). */
+  readonly showFeedbackRequired = computed(() => this.selectedCallGroup() === 'Valid');
 
   constructor() {
     this.loadCallTypes();
+    this.loadMasterData();
+    this.resolveAgentIPAddress();
+    // Legacy's Transfer Call select is populated and visible immediately,
+    // not revealed behind a checkbox — load its data eagerly.
+    this.loadCampaigns();
+    this.loadServices();
 
     // The caller hung up — there is no live call left to transfer.
     // getRawValue() still includes a disabled control's value.
     effect(() => {
       if (this.disconnectedByCaller()) {
-        this.form.controls.doTransfer.setValue(false);
-        this.form.controls.doTransfer.disable();
+        this.form.controls.transferService.setValue(null);
+        this.form.controls.transferService.disable();
       }
     });
 
@@ -349,7 +697,28 @@ export class ClosureStepComponent {
       const hasSubTypes = this.subTypes().length > 0;
       c.callSubTypeID.setValidators(hasSubTypes ? [Validators.required] : []);
       c.callSubTypeID.updateValueAndValidity();
+      // IVR feedback is only meaningful for "Valid" (legacy resets the flag the
+      // moment the group changes away from it).
+      if (value !== 'Valid') {
+        c.isFeedback.setValue(false);
+      }
+      if (value?.toLowerCase() === 'referral') {
+        if (this.hasBeneficiary()) {
+          this.showAppointment.set(true);
+          this.referralAppointment.set(true);
+        } else {
+          this.showError('hao.closure.referralNeedsBeneficiary');
+          c.callGroupType.setValue('Valid');
+        }
+      }
     });
+
+    // An emergency call (flagged during registration, broadcast via CallStore)
+    // is always disposed as "Valid" — mirrors legacy closure's handleEmergency,
+    // which forces callType = "Valid" on the same signal. Locked rather than
+    // just pre-filled so the mandatory disposition can't be changed away from
+    // Valid for a call already marked emergency.
+    effect(() => this.applyEmergencyCallType(this.callStore.isEmergencyCall()));
 
     c.isFollowupRequired.valueChanges.pipe(takeUntilDestroyed()).subscribe((required) => {
       this.followUpRequired.set(required);
@@ -358,28 +727,51 @@ export class ClosureStepComponent {
         c.followUpDate.reset(null);
       }
       c.followUpDate.updateValueAndValidity();
+      // The Feature select is mandatory only when follow-up is required and the
+      // role holds more than one candidate feature (legacy: `features?.length>1`).
+      const featureRequired = required && this.features().length > 1;
+      c.selectedFeature.setValidators(featureRequired ? [Validators.required] : []);
+      if (!featureRequired) {
+        c.selectedFeature.reset(null);
+      }
+      c.selectedFeature.updateValueAndValidity();
     });
 
-    c.doTransfer.valueChanges.pipe(takeUntilDestroyed()).subscribe((on) => {
-      this.doTransfer.set(on);
-      if (on && this.campaigns().length === 0) {
-        this.loadCampaigns();
-      }
-      if (!on) {
-        c.campaign.reset(null);
-        c.skill.reset(null);
-        this.skills.set([]);
-        this.selectedCampaign.set(null);
+    c.externalRefferal.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
+      const enabled = value === 'Yes';
+      this.enableInstitute.set(enabled);
+      if (!enabled) {
+        c.institutionID.reset(null);
+        c.instituteName.reset([]);
+        this.instituteNames.set([]);
       }
     });
 
-    c.campaign.valueChanges.pipe(takeUntilDestroyed()).subscribe((campaign) => {
-      this.selectedCampaign.set(campaign);
+    c.institutionID.valueChanges.pipe(takeUntilDestroyed()).subscribe((institutionTypeID) => {
+      c.instituteName.reset([]);
+      this.instituteNames.set([]);
+      if (institutionTypeID !== null) {
+        this.loadInstituteNames(institutionTypeID);
+      }
+    });
+
+    c.transferService.valueChanges.pipe(takeUntilDestroyed()).subscribe((serviceName) => {
+      this.selectedTransferService.set(serviceName);
       c.skill.reset(null);
       this.skills.set([]);
-      if (campaign) {
-        this.loadSkills(campaign);
+      this.selectedCampaign.set(null);
+      if (!serviceName) {
+        return;
       }
+      const role = roleForService(serviceName);
+      const campaignName = role ? getCampaignName(this.campaigns(), role) : undefined;
+      if (!campaignName) {
+        this.showError(role ? CONFIGURE_CAMPAIGN_ERROR_KEYS[role] : 'hao.closure.configureCampaignGeneric');
+        c.transferService.setValue(null);
+        return;
+      }
+      this.selectedCampaign.set(campaignName);
+      this.loadSkills(campaignName);
     });
   }
 
@@ -431,6 +823,12 @@ export class ClosureStepComponent {
     // through a Date object, matching the dOB field's format.
     const prefferedDateTime: string | null =
       value.isFollowupRequired && value.followUpDate ? `${value.followUpDate}T00:00:00.000Z` : null;
+    // Legacy `requestedFeature`: the feature (screen) the follow-up routes back
+    // to — the agent's explicit choice when they hold more than one, else the
+    // role's own single feature, sent without asking.
+    const requestedFeature: string | null = value.isFollowupRequired
+      ? (value.selectedFeature ?? this.features()[0] ?? null)
+      : null;
 
     const request: CloseCallRequest = {
       benCallID,
@@ -443,14 +841,21 @@ export class ClosureStepComponent {
       fitToBlock: subType.fitToBlock,
       isFollowupRequired: value.isFollowupRequired,
       prefferedDateTime,
+      requestedFeature,
       requestedFor: value.remarks?.trim() || null,
       isEmergency: value.isEmergency,
       isSuicidal: value.isSuicidal,
+      isFeedback: value.isFeedback,
       providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
       agentID: this.authStore.user()?.agentID ?? null,
       endCall: !andContinue,
-      IsOutbound: false,
+      IsOutbound: this.outboundStore.hasSelection(),
       createdBy: this.authStore.user()?.userName ?? '',
+      externalRefferal: value.externalRefferal,
+      instTypeId: value.institutionID,
+      instNames: value.instituteName.length > 0 ? value.instituteName : null,
+      callEndUserID: this.authStore.user()?.userID ?? null,
+      agentIPAddress: this.agentIPAddress(),
     };
 
     const confirmKey = andContinue ? 'hao.closure.confirmContinue' : 'hao.closure.confirmClose';
@@ -462,24 +867,43 @@ export class ClosureStepComponent {
         message: this.i18n.instant(confirmKey),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         this.confirming.set(false);
         if (confirmed) {
-          this.recordDisposition(request, andContinue);
+          this.recordDisposition(request, andContinue, value.caste, value.education);
         }
       });
   }
 
-  private recordDisposition(request: CloseCallRequest, andContinue: boolean): void {
+  private recordDisposition(
+    request: CloseCallRequest,
+    andContinue: boolean,
+    caste: number | null,
+    education: number | null,
+  ): void {
     this.submitting.set(true);
+    this.updateCasteAndEducation(request.beneficiaryRegID ?? null, caste, education);
     this.haoService.closeCall(request).subscribe({
       next: () => {
         this.submitting.set(false);
         if (andContinue) {
           this.form.reset({ isEmergency: false, isSuicidal: false });
+          // form.reset() clears callGroupType (and re-enables it) regardless of
+          // the disabled-lock applied below — reapply for the same still-live,
+          // still-emergency call.
+          this.applyEmergencyCallType(this.callStore.isEmergencyCall());
           this.continued.emit();
         } else {
+          this.confirmDialog
+            .alert({
+              title: this.i18n.instant('dashboard.dialog.success'),
+              message: this.i18n.instant('hao.closure.closedSuccess'),
+              okText: this.i18n.instant('dashboard.dialog.ok'),
+              status: 'success',
+            })
+            .subscribe();
           this.closed.emit();
         }
       },
@@ -488,6 +912,36 @@ export class ClosureStepComponent {
         this.showError('hao.closure.closeError');
       },
     });
+  }
+
+  private updateCasteAndEducation(beneficiaryRegID: number | null, caste: number | null, education: number | null): void {
+    if (this.currentRole() === ROLE_RO || beneficiaryRegID === null) {
+      return;
+    }
+    this.beneficiaryService
+      .updateCommunityOrEducation(beneficiaryRegID, caste, this.currentRole() === ROLE_CO ? education : null)
+      .subscribe({ error: () => this.showError('hao.closure.updateCasteError') });
+  }
+
+  openAppointmentManually(): void {
+    this.referralAppointment.set(false);
+    this.showAppointment.set(true);
+  }
+
+  onAppointmentSaved(): void {
+    this.showAppointment.set(false);
+    if (this.referralAppointment()) {
+      this.disableCallType.set(true);
+    }
+    this.referralAppointment.set(false);
+  }
+
+  onAppointmentCancelled(): void {
+    this.showAppointment.set(false);
+    if (this.referralAppointment()) {
+      this.form.controls.callGroupType.setValue('Valid');
+    }
+    this.referralAppointment.set(false);
   }
 
   transfer(): void {
@@ -520,6 +974,7 @@ export class ClosureStepComponent {
         message: this.i18n.instant('hao.closure.confirmTransfer'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         this.confirming.set(false);
@@ -533,7 +988,7 @@ export class ClosureStepComponent {
             transferCampaignInfo: campaign,
             skillTransferFlag: !!skill,
             skill,
-            agentIPAddress: null,
+            agentIPAddress: this.agentIPAddress(),
             benCallID,
             callType: subType.callGroupType,
             callTypeID: subType.callTypeID,
@@ -541,6 +996,14 @@ export class ClosureStepComponent {
           .subscribe({
             next: () => {
               this.transferring.set(false);
+              this.confirmDialog
+                .alert({
+                  title: this.i18n.instant('dashboard.dialog.success'),
+                  message: `${this.i18n.instant('hao.closure.transferredToPrefix')} ${campaign}`,
+                  okText: this.i18n.instant('dashboard.dialog.ok'),
+                  status: 'success',
+                })
+                .subscribe();
               this.transferred.emit();
             },
             error: () => {
@@ -551,21 +1014,65 @@ export class ClosureStepComponent {
       });
   }
 
+  /**
+   * Force-select and lock `callGroupType` to "Valid" while the call is
+   * flagged emergency; release the lock otherwise. Re-callable (not just
+   * effect-driven) because `form.reset()` on Submit & Continue clears and
+   * re-enables the control outside the signal change that would otherwise
+   * trigger this.
+   */
+  private applyEmergencyCallType(isEmergency: boolean): void {
+    const control = this.form.controls.callGroupType;
+    if (isEmergency) {
+      if (control.value !== 'Valid') {
+        control.setValue('Valid');
+      }
+      control.disable();
+    } else {
+      control.enable();
+    }
+  }
+
+  /**
+   * Resolve the agent's CTI IP once, up front (legacy resolves and caches
+   * `saved_data.ipAddress` on load rather than per-action). Best-effort: close
+   * and transfer both send whatever is available — `null` if this hasn't
+   * resolved yet or the lookup failed — rather than blocking submission on it.
+   */
+  private resolveAgentIPAddress(): void {
+    const agentID = this.authStore.user()?.agentID ?? null;
+    if (agentID === null) {
+      return;
+    }
+    this.czentrix.getAgentIPAddress(agentID).subscribe({
+      next: (ip) => this.agentIPAddress.set(ip),
+      error: () => this.agentIPAddress.set(null),
+    });
+  }
+
   private loadCallTypes(): void {
-    // The backend keys call types off the selected service id (the legacy
-    // closure sent `current_service.serviceID` in the `providerServiceMapID`
-    // field) plus the campaign flag. The HAO workspace is the inbound service
-    // flow, so request inbound call types.
-    const serviceID = this.authStore.currentRole()?.serviceID ?? null;
-    // Without a service id the backend cannot key the catalogue (it would
-    // return an empty list). Stop here and tell the agent rather than firing a
-    // request that silently strands them with no call types and no reason.
-    if (serviceID === null) {
+    // The backend keys call types off the role's providerServiceMapID (every
+    // other catalogue lookup in this module sources it the same way) plus the
+    // campaign flag. The HAO workspace is the inbound service flow, so
+    // request inbound call types.
+    //
+    // This used to send `currentRole()?.serviceID` instead — verified live
+    // that this returns only a single sparse "Wrapup Exceeds" group, while
+    // `providerServiceMapID` returns the full legacy set (Valid/Transfer/
+    // Incomplete/Wrapup Exceeds, each with their real sub-types) — `serviceID`
+    // and `providerServiceMapID` are genuinely different ids on the role
+    // object, and only one of them actually keys this catalogue.
+    const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    // Without a provider-service-map id the backend cannot key the catalogue
+    // (it would return an empty list). Stop here and tell the agent rather
+    // than firing a request that silently strands them with no call types
+    // and no reason.
+    if (providerServiceMapID === null) {
       this.callTypes.set([]);
       this.showError('hao.closure.noServiceError');
       return;
     }
-    this.haoService.getCallTypes(serviceID, true).subscribe({
+    this.haoService.getCallTypes(providerServiceMapID, true).subscribe({
       next: (types) => this.callTypes.set(types),
       // A call type is mandatory to close, so a silent empty list would strand
       // the agent. Surface the failure so they can retry rather than guess.
@@ -573,6 +1080,35 @@ export class ClosureStepComponent {
         this.callTypes.set([]);
         this.showError('hao.closure.callTypesLoadError');
       },
+    });
+  }
+
+  private loadMasterData(): void {
+    const serviceID = this.authStore.currentRole()?.serviceID ?? null;
+    if (this.currentRole() !== ROLE_RO) {
+      this.beneficiaryService.getRegistrationData(serviceID).subscribe({
+        next: (data) => {
+          this.communities.set(data?.m_communities ?? []);
+          this.educations.set(data?.i_BeneficiaryEducation ?? []);
+        },
+        error: () => {
+          this.communities.set([]);
+          this.educations.set([]);
+        },
+      });
+    }
+    if (this.currentRole() === ROLE_CO) {
+      this.haoService.getInstituteTypes(serviceID).subscribe({
+        next: (types) => this.instituteTypes.set(types),
+        error: () => this.instituteTypes.set([]),
+      });
+    }
+  }
+
+  private loadInstituteNames(institutionTypeID: number): void {
+    this.haoService.getInstituteNames(institutionTypeID).subscribe({
+      next: (names) => this.instituteNames.set(names),
+      error: () => this.instituteNames.set([]),
     });
   }
 
@@ -586,6 +1122,16 @@ export class ClosureStepComponent {
       // non-array value (misbehaving backend, stale mock) must never land.
       next: (campaigns) => this.campaigns.set(Array.isArray(campaigns) ? campaigns : []),
       error: () => this.campaigns.set([]),
+    });
+  }
+
+  private loadServices(): void {
+    // Same providerServiceMapID-not-serviceID fix as loadCallTypes() above —
+    // verified live: serviceID returns an empty transfer-target list.
+    const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    this.haoService.getAvailableServices(providerServiceMapID, true).subscribe({
+      next: (services) => this.services.set(services),
+      error: () => this.services.set([]),
     });
   }
 
@@ -613,6 +1159,7 @@ export class ClosureStepComponent {
         title: this.i18n.instant('dashboard.dialog.error'),
         message: this.i18n.instant(messageKey),
         okText: this.i18n.instant('dashboard.dialog.ok'),
+        status: 'error',
       })
       .subscribe();
   }

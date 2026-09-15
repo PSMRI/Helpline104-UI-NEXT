@@ -69,3 +69,59 @@ describe('BeneficiaryService request timeout', () => {
     expect(failure?.errorMessage).toBe('The request timed out. Please check your connection and try again.');
   });
 });
+
+/**
+ * `getRegistrationData()` (genders/titles/communities/marital-statuses/
+ * educations/relationship-types) is re-requested on every registration-screen
+ * mount even though it's near-static per provider-service-map for the
+ * session; this asserts the shareReplay-backed cache added to fix that.
+ */
+describe('BeneficiaryService getRegistrationData caching', () => {
+  let service: BeneficiaryService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(BeneficiaryService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  it('reuses the response for a second call with the same providerServiceMapID', () => {
+    let calls = 0;
+    service.getRegistrationData(7).subscribe(() => calls++);
+    service.getRegistrationData(7).subscribe(() => calls++);
+
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ statusCode: 200, data: {} });
+
+    expect(calls).toBe(2);
+  });
+
+  it('issues a fresh request for a different providerServiceMapID', () => {
+    let calls = 0;
+    service.getRegistrationData(7).subscribe(() => calls++);
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ statusCode: 200, data: {} });
+
+    service.getRegistrationData(9).subscribe(() => calls++);
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ statusCode: 200, data: {} });
+
+    expect(calls).toBe(2);
+  });
+
+  it('does not cache a failed request, so the next call retries', () => {
+    let failed = false;
+    service.getRegistrationData(7).subscribe({ error: () => (failed = true) });
+    http
+      .expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1'))
+      .flush(null, { status: 500, statusText: 'Server Error' });
+    expect(failed).toBeTrue();
+
+    let succeeded = false;
+    service.getRegistrationData(7).subscribe({ next: () => (succeeded = true) });
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ statusCode: 200, data: {} });
+    expect(succeeded).toBeTrue();
+  });
+});

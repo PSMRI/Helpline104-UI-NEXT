@@ -36,6 +36,7 @@ import { APP_VERSION } from '../../core/app-version';
 import { AuthStore } from '../../core/auth/auth.store';
 import { ConfigService } from '../../core/services/config.service';
 import { CzentrixService } from '../../core/services/czentrix.service';
+import { SessionStorageService } from '../../core/services/session-storage.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { EmergencyContactsViewComponent } from '../../call/emergency-contacts/emergency-contacts-view.component';
@@ -171,6 +172,7 @@ export class DashboardHeaderComponent {
   private readonly router = inject(Router);
   private readonly dialog = inject(ZardDialogService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly storage = inject(SessionStorageService);
 
   readonly user = this.authStore.user;
   readonly lang = this.i18n.language;
@@ -244,6 +246,7 @@ export class DashboardHeaderComponent {
     // Release the agent from the CZentrix dialer (best-effort, non-blocking).
     this.czentrix.endCtiSession();
     this.authStore.clear();
+    this.storage.clear();
     void this.router.navigate([FEEDBACK_ROUTE], { queryParams: { sl: '104' } });
   }
 }

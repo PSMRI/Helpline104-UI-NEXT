@@ -105,6 +105,11 @@ type GrievanceAction = 'view' | 'edit' | 'update';
               <span class="text-destructive">*</span>
             </label>
             <input id="grv-start" z-input class="w-full" type="date" [max]="today" formControlName="startDate" />
+            @if (searchForm.controls.startDate.invalid && searchForm.controls.startDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
           <div>
             <label for="grv-end" class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -112,6 +117,11 @@ type GrievanceAction = 'view' | 'edit' | 'update';
               <span class="text-destructive">*</span>
             </label>
             <input id="grv-end" z-input class="w-full" type="date" [max]="today" formControlName="endDate" />
+            @if (searchForm.controls.endDate.invalid && searchForm.controls.endDate.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
             @if (dateRangeInvalid()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supGrievance.endBeforeStart' | translate: lang() }}
@@ -383,6 +393,11 @@ type GrievanceAction = 'view' | 'edit' | 'update';
                 maxlength="500"
                 formControlName="comments"
               ></textarea>
+              @if (detailForm.controls.comments.invalid && detailForm.controls.comments.touched) {
+                <p class="mt-1 text-xs font-medium text-destructive">
+                  {{ 'registration.validation.required' | translate: lang() }}
+                </p>
+              }
               <p class="mt-1 text-right text-xs text-muted-foreground">{{ commentsLength() }}/500</p>
             </div>
           </div>

@@ -99,6 +99,11 @@ const SLOT_MAX_MINUTES = 13 * 60;
                 <option [ngValue]="b.blockName">{{ b.blockName }}</option>
               }
             </select>
+            @if (form.controls.subDistrict.invalid && form.controls.subDistrict.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -116,6 +121,11 @@ const SLOT_MAX_MINUTES = 13 * 60;
                 <option [ngValue]="f.facilityName">{{ f.facilityName }}</option>
               }
             </select>
+            @if (form.controls.facilityName.invalid && form.controls.facilityName.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -146,7 +156,11 @@ const SLOT_MAX_MINUTES = 13 * 60;
               step="900"
               (change)="onDateChange()"
             />
-            @if (timeInvalid()) {
+            @if (form.controls.appointmentDateTime.touched && form.controls.appointmentDateTime.hasError('required')) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            } @else if (timeInvalid()) {
               <p class="mt-0.5 text-xs text-destructive">{{ 'appointment.slotHint' | translate: lang() }}</p>
             }
           </div>

@@ -106,6 +106,10 @@ const SCREEN_REGISTRATION = 'Registration';
           <button z-button type="button" zType="outline" (click)="backToRo()">
             {{ 'hao.workspace.backToRo' | translate: lang() }}
           </button>
+        } @else {
+          <button z-button type="button" zType="outline" (click)="cancelCall()">
+            {{ 'hao.workspace.cancelCall' | translate: lang() }}
+          </button>
         }
         <div class="ml-auto flex gap-3">
           @if (stepIndex() === 1) {
@@ -176,6 +180,7 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
         message: this.i18n.instant('hao.workspace.proceedConfirm'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         if (confirmed) {
@@ -192,6 +197,7 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
         message: this.i18n.instant('hao.workspace.cancelConfirm'),
         okText: this.i18n.instant('dashboard.dialog.ok'),
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+        status: 'info',
       })
       .subscribe((confirmed) => {
         if (confirmed) {
@@ -215,5 +221,21 @@ export class HaoWorkspaceComponent implements HasUnsavedChanges {
   backToRo(): void {
     this.callStore.setBeneficiaryId(null);
     void this.router.navigate(['/innerpage']);
+  }
+
+  cancelCall(): void {
+    this.confirmDialog
+      .confirm({
+        title: this.i18n.instant('hao.workspace.cancelCallTitle'),
+        message: this.i18n.instant('hao.workspace.cancelCallConfirm'),
+        okText: this.i18n.instant('dashboard.dialog.ok'),
+        cancelText: this.i18n.instant('dashboard.dialog.cancel'),
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.callStore.setBeneficiaryId(null);
+          void this.router.navigate(['/innerpage']);
+        }
+      });
   }
 }

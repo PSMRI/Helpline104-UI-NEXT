@@ -78,6 +78,7 @@ export class ConfirmDialogService {
     const dialogRef = this.dialog.create<unknown, unknown>({
       zTitle: options.title,
       zDescription: options.message,
+      zStatus: options.status,
       zWidth: options.width?.trim() ? options.width : DEFAULT_DIALOG_WIDTH,
       // Empty/whitespace labels fall back to defaults (truthiness, not `??`),
       // so a stray '' never renders a blank button.
@@ -137,6 +138,7 @@ export class ConfirmDialogService {
     const dialogRef = this.dialog.create<unknown, unknown>({
       zTitle: options.title,
       zDescription: options.message,
+      zStatus: options.status,
       zWidth: options.width?.trim() ? options.width : DEFAULT_DIALOG_WIDTH,
       zOkText: options.okText?.trim() ? options.okText : 'OK',
       // A notice has nothing to cancel: hide the cancel button entirely.

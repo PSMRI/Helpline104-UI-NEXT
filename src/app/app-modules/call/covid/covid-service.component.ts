@@ -121,6 +121,11 @@ interface CheckItem {
                 <option [ngValue]="c">{{ c.Value }}</option>
               }
             </select>
+            @if (form.controls.category.invalid && form.controls.category.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -133,6 +138,11 @@ interface CheckItem {
                 <option [ngValue]="s">{{ s.Value }}</option>
               }
             </select>
+            @if (form.controls.subCategory.invalid && form.controls.subCategory.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>

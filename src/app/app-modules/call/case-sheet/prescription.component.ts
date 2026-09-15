@@ -54,6 +54,10 @@ import {
   STRENGTH_NA,
   SavePrescriptionRequest,
 } from './prescription.models';
+import { SmsService } from '../sms/sms.service';
+
+const PRESCRIPTION_SMS_TYPE = 'prescription sms';
+const ALTERNATE_NUMBER_PATTERN = /^\d{10}$/;
 
 /** Shared Tailwind classes for native `<select>` controls (no custom CSS). */
 const SELECT_CLASS =
@@ -180,6 +184,11 @@ function optionalMinLength(min: number) {
                 <option [ngValue]="name">{{ name }}</option>
               }
             </select>
+            @if (lineForm.controls.drugName.invalid && lineForm.controls.drugName.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'prescription.drugRequired' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -199,6 +208,11 @@ function optionalMinLength(min: number) {
                 <option [ngValue]="g.drugMapID">{{ g.drugGroupName || g.drugName }}</option>
               }
             </select>
+            @if (lineForm.controls.drugMapID.invalid && lineForm.controls.drugMapID.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'prescription.drugGroupRequired' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -218,6 +232,11 @@ function optionalMinLength(min: number) {
                 <option [ngValue]="s">{{ s }}</option>
               }
             </select>
+            @if (lineForm.controls.strength.invalid && lineForm.controls.strength.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'prescription.strengthRequired' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -244,6 +263,11 @@ function optionalMinLength(min: number) {
                 <option [ngValue]="f">{{ f }}</option>
               }
             </select>
+            @if (lineForm.controls.frequency.invalid && lineForm.controls.frequency.touched) {
+              <p class="mt-0.5 text-xs text-destructive">
+                {{ 'prescription.frequencyRequired' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -378,6 +402,7 @@ function optionalMinLength(min: number) {
                   <thead class="bg-muted/50 text-xs text-muted-foreground">
                     <tr>
                       <th class="px-3 py-2 font-medium">{{ 'prescription.prescriptionId' | translate: lang() }}</th>
+                      <th class="px-3 py-2 font-medium">{{ 'prescription.resend' | translate: lang() }}</th>
                       <th class="px-3 py-2 font-medium">
                         {{ 'prescription.diagnosisProvisional' | translate: lang() }}
                       </th>
@@ -389,6 +414,21 @@ function optionalMinLength(min: number) {
                     @for (rec of history(); track $index) {
                       <tr class="border-t border-border align-top">
                         <td class="px-3 py-2">{{ rec.prescriptionID ?? '—' }}</td>
+                        <td class="px-3 py-2">
+                          @for (d of rec.prescribedDrugs ?? []; track $index) {
+                            @if (d.prescribedDrugID != null) {
+                              <label class="flex items-center gap-1.5">
+                                <input
+                                  type="checkbox"
+                                  class="h-4 w-4 accent-primary"
+                                  [checked]="isDrugSelected(d.prescribedDrugID)"
+                                  (change)="toggleResendDrug(d.prescribedDrugID)"
+                                  [attr.aria-label]="'prescription.resend' | translate: lang()"
+                                />
+                              </label>
+                            }
+                          }
+                        </td>
                         <td class="px-3 py-2">{{ rec.diagnosisProvided || '—' }}</td>
                         <td class="px-3 py-2">
                           @for (d of rec.prescribedDrugs ?? []; track $index) {
@@ -401,6 +441,39 @@ function optionalMinLength(min: number) {
                   </tbody>
                 </table>
               </div>
+
+              <div class="mt-3 flex flex-wrap items-end gap-3">
+                <div class="flex flex-col gap-1.5">
+                  <label for="rx-resend-alt-number" class="text-xs font-medium text-muted-foreground">
+                    {{ 'prescription.alternateNumber' | translate: lang() }}
+                  </label>
+                  <input
+                    id="rx-resend-alt-number"
+                    z-input
+                    class="w-48"
+                    inputmode="numeric"
+                    maxlength="10"
+                    [value]="resendAltNumber()"
+                    (input)="resendAltNumber.set($any($event.target).value)"
+                    [attr.aria-invalid]="!altNumberValid() || null"
+                  />
+                  @if (!altNumberValid()) {
+                    <p class="text-xs font-medium text-destructive" role="alert">
+                      {{ 'prescription.alternateNumberInvalid' | translate: lang() }}
+                    </p>
+                  }
+                </div>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  [zLoading]="sendingSms()"
+                  [zDisabled]="!canSendResend()"
+                  (click)="sendResendSms()"
+                >
+                  {{ 'prescription.sendSms' | translate: lang() }}
+                </button>
+              </div>
             }
           </div>
         }
@@ -411,6 +484,7 @@ function optionalMinLength(min: number) {
 export class PrescriptionComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly rx = inject(PrescriptionService);
+  private readonly sms = inject(SmsService);
   private readonly authStore = inject(AuthStore);
   private readonly callStore = inject(CallStore);
   private readonly i18n = inject(I18nService);
@@ -424,6 +498,7 @@ export class PrescriptionComponent implements OnInit {
   readonly initialDiagnosis = input('');
   /** Label toggle: provisional diagnosis (true) vs "information given" (false). */
   readonly provisionalDiagnosis = input(true);
+  readonly openHistory = input(false);
 
   /** Emits the created prescription id after a successful save. */
   readonly saved = output<number>();
@@ -463,6 +538,18 @@ export class PrescriptionComponent implements OnInit {
   readonly saving = signal(false);
   readonly errorMessage = signal('');
 
+  /** Legacy "Resend Prescription" — drug lines checked for the resend SMS. */
+  readonly selectedResendDrugIds = signal<ReadonlySet<number>>(new Set());
+  readonly resendAltNumber = signal('');
+  readonly sendingSms = signal(false);
+  readonly altNumberValid = computed(() => {
+    const v = this.resendAltNumber().trim();
+    return v === '' || ALTERNATE_NUMBER_PATTERN.test(v);
+  });
+  readonly canSendResend = computed(
+    () => this.selectedResendDrugIds().size > 0 && !this.sendingSms() && this.altNumberValid(),
+  );
+
   /** Drug name currently selected in the line form (drives the group list). */
   private readonly selectedDrugName = signal<string | null>(null);
 
@@ -484,6 +571,7 @@ export class PrescriptionComponent implements OnInit {
 
   ngOnInit(): void {
     this.diagnosis.setValue(this.initialDiagnosis());
+    this.showHistory.set(this.openHistory());
     if (!this.hasContext()) {
       return;
     }
@@ -562,6 +650,95 @@ export class PrescriptionComponent implements OnInit {
 
   toggleHistory(): void {
     this.showHistory.update((v) => !v);
+  }
+
+  isDrugSelected(prescribedDrugID: number): boolean {
+    return this.selectedResendDrugIds().has(prescribedDrugID);
+  }
+
+  toggleResendDrug(prescribedDrugID: number | undefined): void {
+    if (prescribedDrugID == null) {
+      return;
+    }
+    this.selectedResendDrugIds.update((ids) => {
+      const next = new Set(ids);
+      if (next.has(prescribedDrugID)) {
+        next.delete(prescribedDrugID);
+      } else {
+        next.add(prescribedDrugID);
+      }
+      return next;
+    });
+  }
+
+  /**
+   * Legacy "Resend Prescription" — sends the "Prescription SMS"-type template
+   * (one request per selected drug line) to the beneficiary's registered
+   * number, or the entered alternate number. Mirrors the registration-SMS
+   * flow: a missing SMS type/template for the service silently no-ops (as
+   * legacy did), rather than surfacing a hard error over a soft-config gap.
+   */
+  sendResendSms(): void {
+    const beneficiaryRegID = this.callStore.beneficiaryId();
+    const drugIds = [...this.selectedResendDrugIds()];
+    if (!this.canSendResend() || beneficiaryRegID === null || drugIds.length === 0) {
+      return;
+    }
+    const role = this.authStore.currentRole();
+    const providerServiceMapID = role?.providerServiceMapID ?? null;
+    const serviceID = role?.serviceID ?? null;
+    const createdBy = this.authStore.user()?.userName ?? '';
+    const alternateNo = this.resendAltNumber().trim() || null;
+
+    this.sendingSms.set(true);
+    this.sms
+      .getSmsTypes(serviceID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (types) => {
+          const smsType = types.find((t) => t.smsType.toLowerCase() === PRESCRIPTION_SMS_TYPE);
+          if (!smsType) {
+            this.sendingSms.set(false);
+            return;
+          }
+          this.sms
+            .getSmsTemplates(providerServiceMapID, smsType.smsTypeID)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: (templates) => {
+                const template = templates.find((t) => t.deleted === false);
+                if (!template) {
+                  this.sendingSms.set(false);
+                  return;
+                }
+                const requests = drugIds.map((prescribedDrugID) => ({
+                  beneficiaryRegID,
+                  smsTemplateID: template.smsTemplateID,
+                  smsTemplateTypeID: smsType.smsTypeID,
+                  providerServiceMapID,
+                  createdBy,
+                  alternateNo,
+                  is1097: false,
+                  prescribedDrugID,
+                }));
+                this.sms
+                  .sendSms(requests)
+                  .pipe(takeUntilDestroyed(this.destroyRef))
+                  .subscribe({
+                    next: () => {
+                      this.sendingSms.set(false);
+                      this.selectedResendDrugIds.set(new Set());
+                      this.resendAltNumber.set('');
+                      toast.success(this.i18n.instant('prescription.smsSent'));
+                    },
+                    error: () => this.sendingSms.set(false),
+                  });
+              },
+              error: () => this.sendingSms.set(false),
+            });
+        },
+        error: () => this.sendingSms.set(false),
+      });
   }
 
   save(): void {

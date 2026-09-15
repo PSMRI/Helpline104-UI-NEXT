@@ -1,5 +1,5 @@
-/*
- * AMRIT – Accessible Medical Records via Integrated Technologies
+﻿/*
+ * AMRIT â€“ Accessible Medical Records via Integrated Technologies
  * Integrated EHR (Electronic Health Records) Solution
  *
  * Copyright (C) "Piramal Swasthya Management and Research Institute"
@@ -29,23 +29,23 @@ import { CtiPanelComponent } from './cti-panel.component';
 
 /**
  * The CTI iframe previously had no (error) binding and no fallback UI (audit
- * #40) — a broken telephony host left a blank box with no indication
+ * #40) â€” a broken telephony host left a blank box with no indication
  * anything was wrong. These cover the explicit onIframeLoad/onIframeError
  * paths and retry directly (the public contract those DOM bindings call into).
  *
  * NOT covered here: the load-timeout itself (no load/error event within
  * LOAD_TIMEOUT_MS). `jasmine.clock()` does not intercept `setTimeout`/
  * `Date.now()` in this project's test harness once `provideZonelessChangeDetection()`
- * + `TestBed.createComponent` are involved — verified directly: `Date.now()`
+ * + `TestBed.createComponent` are involved â€” verified directly: `Date.now()`
  * still advances by real wall-clock milliseconds across a `tick(8001)` call,
  * not by 8001ms, so a timer-based assertion would be untestably flaky here,
  * not a real pass. The timeout wiring itself is a plain `setTimeout`/
  * `clearTimeout` pair (same pattern used elsewhere in this codebase, e.g.
- * `CallWrapupService`) — reviewed by hand rather than covered by a spec.
+ * `CallWrapupService`) â€” reviewed by hand rather than covered by a spec.
  *
  * This also runs in a real browser (Karma + Chrome Headless): once the
  * iframe actually mounts with its real `src`, the test sandbox's network
- * block makes Chrome fire a genuine failed-navigation event on it — so every
+ * block makes Chrome fire a genuine failed-navigation event on it â€” so every
  * test here drives state via the public onIframeLoad/onIframeError/retry
  * methods before the first `detectChanges()`, so the real iframe never
  * mounts and can't race the assertions with its own event.
@@ -82,22 +82,24 @@ describe('CtiPanelComponent', () => {
     return fixture;
   }
 
-  it('shows the unavailable notice on an iframe error, not the iframe itself', () => {
+  it('shows the unavailable notice on an iframe error, but keeps the iframe mounted (never torn down mid-call)', () => {
     const fixture = render();
 
-    fixture.componentInstance.toggleCti();
+    fixture.componentInstance.store.toggleCti();
+    fixture.detectChanges();
     fixture.componentInstance.onIframeError();
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('[role="alert"]')).not.toBeNull();
-    expect(el.querySelector('iframe')).toBeNull();
+    expect(el.querySelector('iframe')).not.toBeNull();
   });
 
   it('does not show the unavailable notice once the iframe reports a successful load', () => {
     const fixture = render();
 
-    fixture.componentInstance.toggleCti();
+    fixture.componentInstance.store.toggleCti();
+    fixture.detectChanges();
     fixture.componentInstance.onIframeLoad();
     fixture.detectChanges();
 
@@ -108,7 +110,8 @@ describe('CtiPanelComponent', () => {
 
   it('retry clears a prior unavailable state', () => {
     const fixture = render();
-    fixture.componentInstance.toggleCti();
+    fixture.componentInstance.store.toggleCti();
+    fixture.detectChanges();
     fixture.componentInstance.onIframeError();
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).querySelector('[role="alert"]')).not.toBeNull();

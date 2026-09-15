@@ -110,6 +110,11 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
                 <option [ngValue]="s.stateID">{{ s.stateName }}</option>
               }
             </select>
+            @if (form.controls.stateID.invalid && form.controls.stateID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -122,6 +127,11 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
                 <option [ngValue]="d.districtID">{{ d.districtName }}</option>
               }
             </select>
+            @if (form.controls.districtID.invalid && form.controls.districtID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -139,6 +149,11 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
                 <option [ngValue]="d.instituteDirectoryID">{{ d.instituteDirectoryName }}</option>
               }
             </select>
+            @if (form.controls.instituteDirectoryID.invalid && form.controls.instituteDirectoryID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
 
           <div>
@@ -151,6 +166,11 @@ const SUB_SERVICE_BY_FEATURE: Record<string, string[]> = {
                 <option [ngValue]="s.instituteSubDirectoryID">{{ s.instituteSubDirectoryName }}</option>
               }
             </select>
+            @if (form.controls.instituteSubDirectoryID.invalid && form.controls.instituteSubDirectoryID.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
         </form>
 

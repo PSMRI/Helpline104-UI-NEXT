@@ -37,6 +37,9 @@
               }
             </select>
           </z-form-control>
+          @if (form.controls.question1.touched && form.controls.question1.hasError('required')) {
+            <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+          }
         </z-form-field>
 
         <div class="mt-3">
@@ -52,6 +55,9 @@
                 autocomplete="off"
               />
             </z-form-control>
+            @if (form.controls.answer1.touched && form.controls.answer1.hasError('required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </z-form-field>
         </div>
 
@@ -74,6 +80,9 @@
                 }
               </select>
             </z-form-control>
+            @if (form.controls.question2.touched && form.controls.question2.hasError('required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </z-form-field>
         </div>
 
@@ -90,6 +99,9 @@
                 autocomplete="off"
               />
             </z-form-control>
+            @if (form.controls.answer2.touched && form.controls.answer2.hasError('required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </z-form-field>
         </div>
 
@@ -112,6 +124,9 @@
                 }
               </select>
             </z-form-control>
+            @if (form.controls.question3.touched && form.controls.question3.hasError('required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </z-form-field>
         </div>
 
@@ -128,6 +143,9 @@
                 autocomplete="off"
               />
             </z-form-control>
+            @if (form.controls.answer3.touched && form.controls.answer3.hasError('required')) {
+              <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
+            }
           </z-form-field>
         </div>
 

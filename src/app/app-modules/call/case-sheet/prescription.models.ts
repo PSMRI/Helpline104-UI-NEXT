@@ -137,6 +137,8 @@ export interface PrescriptionRecord {
   remarks?: string;
   createdDate?: string;
   prescribedDrugs?: Array<{
+    /** Identifies the drug line for the legacy "Resend Prescription" SMS (one request per line). */
+    prescribedDrugID?: number;
     drugName?: string;
     dosage?: string;
     frequency?: string;

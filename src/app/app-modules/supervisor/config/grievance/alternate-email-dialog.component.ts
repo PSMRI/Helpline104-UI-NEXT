@@ -95,24 +95,31 @@ export interface AlternateEmailDialogData {
     <form [formGroup]="manualForm" class="mt-4">
       <div formArrayName="emails" class="space-y-2">
         @for (ctrl of manualEmails.controls; track ctrl; let i = $index) {
-          <div class="flex items-center gap-2">
-            <input
-              z-input
-              class="flex-1"
-              type="email"
-              [formControlName]="i"
-              [placeholder]="'supGrievance.email.enterEmail' | translate: lang()"
-            />
-            <button
-              z-button
-              type="button"
-              zType="ghost"
-              zSize="sm"
-              [attr.aria-label]="'supGrievance.email.deleteRow' | translate: lang()"
-              (click)="removeManual(i)"
-            >
-              <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
-            </button>
+          <div>
+            <div class="flex items-center gap-2">
+              <input
+                z-input
+                class="flex-1"
+                type="email"
+                [formControlName]="i"
+                [placeholder]="'supGrievance.email.enterEmail' | translate: lang()"
+              />
+              <button
+                z-button
+                type="button"
+                zType="ghost"
+                zSize="sm"
+                [attr.aria-label]="'supGrievance.email.deleteRow' | translate: lang()"
+                (click)="removeManual(i)"
+              >
+                <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
+              </button>
+            </div>
+            @if (ctrl.hasError('required') && ctrl.touched) {
+              <p class="mt-1 text-xs font-medium text-destructive">
+                {{ 'registration.validation.required' | translate: lang() }}
+              </p>
+            }
           </div>
         }
       </div>

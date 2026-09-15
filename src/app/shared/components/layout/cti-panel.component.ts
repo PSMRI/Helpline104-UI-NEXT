@@ -20,25 +20,29 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router } from '@angular/router';
+
+import { filter, map } from 'rxjs';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePhone } from '@ng-icons/lucide';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 
-import { AuthStore } from '@/app-modules/core/auth/auth.store';
 import { I18nService } from '@/app-modules/core/i18n/i18n.service';
 import { TranslatePipe } from '@/app-modules/core/i18n/translate.pipe';
-import { ConfigService } from '@/app-modules/core/services/config.service';
 
-/** Static brand constants for the CTI soft-phone bar (not translatable). */
-const CZENTRIX_LABEL = 'CZentrix';
-const CTI_HANDLER_PATH = 'bar/cti_handler.php';
+import { CtiPanelStore } from './cti-panel.store';
 
-/** Feature code of the supervising role, which has no personal agent line. */
-const SUPERVISOR_FEATURE_CODE = 'Supervisor';
+/**
+ * Route prefixes whose own footer docks the CZentrix toggle button itself
+ * (see `DashboardFooterComponent` / `InnerpageFooterComponent`) — every route
+ * `showCzentrix()` can ever be true on except `/outbound/*`, which has no
+ * shared shell/footer of its own, so the floating toggle still covers that one.
+ */
+const FOOTER_ROUTE_PREFIXES = ['/dashboard', '/innerpage'] as const;
 
 /**
  * How long to wait for the CTI iframe to load before treating it as
@@ -50,12 +54,24 @@ const LOAD_TIMEOUT_MS = 8_000;
 
 /**
  * Floating CZentrix CTI (telephony soft-phone) panel, rendered once at the app
- * root — outside the router outlet — so the toggle button and the soft-phone
- * iframe persist across *every* route (dashboard, `/innerpage/*`, outbound, …)
- * and the iframe is never torn down by navigation while the agent is on a call.
+ * root — outside the router outlet — so the soft-phone iframe persists across
+ * *every* route (dashboard, `/innerpage/*`, outbound, …) and is never torn
+ * down by navigation while the agent is on a call. Open/visibility state
+ * lives in the shared `CtiPanelStore`, not here.
  *
- * Shown only for call-handling roles: an authenticated user with a selected
- * non-supervisor role. The iframe additionally needs the telephony agent id.
+ * The toggle *button* is docked into the dashboard's and the on-call
+ * workspace's own footers instead (next to Feedback/Version, or just Version
+ * on `/innerpage/*` — see `InnerpageFooterComponent`) — both to match legacy
+ * (footer + CZentrix in its corner on every screen) and because a `fixed`
+ * floating toggle would otherwise sit on top of whatever a given screen
+ * happens to render in its own bottom-right corner (registration's own
+ * "Next"/"Register beneficiary" button, for instance). `/outbound/*` has no
+ * shared shell/footer of its own, so this still renders the floating toggle
+ * there — the one place it's still needed.
+ *
+ * Positioned `bottom-12`/`bottom-28` for that floating fallback: clears the
+ * "Simulate inbound call (dev)" button without needing to clear a footer,
+ * since every route with a footer already docks the toggle instead.
  */
 @Component({
   selector: 'app-cti-panel',
@@ -64,53 +80,98 @@ const LOAD_TIMEOUT_MS = 8_000;
   imports: [ZardButtonComponent, NgIcon, TranslatePipe],
   viewProviders: [provideIcons({ lucidePhone })],
   template: `
-    @if (showCzentrix()) {
-      <button
-        z-button
-        type="button"
-        zSize="lg"
-        class="fixed bottom-12 right-4 z-50 h-12 gap-2 px-5 text-base font-semibold shadow-xl"
-        (click)="toggleCti()"
-      >
-        <ng-icon name="lucidePhone" size="20" aria-hidden="true" />
-        {{ czentrixLabel }}
-      </button>
+    @if (store.showCzentrix()) {
+      @if (!hasFooter()) {
+        <button
+          z-button
+          type="button"
+          zSize="lg"
+          class="fixed bottom-12 right-4 z-50 h-12 gap-2 px-5 text-base font-semibold shadow-xl"
+          (click)="store.toggleCti()"
+        >
+          <ng-icon name="lucidePhone" size="20" aria-hidden="true" />
+          {{ store.czentrixLabel }}
+        </button>
+      }
 
-      @if (ctiOpen() && ctiUrl(); as src) {
-        @if (unavailable()) {
-          <div
-            class="fixed bottom-28 right-4 z-50 w-[230px] rounded-md border border-border bg-card p-3 shadow-lg"
-            role="alert"
-          >
-            <p class="text-sm text-muted-foreground">{{ 'cti.unavailable' | translate: lang() }}</p>
-            <button z-button type="button" zSize="sm" class="mt-2" (click)="retry()">
-              {{ 'cti.retry' | translate: lang() }}
+      @if (store.ctiUrl(); as src) {
+        <!--
+          Mounted once the agent is eligible and stays mounted for the rest of
+          the session — [hidden] toggles visibility, nothing here ever tears
+          the iframe down while collapsed. It used to be gated on ctiOpen()
+          too, destroying and recreating the iframe on every collapse/expand;
+          once the inbound-postMessage origin fix let real CZentrix messages
+          through (they were previously all silently dropped by a mismatched
+          origin check), a message CZentrix fires when its own iframe
+          unmounts started being read as a genuine "CustDisconnect" — the
+          caller had not actually hung up.
+        -->
+        <div
+          class="fixed bottom-28 right-4 z-50 flex w-[178px] flex-col overflow-hidden rounded-md border border-border bg-card shadow-lg"
+          [hidden]="!store.ctiOpen()"
+        >
+          <div class="flex shrink-0 items-center justify-between bg-primary px-2 py-1 text-primary-foreground">
+            <span class="text-xs font-semibold">{{ store.czentrixLabel }}</span>
+            <button
+              type="button"
+              class="rounded px-1 text-xs leading-none text-primary-foreground/90 hover:bg-white/20 hover:text-primary-foreground"
+              aria-label="Close CZentrix panel"
+              (click)="store.toggleCti()"
+            >
+              &times;
             </button>
           </div>
-        } @else {
-          <iframe
-            [src]="src"
-            [title]="czentrixLabel"
-            (load)="onIframeLoad()"
-            (error)="onIframeError()"
-            class="fixed bottom-28 right-4 z-50 h-[380px] w-[230px] rounded-md border border-border bg-card shadow-lg"
-          ></iframe>
-        }
+          <div class="relative h-[285px] w-full overflow-hidden">
+            @if (unavailable()) {
+              <div class="absolute inset-0 flex flex-col items-start bg-card p-3" role="alert">
+                <p class="text-xs text-muted-foreground">{{ 'cti.unavailable' | translate: lang() }}</p>
+                <button z-button type="button" zSize="xs" class="mt-2" (click)="retry()">
+                  {{ 'cti.retry' | translate: lang() }}
+                </button>
+              </div>
+            }
+            <!--
+              CZentrix's own bar page is a legacy, non-responsive layout (fixed
+              ~230x380 content) — shrinking the iframe's own box just clips it
+              instead of shrinking its padding/buttons/font. A CSS scale
+              transform shrinks the whole rendered page proportionally instead;
+              the wrapper is sized to the post-scale footprint and clips any
+              sub-pixel overhang. The iframe stays rendered (just covered by
+              the panel above) even while unavailable, rather than being
+              swapped out via @if/@else — same "never torn down" reasoning as
+              the outer panel.
+            -->
+            <iframe
+              [src]="src"
+              [title]="store.czentrixLabel"
+              (load)="onIframeLoad()"
+              (error)="onIframeError()"
+              class="h-[380px] w-[230px] origin-top-left scale-75 border-0"
+            ></iframe>
+          </div>
+        </div>
       }
     }
   `,
 })
 export class CtiPanelComponent {
-  private readonly config = inject(ConfigService);
-  private readonly sanitizer = inject(DomSanitizer);
-  private readonly authStore = inject(AuthStore);
+  readonly store = inject(CtiPanelStore);
+  private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
 
   readonly lang = this.i18n.language;
-  readonly czentrixLabel = CZENTRIX_LABEL;
 
-  private readonly _ctiOpen = signal(false);
-  readonly ctiOpen = this._ctiOpen.asReadonly();
+  /** Current URL, used only to withhold the floating toggle on the dashboard route. */
+  private readonly url = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+      takeUntilDestroyed(),
+    ),
+    { initialValue: this.router.url },
+  );
+
+  readonly hasFooter = computed(() => FOOTER_ROUTE_PREFIXES.some((prefix) => this.url().startsWith(prefix)));
 
   /**
    * `'loading'` while a load-timeout is pending, `'error'` once it fires or
@@ -121,57 +182,24 @@ export class CtiPanelComponent {
   private readonly loadState = signal<'loading' | 'loaded' | 'error'>('loading');
   readonly unavailable = computed(() => this.loadState() === 'error');
 
-  /** Bumped on manual retry so the iframe `src` actually changes and reloads. */
-  private readonly retryNonce = signal(0);
-
   private loadTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
+    // Starts/clears the load watch on every open/close, regardless of
+    // whether the floating button or the footer-docked one triggered it.
+    effect(() => {
+      if (this.store.ctiOpen()) {
+        this.startLoadWatch();
+      } else {
+        this.clearLoadTimeout();
+      }
+    });
     inject(DestroyRef).onDestroy(() => this.clearLoadTimeout());
-  }
-
-  /**
-   * Whether the CZentrix toggle is visible: an authenticated session with a
-   * telephony agent id and a selected role that is not the supervisor (who has
-   * no personal agent line). Without an agent id the iframe has no CTI handler
-   * to load, so the toggle would only ever open an empty panel.
-   */
-  readonly showCzentrix = computed(() => {
-    if (!this.authStore.isAuthenticated() || this.agentId() === null) {
-      return false;
-    }
-    const featureCode = this.authStore.currentRole()?.featureCode ?? null;
-    return featureCode !== null && featureCode !== SUPERVISOR_FEATURE_CODE;
-  });
-
-  /** Telephony agent id used to address the CTI handler. */
-  private readonly agentId = computed(() => this.authStore.user()?.agentID ?? null);
-
-  /** Sanitized CTI bar URL, or null when no agent id is available. */
-  readonly ctiUrl = computed<SafeResourceUrl | null>(() => {
-    const id = this.agentId();
-    if (id === null) {
-      return null;
-    }
-    const nonce = this.retryNonce();
-    const url =
-      `${this.config.getTelephonyServerURL()}${CTI_HANDLER_PATH}?e=${id}` + (nonce ? `&_retry=${nonce}` : '');
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
-  });
-
-  toggleCti(): void {
-    const opening = !this._ctiOpen();
-    this._ctiOpen.set(opening);
-    if (opening) {
-      this.startLoadWatch();
-    } else {
-      this.clearLoadTimeout();
-    }
   }
 
   /** Reload the iframe with a fresh URL and restart the load watch. */
   retry(): void {
-    this.retryNonce.update((n) => n + 1);
+    this.store.bumpRetry();
     this.startLoadWatch();
   }
 
