@@ -71,7 +71,7 @@ export class LanguageSelectComponent {
     const select = event.target as HTMLSelectElement;
     const code = select.value;
     if (this.i18n.isImplemented(code)) {
-      this.i18n.setLanguage(code);
+      void this.i18n.setLanguage(code);
       return;
     }
     // Not yet translated: notify and revert the selection to the active

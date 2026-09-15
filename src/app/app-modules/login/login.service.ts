@@ -22,7 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Observable, catchError, map, of, throwError } from 'rxjs';
 
 import { LoginResponse } from '../core/auth/auth.models';
 import { ConfigService } from '../core/services/config.service';
@@ -59,6 +59,10 @@ export class LoginService {
 
   private get concurrentSessionLogoutUrl(): string {
     return this.config.getCommonBaseURL() + 'user/logOutUserFromConcurrentSession';
+  }
+
+  private get logoutUrl(): string {
+    return this.config.getCommonBaseURL() + 'user/userLogout';
   }
 
   /**
@@ -108,6 +112,14 @@ export class LoginService {
    * proceed. Mirrors the legacy `user/logOutUserFromConcurrentSession` call used
    * by the concurrent-session ("already logged in elsewhere", 5002) flow.
    */
+  /** Legacy `userLogout()`: close the backend session on a manual logout (best-effort). */
+  logoutUser(): Observable<unknown> {
+    return this.http.post<ApiResponse<unknown>>(this.logoutUrl, {}).pipe(
+      map((res) => res.data ?? null),
+      catchError(() => of(null)),
+    );
+  }
+
   logOutUserFromConcurrentSession(userName: string): Observable<unknown> {
     return this.http.post<ApiResponse<unknown>>(this.concurrentSessionLogoutUrl, { userName }).pipe(
       map((res) => {

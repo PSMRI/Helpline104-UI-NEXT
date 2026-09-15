@@ -56,10 +56,10 @@ describe('GlobalErrorHandler', () => {
     expect(() => handler.handleError(new Error('boom'))).not.toThrow();
   });
 
-  it('reads the toast message in the currently active language', () => {
+  it('reads the toast message in the currently active language', async () => {
     spyOn(console, 'error');
     const toastSpy = spyOn(toast, 'error');
-    TestBed.inject(I18nService).setLanguage('hi');
+    await TestBed.inject(I18nService).setLanguage('hi');
 
     handler.handleError(new Error('boom'));
 

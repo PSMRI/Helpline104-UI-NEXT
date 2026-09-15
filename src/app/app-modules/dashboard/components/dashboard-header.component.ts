@@ -38,6 +38,7 @@ import { ConfigService } from '../../core/services/config.service';
 import { CzentrixService } from '../../core/services/czentrix.service';
 import { SessionStorageService } from '../../core/services/session-storage.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { LoginService } from '../../login/login.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { EmergencyContactsViewComponent } from '../../call/emergency-contacts/emergency-contacts-view.component';
 import { SCREEN_HEALTH_ADVICE, collectServiceScreens } from '../../call/role-workspace/role-screens.util';
@@ -167,6 +168,7 @@ export class DashboardHeaderComponent {
   private readonly authStore = inject(AuthStore);
   private readonly config = inject(ConfigService);
   private readonly czentrix = inject(CzentrixService);
+  private readonly loginService = inject(LoginService);
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
   private readonly dialog = inject(ZardDialogService);
@@ -252,8 +254,8 @@ export class DashboardHeaderComponent {
   }
 
   logout(): void {
-    // Release the agent from the CZentrix dialer (best-effort, non-blocking).
     this.czentrix.endCtiSession();
+    this.loginService.logoutUser().subscribe();
     this.authStore.clear();
     this.storage.clear();
     void this.router.navigate([FEEDBACK_ROUTE], { queryParams: { sl: '104' } });

@@ -21,12 +21,13 @@
  */
 
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { ConfigService } from '../../core/services/config.service';
+import { CzentrixService } from '../../core/services/czentrix.service';
 import { DashboardHeaderComponent } from './dashboard-header.component';
 
 /**
@@ -51,5 +52,31 @@ describe('DashboardHeaderComponent licenseUrl', () => {
 
     const fixture = TestBed.createComponent(DashboardHeaderComponent);
     expect(fixture.componentInstance.licenseUrl).toBe('https://prod.example.org/common-api/license.html');
+  });
+});
+
+describe('DashboardHeaderComponent logout', () => {
+  it('closes the backend session via user/userLogout before clearing the client session', () => {
+    TestBed.configureTestingModule({
+      imports: [DashboardHeaderComponent],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    });
+    const http = TestBed.inject(HttpTestingController);
+    spyOn(TestBed.inject(CzentrixService), 'endCtiSession');
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+    const fixture = TestBed.createComponent(DashboardHeaderComponent);
+    fixture.componentInstance.logout();
+
+    const req = http.expectOne((r) => r.url.endsWith('user/userLogout'));
+    expect(req.request.method).toBe('POST');
+    req.flush({ data: null });
+    expect(navigate).toHaveBeenCalled();
+    http.verify();
   });
 });

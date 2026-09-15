@@ -336,10 +336,10 @@ export class HaoService {
         map((res) => {
           const arr = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.campaign) ? res.data.campaign : [];
           return arr
-            .filter((c: any) => c != null)
-            .map((c: any) => ({
+            .filter((c): c is TransferCampaign => c != null)
+            .map((c) => ({
               ...c,
-              campaignName: c.campaignName ?? c.campaign_name ?? '',
+              campaignName: c.campaignName ?? (c['campaign_name'] as string | undefined) ?? '',
             }));
         }),
       );

@@ -24,7 +24,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { SessionStorageService } from '../services/session-storage.service';
 import { DEFAULT_LANGUAGE, Language } from './i18n.types';
-import { AVAILABLE_LANGUAGES, DICTIONARIES, TranslationKey } from './locales';
+import { AVAILABLE_LANGUAGES, DICTIONARIES, IMPLEMENTED_LANGUAGES, TranslationKey, loadDictionary } from './locales';
 
 /** Storage key holding the agent's chosen UI language across reloads. */
 const LANGUAGE_STORAGE_KEY = 'app_language';
@@ -42,7 +42,7 @@ const LANGUAGE_STORAGE_KEY = 'app_language';
 export class I18nService {
   private readonly storage = inject(SessionStorageService);
 
-  private readonly _language = signal<Language>(this.readStoredLanguage());
+  private readonly _language = signal<Language>(DEFAULT_LANGUAGE);
 
   /** The active UI language. */
   readonly language = this._language.asReadonly();
@@ -57,10 +57,18 @@ export class I18nService {
   });
 
   /** Switch the active language and persist the choice. */
-  setLanguage(language: Language): void {
+  constructor() {
+    const stored = this.readStoredLanguage();
+    if (stored !== DEFAULT_LANGUAGE) {
+      void this.setLanguage(stored);
+    }
+  }
+
+  async setLanguage(language: Language): Promise<void> {
     if (!this.isImplemented(language) || language === this._language()) {
       return;
     }
+    await loadDictionary(language);
     this._language.set(language);
     this.storage.setItem(LANGUAGE_STORAGE_KEY, language);
   }
@@ -71,7 +79,7 @@ export class I18nService {
    * showing the "coming soon" notice for the not-yet-translated languages.
    */
   isImplemented(code: string): code is Language {
-    return Object.prototype.hasOwnProperty.call(DICTIONARIES, code);
+    return (IMPLEMENTED_LANGUAGES as readonly string[]).includes(code);
   }
 
   /** Translate a key in the currently active language. */
@@ -85,7 +93,7 @@ export class I18nService {
    * passed language drives pure-pipe re-evaluation.
    */
   instantFor(key: TranslationKey, language: Language): string {
-    return DICTIONARIES[language]?.[key] ?? DICTIONARIES[DEFAULT_LANGUAGE][key] ?? key;
+    return DICTIONARIES[language]?.[key] ?? DICTIONARIES.en[key] ?? key;
   }
 
   private readStoredLanguage(): Language {

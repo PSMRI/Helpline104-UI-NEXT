@@ -56,7 +56,7 @@ describe('RoleSelectionComponent', () => {
     return fixture;
   }
 
-  it('renders the title and access-denial message from translation keys, reactive to a language switch', () => {
+  it('renders the title and access-denial message from translation keys, reactive to a language switch', async () => {
     const fixture = render();
     const i18n = TestBed.inject(I18nService);
     const el = fixture.nativeElement as HTMLElement;
@@ -64,7 +64,7 @@ describe('RoleSelectionComponent', () => {
     expect(el.textContent).toContain('Select your role');
     expect(el.textContent).toContain('You are not authorised to access any 104 services.');
 
-    i18n.setLanguage('hi');
+    await i18n.setLanguage('hi');
     fixture.detectChanges();
 
     expect(el.textContent).toContain('अपनी भूमिका चुनें');
