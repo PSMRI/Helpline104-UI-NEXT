@@ -132,6 +132,10 @@ export interface CaseSheetRequest {
   actionByHAO?: string | null;
   /** Required, role-labelled action field (legacy `actionByMO`). */
   actionByMO?: string | null;
+  /** Required, role-labelled action field (legacy `actionByPD`). */
+  actionByPD?: string | null;
+  /** Caller's district, sent for CO/PD (legacy `districtID`). */
+  districtID?: number | null;
   /** Patient's age unit when entered as "Other" under HAO (legacy `ageUnits`). */
   ageUnits?: string | null;
   /** Patient's date of birth when entered as "Other" under HAO (legacy `dOB`). */
@@ -176,6 +180,7 @@ export interface PresentCaseSheet {
   addedAdvice?: string | null;
   actionByHAO?: string | null;
   actionByMO?: string | null;
+  actionByPD?: string | null;
   riskLevel?: string | null;
   treatmentRecommendation?: string | null;
   categoryID?: number | null;

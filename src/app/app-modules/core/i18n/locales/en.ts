@@ -872,6 +872,7 @@ export const en = {
   'hao.caseSheet.recommendedActionRequired': 'Recommended action is required.',
   'hao.caseSheet.actionByHao': 'Action by HAO',
   'hao.caseSheet.actionByMo': 'Action by MO',
+  'hao.caseSheet.actionByPd': 'Action by PD',
   'hao.caseSheet.actionByRoleInvalid': 'Enter at least 3 characters.',
   'hao.caseSheet.firstNameInvalid': 'First name is required (at least 3 characters).',
   'hao.caseSheet.genderRequired': 'Gender is required.',

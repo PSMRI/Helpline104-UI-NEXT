@@ -874,6 +874,7 @@ export const hi: Record<TranslationKey, string> = {
   'hao.caseSheet.recommendedActionRequired': 'अनुशंसित कार्रवाई आवश्यक है।',
   'hao.caseSheet.actionByHao': 'HAO द्वारा कार्रवाई',
   'hao.caseSheet.actionByMo': 'MO द्वारा कार्रवाई',
+  'hao.caseSheet.actionByPd': 'PD द्वारा कार्रवाई',
   'hao.caseSheet.actionByRoleInvalid': 'कम से कम 3 अक्षर दर्ज करें।',
   'hao.caseSheet.firstNameInvalid': 'पहला नाम आवश्यक है (कम से कम 3 अक्षर)।',
   'hao.caseSheet.genderRequired': 'लिंग आवश्यक है।',

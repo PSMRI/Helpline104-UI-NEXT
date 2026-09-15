@@ -56,6 +56,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallerDemographics, CallStore } from '../call.store';
+import { toCallerDemographics } from './caller-demographics.util';
 import { resolveDispatchPath } from '../role-workspace/role-screens.util';
 import { SmsService } from '../sms/sms.service';
 import { HasUnsavedChanges } from '../unsaved-changes.guard';
@@ -2289,27 +2290,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
    * later form edits.
    */
   private buildDemographicsFromDetail(detail: BeneficiaryRecord): CallerDemographics {
-    const demo = detail.i_bendemographics;
-    const ageInYears = detail.ageUnits === undefined || /year/i.test(detail.ageUnits) ? (detail.actualAge ?? null) : null;
-    return {
-      firstName: detail.firstName ?? null,
-      lastName: detail.lastName ?? null,
-      age: ageInYears,
-      genderId: detail.m_gender?.genderID ?? null,
-      genderName: detail.m_gender?.genderName ?? null,
-      displayId: String(detail.beneficiaryID ?? detail.beneficiaryRegID),
-      stateName: demo?.m_state?.stateName ?? null,
-      districtName: demo?.m_district?.districtName ?? null,
-      subDistrictName: demo?.m_districtbranchmapping?.blockName ?? null,
-      villageName: demo?.m_districtbranchmapping?.villageName ?? null,
-      maritalStatus: detail.maritalStatus?.status ?? null,
-      category:
-        demo?.healthCareWorkerID != null
-          ? `Healthcare Worker: ${demo.healthCareWorkerType?.healthCareWorkerType ?? ''}`.trim()
-          : 'General Public',
-      communityName: demo?.communityName ?? null,
-      educationName: demo?.educationName ?? null,
-    };
+    return toCallerDemographics(detail);
   }
 
   /** Build the demographics summary from the form's current values plus resolved master-data labels. */
