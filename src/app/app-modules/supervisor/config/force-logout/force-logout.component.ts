@@ -31,6 +31,7 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
+import { AuthStore } from '../../../core/auth/auth.store';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { SupervisorError } from '../../shared/supervisor-api';
@@ -71,24 +72,12 @@ import { ForceLogoutService } from './force-logout.service';
             </p>
           }
         </div>
-        <div class="w-full max-w-xs">
-          <label for="fl-password" class="mb-1 block text-xs font-medium text-muted-foreground">
-            {{ 'supLogout.password' | translate: lang() }}
-            <span class="text-destructive">*</span>
-          </label>
-          <input id="fl-password" z-input type="password" class="w-full" formControlName="password" />
-          @if (password.hasError('required') && password.touched) {
-            <p class="mt-1 text-xs font-medium text-destructive">
-              {{ 'registration.validation.required' | translate: lang() }}
-            </p>
-          }
-        </div>
         <button
           z-button
           type="submit"
           zType="default"
           [zLoading]="saving()"
-          [zDisabled]="userName.invalid || password.invalid || saving()"
+          [zDisabled]="userName.invalid || saving()"
         >
           {{ 'supLogout.kickout' | translate: lang() }}
         </button>
@@ -101,6 +90,7 @@ export class ForceLogoutComponent {
   private readonly service = inject(ForceLogoutService);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly authStore = inject(AuthStore);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly lang = this.i18n.language;
@@ -117,20 +107,13 @@ export class ForceLogoutComponent {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(3)],
     }),
-    /** The supervisor's own password, re-entered to authorise the kickout. */
-    password: this.fb.control('', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
   });
 
   readonly userName = this.form.controls.userName;
-  readonly password = this.form.controls.password;
 
   kickout(): void {
-    if (this.userName.invalid || this.password.invalid) {
+    if (this.userName.invalid) {
       this.userName.markAsTouched();
-      this.password.markAsTouched();
       return;
     }
     const userName = this.userName.value.trim();
@@ -153,7 +136,7 @@ export class ForceLogoutComponent {
     this.saving.set(true);
     this.errorMessage.set('');
     this.service
-      .forceLogout(userName, this.password.value)
+      .forceLogout(userName, this.authStore.currentRole()?.providerServiceMapID ?? null)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -176,6 +159,5 @@ export class ForceLogoutComponent {
 
   private resetForm(): void {
     this.userName.reset('');
-    this.password.reset('');
   }
 }

@@ -86,7 +86,7 @@ export class SnomedService {
    * the case sheet.
    */
   getRecordConceptId(term: string): Observable<string> {
-    return this.http.post<ApiResponse<{ conceptID?: string | number }>>(this.baseUrl + SNOMED_RECORD_PATH, { term }).pipe(
+    return this.http.post<ApiResponse<{ conceptID?: string | number }>>(this.config.get104BaseURL() + SNOMED_RECORD_PATH, { term }).pipe(
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => {
         const id = res.data?.conceptID;

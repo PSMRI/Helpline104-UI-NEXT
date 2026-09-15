@@ -21,7 +21,7 @@
  */
 
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -86,6 +86,8 @@ type HistoryTab = 'own' | 'mcts' | 'mmu' | 'tm' | 'hihl';
 type ChiefComplaintMode = 'complaint' | 'summary';
 type VaccineStatus = 'YES' | 'NO';
 type WellbeingOrInfo = '1' | '2';
+
+const GENDER_ID: Readonly<Record<CdssGender, number>> = { M: 1, F: 2, T: 3 };
 
 function toCdssGender(genderName: string | null | undefined): CdssGender | null {
   switch (genderName?.trim().charAt(0).toUpperCase()) {
@@ -1164,6 +1166,9 @@ export class CaseSheetComponent {
    * tooltip (`sctID_pcc`).
    */
   readonly complaintSctid = signal('');
+  private readonly complaintConceptId = signal<string | null>(null);
+  private readonly diagnosisConceptIds = signal('');
+  private readonly selectedSymptoms = signal('');
 
   /** True while the CDSS questionnaire for a freshly picked complaint loads. */
   readonly cdssBusy = signal(false);
@@ -1234,6 +1239,13 @@ export class CaseSheetComponent {
       ? this.form.controls.patientGenderID.value
       : toCdssGender(this.callStore.demographics()?.genderName),
   );
+  private readonly patientGenderId = computed<number | null>(() => {
+    if (!this.form.controls.isPatientOther.value) {
+      return this.callStore.demographics()?.genderId ?? null;
+    }
+    const gender = this.form.controls.patientGenderID.value;
+    return gender ? GENDER_ID[gender] : null;
+  });
 
   readonly anySpecificSymptomChecked = computed(
     () =>
@@ -1338,7 +1350,9 @@ export class CaseSheetComponent {
     this.closeComplaintDropdown();
     this.fillProvisionalDiagnosisFallback(option);
     this.complaintSctid.set('');
+    this.complaintConceptId.set(null);
     this.snomed.getRecordConceptId(option).subscribe((conceptId) => {
+      this.complaintConceptId.set(conceptId);
       this.complaintSctid.set(conceptId === SNOMED_NO_MATCH ? '' : `SCTID: ${conceptId}`);
     });
     void this.openCdssFlow(option);
@@ -1424,11 +1438,21 @@ export class CaseSheetComponent {
   }
 
   onCdssSelection(selection: CdssSelection): void {
-    const diagnosis = selection.diagnoses
-      .map((d) => d.disease)
-      .filter(Boolean)
-      .join(', ')
-      .slice(0, 100);
+    const diseases = selection.diagnoses.map((d) => d.disease).filter(Boolean);
+    const diagnosis = diseases.join(', ').slice(0, 100);
+    this.selectedSymptoms.set(
+      selection.diagnoses
+        .flatMap((d) => d.symptoms)
+        .join(' ')
+        .trim()
+        .slice(0, 300),
+    );
+    this.diagnosisConceptIds.set('');
+    if (diseases.length > 0) {
+      forkJoin(diseases.map((d) => this.snomed.getRecordConceptId(d))).subscribe((ids) => {
+        this.diagnosisConceptIds.set(ids.join(','));
+      });
+    }
     if (diagnosis) {
       this.form.controls.provisionalDiagnosis.setValue(diagnosis);
       this.form.controls.provisionalDiagnosis.markAsDirty();
@@ -1724,8 +1748,8 @@ export class CaseSheetComponent {
 
   private applyExistingCaseSheet(sheet: PresentCaseSheet): void {
     this.form.patchValue({
-      chiefComplaints: sheet.chiefComplaints ?? '',
-      provisionalDiagnosis: sheet.provisionalDiagnosis ?? null,
+      chiefComplaints: sheet.diseaseSummary ?? sheet.chiefComplaints ?? '',
+      provisionalDiagnosis: sheet.selecteDiagnosis ?? sheet.provisionalDiagnosis ?? null,
       recommendedAction: sheet.addedAdvice ?? '',
       actionByRole: (this.showActionByHao() ? sheet.actionByHAO : sheet.actionByMO) ?? '',
       riskLevel: sheet.riskLevel ?? null,
@@ -1804,6 +1828,9 @@ export class CaseSheetComponent {
   }
 
   clear(): void {
+    this.complaintConceptId.set(null);
+    this.diagnosisConceptIds.set('');
+    this.selectedSymptoms.set('');
     this.form.reset({
       isPatientOther: false,
       patientFirstName: '',
@@ -1928,12 +1955,33 @@ export class CaseSheetComponent {
       .filter((s): s is string => s !== null)
       .join(',');
 
+    const chiefComplaint = usingComplaint ? value.chiefComplaints.trim() : '';
+    const summaryDisease = usingComplaint
+      ? null
+      : (this.diseases().find((d) => d.diseasesummaryID === value.diseaseSummaryID) ?? null);
+    const selecteDiagnosis = usingComplaint
+      ? value.provisionalDiagnosis?.trim() || null
+      : (summaryDisease?.diseaseName ?? value.informationGiven?.trim() ?? null);
+    let selecteDiagnosisID: string | number | null = null;
+    if (selecteDiagnosis) {
+      selecteDiagnosisID = usingComplaint
+        ? this.diagnosisConceptIds() || SNOMED_NO_MATCH
+        : (summaryDisease?.diseasesummaryID ?? value.diseaseSummaryID);
+    }
+
     const request: CaseSheetRequest = {
       beneficiaryRegID,
       benCallID: this.callId(),
-      chiefComplaints: usingComplaint ? value.chiefComplaints.trim() : '',
-      provisionalDiagnosis: usingComplaint ? value.provisionalDiagnosis : null,
-      healthAdvice: !usingComplaint ? value.informationGiven : null,
+      patientName: this.patientDisplayName(),
+      patientAge: this.patientAge(),
+      patientGenderID: this.patientGenderId(),
+      diseaseSummary: chiefComplaint || null,
+      diseaseSummaryID: chiefComplaint ? (this.complaintConceptId() ?? SNOMED_NO_MATCH) : null,
+      selecteDiagnosis,
+      selecteDiagnosisID,
+      isChiefComplaint: usingComplaint,
+      algorithm: this.isHaoOrMo() ? this.selectedSymptoms() : null,
+      deleted: false,
       addedAdvice: usingComplaint ? value.recommendedAction.trim() || null : null,
       // Legacy has no remarks input on the case sheet: it reads a
       // `notesComments` field that exists only in the class, so the wire value

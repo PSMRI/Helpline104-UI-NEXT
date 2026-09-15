@@ -59,6 +59,12 @@ const ROLE_CO = 'CO';
 const ROLE_RO = 'RO';
 
 const HEALTH_ADVISORY_SERVICE_NAME = 'Health Advisory Service';
+const FOLLOW_UP_SERVICE_NEEDLES: Readonly<Partial<Record<string, readonly string[]>>> = {
+  [ROLE_HAO]: ['Health'],
+  [ROLE_CO]: ['Counselling'],
+  [ROLE_MO]: ['Medical'],
+  SIO: ['Blood', 'Organ'],
+};
 
 /** Legacy `getOutboundCallFeatures()` — the follow-up "feature" (screen) per role. */
 const ROLE_FEATURE_NAME: Readonly<Partial<Record<string, string>>> = {
@@ -847,6 +853,8 @@ export class ClosureStepComponent {
       isEmergency: value.isEmergency,
       isSuicidal: value.isSuicidal,
       isFeedback: value.isFeedback,
+      isTransfered: false,
+      requestedServiceID: value.isFollowupRequired ? this.followUpServiceId() : null,
       // Must be the real providerServiceMapID, not serviceID: when
       // isFollowupRequired is set, the backend re-reads this same body as an
       // OutboundCallRequest and persists this value to
@@ -864,7 +872,7 @@ export class ClosureStepComponent {
       externalRefferal: value.externalRefferal,
       instTypeId: value.institutionID,
       instNames: value.instituteName.length > 0 ? value.instituteName : null,
-      callEndUserID: this.authStore.user()?.userID ?? null,
+      callEndUserID: andContinue ? null : (this.authStore.user()?.userID ?? null),
       agentIPAddress: this.agentIPAddress(),
     };
 
@@ -1133,6 +1141,12 @@ export class ClosureStepComponent {
       next: (campaigns) => this.campaigns.set(Array.isArray(campaigns) ? campaigns : []),
       error: () => this.campaigns.set([]),
     });
+  }
+
+  private followUpServiceId(): number | null {
+    const needles = FOLLOW_UP_SERVICE_NEEDLES[this.currentRole() ?? ''] ?? [];
+    const match = this.services().find((s) => needles.some((n) => s.subServiceName.includes(n)));
+    return match?.subServiceID ?? null;
   }
 
   private loadServices(): void {

@@ -1500,7 +1500,6 @@ export const en = {
   // Force logout
   'supLogout.title': 'Force Logout',
   'supLogout.userName': 'User Name',
-  'supLogout.password': 'Password',
   'supLogout.kickout': 'Kickout',
   'supLogout.confirm': 'Do you really want to kickout',
   'supLogout.success': 'User logged out successfully',
