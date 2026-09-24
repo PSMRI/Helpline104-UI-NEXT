@@ -25,8 +25,13 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { of, throwError } from 'rxjs';
+
+import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+
 import { AuthStore } from '../../../core/auth/auth.store';
 import { CallStore } from '../../call.store';
+import { HaoService } from '../hao.service';
 import { CaseSheetComponent } from './case-sheet.component';
 
 function setRole(authStore: AuthStore, featureCode: string): void {
@@ -291,5 +296,78 @@ describe('CaseSheetComponent — CO role', () => {
     flushInit(fixture);
     const component = fixture.componentInstance;
     expect(component.form.controls.riskLevel.valid).toBeTrue();
+  });
+});
+
+describe('CaseSheetComponent — save failure reporting', () => {
+  let authStore: AuthStore;
+  let callStore: CallStore;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [CaseSheetComponent],
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    authStore = TestBed.inject(AuthStore);
+    callStore = TestBed.inject(CallStore);
+    http = TestBed.inject(HttpTestingController);
+    callStore.setBeneficiaryId(1, null);
+    setRole(authStore, 'HAO');
+  });
+
+  afterEach(() => {
+    http.verify();
+    sessionStorage.clear();
+  });
+
+  function renderReadyToSave() {
+    const fixture = TestBed.createComponent(CaseSheetComponent);
+    fixture.componentRef.setInput('beneficiaryId', 1);
+    fixture.detectChanges();
+    http.match(() => true).forEach((req) => req.flush({ data: null }));
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component.form.controls.chiefComplaints.setValue('Fever since two days');
+    component.form.controls.recommendedAction.setValue('Rest and fluids');
+    Object.values(component.form.controls).forEach((control) => {
+      control.clearValidators();
+      control.updateValueAndValidity();
+    });
+    return fixture;
+  }
+
+  function saveWith(error: unknown) {
+    const fixture = renderReadyToSave();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(HaoService), 'saveCaseSheet').and.returnValue(throwError(() => error));
+    const alertSpy = spyOn(TestBed.inject(ConfirmDialogService), 'alert').and.returnValue(of(undefined));
+    let availed = false;
+    component.serviceAvailed.subscribe(() => (availed = true));
+    component.save();
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    return { message: alertSpy.calls.mostRecent().args[0].message, availed, saving: component.saving() };
+  }
+
+  it('shows the backend errorMessage when the save is rejected', () => {
+    const { message, availed, saving } = saveWith({ status: 5000, errorMessage: 'Beneficiary not found' });
+    expect(message).toBe('Beneficiary not found');
+    expect(availed).toBeFalse();
+    expect(saving).toBeFalse();
+  });
+
+  it('shows the timeout message when the save times out', () => {
+    const { message, availed } = saveWith({
+      status: 0,
+      errorMessage: 'The request timed out. Please check your connection and try again.',
+    });
+    expect(message).toBe('The request timed out. Please check your connection and try again.');
+    expect(availed).toBeFalse();
+  });
+
+  it('falls back to the translated save error when the failure carries no message', () => {
+    const { message, availed } = saveWith({ status: 500, errorMessage: '' });
+    expect(message).toBe('Unable to save the case sheet. Please try again.');
+    expect(availed).toBeFalse();
   });
 });

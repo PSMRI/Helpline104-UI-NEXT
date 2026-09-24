@@ -164,6 +164,16 @@ export interface CaseSheetResponse {
 }
 
 /**
+ * A normalised HAO request failure. `status` is the HTTP status or envelope
+ * `statusCode` (0 for a timeout or network fault); `errorMessage` is the
+ * backend's own text or the timeout message, and empty when neither exists.
+ */
+export interface HaoRequestError {
+  status: number;
+  errorMessage: string;
+}
+
+/**
  * Existing case sheet fetched by `beneficiary/getPresentCaseSheet` ({104}) for
  * the active beneficiary, used to pre-fill the form on re-entry.
  */

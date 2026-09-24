@@ -991,6 +991,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.closeError': 'कॉल बंद करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.transferError': 'कॉल स्थानांतरित करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.callTypesLoadError': 'कॉल प्रकार लोड करने में असमर्थ। कृपया पुनः प्रयास करें।',
+  'hao.closure.servicesLoadError': 'स्थानांतरण सेवाएँ लोड नहीं हो सकीं। कृपया पुनः प्रयास करें।',
+  'hao.closure.retryServices': 'पुनः प्रयास करें',
   'hao.closure.noServiceError':
     'आपकी भूमिका को कोई सेवा नहीं सौंपी गई है, इसलिए कॉल प्रकार लोड नहीं किए जा सकते। कृपया अपने व्यवस्थापक से संपर्क करें।',
 

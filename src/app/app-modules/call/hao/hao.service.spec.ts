@@ -25,6 +25,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { HaoRequestError } from './hao.models';
 import { HaoService } from './hao.service';
 
 /**
@@ -261,6 +262,154 @@ describe('HaoService call-lifecycle envelope handling', () => {
 
       jasmine.clock().tick(2);
       expect(failure).toBeDefined();
+    });
+  });
+});
+
+describe('HaoService case-sheet and services error normalisation', () => {
+  let service: HaoService;
+  let http: HttpTestingController;
+
+  const TIMEOUT_MESSAGE = 'The request timed out. Please check your connection and try again.';
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(HaoService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  const caseSheetRequest = () =>
+    ({ beneficiaryRegID: 5006622, chiefComplaints: 'Fever' }) as unknown as Parameters<HaoService['saveCaseSheet']>[0];
+
+  function expectOne(urlFragment: string) {
+    return http.expectOne((req) => req.url.includes(urlFragment));
+  }
+
+  describe('saveCaseSheet', () => {
+    it('resolves the saved payload on a success envelope', () => {
+      let result: unknown;
+      service.saveCaseSheet(caseSheetRequest()).subscribe((res) => (result = res));
+
+      expectOne('beneficiary/save/benCaseSheet').flush({ statusCode: 200, status: 'Success', data: { benCaseSheetID: 9 } });
+
+      expect(result).toEqual({ benCaseSheetID: 9 });
+    });
+
+    it('errors with the backend message on a 200 carrying statusCode 5000 instead of reporting success', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({
+        next: (res) => (result = res),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('beneficiary/save/benCaseSheet').flush({
+        statusCode: 5000,
+        status: 'FAILURE',
+        errorMessage: 'Beneficiary not found',
+        data: null,
+      });
+
+      expect(result).toBeUndefined();
+      expect(failure).toEqual({ status: 5000, errorMessage: 'Beneficiary not found' });
+    });
+
+    it('errors on a 200 whose status reads "Failed with …" even with an OK statusCode', () => {
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/save/benCaseSheet').flush({ statusCode: 200, status: 'Failed with NPE at 12:00' });
+
+      expect(failure?.status).toBe(200);
+    });
+
+    it('carries the HTTP status and body message on a 5xx', () => {
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/save/benCaseSheet').flush(
+        { errorMessage: 'Database unavailable' },
+        { status: 503, statusText: 'Service Unavailable' },
+      );
+
+      expect(failure).toEqual({ status: 503, errorMessage: 'Database unavailable' });
+    });
+
+    it('leaves the message empty on a 5xx with no body message so the caller can use its own copy', () => {
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/save/benCaseSheet').flush(null, { status: 500, statusText: 'Internal Server Error' });
+
+      expect(failure).toEqual({ status: 500, errorMessage: '' });
+    });
+
+    it('passes a 5002 envelope through as success — session expiry is the interceptor\'s to own', () => {
+      let completed = false;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ next: () => (completed = true) });
+
+      expectOne('beneficiary/save/benCaseSheet').flush({ statusCode: 5002, errorMessage: 'Session expired' });
+
+      expect(completed).toBeTrue();
+    });
+  });
+
+  describe('getAvailableServices', () => {
+    it('errors with the backend message on a failure envelope', () => {
+      let failure: HaoRequestError | undefined;
+      service.getAvailableServices(1, true).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/get/services').flush({ statusCode: 5000, errorMessage: 'No services mapped' });
+
+      expect(failure).toEqual({ status: 5000, errorMessage: 'No services mapped' });
+    });
+
+    it('normalises an HTTP failure', () => {
+      let failure: HaoRequestError | undefined;
+      service.getAvailableServices(1, true).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/get/services').flush(null, { status: 504, statusText: 'Gateway Timeout' });
+
+      expect(failure).toEqual({ status: 504, errorMessage: '' });
+    });
+
+    it('rejects a null serviceID without a request', () => {
+      let failure: HaoRequestError | undefined;
+      service.getAvailableServices(null, true).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expect(failure).toEqual({ status: 0, errorMessage: '' });
+    });
+  });
+
+  describe('request timeout', () => {
+    beforeEach(() => jasmine.clock().install());
+    afterEach(() => jasmine.clock().uninstall());
+
+    it('saveCaseSheet errors with the status-0 timeout message past the 20s deadline', () => {
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/save/benCaseSheet');
+
+      jasmine.clock().tick(19999);
+      expect(failure).toBeUndefined();
+
+      jasmine.clock().tick(2);
+      expect(failure).toEqual({ status: 0, errorMessage: TIMEOUT_MESSAGE });
+    });
+
+    it('getAvailableServices errors with the status-0 timeout message past the 20s deadline', () => {
+      let failure: HaoRequestError | undefined;
+      service.getAvailableServices(1, true).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/get/services');
+
+      jasmine.clock().tick(20001);
+      expect(failure).toEqual({ status: 0, errorMessage: TIMEOUT_MESSAGE });
     });
   });
 });

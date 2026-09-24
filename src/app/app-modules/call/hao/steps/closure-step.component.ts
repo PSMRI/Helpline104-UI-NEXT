@@ -20,7 +20,17 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -47,11 +57,13 @@ import {
   CallType,
   CampaignSkill,
   CloseCallRequest,
+  HaoRequestError,
   InstituteName,
   InstituteType,
   TransferCampaign,
 } from '../hao.models';
 import { HaoService } from '../hao.service';
+import { TransferRole, getCampaignName } from './closure-step.util';
 
 const ROLE_HAO = 'HAO';
 const ROLE_MO = 'MO';
@@ -78,8 +90,6 @@ const ROLE_FEATURE_NAME: Readonly<Partial<Record<string, string>>> = {
 /** Extra follow-up feature legacy always appends when the role also holds this screen. */
 const BLOOD_REQUEST_SCREEN = 'Blood Request';
 
-type TransferRole = 'hao' | 'co' | 'mo';
-
 function roleForService(serviceName: string): TransferRole | null {
   const name = serviceName.toLowerCase();
   if (name.includes('health advisory')) {
@@ -92,10 +102,6 @@ function roleForService(serviceName: string): TransferRole | null {
     return 'mo';
   }
   return null;
-}
-
-function getCampaignName(campaigns: TransferCampaign[], role: TransferRole): string | undefined {
-  return campaigns.find((c) => c.campaignName.toLowerCase().includes(role))?.campaignName;
 }
 
 const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
@@ -217,6 +223,22 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
                 <option [ngValue]="service.subServiceName">{{ service.subServiceName }}</option>
               }
             </select>
+            @if (servicesError(); as error) {
+              <div class="flex flex-wrap items-center gap-2 text-sm text-destructive" role="alert">
+                <span>{{ error }}</span>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  zSize="sm"
+                  [zLoading]="servicesLoading()"
+                  [zDisabled]="servicesLoading()"
+                  (click)="loadServices()"
+                >
+                  {{ 'hao.closure.retryServices' | translate: lang() }}
+                </button>
+              </div>
+            }
           </div>
         }
 
@@ -512,6 +534,8 @@ export class ClosureStepComponent {
   readonly callTypes = signal<CallType[]>([]);
   readonly campaigns = signal<TransferCampaign[]>([]);
   readonly services = signal<AvailableService[]>([]);
+  readonly servicesError = signal<string | null>(null);
+  readonly servicesLoading = signal(false);
   readonly skills = signal<CampaignSkill[]>([]);
   readonly communities = signal<Community[]>([]);
   readonly educations = signal<Education[]>([]);
@@ -714,11 +738,14 @@ export class ClosureStepComponent {
     });
 
     // An emergency call (flagged during registration, broadcast via CallStore)
-    // is always disposed as "Valid" — mirrors legacy closure's handleEmergency,
-    // which forces callType = "Valid" on the same signal. Locked rather than
-    // just pre-filled so the mandatory disposition can't be changed away from
-    // Valid for a call already marked emergency.
-    effect(() => this.applyEmergencyCallType(this.callStore.isEmergencyCall()));
+    // is pre-selected as "Valid" — mirrors legacy closure's handleEmergency,
+    // which sets callType = "Valid" on the same signal and leaves the select
+    // editable. untracked() keeps this keyed to the emergency flag alone: the
+    // control write reaches valueChanges, which reads the call-type signals.
+    effect(() => {
+      const isEmergency = this.callStore.isEmergencyCall();
+      untracked(() => this.applyEmergencyCallType(isEmergency));
+    });
 
     c.isFollowupRequired.valueChanges.pipe(takeUntilDestroyed()).subscribe((required) => {
       this.followUpRequired.set(required);
@@ -909,9 +936,8 @@ export class ClosureStepComponent {
         this.submitting.set(false);
         if (andContinue) {
           this.form.reset({ isEmergency: false, isSuicidal: false });
-          // form.reset() clears callGroupType (and re-enables it) regardless of
-          // the disabled-lock applied below — reapply for the same still-live,
-          // still-emergency call.
+          // form.reset() clears callGroupType — reapply the emergency
+          // pre-selection for the same still-live, still-emergency call.
           this.applyEmergencyCallType(this.callStore.isEmergencyCall());
           this.continued.emit();
         } else {
@@ -1034,11 +1060,13 @@ export class ClosureStepComponent {
   }
 
   /**
-   * Force-select and lock `callGroupType` to "Valid" while the call is
-   * flagged emergency; release the lock otherwise. Re-callable (not just
-   * effect-driven) because `form.reset()` on Submit & Continue clears and
-   * re-enables the control outside the signal change that would otherwise
-   * trigger this.
+   * Pre-select `callGroupType` as "Valid" while the call is flagged emergency,
+   * and clear it otherwise — legacy `handleEmergency`
+   * (`closure.component.ts:316-326`) sets the call type and leaves the select
+   * editable; only a booked Referral appointment locks it
+   * (`closure.component.html:93`, {@link disableCallType}). Re-callable (not
+   * just effect-driven) because `form.reset()` on Submit & Continue clears the
+   * control outside the signal change that would otherwise trigger this.
    */
   private applyEmergencyCallType(isEmergency: boolean): void {
     const control = this.form.controls.callGroupType;
@@ -1046,9 +1074,8 @@ export class ClosureStepComponent {
       if (control.value !== 'Valid') {
         control.setValue('Valid');
       }
-      control.disable();
-    } else {
-      control.enable();
+    } else if (control.value !== null) {
+      control.setValue(null);
     }
   }
 
@@ -1150,13 +1177,22 @@ export class ClosureStepComponent {
     return match?.subServiceID ?? null;
   }
 
-  private loadServices(): void {
+  loadServices(): void {
     // Same providerServiceMapID-not-serviceID fix as loadCallTypes() above —
     // verified live: serviceID returns an empty transfer-target list.
     const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    this.servicesLoading.set(true);
     this.haoService.getAvailableServices(providerServiceMapID, true).subscribe({
-      next: (services) => this.services.set(services),
-      error: () => this.services.set([]),
+      next: (services) => {
+        this.servicesLoading.set(false);
+        this.servicesError.set(null);
+        this.services.set(services);
+      },
+      error: (err: HaoRequestError) => {
+        this.servicesLoading.set(false);
+        this.services.set([]);
+        this.servicesError.set(err?.errorMessage || this.i18n.instant('hao.closure.servicesLoadError'));
+      },
     });
   }
 

@@ -240,6 +240,44 @@ describe('ClosureStepComponent', () => {
     callStore.setBeneficiaryId(null, null);
   });
 
+  it('pre-selects Valid for an emergency call but leaves the Call Type select editable', () => {
+    callStore.setEmergencyCall(true);
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    component.callTypes.set([
+      { callGroupType: 'Valid', callTypes: [] },
+      { callGroupType: 'Transfer', callTypes: [] },
+    ]);
+    fixture.detectChanges();
+
+    expect(component.form.controls.callGroupType.value).toBe('Valid');
+    expect(component.form.controls.callGroupType.enabled).toBeTrue();
+    const select = fixture.nativeElement.querySelector('select[formcontrolname="callGroupType"]') as HTMLSelectElement;
+    expect(select.disabled).toBeFalse();
+
+    component.form.controls.callGroupType.setValue('Transfer');
+    fixture.detectChanges();
+    expect(component.form.controls.callGroupType.value).toBe('Transfer');
+    expect(component.form.controls.callGroupType.enabled).toBeTrue();
+
+    callStore.setEmergencyCall(false);
+  });
+
+  it('clears the pre-selected Call Type once the call is no longer flagged emergency', () => {
+    callStore.setEmergencyCall(true);
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    expect(component.form.controls.callGroupType.value).toBe('Valid');
+
+    callStore.setEmergencyCall(false);
+    fixture.detectChanges();
+
+    expect(component.form.controls.callGroupType.value).toBeNull();
+    expect(component.form.controls.callGroupType.enabled).toBeTrue();
+    expect(component.form.controls.callGroupType.touched).toBeFalse();
+    expect(component.isInvalid('callGroupType')).toBeFalse();
+  });
+
   it('filters "Referral" out of the call-type list for roles other than HAO/MO', () => {
     const fixture = render('CO');
     const component = fixture.componentInstance;
@@ -387,5 +425,54 @@ describe('ClosureStepComponent', () => {
       .forEach((r) => r.flush({ data: 1 }));
 
     callStore.setBeneficiaryId(null, null);
+  });
+
+  it('shows an inline error with Retry when the transfer services fail to load, and clears it once a retry succeeds', () => {
+    authStore.setCurrentRole(currentRole('HAO'));
+    const fixture = TestBed.createComponent(ClosureStepComponent);
+    fixture.detectChanges();
+    http.match((req) => req.url.includes('getCallTypesV1')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('getRegistrationDataV1')).forEach((req) => req.flush({ data: {} }));
+    http.match((req) => req.url.includes('getInstituteTypes')).forEach((req) => req.flush({ data: [] }));
+    http
+      .expectOne((req) => req.url.includes('beneficiary/get/services'))
+      .flush({ statusCode: 5000, errorMessage: 'Service map missing' });
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.servicesError()).toBe('Service map missing');
+    expect(component.services()).toEqual([]);
+    const alert = fixture.nativeElement.querySelector('[role="alert"]') as HTMLElement | null;
+    expect(alert?.textContent).toContain('Service map missing');
+    const retry = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).find(
+      (b) => b.textContent?.includes('Retry'),
+    );
+    expect(retry).toBeDefined();
+
+    retry?.click();
+    fixture.detectChanges();
+    http
+      .expectOne((req) => req.url.includes('beneficiary/get/services'))
+      .flush({ data: [{ subServiceName: 'Health Advisory Service' }] });
+    fixture.detectChanges();
+
+    expect(component.servicesError()).toBeNull();
+    expect(component.services()).toEqual([{ subServiceName: 'Health Advisory Service' }]);
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('falls back to the translated message when the services request fails without a backend message', () => {
+    authStore.setCurrentRole(currentRole('HAO'));
+    const fixture = TestBed.createComponent(ClosureStepComponent);
+    fixture.detectChanges();
+    http.match((req) => req.url.includes('getCallTypesV1')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('getRegistrationDataV1')).forEach((req) => req.flush({ data: {} }));
+    http.match((req) => req.url.includes('getInstituteTypes')).forEach((req) => req.flush({ data: [] }));
+    http
+      .expectOne((req) => req.url.includes('beneficiary/get/services'))
+      .flush(null, { status: 500, statusText: 'Internal Server Error' });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.servicesError()).toBe('Could not load the transfer services. Please retry.');
   });
 });
