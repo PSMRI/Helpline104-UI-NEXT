@@ -36,6 +36,7 @@ import { AuthStore } from '../../core/auth/auth.store';
 import { CurrentRole } from '../../core/auth/auth.models';
 import { CallerDemographics, CallStore } from '../call.store';
 import { BeneficiaryRegistrationComponent } from './beneficiary-registration.component';
+import { BeneficiaryRecord } from './beneficiary.models';
 
 const SEARCH_BY_PHONE = (req: { url: string }) => req.url.includes('beneficiary/searchUserByPhone');
 const SEARCH_BENEFICIARY = (req: { url: string }) => req.url.includes('beneficiary/searchBeneficiary');
@@ -338,5 +339,206 @@ describe('BeneficiaryRegistrationComponent', () => {
 
     expect(createSpy).toHaveBeenCalled();
     expect(alertSpy).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * `beneficiary/update` rejects a body without `benPhoneMaps` (statusCode 5005,
+ * "benPhoneMapModelList is null") and silently persists nothing without the
+ * six `changeIn*` section flags — both verified live against UAT. Legacy sends
+ * the fetched record's phone maps and hardcodes all six flags to `true`.
+ */
+describe('BeneficiaryRegistrationComponent modify', () => {
+  let authStore: AuthStore;
+  let http: HttpTestingController;
+
+  const SEARCH_BY_ID = (req: { url: string }) => req.url.includes('beneficiary/searchUserByID');
+  const UPDATE = (req: { url: string }) => req.url.includes('beneficiary/update');
+
+  const ADDRESS_BEFORE = { stateID: 3, districtID: 9, blockID: 5, districtBranchID: 11 };
+  const ADDRESS_AFTER = { stateID: 4, districtID: 12, blockID: 6, districtBranchID: 14 };
+
+  function record(address: typeof ADDRESS_BEFORE, benPhoneMaps?: BeneficiaryRecord['benPhoneMaps']): BeneficiaryRecord {
+    return {
+      beneficiaryRegID: 4321,
+      beneficiaryID: '123456789012',
+      firstName: 'Jane',
+      lastName: 'Doe',
+      actualAge: 30,
+      ageUnits: 'Years',
+      dOB: '1996-01-15T00:00:00.000Z',
+      m_gender: { genderID: 2, genderName: 'Female' },
+      benPhoneMaps,
+      i_bendemographics: {
+        ...address,
+        addressLine1: 'H-1',
+        pinCode: '462001',
+        communityID: 3,
+        educationID: 4,
+      },
+    };
+  }
+
+  function existingPhoneMaps(): BeneficiaryRecord['benPhoneMaps'] {
+    return [
+      {
+        benPhoneMapID: 900,
+        benificiaryRegID: 4321,
+        parentBenRegID: 4321,
+        phoneNo: '9876543210',
+        phoneTypeID: 1,
+        benRelationshipID: 1,
+        createdBy: 'someoneelse',
+      },
+    ];
+  }
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    TestBed.configureTestingModule({
+      imports: [BeneficiaryRegistrationComponent],
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    authStore = TestBed.inject(AuthStore);
+    authStore.setSession({
+      token: 'token',
+      user: { userID: 1, agentID: 1, userName: 'agent104', status: 'Active' },
+    });
+    authStore.setCurrentRole(currentRole());
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    http.verify();
+    sessionStorage.clear();
+  });
+
+  function render() {
+    const fixture = TestBed.createComponent(BeneficiaryRegistrationComponent);
+    fixture.detectChanges();
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ data: null });
+    http.expectOne((req) => req.url.includes('m/role/state')).flush({ data: [] });
+    return fixture;
+  }
+
+  function flushAddressCascade(address: typeof ADDRESS_BEFORE) {
+    http
+      .expectOne((r) => r.url.includes(`location/districts/${address.stateID}`))
+      .flush({ data: [{ districtID: address.districtID, districtName: 'District' }] });
+    http
+      .expectOne((r) => r.url.includes(`location/taluks/${address.districtID}`))
+      .flush({ data: [{ blockID: address.blockID, blockName: 'Block' }] });
+    http
+      .expectOne((r) => r.url.includes(`location/village/${address.blockID}`))
+      .flush({ data: [{ districtBranchID: address.districtBranchID, villageName: 'Village' }] });
+  }
+
+  function selectForUpdate(component: BeneficiaryRegistrationComponent, detail: BeneficiaryRecord) {
+    component.selectBeneficiary({ beneficiaryRegID: detail.beneficiaryRegID });
+    http.expectOne(SEARCH_BY_ID).flush({ data: [detail] });
+    flushAddressCascade(detail.i_bendemographics as unknown as typeof ADDRESS_BEFORE);
+  }
+
+  it('doModify() sends the fetched phone maps back, re-stamping only the primary entry', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, record(ADDRESS_BEFORE, existingPhoneMaps()));
+    component.registerForm.controls.relationshipTypeID.setValue(3);
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.benPhoneMaps.length).toBe(1);
+    expect(req.request.body.benPhoneMaps[0].phoneNo).toBe('9876543210');
+    expect(req.request.body.benPhoneMaps[0].benificiaryRegID).toBe(4321);
+    expect(req.request.body.benPhoneMaps[0].benPhoneMapID).toBe(900);
+    expect(req.request.body.benPhoneMaps[0].benRelationshipID).toBe(3);
+    expect(req.request.body.benPhoneMaps[0].createdBy).toBe('agent104');
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('doModify() sends all six changeIn flags as true', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, record(ADDRESS_BEFORE, existingPhoneMaps()));
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.changeInSelfDetails).toBeTrue();
+    expect(req.request.body.changeInIdentities).toBeTrue();
+    expect(req.request.body.changeInOtherDetails).toBeTrue();
+    expect(req.request.body.changeInAddress).toBeTrue();
+    expect(req.request.body.changeInContacts).toBeTrue();
+    expect(req.request.body.changeInFamilyDetails).toBeTrue();
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('doModify() falls back to the call CLI when the record came back without phone maps', () => {
+    TestBed.inject(CallStore).startCall({ cli: '9876543210', sessionId: 'session-1' });
+    const fixture = render();
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, record(ADDRESS_BEFORE));
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.benPhoneMaps).toEqual([
+      jasmine.objectContaining({ phoneNo: '9876543210', createdBy: 'agent104' }),
+    ]);
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('doModify() still sends an empty array when there is neither a stored map nor a CLI', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, record(ADDRESS_BEFORE));
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.benPhoneMaps).toEqual([]);
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('an address edit is sent with the new ids and comes back on the next read', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, record(ADDRESS_BEFORE, existingPhoneMaps()));
+
+    component.registerForm.patchValue({
+      stateID: ADDRESS_AFTER.stateID,
+      districtID: ADDRESS_AFTER.districtID,
+      subDistrictID: ADDRESS_AFTER.blockID,
+      villageID: ADDRESS_AFTER.districtBranchID,
+    });
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.i_bendemographics).toEqual(
+      jasmine.objectContaining({
+        beneficiaryRegID: 4321,
+        stateID: ADDRESS_AFTER.stateID,
+        districtID: ADDRESS_AFTER.districtID,
+        blockID: ADDRESS_AFTER.blockID,
+        districtBranchID: ADDRESS_AFTER.districtBranchID,
+      }),
+    );
+    expect(req.request.body.changeInAddress).toBeTrue();
+    req.flush({ statusCode: 200, data: 'Success' });
+
+    selectForUpdate(component, record(ADDRESS_AFTER, existingPhoneMaps()));
+
+    const reloaded = component.registerForm.getRawValue();
+    expect(reloaded.stateID).toBe(ADDRESS_AFTER.stateID);
+    expect(reloaded.districtID).toBe(ADDRESS_AFTER.districtID);
+    expect(reloaded.subDistrictID).toBe(ADDRESS_AFTER.blockID);
+    expect(reloaded.villageID).toBe(ADDRESS_AFTER.districtBranchID);
   });
 });
