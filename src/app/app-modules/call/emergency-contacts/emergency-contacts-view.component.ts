@@ -27,6 +27,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideX } from '@ng-icons/lucide';
 
 import { AuthStore } from '../../core/auth/auth.store';
+import { isServerExceptionMessage } from '../../core/http/error-sanitizer.interceptor';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { EmergencyContact, NotificationError } from './notification.models';
@@ -137,7 +138,9 @@ export class EmergencyContactsViewComponent implements OnInit {
         error: (err: NotificationError) => {
           this.loading.set(false);
           this.contacts.set([]);
-          this.errorMessage.set(err.errorMessage || this.i18n.instant('emergencyContacts.loadError'));
+          const fallback = this.i18n.instant('emergencyContacts.loadError');
+          const serverFault = err.status >= 500 || isServerExceptionMessage(err.errorMessage);
+          this.errorMessage.set(serverFault ? fallback : err.errorMessage || fallback);
         },
       });
   }

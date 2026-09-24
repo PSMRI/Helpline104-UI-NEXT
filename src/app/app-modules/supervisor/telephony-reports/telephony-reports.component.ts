@@ -28,6 +28,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ConfigService } from '../../core/services/config.service';
 import { CzentrixService } from '../../core/services/czentrix.service';
+import { CtiKeyNoticeComponent } from '../shared/cti-key-notice.component';
 
 /**
  * Telephony Reports (supervisor screen), the legacy `104-supervisor` menu's
@@ -49,7 +50,7 @@ import { CzentrixService } from '../../core/services/czentrix.service';
   selector: 'app-telephony-reports',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, CtiKeyNoticeComponent],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
       <h1 class="mb-4 text-base font-semibold text-foreground">
@@ -65,9 +66,7 @@ import { CzentrixService } from '../../core/services/czentrix.service';
           [title]="'supervisor.telephonyReports.title' | translate: lang()"
         ></iframe>
       } @else {
-        <p class="py-8 text-center text-sm text-muted-foreground" role="alert">
-          {{ 'supervisor.telephonyReports.unavailable' | translate: lang() }}
-        </p>
+        <app-cti-key-notice />
       }
     </section>
   `,

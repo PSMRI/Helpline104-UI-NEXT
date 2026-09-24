@@ -40,11 +40,18 @@ const SERVER_EXCEPTION_PATTERNS: readonly RegExp[] = [
   /\bselect\b.{0,50}\bfrom\b/i,
   /exception/i,
   /communications link failure/i,
+  /\bjava\./i,
+  /typeadapter/i,
 ];
+
+/** Whether a message reads like a raw server exception rather than user-facing copy. */
+export function isServerExceptionMessage(message: string): boolean {
+  return SERVER_EXCEPTION_PATTERNS.some((p) => p.test(message));
+}
 
 /** Replace a message that looks like a raw server exception with generic copy. */
 export function sanitizeErrorMessage(message: string): string {
-  return SERVER_EXCEPTION_PATTERNS.some((p) => p.test(message)) ? GENERIC_ERROR_MESSAGE : message;
+  return isServerExceptionMessage(message) ? GENERIC_ERROR_MESSAGE : message;
 }
 
 /** Return a copy of an envelope body with its `errorMessage` sanitized, or null if untouched. */

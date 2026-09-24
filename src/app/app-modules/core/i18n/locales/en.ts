@@ -1358,6 +1358,8 @@ export const en = {
   'supComm.subjectMin': 'Subject is required(min 5 characters)',
   'supComm.messageMin': 'Message is required(min 5 characters)',
   'supComm.noNotificationTypes': 'No Notification Types Found. Please contact technical support',
+  'supComm.emergencyContactsUnavailable':
+    'Emergency contacts could not be loaded from the server. Please try again later.',
   'supComm.noOffices': 'No work locations found',
   'supComm.noOfficesForRole': 'No office found with the selected role functional in them',
   'supComm.noRoles': 'No roles found',
@@ -1529,10 +1531,10 @@ export const en = {
 
   // Supervisor agent status
   'supervisor.telephonyReports.title': 'Telephony Reports',
-  'supervisor.telephonyReports.unavailable':
-    'Telephony Reports is unavailable right now. Please try logging in again.',
   'supervisor.agentStatus.title': 'Agent Status',
-  'supervisor.agentStatus.unavailable': 'Agent Status is unavailable right now. Please try logging in again.',
+  'supervisor.ctiKey.missing': 'The telephony session key was not received from CZentrix.',
+  'supervisor.ctiKey.retry': 'Retry',
+  'supervisor.ctiKey.retryFailed': 'Still unavailable. Please log out and log in again.',
   // Login
   'login.title': 'AMRIT 104 Helpline',
   'login.subtitle': 'Sign in to your account to continue',

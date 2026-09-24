@@ -1361,6 +1361,7 @@ export const hi: Record<TranslationKey, string> = {
   'supComm.subjectMin': 'विषय आवश्यक है (न्यूनतम 5 वर्ण)',
   'supComm.messageMin': 'संदेश आवश्यक है (न्यूनतम 5 वर्ण)',
   'supComm.noNotificationTypes': 'कोई अधिसूचना प्रकार नहीं मिला। कृपया तकनीकी सहायता से संपर्क करें',
+  'supComm.emergencyContactsUnavailable': 'आपातकालीन संपर्क सर्वर से लोड नहीं हो सके। कृपया बाद में पुनः प्रयास करें।',
   'supComm.noOffices': 'काम का कोई स्थान नहीं मिला',
   'supComm.noOfficesForRole': 'उनमें चयनित भूमिका के साथ कोई कार्यालय कार्यात्मक नहीं मिला',
   'supComm.noRoles': 'कोई भूमिका नहीं मिली',
@@ -1532,10 +1533,10 @@ export const hi: Record<TranslationKey, string> = {
 
   // Supervisor agent status
   'supervisor.telephonyReports.title': 'टेलीफोनी रिपोर्ट',
-  'supervisor.telephonyReports.unavailable':
-    'टेलीफोनी रिपोर्ट अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
   'supervisor.agentStatus.title': 'एजेंट स्थिति',
-  'supervisor.agentStatus.unavailable': 'एजेंट स्थिति अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
+  'supervisor.ctiKey.missing': 'CZentrix से टेलीफोनी सत्र कुंजी प्राप्त नहीं हुई।',
+  'supervisor.ctiKey.retry': 'पुनः प्रयास करें',
+  'supervisor.ctiKey.retryFailed': 'अभी भी उपलब्ध नहीं है। कृपया लॉग आउट करके पुनः लॉगिन करें।',
   // Login
   'login.title': 'AMRIT 104 हेल्पलाइन',
   'login.subtitle': 'जारी रखने के लिए अपने खाते में साइन इन करें',
