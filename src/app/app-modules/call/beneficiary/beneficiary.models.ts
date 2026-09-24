@@ -126,6 +126,7 @@ export interface BeneficiaryRecord {
     districtBranchID?: number | null;
     addressLine1?: string | null;
     pinCode?: string | null;
+    incomeStatusID?: number | null;
     m_district?: { districtID?: number; districtName?: string };
     m_state?: { stateID?: number; stateName?: string };
     m_districtbranchmapping?: { villageName?: string; blockName?: string };
@@ -192,6 +193,7 @@ export interface BenDemographics {
   blockID?: number | null;
   districtBranchID?: number | null;
   addressLine1?: string | null;
+  incomeStatusID?: number | null;
   createdBy: string;
 }
 

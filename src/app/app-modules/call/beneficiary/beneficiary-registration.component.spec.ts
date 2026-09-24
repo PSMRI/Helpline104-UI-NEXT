@@ -541,4 +541,68 @@ describe('BeneficiaryRegistrationComponent modify', () => {
     expect(reloaded.subDistrictID).toBe(ADDRESS_AFTER.blockID);
     expect(reloaded.villageID).toBe(ADDRESS_AFTER.districtBranchID);
   });
+
+  function recordWithIncome(address: typeof ADDRESS_BEFORE, incomeStatusID: number): BeneficiaryRecord {
+    const detail = record(address, existingPhoneMaps());
+    detail.i_bendemographics = { ...detail.i_bendemographics, incomeStatusID };
+    return detail;
+  }
+
+  it('doModify() echoes the fetched incomeStatusID so the backend does not clear it', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, recordWithIncome(ADDRESS_BEFORE, 2));
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.i_bendemographics.incomeStatusID).toBe(2);
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('doModify() omits incomeStatusID when the fetched record has none', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, record(ADDRESS_BEFORE, existingPhoneMaps()));
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect('incomeStatusID' in req.request.body.i_bendemographics).toBeFalse();
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('an address-only modify preserves incomeStatusID end to end', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, recordWithIncome(ADDRESS_BEFORE, 2));
+
+    component.registerForm.patchValue({
+      stateID: ADDRESS_AFTER.stateID,
+      districtID: ADDRESS_AFTER.districtID,
+      subDistrictID: ADDRESS_AFTER.blockID,
+      villageID: ADDRESS_AFTER.districtBranchID,
+    });
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.i_bendemographics).toEqual(
+      jasmine.objectContaining({
+        stateID: ADDRESS_AFTER.stateID,
+        districtBranchID: ADDRESS_AFTER.districtBranchID,
+        incomeStatusID: 2,
+      }),
+    );
+    req.flush({ statusCode: 200, data: 'Success' });
+
+    selectForUpdate(component, recordWithIncome(ADDRESS_AFTER, 2));
+
+    component.doModify();
+    const again = http.expectOne(UPDATE);
+    expect(again.request.body.i_bendemographics.incomeStatusID).toBe(2);
+    again.flush({ statusCode: 200, data: 'Success' });
+  });
 });

@@ -1294,6 +1294,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly parentBenName = signal<string | null>(null);
   private parentBenRegID: number | null = null;
   private updateBenPhoneMaps: BeneficiaryPhoneMap[] = [];
+  private updateIncomeStatusID: number | null = null;
 
   /**
    * True once an already-registered beneficiary has been selected for review:
@@ -1558,6 +1559,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.updateDisplayId.set(null);
     this.parentBenRegID = null;
     this.updateBenPhoneMaps = [];
+    this.updateIncomeStatusID = null;
     // The summary bar was populated for review only — an abandoned review
     // (Back to list / fresh Register new) must not leave a beneficiary
     // "resolved" that the agent never actually proceeded with.
@@ -2258,6 +2260,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     });
     this.parentBenRegID = detail.benPhoneMaps?.[0]?.parentBenRegID ?? null;
     this.updateBenPhoneMaps = detail.benPhoneMaps ?? [];
+    this.updateIncomeStatusID = demo?.incomeStatusID ?? null;
     this.cascadeLoadAddress(readDistrictID(demo?.stateID), readDistrictID(demo?.districtID), readDistrictID(demo?.blockID));
 
     this.activeView.set('register');
@@ -2425,6 +2428,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         blockID: v.subDistrictID,
         districtBranchID: v.villageID,
         addressLine1: v.houseNumber.trim(),
+        ...(this.updateIncomeStatusID != null ? { incomeStatusID: this.updateIncomeStatusID } : {}),
         createdBy,
       },
       benPhoneMaps: this.buildUpdatePhoneMaps(v.relationshipTypeID ?? RELATIONSHIP_SELF, createdBy),
