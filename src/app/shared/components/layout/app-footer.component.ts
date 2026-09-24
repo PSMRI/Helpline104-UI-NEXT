@@ -42,9 +42,10 @@ const ORGANISATION = 'PSMRI';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslatePipe],
+  host: { class: 'sticky bottom-0 z-[60] block' },
   template: `
     <footer
-      class="relative z-[60] flex flex-wrap items-center justify-between gap-2 bg-foreground px-4 py-2 text-xs text-background sm:px-6"
+      class="flex flex-wrap items-center justify-between gap-2 bg-foreground px-4 py-2 text-xs text-background sm:px-6"
     >
       <span class="flex items-center gap-1">
         <span>{{ copyrightYear }}</span>
