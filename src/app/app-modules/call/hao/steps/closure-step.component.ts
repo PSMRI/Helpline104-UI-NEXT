@@ -47,11 +47,13 @@ import {
   CallType,
   CampaignSkill,
   CloseCallRequest,
+  HaoRequestError,
   InstituteName,
   InstituteType,
   TransferCampaign,
 } from '../hao.models';
 import { HaoService } from '../hao.service';
+import { TransferRole, getCampaignName } from './closure-step.util';
 
 const ROLE_HAO = 'HAO';
 const ROLE_MO = 'MO';
@@ -78,8 +80,6 @@ const ROLE_FEATURE_NAME: Readonly<Partial<Record<string, string>>> = {
 /** Extra follow-up feature legacy always appends when the role also holds this screen. */
 const BLOOD_REQUEST_SCREEN = 'Blood Request';
 
-type TransferRole = 'hao' | 'co' | 'mo';
-
 function roleForService(serviceName: string): TransferRole | null {
   const name = serviceName.toLowerCase();
   if (name.includes('health advisory')) {
@@ -92,10 +92,6 @@ function roleForService(serviceName: string): TransferRole | null {
     return 'mo';
   }
   return null;
-}
-
-function getCampaignName(campaigns: TransferCampaign[], role: TransferRole): string | undefined {
-  return campaigns.find((c) => c.campaignName.toLowerCase().includes(role))?.campaignName;
 }
 
 const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
@@ -217,6 +213,22 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
                 <option [ngValue]="service.subServiceName">{{ service.subServiceName }}</option>
               }
             </select>
+            @if (servicesError(); as error) {
+              <div class="flex flex-wrap items-center gap-2 text-sm text-destructive" role="alert">
+                <span>{{ error }}</span>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  zSize="sm"
+                  [zLoading]="servicesLoading()"
+                  [zDisabled]="servicesLoading()"
+                  (click)="loadServices()"
+                >
+                  {{ 'hao.closure.retryServices' | translate: lang() }}
+                </button>
+              </div>
+            }
           </div>
         }
 
@@ -512,6 +524,8 @@ export class ClosureStepComponent {
   readonly callTypes = signal<CallType[]>([]);
   readonly campaigns = signal<TransferCampaign[]>([]);
   readonly services = signal<AvailableService[]>([]);
+  readonly servicesError = signal<string | null>(null);
+  readonly servicesLoading = signal(false);
   readonly skills = signal<CampaignSkill[]>([]);
   readonly communities = signal<Community[]>([]);
   readonly educations = signal<Education[]>([]);
@@ -1150,13 +1164,22 @@ export class ClosureStepComponent {
     return match?.subServiceID ?? null;
   }
 
-  private loadServices(): void {
+  loadServices(): void {
     // Same providerServiceMapID-not-serviceID fix as loadCallTypes() above —
     // verified live: serviceID returns an empty transfer-target list.
     const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    this.servicesLoading.set(true);
     this.haoService.getAvailableServices(providerServiceMapID, true).subscribe({
-      next: (services) => this.services.set(services),
-      error: () => this.services.set([]),
+      next: (services) => {
+        this.servicesLoading.set(false);
+        this.servicesError.set(null);
+        this.services.set(services);
+      },
+      error: (err: HaoRequestError) => {
+        this.servicesLoading.set(false);
+        this.services.set([]);
+        this.servicesError.set(err?.errorMessage || this.i18n.instant('hao.closure.servicesLoadError'));
+      },
     });
   }
 

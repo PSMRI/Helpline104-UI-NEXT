@@ -68,6 +68,7 @@ import {
   GuidelineCategory,
   GuidelineDetail,
   GuidelineSubCategory,
+  HaoRequestError,
   PresentCaseSheet,
   SaveCovidVaccinationRequest,
 } from '../hao.models';
@@ -2059,12 +2060,12 @@ export class CaseSheetComponent {
           })
           .subscribe();
       },
-      error: () => {
+      error: (err: HaoRequestError) => {
         this.saving.set(false);
         this.confirmDialog
           .alert({
             title: this.i18n.instant('dashboard.dialog.error'),
-            message: this.i18n.instant('hao.caseSheet.saveError'),
+            message: err?.errorMessage || this.i18n.instant('hao.caseSheet.saveError'),
             okText: this.i18n.instant('dashboard.dialog.ok'),
             status: 'error',
           })

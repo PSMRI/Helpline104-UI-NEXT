@@ -993,6 +993,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.closeError': 'কল বন্ধ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.transferError': 'কল স্থানান্তৰ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.callTypesLoadError': 'কলৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'hao.closure.servicesLoadError': 'স্থানান্তৰ সেৱাসমূহ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'hao.closure.retryServices': 'পুনৰ চেষ্টা কৰক',
   'hao.closure.noServiceError':
     'আপোনাৰ ভূমিকাত কোনো সেৱা নিযুক্ত কৰা হোৱা নাই, সেয়েহে কলৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি আপোনাৰ প্ৰশাসকৰ সৈতে যোগাযোগ কৰক।',
 

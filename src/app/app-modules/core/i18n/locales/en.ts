@@ -988,6 +988,8 @@ export const en = {
   'hao.closure.closeError': 'Unable to close the call. Please try again.',
   'hao.closure.transferError': 'Unable to transfer the call. Please try again.',
   'hao.closure.callTypesLoadError': 'Unable to load call types. Please try again.',
+  'hao.closure.servicesLoadError': 'Could not load the transfer services. Please retry.',
+  'hao.closure.retryServices': 'Retry',
   'hao.closure.noServiceError':
     'No service is assigned to your role, so call types cannot be loaded. Please contact your administrator.',
 

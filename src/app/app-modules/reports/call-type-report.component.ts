@@ -65,9 +65,7 @@ function toDateInput(date: Date): string {
  * Agent Call Type (Customer Delight Index) report, ported from the legacy
  * `surveyor-calltype-reports`: a date-range + call-status filter over the
  * server-paged CDI worklist (`call/filterCallListPage`). Closed calls open the
- * Customer Delight Report modal ({@link CdiReportDialogComponent}); dialing a
- * pending call needs the CTI soft-phone and is deferred, like the outbound
- * worklist's manual dial.
+ * Customer Delight Report modal ({@link CdiReportDialogComponent}).
  *
  * Embedded in the surveyor workspace and routed at `/reports/call-type` from
  * the dashboard Reports panel. Standalone, OnPush + signals, ZardUI + Tailwind.
@@ -171,7 +169,7 @@ function toDateInput(date: Date): string {
         </p>
       }
 
-      @if (searched()) {
+      @if (searched() && !errorMessage()) {
         <div class="mt-5 overflow-x-auto rounded-md border border-border">
           <table class="w-full text-left text-sm">
             <thead class="bg-muted/50 text-xs text-muted-foreground">
@@ -269,11 +267,6 @@ function toDateInput(date: Date): string {
             </button>
           </div>
         }
-
-        <!-- Dialing a pending CDI call needs the CTI soft-phone (deferred). -->
-        <p class="mt-4 text-xs text-muted-foreground">
-          {{ 'reports.callType.dialDeferred' | translate: lang() }}
-        </p>
       }
     </section>
   `,
