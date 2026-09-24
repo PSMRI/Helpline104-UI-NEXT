@@ -240,6 +240,44 @@ describe('ClosureStepComponent', () => {
     callStore.setBeneficiaryId(null, null);
   });
 
+  it('pre-selects Valid for an emergency call but leaves the Call Type select editable', () => {
+    callStore.setEmergencyCall(true);
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    component.callTypes.set([
+      { callGroupType: 'Valid', callTypes: [] },
+      { callGroupType: 'Transfer', callTypes: [] },
+    ]);
+    fixture.detectChanges();
+
+    expect(component.form.controls.callGroupType.value).toBe('Valid');
+    expect(component.form.controls.callGroupType.enabled).toBeTrue();
+    const select = fixture.nativeElement.querySelector('select[formcontrolname="callGroupType"]') as HTMLSelectElement;
+    expect(select.disabled).toBeFalse();
+
+    component.form.controls.callGroupType.setValue('Transfer');
+    fixture.detectChanges();
+    expect(component.form.controls.callGroupType.value).toBe('Transfer');
+    expect(component.form.controls.callGroupType.enabled).toBeTrue();
+
+    callStore.setEmergencyCall(false);
+  });
+
+  it('clears the pre-selected Call Type once the call is no longer flagged emergency', () => {
+    callStore.setEmergencyCall(true);
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    expect(component.form.controls.callGroupType.value).toBe('Valid');
+
+    callStore.setEmergencyCall(false);
+    fixture.detectChanges();
+
+    expect(component.form.controls.callGroupType.value).toBeNull();
+    expect(component.form.controls.callGroupType.enabled).toBeTrue();
+    expect(component.form.controls.callGroupType.touched).toBeFalse();
+    expect(component.isInvalid('callGroupType')).toBeFalse();
+  });
+
   it('filters "Referral" out of the call-type list for roles other than HAO/MO', () => {
     const fixture = render('CO');
     const component = fixture.componentInstance;
