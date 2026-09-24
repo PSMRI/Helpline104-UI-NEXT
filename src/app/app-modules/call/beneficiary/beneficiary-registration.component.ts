@@ -36,7 +36,6 @@ import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideLoaderCircle, lucideSearch, lucideUserPlus } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
-import { TimeoutError, catchError, throwError, timeout } from 'rxjs';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardDialogService } from '@common-ui/ui/dialog';
@@ -113,12 +112,6 @@ const RELATIONSHIP_OTHER = 11;
 const MAX_AGE = 120;
 const MIN_AGE_GENERAL = 1;
 const MIN_AGE_HCW = 16;
-/**
- * Client-side cap on a beneficiary search: no interceptor adds an HTTP-level
- * timeout, so without this a stalled request never errors and the search
- * spinner (and Retry state) would never appear.
- */
-const SEARCH_TIMEOUT_MS = 30_000;
 /** Alternate phone control names (legacy alternateNumber1..5). */
 const ALT_PHONE_NAMES = [
   'alternateNumber1',
@@ -1656,14 +1649,6 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.historyTimedOut.set(false);
     this.beneficiary
       .searchByPhone(cli)
-      .pipe(
-        timeout(SEARCH_TIMEOUT_MS),
-        catchError((err: unknown) =>
-          throwError(() =>
-            err instanceof TimeoutError ? ({ status: 0, errorMessage: '' } satisfies BeneficiaryError) : err,
-          ),
-        ),
-      )
       .subscribe({
         next: (rows) => {
           this.historyResults.set(rows);
@@ -2021,16 +2006,6 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
 
     this.beneficiary
       .searchBeneficiary(criteria)
-      .pipe(
-        timeout(SEARCH_TIMEOUT_MS),
-        // A TimeoutError has no `status`, which the handler below would read
-        // as non-retryable — normalise it to a retryable BeneficiaryError.
-        catchError((err: unknown) =>
-          throwError(() =>
-            err instanceof TimeoutError ? ({ status: 0, errorMessage: '' } satisfies BeneficiaryError) : err,
-          ),
-        ),
-      )
       .subscribe({
         // Guard against out-of-order responses: ignore if a newer search (or a
         // reset) has since been issued.

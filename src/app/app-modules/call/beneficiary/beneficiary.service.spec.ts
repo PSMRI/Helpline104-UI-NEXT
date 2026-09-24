@@ -53,6 +53,35 @@ describe('BeneficiaryService request timeout', () => {
     jasmine.clock().uninstall();
   });
 
+  it('searchBeneficiary() waits past 20s and errors just under the gateway 60s cut', () => {
+    let failure: BeneficiaryError | undefined;
+    service.searchBeneficiary({ firstName: 'Pratiksha' }).subscribe({
+      error: (err: BeneficiaryError) => (failure = err),
+    });
+
+    http.expectOne((req) => req.url.includes('beneficiary/searchBeneficiary'));
+
+    jasmine.clock().tick(54999);
+    expect(failure).toBeUndefined();
+
+    jasmine.clock().tick(2);
+    expect(failure?.status).toBe(0);
+    expect(failure?.errorMessage).toBe('The request timed out. Please check your connection and try again.');
+  });
+
+  it('searchByPhone() keeps the same 55s deadline', () => {
+    let failure: BeneficiaryError | undefined;
+    service.searchByPhone('8319380416').subscribe({ error: (err: BeneficiaryError) => (failure = err) });
+
+    http.expectOne((req) => req.url.includes('beneficiary/searchUserByPhone'));
+
+    jasmine.clock().tick(54999);
+    expect(failure).toBeUndefined();
+
+    jasmine.clock().tick(2);
+    expect(failure?.status).toBe(0);
+  });
+
   it('create() errors instead of hanging past the 20s deadline', () => {
     let failure: BeneficiaryError | undefined;
     service
