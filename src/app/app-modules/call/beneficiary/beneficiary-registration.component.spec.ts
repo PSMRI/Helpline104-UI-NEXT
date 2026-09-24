@@ -24,6 +24,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 
 import { of } from 'rxjs';
 
@@ -33,7 +34,31 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
 import { AuthStore } from '../../core/auth/auth.store';
 import { CurrentRole } from '../../core/auth/auth.models';
+import { CallerDemographics, CallStore } from '../call.store';
 import { BeneficiaryRegistrationComponent } from './beneficiary-registration.component';
+
+const SEARCH_BY_PHONE = (req: { url: string }) => req.url.includes('beneficiary/searchUserByPhone');
+const SEARCH_BENEFICIARY = (req: { url: string }) => req.url.includes('beneficiary/searchBeneficiary');
+const HCW_TYPES = (req: { url: string }) => req.url.includes('beneficiary/get/healthCareWorkerTypes');
+
+function demographics(): CallerDemographics {
+  return {
+    firstName: 'Jane',
+    lastName: 'Doe',
+    age: 30,
+    genderId: 2,
+    genderName: 'Female',
+    displayId: '123456789012',
+    stateName: null,
+    districtName: null,
+    subDistrictName: null,
+    villageName: null,
+    maritalStatus: null,
+    category: null,
+    communityName: null,
+    educationName: null,
+  };
+}
 
 function currentRole(): CurrentRole {
   return {
@@ -85,6 +110,130 @@ describe('BeneficiaryRegistrationComponent', () => {
     http.expectOne((req) => req.url.includes('m/role/state')).flush({ data: [] });
     return fixture;
   }
+
+  /** Seed an active call so `ngOnInit` also fires the CLI-history load, left pending for the test to flush. */
+  function renderWithCli() {
+    TestBed.inject(CallStore).startCall({ cli: '9876543210', sessionId: 'session-1' });
+    return render();
+  }
+
+  it('proceedAfterRegistration() Cancel on the Health Advisory prompt leaves the beneficiary unresolved and returns to the history list', () => {
+    const fixture = renderWithCli();
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+    const component = fixture.componentInstance;
+    const callStore = TestBed.inject(CallStore);
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    spyOn(confirmDialog, 'confirm').and.returnValue(of(false));
+    component.activeView.set('register');
+
+    component['proceedAfterRegistration'](123, 9, demographics());
+
+    expect(callStore.beneficiaryId()).toBeNull();
+    expect(callStore.demographics()).toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
+    expect(component.activeView()).toBe('list');
+    expect(component.calledEarlier()).toBe('yes');
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [{ beneficiaryRegID: 123 }] });
+    expect(component.historyResults()).toEqual([{ beneficiaryRegID: 123 }]);
+  });
+
+  it('proceedAfterRegistration() OK on the Health Advisory prompt resolves the beneficiary and opens the HAO workspace', () => {
+    const fixture = renderWithCli();
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+    const component = fixture.componentInstance;
+    const callStore = TestBed.inject(CallStore);
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    spyOn(confirmDialog, 'confirm').and.returnValue(of(true));
+
+    component['proceedAfterRegistration'](123, 9, demographics());
+
+    expect(callStore.beneficiaryId()).toBe(123);
+    expect(callStore.demographics()?.firstName).toBe('Jane');
+    expect(navigate).toHaveBeenCalledWith(['/innerpage', 'hao']);
+  });
+
+  it('quickSearchById() clears a stale history timeout and shows its own results', () => {
+    const fixture = renderWithCli();
+    http.expectOne(SEARCH_BY_PHONE).flush(null, { status: 500, statusText: 'Server Error' });
+    const component = fixture.componentInstance;
+    expect(component.historyTimedOut()).toBeTrue();
+    component.quickSearchTerm.set('123456789012');
+
+    component.quickSearchById();
+
+    expect(component.historyTimedOut()).toBeFalse();
+    http.expectOne(SEARCH_BENEFICIARY).flush({ data: [{ beneficiaryRegID: 5 }] });
+    expect(component.historyTimedOut()).toBeFalse();
+    expect(component.historyError()).toBeFalse();
+    expect(component.displayedHistoryResults()).toEqual([{ beneficiaryRegID: 5 }]);
+  });
+
+  it('viewAllHistory() re-fetches the CLI history when the earlier load failed', () => {
+    const fixture = renderWithCli();
+    http.expectOne(SEARCH_BY_PHONE).flush(null, { status: 500, statusText: 'Server Error' });
+    const component = fixture.componentInstance;
+    component.quickSearchTerm.set('123456789012');
+    component.quickSearchById();
+    http.expectOne(SEARCH_BENEFICIARY).flush({ data: [{ beneficiaryRegID: 5 }] });
+
+    component.viewAllHistory();
+
+    expect(component.quickSearchResults()).toBeNull();
+    expect(component.quickSearchTerm()).toBe('');
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [{ beneficiaryRegID: 7 }] });
+    expect(component.historyResults()).toEqual([{ beneficiaryRegID: 7 }]);
+    expect(component.displayedHistoryResults()).toEqual([{ beneficiaryRegID: 7 }]);
+  });
+
+  it('viewAllHistory() keeps an already-loaded history without re-fetching it', () => {
+    const fixture = renderWithCli();
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [{ beneficiaryRegID: 7 }] });
+    const component = fixture.componentInstance;
+    component.quickSearchTerm.set('123456789012');
+    component.quickSearchById();
+    http.expectOne(SEARCH_BENEFICIARY).flush({ data: [{ beneficiaryRegID: 5 }] });
+
+    component.viewAllHistory();
+
+    http.expectNone(SEARCH_BY_PHONE);
+    expect(component.displayedHistoryResults()).toEqual([{ beneficiaryRegID: 7 }]);
+  });
+
+  it('onHealthcareWorkerChange() surfaces a failed type lookup and loadHcwTypes() clears it on a successful retry', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    component.registerForm.controls.isHealthcareWorker.setValue(true);
+
+    component.onHealthcareWorkerChange();
+    http.expectOne(HCW_TYPES).flush(null, { status: 500, statusText: 'Server Error' });
+
+    expect(component.hcwTypesError()).toBeTruthy();
+    expect(component.hcwTypes()).toEqual([]);
+
+    component.loadHcwTypes();
+    expect(component.hcwTypesError()).toBeNull();
+    http.expectOne(HCW_TYPES).flush({ statusCode: 200, data: [{ healthCareWorkerID: 1, healthCareWorkerType: 'ASHA' }] });
+
+    expect(component.hcwTypesError()).toBeNull();
+    expect(component.hcwTypes()).toEqual([{ healthCareWorkerID: 1, healthCareWorkerType: 'ASHA' }]);
+  });
+
+  it('onSubDistrictChange() flags an empty village list and clears the flag when the block changes', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    component.registerForm.controls.subDistrictID.setValue(5);
+
+    component.onSubDistrictChange();
+    http.expectOne((r) => r.url.includes('location/village/5')).flush({ statusCode: 200, data: [] });
+
+    expect(component.villages()).toEqual([]);
+    expect(component.noVillages()).toBeTrue();
+
+    component.registerForm.controls.subDistrictID.setValue(null);
+    component.onSubDistrictChange();
+
+    expect(component.noVillages()).toBeFalse();
+  });
 
   it('doSearch() sends the state/district filter nested under i_bendemographics', () => {
     const fixture = render();

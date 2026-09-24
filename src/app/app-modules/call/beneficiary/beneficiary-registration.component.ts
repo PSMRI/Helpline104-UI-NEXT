@@ -416,12 +416,12 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
             </div>
           }
 
-          @if (historyLoading()) {
+          @if (quickSearchResults() === null && historyLoading()) {
             <div class="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
               <ng-icon name="lucideLoaderCircle" size="16" class="animate-spin" aria-hidden="true" />
               {{ 'registration.history.loading' | translate: lang() }}
             </div>
-          } @else if (historyTimedOut()) {
+          } @else if (quickSearchResults() === null && historyTimedOut()) {
             <div class="rounded-md border border-dashed border-destructive/50 px-4 py-8 text-center" role="alert">
               <p class="text-sm font-medium text-destructive">
                 {{ 'registration.history.timeout' | translate: lang() }}
@@ -430,7 +430,7 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                 {{ 'registration.action.retry' | translate: lang() }}
               </button>
             </div>
-          } @else if (historyError()) {
+          } @else if (quickSearchResults() === null && historyError()) {
             <p
               class="rounded-md border border-dashed border-destructive/50 py-8 text-center text-sm font-medium text-destructive"
               role="alert"
@@ -677,6 +677,14 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                       }
                     </select>
                   </z-form-control>
+                  @if (hcwTypesError(); as hcwError) {
+                    <div class="flex flex-wrap items-center gap-2" role="alert">
+                      <z-form-message zType="error">{{ hcwError }}</z-form-message>
+                      <button z-button type="button" zType="outline" zSize="sm" (click)="loadHcwTypes()">
+                        {{ 'registration.action.retry' | translate: lang() }}
+                      </button>
+                    </div>
+                  }
                 </z-form-field>
               }
 
@@ -1058,6 +1066,9 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                     }
                   </select>
                 </z-form-control>
+                @if (noVillages()) {
+                  <z-form-message>{{ 'registration.village.none' | translate: lang() }}</z-form-message>
+                }
                 @if (showError('villageID', 'required')) {
                   <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
@@ -1311,6 +1322,8 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly govtIdTypes = signal<GovtIdentityType[]>([]);
   readonly relationships = signal<Relationship[]>([]);
   readonly hcwTypes = signal<HealthCareWorkerType[]>([]);
+  /** Message from the last failed healthcare-worker-type lookup; shows an inline Retry. */
+  readonly hcwTypesError = signal<string | null>(null);
 
   // --- Location cascade ---------------------------------------------------
   readonly states = signal<StateOption[]>([]);
@@ -1322,6 +1335,8 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly searchDistricts = signal<DistrictOption[]>([]);
   readonly subDistricts = signal<BlockOption[]>([]);
   readonly villages = signal<VillageOption[]>([]);
+  /** True when the selected block's village lookup succeeded but returned no rows. */
+  readonly noVillages = signal(false);
 
   /** Age range validator; the minimum depends on the healthcare-worker flag. */
   private readonly ageRangeValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -1577,6 +1592,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.districts.set([]);
     this.subDistricts.set([]);
     this.villages.set([]);
+    this.noVillages.set(false);
     this.page.set(1);
   }
 
@@ -1696,9 +1712,13 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       return;
     }
     this.quickSearchLoading.set(true);
+    this.historyTimedOut.set(false);
+    this.historyError.set(false);
     this.beneficiary.searchBeneficiary(criteria).subscribe({
       next: (rows) => {
         this.quickSearchLoading.set(false);
+        this.historyTimedOut.set(false);
+        this.historyError.set(false);
         this.quickSearchResults.set(rows);
         this.historyPageIndex.set(1);
       },
@@ -1715,6 +1735,9 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.quickSearchTerm.set('');
     this.quickSearchResults.set(null);
     this.historyPageIndex.set(1);
+    if (this.historyResults().length === 0 || this.historyTimedOut() || this.historyError()) {
+      this.retryHistory();
+    }
   }
 
   /**
@@ -1743,13 +1766,19 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     const isHcw = this.registerForm.controls.isHealthcareWorker.value;
     this.isHealthcareWorker.set(isHcw);
     if (isHcw && this.hcwTypes().length === 0) {
-      this.beneficiary.getHealthCareWorkerTypes().subscribe({
-        next: (types) => this.hcwTypes.set(types),
-        error: () => undefined,
-      });
+      this.loadHcwTypes();
     }
     // Age minimum changes (16 for HCW, 1 otherwise) — re-validate.
     this.registerForm.controls.age.updateValueAndValidity();
+  }
+
+  loadHcwTypes(): void {
+    this.hcwTypesError.set(null);
+    this.beneficiary.getHealthCareWorkerTypes().subscribe({
+      next: (types) => this.hcwTypes.set(types),
+      error: (err: BeneficiaryError) =>
+        this.hcwTypesError.set(err?.errorMessage || this.i18n.instant('registration.hcwTypes.loadError')),
+    });
   }
 
   onEmergencyChange(): void {
@@ -1788,6 +1817,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.districts.set([]);
     this.subDistricts.set([]);
     this.villages.set([]);
+    this.noVillages.set(false);
   }
 
   /** Title → gender auto-fill, mirroring the legacy `titleSelected`. */
@@ -1861,6 +1891,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.districts.set([]);
     this.subDistricts.set([]);
     this.villages.set([]);
+    this.noVillages.set(false);
     this.registerForm.controls.districtID.setValue(null);
     this.registerForm.controls.subDistrictID.setValue(null);
     this.registerForm.controls.villageID.setValue(null);
@@ -1882,6 +1913,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     const districtID = this.registerForm.controls.districtID.value;
     this.subDistricts.set([]);
     this.villages.set([]);
+    this.noVillages.set(false);
     this.registerForm.controls.subDistrictID.setValue(null);
     this.registerForm.controls.villageID.setValue(null);
     if (districtID == null) {
@@ -1901,6 +1933,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   onSubDistrictChange(): void {
     const subDistrictID = this.registerForm.controls.subDistrictID.value;
     this.villages.set([]);
+    this.noVillages.set(false);
     this.registerForm.controls.villageID.setValue(null);
     if (subDistrictID == null) {
       return;
@@ -1910,9 +1943,14 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       next: (rows) => {
         if (this.registerForm.controls.subDistrictID.value === subDistrictID) {
           this.villages.set(rows);
+          this.noVillages.set(rows.length === 0);
         }
       },
-      error: () => undefined,
+      error: (err: BeneficiaryError) => {
+        if (this.registerForm.controls.subDistrictID.value === subDistrictID) {
+          toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
+        }
+      },
     });
   }
 
@@ -2194,10 +2232,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.isHealthcareWorker.set(isHcw);
     this.isEmergency.set(false);
     if (isHcw && this.hcwTypes().length === 0) {
-      this.beneficiary.getHealthCareWorkerTypes().subscribe({
-        next: (types) => this.hcwTypes.set(types),
-        error: () => undefined,
-      });
+      this.loadHcwTypes();
     }
 
     const identityType = detail.govtIdentityTypeID ?? null;
@@ -2272,7 +2307,10 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
               return;
             }
             this.beneficiary.getVillages(subDistrictID).subscribe({
-              next: (villageRows) => this.villages.set(villageRows),
+              next: (villageRows) => {
+                this.villages.set(villageRows);
+                this.noVillages.set(villageRows.length === 0);
+              },
               error: () => undefined,
             });
           },
@@ -2489,12 +2527,12 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   }
 
   private proceedAfterRegistration(beneficiaryRegID: number, districtID: number | null, demographics: CallerDemographics): void {
-    this.callStore.setBeneficiaryId(beneficiaryRegID, districtID);
-    this.callStore.setDemographics(demographics);
     toast.success(this.i18n.instant('registration.toast.registered'));
     const featureCode = this.authStore.currentRole()?.featureCode;
     const path = resolveDispatchPath(featureCode, this.authStore.privileges());
     if (path !== 'hao') {
+      this.callStore.setBeneficiaryId(beneficiaryRegID, districtID);
+      this.callStore.setDemographics(demographics);
       void this.router.navigate(path ? ['/innerpage', path] : ['/innerpage']);
       return;
     }
@@ -2506,8 +2544,23 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         cancelText: this.i18n.instant('dashboard.dialog.cancel'),
       })
       .subscribe((confirmed) => {
-        void this.router.navigate(confirmed ? ['/innerpage', 'hao'] : ['/innerpage']);
+        if (!confirmed) {
+          this.returnToHistory();
+          return;
+        }
+        this.callStore.setBeneficiaryId(beneficiaryRegID, districtID);
+        this.callStore.setDemographics(demographics);
+        void this.router.navigate(['/innerpage', 'hao']);
       });
+  }
+
+  private returnToHistory(): void {
+    this.exitUpdateMode();
+    this.activeView.set('list');
+    this.calledEarlier.set('yes');
+    this.quickSearchTerm.set('');
+    this.quickSearchResults.set(null);
+    this.retryHistory();
   }
 
   // --- Age <-> DOB math ---------------------------------------------------

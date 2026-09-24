@@ -22,7 +22,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, TimeoutError, catchError, map, shareReplay, throwError, timeout } from 'rxjs';
+import { Observable, TimeoutError, catchError, map, shareReplay, tap, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import {
@@ -245,6 +245,11 @@ export class BeneficiaryService {
     const request$ = this.http.get<ApiResponse<DistrictOption[]>>(this.baseUrl + DISTRICTS_PATH + stateID).pipe(
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
+      tap((rows) => {
+        if (rows.length === 0) {
+          this.districtsCache.delete(stateID);
+        }
+      }),
       catchError((err: unknown) => {
         this.districtsCache.delete(stateID);
         return throwError(() => this.toError(err));
@@ -264,6 +269,11 @@ export class BeneficiaryService {
     const request$ = this.http.get<ApiResponse<BlockOption[]>>(this.baseUrl + SUB_DISTRICTS_PATH + districtID).pipe(
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
+      tap((rows) => {
+        if (rows.length === 0) {
+          this.subDistrictsCache.delete(districtID);
+        }
+      }),
       catchError((err: unknown) => {
         this.subDistrictsCache.delete(districtID);
         return throwError(() => this.toError(err));
@@ -283,6 +293,11 @@ export class BeneficiaryService {
     const request$ = this.http.get<ApiResponse<VillageOption[]>>(this.baseUrl + VILLAGES_PATH + subDistrictID).pipe(
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => this.readData(res) ?? []),
+      tap((rows) => {
+        if (rows.length === 0) {
+          this.villagesCache.delete(subDistrictID);
+        }
+      }),
       catchError((err: unknown) => {
         this.villagesCache.delete(subDistrictID);
         return throwError(() => this.toError(err));

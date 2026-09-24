@@ -26,7 +26,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { BeneficiaryService } from './beneficiary.service';
-import { BeneficiaryError, RegisterBeneficiaryRequest } from './beneficiary.models';
+import { BeneficiaryError, RegisterBeneficiaryRequest, VillageOption } from './beneficiary.models';
 
 /**
  * `create()` (`beneficiary/create`, the registration submit) had no request
@@ -123,5 +123,68 @@ describe('BeneficiaryService getRegistrationData caching', () => {
     service.getRegistrationData(7).subscribe({ next: () => (succeeded = true) });
     http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ statusCode: 200, data: {} });
     expect(succeeded).toBeTrue();
+  });
+});
+
+/**
+ * The location cascade caches each lookup for the session. An empty list is
+ * indistinguishable from a transient backend gap (Telangana blocks returned no
+ * villages), so it must not be pinned in the cache the way a populated list is.
+ */
+describe('BeneficiaryService location caching', () => {
+  let service: BeneficiaryService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(BeneficiaryService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  it('reuses a populated village list for the same block', () => {
+    let calls = 0;
+    service.getVillages(5).subscribe(() => calls++);
+    http
+      .expectOne((req) => req.url.includes('location/village/5'))
+      .flush({ statusCode: 200, data: [{ districtBranchID: 1, villageName: 'Somewhere' }] });
+
+    service.getVillages(5).subscribe(() => calls++);
+    http.expectNone((req) => req.url.includes('location/village/5'));
+
+    expect(calls).toBe(2);
+  });
+
+  it('does not cache an empty village list, so the next call re-requests it', () => {
+    let first: VillageOption[] | undefined;
+    service.getVillages(5).subscribe((rows) => (first = rows));
+    http.expectOne((req) => req.url.includes('location/village/5')).flush({ statusCode: 200, data: [] });
+    expect(first).toEqual([]);
+
+    let second: VillageOption[] | undefined;
+    service.getVillages(5).subscribe((rows) => (second = rows));
+    http
+      .expectOne((req) => req.url.includes('location/village/5'))
+      .flush({ statusCode: 200, data: [{ districtBranchID: 1, villageName: 'Somewhere' }] });
+    expect(second).toEqual([{ districtBranchID: 1, villageName: 'Somewhere' }]);
+  });
+
+  it('does not cache empty district or block lists either', () => {
+    let districtCalls = 0;
+    service.getDistricts(3).subscribe(() => districtCalls++);
+    http.expectOne((req) => req.url.includes('location/districts/3')).flush({ statusCode: 200, data: [] });
+    service.getDistricts(3).subscribe(() => districtCalls++);
+    http.expectOne((req) => req.url.includes('location/districts/3')).flush({ statusCode: 200, data: [] });
+    expect(districtCalls).toBe(2);
+
+    let blockCalls = 0;
+    service.getSubDistricts(9).subscribe(() => blockCalls++);
+    http.expectOne((req) => req.url.includes('location/taluks/9')).flush({ statusCode: 200, data: [] });
+    service.getSubDistricts(9).subscribe(() => blockCalls++);
+    http.expectOne((req) => req.url.includes('location/taluks/9')).flush({ statusCode: 200, data: [] });
+    expect(blockCalls).toBe(2);
   });
 });
