@@ -44,6 +44,7 @@ import { CtiPanelStore } from '@/shared/components/layout/cti-panel.store';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AppFooterComponent, ZardButtonComponent],
+  host: { class: 'block shrink-0' },
   template: `
     <app-shell-footer>
       @if (cti.showCzentrix()) {

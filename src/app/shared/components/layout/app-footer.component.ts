@@ -42,7 +42,7 @@ const ORGANISATION = 'PSMRI';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslatePipe],
-  host: { class: 'sticky bottom-0 z-[60] block' },
+  host: { class: 'block shrink-0' },
   template: `
     <footer
       class="flex flex-wrap items-center justify-between gap-2 bg-foreground px-4 py-2 text-xs text-background sm:px-6"
