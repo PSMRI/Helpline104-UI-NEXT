@@ -105,3 +105,85 @@ describe('CzentrixService.startCtiSession', () => {
     expect(service.loginKey()).toBeNull();
   });
 });
+
+describe('CzentrixService.refreshLoginKey', () => {
+  let service: CzentrixService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(CzentrixService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    http.verify();
+    sessionStorage.clear();
+  });
+
+  function captureCredentials(): void {
+    service.startCtiSession('dimpi', 'encrypted-pw', null).subscribe();
+    http.expectOne((req) => req.url.includes('cti/getLoginKey')).flush({ data: {} });
+  }
+
+  it('resolves no-credentials without a request when no portal login has been captured', () => {
+    let status: string | undefined;
+    service.refreshLoginKey().subscribe((s) => (status = s));
+
+    http.expectNone((req) => req.url.includes('cti/getLoginKey'));
+    expect(status).toBe('no-credentials');
+  });
+
+  it('re-posts the username and encrypted password captured by startCtiSession and stores the new key', () => {
+    captureCredentials();
+    expect(service.loginKey()).toBeNull();
+
+    let status: string | undefined;
+    service.refreshLoginKey().subscribe((s) => (status = s));
+    const req = http.expectOne((r) => r.url.includes('cti/getLoginKey'));
+    expect(req.request.body).toEqual({ username: 'dimpi', password: 'encrypted-pw' });
+    req.flush({ data: { login_key: 'fresh-key' } });
+
+    expect(status).toBe('ok');
+    expect(service.loginKey()).toBe('fresh-key');
+  });
+
+  it('resolves no-key when the envelope carries no login_key', () => {
+    captureCredentials();
+
+    let status: string | undefined;
+    service.refreshLoginKey().subscribe((s) => (status = s));
+    http
+      .expectOne((r) => r.url.includes('cti/getLoginKey'))
+      .flush({ statusCode: 5002, errorMessage: 'Agent not logged in' });
+
+    expect(status).toBe('no-key');
+    expect(service.loginKey()).toBeNull();
+  });
+
+  it('resolves http-error, without throwing, when the request fails', () => {
+    captureCredentials();
+
+    let status: string | undefined;
+    let errored = false;
+    service.refreshLoginKey().subscribe({ next: (s) => (status = s), error: () => (errored = true) });
+    http.expectOne((r) => r.url.includes('cti/getLoginKey')).flush('fail', { status: 500, statusText: 'Error' });
+
+    expect(errored).toBe(false);
+    expect(status).toBe('http-error');
+  });
+
+  it('forgets the captured credentials on endCtiSession', () => {
+    captureCredentials();
+    service.endCtiSession();
+
+    let status: string | undefined;
+    service.refreshLoginKey().subscribe((s) => (status = s));
+
+    http.expectNone((req) => req.url.includes('cti/getLoginKey'));
+    expect(status).toBe('no-credentials');
+  });
+});

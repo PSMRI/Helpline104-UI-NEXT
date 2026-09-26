@@ -20,8 +20,19 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { formatDate } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  LOCALE_ID,
+  OnInit,
+  TemplateRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormBuilder } from '@angular/forms';
@@ -33,14 +44,22 @@ import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+import { DataTableCellContext, DataTableColumn, DataTableComponent } from '@/shared/components/data-table';
 
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslationKey } from '../../core/i18n/locales';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BlacklistEntry, BlockUnblockError, RecordingEntry } from './block-unblock.models';
 import { BlockUnblockService } from './block-unblock.service';
 
 const PHONE_PATTERN = /^[0-9]{5,12}$/;
+const BLACKLIST_PAGE_SIZE = 10;
+const BLACKLIST_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+const BLOCKED_TILL_FORMAT = 'dd/MM/yyyy HH:mm';
+
+/** A blacklist entry widened to the record shape {@link DataTableComponent} requires. */
+type BlacklistRow = BlacklistEntry & Record<string, unknown>;
 
 /** Identity for a recording row, used to key the active audio player. */
 function recordingKey(entry: RecordingEntry): string {
@@ -59,7 +78,14 @@ function recordingKey(entry: RecordingEntry): string {
   selector: 'app-block-unblock',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardInputDirective,
+    DataTableComponent,
+  ],
   viewProviders: [provideIcons({ lucidePlay, lucideSearch })],
   template: `
     <section class="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -111,72 +137,17 @@ function recordingKey(entry: RecordingEntry): string {
           {{ 'blockUnblock.loading' | translate: lang() }}
         </p>
       } @else {
-        <div class="overflow-x-auto rounded-md border border-border">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-muted/50 text-xs text-muted-foreground">
-              <tr>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'blockUnblock.phone' | translate: lang() }}
-                </th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'blockUnblock.status' | translate: lang() }}
-                </th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'blockUnblock.callCount' | translate: lang() }}
-                </th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'blockUnblock.reason' | translate: lang() }}
-                </th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'blockUnblock.blockedTill' | translate: lang() }}
-                </th>
-                <th scope="col" class="px-3 py-2 font-medium">
-                  {{ 'blockUnblock.action' | translate: lang() }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (entry of blacklist(); track entry.phoneBlockID) {
-                <tr class="border-t border-border align-top">
-                  <td class="px-3 py-2">{{ entry.phoneNo || '—' }}</td>
-                  <td class="px-3 py-2">
-                    {{ (entry.isBlocked ? 'blockUnblock.blocked' : 'blockUnblock.unblocked') | translate: lang() }}
-                  </td>
-                  <td class="px-3 py-2">
-                    <button
-                      type="button"
-                      class="text-primary underline-offset-2 hover:underline disabled:cursor-default disabled:text-muted-foreground disabled:no-underline"
-                      [disabled]="!(entry.noOfNuisanceCall && entry.noOfNuisanceCall > 0)"
-                      (click)="openRecordings(entry)"
-                    >
-                      {{ entry.noOfNuisanceCall ?? 0 }}
-                    </button>
-                  </td>
-                  <td class="px-3 py-2">{{ 'blockUnblock.nuisanceCall' | translate: lang() }}</td>
-                  <td class="px-3 py-2">
-                    {{ entry.isBlocked && entry.blockEndDate ? (entry.blockEndDate | date: 'dd/MM/yyyy HH:mm') : '—' }}
-                  </td>
-                  <td class="px-3 py-2">
-                    @if (entry.isBlocked) {
-                      <button z-button type="button" zType="outline" zSize="sm" (click)="unblock(entry)">
-                        {{ 'blockUnblock.unblock' | translate: lang() }}
-                      </button>
-                    } @else {
-                      <button z-button type="button" zType="destructive" zSize="sm" (click)="block(entry)">
-                        {{ 'blockUnblock.block' | translate: lang() }}
-                      </button>
-                    }
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="6" class="px-3 py-8 text-center text-muted-foreground">
-                    {{ 'blockUnblock.noRecords' | translate: lang() }}
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+        <div class="overflow-x-auto">
+          <app-data-table
+            [columns]="columns()"
+            [data]="rows()"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            [pageSizeLabel]="'blockUnblock.rowsPerPage' | translate: lang()"
+            [filterable]="false"
+            [rowKey]="rowKey"
+            [emptyMessage]="'blockUnblock.noRecords' | translate: lang()"
+          />
         </div>
 
         <!-- Recordings for the selected number -->
@@ -248,6 +219,29 @@ function recordingKey(entry: RecordingEntry): string {
           </div>
         }
       }
+
+      <ng-template #callCountCell let-entry>
+        <button
+          type="button"
+          class="text-primary underline-offset-2 hover:underline disabled:cursor-default disabled:text-muted-foreground disabled:no-underline"
+          [disabled]="!(entry.noOfNuisanceCall && entry.noOfNuisanceCall > 0)"
+          (click)="openRecordings(entry)"
+        >
+          {{ entry.noOfNuisanceCall ?? 0 }}
+        </button>
+      </ng-template>
+
+      <ng-template #actionCell let-entry>
+        @if (entry.isBlocked) {
+          <button z-button type="button" zType="outline" zSize="sm" (click)="unblock(entry)">
+            {{ 'blockUnblock.unblock' | translate: lang() }}
+          </button>
+        } @else {
+          <button z-button type="button" zType="destructive" zSize="sm" (click)="block(entry)">
+            {{ 'blockUnblock.block' | translate: lang() }}
+          </button>
+        }
+      </ng-template>
     </section>
   `,
 })
@@ -258,8 +252,14 @@ export class BlockUnblockComponent implements OnInit {
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly locale = inject(LOCALE_ID);
+
+  private readonly callCountCell = viewChild<TemplateRef<DataTableCellContext<BlacklistRow>>>('callCountCell');
+  private readonly actionCell = viewChild<TemplateRef<DataTableCellContext<BlacklistRow>>>('actionCell');
 
   readonly lang = this.i18n.language;
+  readonly pageSize = BLACKLIST_PAGE_SIZE;
+  readonly pageSizeOptions = BLACKLIST_PAGE_SIZE_OPTIONS;
 
   readonly phone = this.fb.control('', {
     nonNullable: true,
@@ -278,6 +278,44 @@ export class BlockUnblockComponent implements OnInit {
   readonly activeAudioKey = signal<string | null>(null);
   readonly audioSrc = signal('');
   private readonly audioCache = new Map<string, string>();
+
+  /** Blacklist rows in the shape the shared data table paginates over. */
+  readonly rows = computed<BlacklistRow[]>(() => this.blacklist() as BlacklistRow[]);
+
+  readonly rowKey = (row: BlacklistRow): unknown => row.phoneBlockID;
+
+  /**
+   * Column definitions for the blacklist table, rebuilt when the language or
+   * the cell templates change. Text cells carry the display text so the
+   * table's sort works on what the user sees; the call-count link and the
+   * block/unblock action render through the templates declared above.
+   */
+  readonly columns = computed<DataTableColumn<BlacklistRow>[]>(() => {
+    const language = this.lang();
+    const t = (key: TranslationKey): string => this.i18n.instantFor(key, language);
+    return [
+      { key: 'phoneNo', header: t('blockUnblock.phone'), cell: (row) => row.phoneNo || '—' },
+      {
+        key: 'isBlocked',
+        header: t('blockUnblock.status'),
+        cell: (row) => t(row.isBlocked ? 'blockUnblock.blocked' : 'blockUnblock.unblocked'),
+      },
+      {
+        key: 'noOfNuisanceCall',
+        header: t('blockUnblock.callCount'),
+        cell: (row) => String(row.noOfNuisanceCall ?? 0),
+        cellTemplate: this.callCountCell(),
+      },
+      { key: 'reason', header: t('blockUnblock.reason'), cell: () => t('blockUnblock.nuisanceCall') },
+      {
+        key: 'blockEndDate',
+        header: t('blockUnblock.blockedTill'),
+        cell: (row) =>
+          row.isBlocked && row.blockEndDate ? formatDate(row.blockEndDate, BLOCKED_TILL_FORMAT, this.locale) : '—',
+      },
+      { key: 'action', header: t('blockUnblock.action'), cell: () => '', cellTemplate: this.actionCell() },
+    ];
+  });
 
   // Request-id guards: only the most recent request per operation may apply its
   // response, so a slow earlier call can't overwrite newer state.

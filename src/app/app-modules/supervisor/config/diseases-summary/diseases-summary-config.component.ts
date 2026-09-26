@@ -130,6 +130,14 @@ interface ContentField {
 
       <!-- Catalogue list -->
       @if (mode() === 'list') {
+        @if (listError()) {
+          <div class="mb-3 flex flex-wrap items-center gap-3" role="alert">
+            <p class="text-sm font-medium text-destructive">{{ listError() }}</p>
+            <button z-button type="button" zType="outline" zSize="sm" (click)="reload()">
+              {{ 'supDisease.retry' | translate: lang() }}
+            </button>
+          </div>
+        }
         @if (loading()) {
           <p class="py-8 text-center text-sm text-muted-foreground">
             {{ 'supDisease.loading' | translate: lang() }}
@@ -355,7 +363,10 @@ export class DiseasesSummaryConfigComponent implements OnInit {
   readonly mode = signal<ViewMode>('list');
   readonly loading = signal(false);
   readonly saving = signal(false);
+  /** Save / update / status-change failures; shown above whichever view is active. */
   readonly errorMessage = signal('');
+  /** Catalogue-load failure; shown only in the list, never on the create/edit form. */
+  readonly listError = signal('');
 
   readonly rows = signal<DiseaseRow[]>([]);
   readonly pageNo = signal(1);
@@ -413,10 +424,14 @@ export class DiseasesSummaryConfigComponent implements OnInit {
     return this.authStore.currentRole()?.providerServiceMapID ?? null;
   }
 
+  reload(): void {
+    this.load();
+  }
+
   private load(): void {
     const reqId = ++this.loadReqId;
     this.loading.set(true);
-    this.errorMessage.set('');
+    this.listError.set('');
     this.service
       .getDiseaseSummaryList(this.pageNo(), this.pageSize())
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -444,7 +459,7 @@ export class DiseasesSummaryConfigComponent implements OnInit {
           this.loading.set(false);
           this.rows.set([]);
           this.totalPages.set(1);
-          this.errorMessage.set(
+          this.listError.set(
             err.errorMessage || this.i18n.instant('supDisease.loadError'),
           );
         },
