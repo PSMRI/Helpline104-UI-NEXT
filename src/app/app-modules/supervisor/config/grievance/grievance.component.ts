@@ -430,8 +430,6 @@ type GrievanceAction = 'view' | 'edit' | 'update';
             <div>
               <label for="grv-file" class="mb-1 block text-xs font-medium text-muted-foreground">
                 {{ 'supGrievance.uploadFile' | translate: lang() }}
-                ({{ 'supGrievance.sizeLimit' | translate: lang() }}: {{ maxFileSize }}
-                {{ 'supGrievance.mb' | translate: lang() }})
               </label>
               <input
                 id="grv-file"
@@ -439,6 +437,10 @@ type GrievanceAction = 'view' | 'edit' | 'update';
                 class="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-input file:bg-transparent file:px-3 file:py-1 file:text-sm file:font-medium"
                 (change)="onFileUpload($event)"
               />
+              <p class="mt-1 break-words text-xs text-muted-foreground">
+                {{ 'supGrievance.sizeLimit' | translate: lang() }}: {{ maxFileSize }} {{ 'supGrievance.mb' | translate: lang() }}.
+                {{ 'supGrievance.supportedFormats' | translate: lang() }}
+              </p>
               @if (invalidFileType()) {
                 <p class="mt-1 text-xs font-medium text-destructive">
                   {{ 'supGrievance.supportedFormats' | translate: lang() }}
