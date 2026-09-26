@@ -70,4 +70,28 @@ describe('CallLifecycleService', () => {
 
     expect(result?.benCallID).toBe('');
   });
+
+  describe('beneficiaryByCallID', () => {
+    it('posts the CTI call id with is1097 false and resolves the i_beneficiary', () => {
+      let result: { beneficiaryRegID: number } | null | undefined;
+      service.beneficiaryByCallID('1786464598330').subscribe((res) => (result = res));
+
+      const req = http.expectOne((r) => r.url.includes('call/beneficiaryByCallID'));
+      expect(req.request.body).toEqual({ callID: '1786464598330', is1097: false });
+      req.flush({
+        data: { benCallID: '9988776655', beneficiaryRegID: 555, i_beneficiary: { beneficiaryRegID: 555 } },
+      });
+
+      expect(result?.beneficiaryRegID).toBe(555);
+    });
+
+    it('resolves null on the { response: "null" } reply the backend sends for a call with no beneficiary', () => {
+      let result: unknown = 'unset';
+      service.beneficiaryByCallID('1786464598330').subscribe((res) => (result = res));
+
+      http.expectOne((r) => r.url.includes('call/beneficiaryByCallID')).flush({ data: { response: 'null' } });
+
+      expect(result).toBeNull();
+    });
+  });
 });

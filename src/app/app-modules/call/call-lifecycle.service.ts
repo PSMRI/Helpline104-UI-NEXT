@@ -26,9 +26,17 @@ import { Observable, map, timeout } from 'rxjs';
 
 import { ConfigService } from '../core/services/config.service';
 
-import { ApiResponse, StartCallRequest, StartCallResponse } from './call-lifecycle.models';
+import { BeneficiaryRecord } from './beneficiary/beneficiary.models';
+import {
+  ApiResponse,
+  BeneficiaryByCallIdRequest,
+  BeneficiaryByCallIdResponse,
+  StartCallRequest,
+  StartCallResponse,
+} from './call-lifecycle.models';
 
 const START_CALL_PATH = 'call/startCall';
+const BENEFICIARY_BY_CALL_ID_PATH = 'call/beneficiaryByCallID';
 const REQUEST_TIMEOUT_MS = 20_000;
 
 /**
@@ -47,5 +55,20 @@ export class CallLifecycleService {
       timeout(REQUEST_TIMEOUT_MS),
       map((res) => res.data ?? { benCallID: '' }),
     );
+  }
+
+  /**
+   * The beneficiary an earlier leg of this call identified (legacy
+   * `getBeneficiaryByCallID`), or `null` when the call has none yet — the
+   * backend answers `{ response: "null" }` rather than an empty envelope.
+   */
+  beneficiaryByCallID(callID: string): Observable<BeneficiaryRecord | null> {
+    const request: BeneficiaryByCallIdRequest = { callID, is1097: false };
+    return this.http
+      .post<ApiResponse<BeneficiaryByCallIdResponse>>(this.config.getCommonBaseURL() + BENEFICIARY_BY_CALL_ID_PATH, request)
+      .pipe(
+        timeout(REQUEST_TIMEOUT_MS),
+        map((res) => res.data?.i_beneficiary ?? null),
+      );
   }
 }

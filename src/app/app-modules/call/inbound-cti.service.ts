@@ -127,12 +127,14 @@ export class InboundCtiService {
   }
 
   /**
-   * Parse a CTI payload. On a fresh inbound call, seed state, navigate to the
-   * agent's role workspace (registration for RO/HAO, the only roles that
+   * Parse a CTI payload. On a fresh inbound call, seed state, navigate at once
+   * to the agent's role workspace (registration for RO/HAO, the only roles that
    * identify a new caller; straight to their own workspace for every other
    * role — e.g. an HAO-to-MO transfer must not bounce the MO agent through
    * registration, see `inboundAcceptPath`), and register the call with the
-   * backend; on the caller hanging up mid-call, start the wrap-up grace period.
+   * backend. Roles landing on a workspace then have the transferred
+   * beneficiary looked up by call id (see {@link resolveTransferredBeneficiary});
+   * on the caller hanging up mid-call, start the wrap-up grace period.
    */
   private handleCtiMessage(data: unknown): void {
     const inbound = parseInboundCtiMessage(data);
@@ -146,15 +148,16 @@ export class InboundCtiService {
         sessionId: inbound.sessionId,
       });
       const path = inboundAcceptPath(this.authStore.currentRole()?.featureCode, this.authStore.privileges());
-      if (path === REGISTRATION_PATH) {
-        void this.router.navigate(['/innerpage', path]);
-        this.registerCallStart(inbound.cli, inbound.sessionId);
-        return;
+      const toWorkspace = path !== REGISTRATION_PATH;
+      if (toWorkspace) {
+        this.callStore.setBeneficiaryPending(true);
       }
-      this.registerCallStart(inbound.cli, inbound.sessionId, () => {
-        const target = this.callStore.beneficiaryId() !== null ? path : REGISTRATION_PATH;
-        void this.router.navigate(['/innerpage', target]);
-      });
+      void this.router.navigate(['/innerpage', path]);
+      this.registerCallStart(
+        inbound.cli,
+        inbound.sessionId,
+        toWorkspace ? () => this.resolveTransferredBeneficiary(inbound.sessionId) : undefined,
+      );
       return;
     }
 
@@ -210,5 +213,40 @@ export class InboundCtiService {
           }
         },
       });
+  }
+
+  /**
+   * Look up the beneficiary an earlier leg of a transferred call identified
+   * (legacy `104.component.ts` `getBeneficiaryByCallID`, run for every role
+   * on landing). On a transfer the receiving role's `startCall` answers with
+   * no beneficiary at all, so this is what actually seeds the MO/CO workspace
+   * that is already open — its patient context is read from the store
+   * reactively. Settling without one (`{ response: "null" }`, or the lookup
+   * failing) sends the agent to registration: the workspaces cannot identify
+   * a caller themselves and would otherwise be a dead end.
+   */
+  private resolveTransferredBeneficiary(sessionId: string): void {
+    const settle = (): void => {
+      if (this.callStore.sessionId() !== sessionId) {
+        return;
+      }
+      this.callStore.setBeneficiaryPending(false);
+      if (this.callStore.beneficiaryId() === null) {
+        void this.router.navigate(['/innerpage', REGISTRATION_PATH]);
+      }
+    };
+    this.callLifecycle.beneficiaryByCallID(sessionId).subscribe({
+      next: (ben) => {
+        if (ben && this.callStore.sessionId() === sessionId) {
+          this.callStore.setBeneficiaryId(ben.beneficiaryRegID, ben.i_bendemographics?.districtID ?? null);
+          this.callStore.setDemographics(toCallerDemographics(ben));
+        }
+        settle();
+      },
+      error: (err: unknown) => {
+        console.warn('beneficiaryByCallID failed; no transferred beneficiary resolved', err);
+        settle();
+      },
+    });
   }
 }

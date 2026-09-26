@@ -126,6 +126,9 @@ export class CallStore {
   private readonly _isEmergencyCall = signal<boolean>(
     this.storage.getItem(CALL_STORAGE_KEYS.isEmergencyCall) === 'true',
   );
+  // Not persisted: the lookup it tracks is in flight in this page only, so a
+  // reload while it is pending falls back to beneficiaryGuard's usual bounce.
+  private readonly _beneficiaryPending = signal(false);
 
   /** True while an inbound call is connected; gates the on-call workspace. */
   readonly onCall = this._onCall.asReadonly();
@@ -151,6 +154,13 @@ export class CallStore {
    * to auto-select the "Valid" call type, mirroring legacy `handleEmergency`.
    */
   readonly isEmergencyCall = this._isEmergencyCall.asReadonly();
+  /**
+   * True while the beneficiary of a transferred call is still being looked up
+   * (`call/beneficiaryByCallID`) after the agent landed on their workspace.
+   * {@link beneficiaryGuard} admits the workspace on this alone, as legacy's
+   * `104.component` rendered the role screen before that lookup answered.
+   */
+  readonly beneficiaryPending = this._beneficiaryPending.asReadonly();
   /** Epoch ms when the active call connected, or null when not on a call. */
   readonly startedAt = this._startedAt.asReadonly();
 
@@ -196,6 +206,7 @@ export class CallStore {
     this._districtID.set(null);
     this._demographics.set(null);
     this._isEmergencyCall.set(false);
+    this._beneficiaryPending.set(false);
 
     this.storage.setItem(CALL_STORAGE_KEYS.onCall, ON_CALL_YES);
     this.storage.setItem(CALL_STORAGE_KEYS.cli, seed.cli);
@@ -231,6 +242,9 @@ export class CallStore {
     const previous = this._beneficiaryId();
 
     this._beneficiaryId.set(id);
+    if (id !== null) {
+      this._beneficiaryPending.set(false);
+    }
     this._districtID.set(id === null ? null : district);
     // Demographics only make sense while a beneficiary is set; clearing the id
     // (e.g. "Back to RO") drops the stale patient context too.
@@ -308,6 +322,7 @@ export class CallStore {
     this._districtID.set(null);
     this._demographics.set(null);
     this._isEmergencyCall.set(false);
+    this._beneficiaryPending.set(false);
 
     this.storage.removeItem(CALL_STORAGE_KEYS.onCall);
     this.storage.removeItem(CALL_STORAGE_KEYS.cli);
@@ -331,6 +346,15 @@ export class CallStore {
     } else {
       this.storage.removeItem(CALL_STORAGE_KEYS.isEmergencyCall);
     }
+  }
+
+  /**
+   * Mark the transferred-call beneficiary lookup as in flight (true) or settled
+   * (false). Setting a beneficiary clears it implicitly; settling without one
+   * leaves the store with no beneficiary, and the caller decides where to go.
+   */
+  setBeneficiaryPending(pending: boolean): void {
+    this._beneficiaryPending.set(pending);
   }
 
   /** Drop every persisted beneficiary key (id, district, demographics). */
