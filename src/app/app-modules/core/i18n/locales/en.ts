@@ -970,6 +970,8 @@ export const en = {
   'hao.closure.selectTransferService': 'Select',
   'hao.closure.servicesLoading': 'Loading transfer services…',
   'hao.closure.noServices': 'No transfer services configured.',
+  'hao.closure.campaignsLoading': 'Loading transfer campaigns…',
+  'hao.closure.noCampaigns': 'No transfer campaigns available.',
   'hao.closure.referralNeedsBeneficiary': 'A referral call must have a beneficiary selected.',
   'hao.closure.configureHaoCampaign': 'Please configure the Health Advisory campaign.',
   'hao.closure.configureCoCampaign': 'Please configure the Counselling campaign.',
@@ -999,6 +1001,8 @@ export const en = {
   'hao.closure.callTypesLoadError': 'Unable to load call types. Please try again.',
   'hao.closure.servicesLoadError': 'Could not load the transfer services. Please retry.',
   'hao.closure.retryServices': 'Retry',
+  'hao.closure.campaignsLoadError': 'Could not load the transfer campaigns. Please retry.',
+  'hao.closure.retryCampaigns': 'Retry',
   'hao.closure.noServiceError':
     'No service is assigned to your role, so call types cannot be loaded. Please contact your administrator.',
 

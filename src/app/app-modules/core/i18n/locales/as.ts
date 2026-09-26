@@ -975,6 +975,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.selectTransferService': 'বাছনি কৰক',
   'hao.closure.servicesLoading': 'স্থানান্তৰ সেৱাসমূহ ল’ড হৈ আছে…',
   'hao.closure.noServices': 'কোনো স্থানান্তৰ সেৱা কনফিগাৰ কৰা হোৱা নাই।',
+  'hao.closure.campaignsLoading': 'স্থানান্তৰ অভিযানসমূহ ল’ড হৈ আছে…',
+  'hao.closure.noCampaigns': 'কোনো স্থানান্তৰ অভিযান উপলব্ধ নাই।',
   'hao.closure.referralNeedsBeneficiary': 'ৰেফাৰেল কলৰ বাবে এজন হিতাধিকাৰী বাছনি কৰাটো আৱশ্যক।',
   'hao.closure.configureHaoCampaign': 'অনুগ্ৰহ কৰি হেল্থ এডভাইজৰী অভিযান কনফিগাৰ কৰক।',
   'hao.closure.configureCoCampaign': 'অনুগ্ৰহ কৰি কাউন্সেলিং অভিযান কনফিগাৰ কৰক।',
@@ -1004,6 +1006,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.callTypesLoadError': 'কলৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.servicesLoadError': 'স্থানান্তৰ সেৱাসমূহ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'hao.closure.retryServices': 'পুনৰ চেষ্টা কৰক',
+  'hao.closure.campaignsLoadError': 'স্থানান্তৰ অভিযানসমূহ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'hao.closure.retryCampaigns': 'পুনৰ চেষ্টা কৰক',
   'hao.closure.noServiceError':
     'আপোনাৰ ভূমিকাত কোনো সেৱা নিযুক্ত কৰা হোৱা নাই, সেয়েহে কলৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি আপোনাৰ প্ৰশাসকৰ সৈতে যোগাযোগ কৰক।',
 

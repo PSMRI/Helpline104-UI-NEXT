@@ -399,6 +399,72 @@ describe('HaoService case-sheet and services error normalisation', () => {
     });
   });
 
+  describe('getTransferCampaigns', () => {
+    it('resolves the nested data.campaign list with campaign_name mapped to campaignName', () => {
+      let result: unknown;
+      service.getTransferCampaigns(7).subscribe((campaigns) => (result = campaigns));
+
+      const req = expectOne('cti/getTransferCampaigns');
+      expect(req.request.body).toEqual({ agent_id: 7 });
+      req.flush({
+        statusCode: 200,
+        data: { campaign: [{ campaign_id: 3, campaign_name: 'MO_CAMPAIGN' }] },
+      });
+
+      expect(result).toEqual([{ campaign_id: 3, campaign_name: 'MO_CAMPAIGN', campaignName: 'MO_CAMPAIGN' }]);
+    });
+
+    it('still accepts the older shape with the array directly on data', () => {
+      let result: unknown;
+      service.getTransferCampaigns(7).subscribe((campaigns) => (result = campaigns));
+
+      expectOne('cti/getTransferCampaigns').flush({ data: [{ campaignName: 'CO_CAMPAIGN' }] });
+
+      expect(result).toEqual([{ campaignName: 'CO_CAMPAIGN' }]);
+    });
+
+    it('resolves an empty list, not an error, on the "No Campaigns Available" failure envelope', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.getTransferCampaigns(7).subscribe({
+        next: (campaigns) => (result = campaigns),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('cti/getTransferCampaigns').flush({
+        statusCode: 5000,
+        errorMessage: 'No Campaigns Available',
+        status: 'Failure',
+      });
+
+      expect(failure).toBeUndefined();
+      expect(result).toEqual([]);
+    });
+
+    it('errors with the backend message on any other failure envelope', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.getTransferCampaigns(7).subscribe({
+        next: (campaigns) => (result = campaigns),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('cti/getTransferCampaigns').flush({ statusCode: 5000, errorMessage: 'CTI unavailable', status: 'Failure' });
+
+      expect(result).toBeUndefined();
+      expect(failure).toEqual({ status: 5000, errorMessage: 'CTI unavailable' });
+    });
+
+    it('normalises an HTTP failure', () => {
+      let failure: HaoRequestError | undefined;
+      service.getTransferCampaigns(7).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('cti/getTransferCampaigns').flush(null, { status: 504, statusText: 'Gateway Timeout' });
+
+      expect(failure).toEqual({ status: 504, errorMessage: '' });
+    });
+  });
+
   describe('getCampaignSkills', () => {
     it('resolves the skill list on a success envelope', () => {
       let result: unknown;

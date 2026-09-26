@@ -508,6 +508,122 @@ describe('ClosureStepComponent', () => {
     expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
   });
 
+  describe('transfer campaigns', () => {
+    const CAMPAIGNS = (req: { url: string }) => req.url.includes('getTransferCampaigns');
+
+    /** Like render(), but leaves the campaign lookup pending for the test to answer. */
+    function renderWithCampaignsPending() {
+      authStore.setSession({ token: 't', user: { userID: 1, agentID: 7, userName: 'agent', status: 'Active' } });
+      authStore.setCurrentRole(currentRole('HAO'));
+      const fixture = TestBed.createComponent(ClosureStepComponent);
+      fixture.detectChanges();
+      http.match((req) => req.url.includes('getCallTypesV1')).forEach((req) => req.flush({ data: [] }));
+      http.match((req) => req.url.includes('getRegistrationDataV1')).forEach((req) => req.flush({ data: {} }));
+      http.match((req) => req.url.includes('getInstituteTypes')).forEach((req) => req.flush({ data: [] }));
+      http.match((req) => req.url.includes('getAgentIPAddress')).forEach((req) => req.flush({ data: null }));
+      http
+        .expectOne((req) => req.url.includes('beneficiary/get/services'))
+        .flush({ data: [{ subServiceName: 'Medical Advisory Service' }] });
+      fixture.detectChanges();
+      return { fixture, component: fixture.componentInstance };
+    }
+
+    function campaignField(fixture: { nativeElement: HTMLElement }) {
+      const select = fixture.nativeElement.querySelector<HTMLSelectElement>('#hao-cl-transfer-service');
+      return {
+        select,
+        fieldText: select?.parentElement?.textContent ?? '',
+        retry: Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
+          b.textContent?.includes('Retry'),
+        ),
+      };
+    }
+
+    it('keeps the Transfer Call select disabled with a loading line until the campaigns arrive, even once the services have', () => {
+      const { fixture, component } = renderWithCampaignsPending();
+
+      expect(component.servicesLoading()).toBeFalse();
+      expect(component.campaignsLoading()).toBeTrue();
+      expect(component.form.controls.transferService.disabled).toBeTrue();
+      const pending = campaignField(fixture);
+      expect(pending.select?.disabled).toBeTrue();
+      expect(pending.select?.getAttribute('aria-busy')).toBe('true');
+      expect(pending.fieldText).toContain('Loading transfer campaigns');
+
+      http.expectOne(CAMPAIGNS).flush({ data: { campaign: [{ campaign_name: 'MO_CAMPAIGN' }] } });
+      fixture.detectChanges();
+
+      expect(component.campaignsLoading()).toBeFalse();
+      expect(component.noCampaigns()).toBeFalse();
+      expect(component.campaignsError()).toBeNull();
+      expect(component.form.controls.transferService.enabled).toBeTrue();
+      const done = campaignField(fixture);
+      expect(done.select?.disabled).toBeFalse();
+      expect(done.select?.getAttribute('aria-busy')).toBeNull();
+      expect(done.fieldText).not.toContain('Loading transfer campaigns');
+      expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
+
+      component.form.controls.transferService.setValue('Medical Advisory Service');
+      fixture.detectChanges();
+      expect(component.selectedCampaign()).toBe('MO_CAMPAIGN');
+      http.expectOne((req) => req.url.includes('getCampaignSkills')).flush({ data: [] });
+    });
+
+    it('shows an explicit empty state, not an error, on the backend\'s "No Campaigns Available" envelope', () => {
+      const { fixture, component } = renderWithCampaignsPending();
+
+      http.expectOne(CAMPAIGNS).flush({ statusCode: 5000, errorMessage: 'No Campaigns Available', status: 'Failure' });
+      fixture.detectChanges();
+
+      expect(component.noCampaigns()).toBeTrue();
+      expect(component.campaignsError()).toBeNull();
+      expect(component.campaignsLoading()).toBeFalse();
+      expect(component.campaigns()).toEqual([]);
+      expect(component.form.controls.transferService.enabled).toBeTrue();
+      const empty = campaignField(fixture);
+      expect(empty.fieldText).toContain('No transfer campaigns available.');
+      expect(empty.retry).toBeUndefined();
+      expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    });
+
+    it('surfaces a failed campaign lookup inline with Retry, and clears it once the retry succeeds', () => {
+      const { fixture, component } = renderWithCampaignsPending();
+
+      http.expectOne(CAMPAIGNS).flush({ statusCode: 5000, errorMessage: 'CTI unavailable', status: 'Failure' });
+      fixture.detectChanges();
+
+      expect(component.campaignsError()).toBe('CTI unavailable');
+      expect(component.campaignsLoading()).toBeFalse();
+      expect(component.campaigns()).toEqual([]);
+      expect(component.form.controls.transferService.enabled).toBeTrue();
+      const failed = campaignField(fixture);
+      expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain('CTI unavailable');
+      expect(failed.retry).toBeDefined();
+
+      failed.retry?.click();
+      fixture.detectChanges();
+      expect(component.campaignsLoading()).toBeTrue();
+      expect(component.form.controls.transferService.disabled).toBeTrue();
+      http.expectOne(CAMPAIGNS).flush({ data: { campaign: [{ campaign_name: 'MO_CAMPAIGN' }] } });
+      fixture.detectChanges();
+
+      expect(component.campaignsError()).toBeNull();
+      expect(component.campaigns()).toEqual([{ campaign_name: 'MO_CAMPAIGN', campaignName: 'MO_CAMPAIGN' }]);
+      expect(component.form.controls.transferService.enabled).toBeTrue();
+      expect(campaignField(fixture).retry).toBeUndefined();
+      expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    });
+
+    it('falls back to the translated message when the campaigns request fails without a backend message', () => {
+      const { fixture, component } = renderWithCampaignsPending();
+
+      http.expectOne(CAMPAIGNS).flush(null, { status: 500, statusText: 'Internal Server Error' });
+      fixture.detectChanges();
+
+      expect(component.campaignsError()).toBe('Could not load the transfer campaigns. Please retry.');
+    });
+  });
+
   describe('campaign skills', () => {
     const SKILLS = (req: { url: string }) => req.url.includes('getCampaignSkills');
 

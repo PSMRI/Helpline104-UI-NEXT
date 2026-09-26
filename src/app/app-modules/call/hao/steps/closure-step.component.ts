@@ -223,7 +223,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
               id="hao-cl-transfer-service"
               formControlName="transferService"
               class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-              [attr.aria-busy]="servicesLoading() ? 'true' : null"
+              [attr.aria-busy]="servicesLoading() || campaignsLoading() ? 'true' : null"
             >
               <option [ngValue]="null">
                 {{ 'hao.closure.selectTransferService' | translate: lang() }}
@@ -250,6 +250,27 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
                   (click)="loadServices()"
                 >
                   {{ 'hao.closure.retryServices' | translate: lang() }}
+                </button>
+              </div>
+            }
+            @if (campaignsLoading() && !campaignsError() && !servicesLoading()) {
+              <z-form-message role="status">{{ 'hao.closure.campaignsLoading' | translate: lang() }}</z-form-message>
+            } @else if (noCampaigns()) {
+              <z-form-message>{{ 'hao.closure.noCampaigns' | translate: lang() }}</z-form-message>
+            }
+            @if (campaignsError(); as error) {
+              <div class="flex flex-wrap items-center gap-2" role="alert">
+                <z-form-message zType="error">{{ error }}</z-form-message>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  zSize="sm"
+                  [zLoading]="campaignsLoading()"
+                  [zDisabled]="campaignsLoading()"
+                  (click)="loadCampaigns()"
+                >
+                  {{ 'hao.closure.retryCampaigns' | translate: lang() }}
                 </button>
               </div>
             }
@@ -569,6 +590,9 @@ export class ClosureStepComponent {
 
   readonly callTypes = signal<CallType[]>([]);
   readonly campaigns = signal<TransferCampaign[]>([]);
+  readonly campaignsError = signal<string | null>(null);
+  readonly campaignsLoading = signal(false);
+  readonly noCampaigns = signal(false);
   readonly services = signal<AvailableService[]>([]);
   readonly servicesError = signal<string | null>(null);
   readonly servicesLoading = signal(false);
@@ -1198,16 +1222,36 @@ export class ClosureStepComponent {
     });
   }
 
-  private loadCampaigns(): void {
+  /**
+   * The campaign list is what a chosen transfer service resolves against
+   * ({@link getCampaignName}), so the Transfer Call select stays disabled
+   * until it has arrived — otherwise an early selection would hit the
+   * "configure campaign" error for a campaign that was still on its way.
+   */
+  loadCampaigns(): void {
     const agentID = this.authStore.user()?.agentID ?? null;
     if (agentID === null) {
       return;
     }
+    const control = this.form.controls.transferService;
+    this.noCampaigns.set(false);
+    this.campaignsLoading.set(true);
+    control.disable({ emitEvent: false });
     this.haoService.getTransferCampaigns(agentID).subscribe({
-      // Belt-and-braces: the template's @for iterates this signal, so a
-      // non-array value (misbehaving backend, stale mock) must never land.
-      next: (campaigns) => this.campaigns.set(Array.isArray(campaigns) ? campaigns : []),
-      error: () => this.campaigns.set([]),
+      next: (campaigns) => {
+        const list = Array.isArray(campaigns) ? campaigns : [];
+        this.campaigns.set(list);
+        this.noCampaigns.set(list.length === 0);
+        this.campaignsError.set(null);
+        this.campaignsLoading.set(false);
+        this.enableTransferService();
+      },
+      error: (err: HaoRequestError) => {
+        this.campaigns.set([]);
+        this.campaignsLoading.set(false);
+        this.enableTransferService();
+        this.campaignsError.set(err?.errorMessage || this.i18n.instant('hao.closure.campaignsLoadError'));
+      },
     });
   }
 
@@ -1243,7 +1287,7 @@ export class ClosureStepComponent {
   }
 
   private enableTransferService(): void {
-    if (!this.disconnectedByCaller()) {
+    if (!this.disconnectedByCaller() && !this.servicesLoading() && !this.campaignsLoading()) {
       this.form.controls.transferService.enable({ emitEvent: false });
     }
   }

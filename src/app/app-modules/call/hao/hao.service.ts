@@ -112,6 +112,12 @@ function isFailureEnvelope(res: ApiResponse<unknown> | null | undefined): boolea
 const NO_ACTIVE_SKILL = 'no active skill found';
 
 /**
+ * The failure envelope `cti/getTransferCampaigns` answers, HTTP 200 with
+ * statusCode 5000, for an agent with no campaigns — verified live.
+ */
+const NO_CAMPAIGNS_AVAILABLE = 'no campaigns available';
+
+/**
  * Whether a failure envelope is the backend's "empty result" rather than a
  * fault. Keyed on the one exact message (case-insensitive, trailing period
  * tolerated) and nothing else, like the supervisor reports' `isNoDataFound`:
@@ -406,6 +412,10 @@ export class HaoService {
    * The CTI backend nests the list at `data.campaign` (snake_case
    * `campaign_name` keys); older responses put the array directly on `data`.
    * Both shapes are accepted, anything else is treated as "no campaigns".
+   * The backend's "No Campaigns Available" envelope is an agent with no
+   * campaigns, not a fault, and resolves to an empty list; any other failure
+   * reaches the caller as a {@link HaoRequestError}, like
+   * {@link getCampaignSkills}, so the closure step can show it and retry.
    */
   getTransferCampaigns(agentID: number): Observable<TransferCampaign[]> {
     return this.http
@@ -416,7 +426,13 @@ export class HaoService {
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => {
-          const arr = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.campaign) ? res.data.campaign : [];
+          if (isFailureEnvelope(res)) {
+            if (isEmptyResultEnvelope(res, NO_CAMPAIGNS_AVAILABLE)) {
+              return [];
+            }
+            throw res;
+          }
+          const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.campaign) ? res.data.campaign : [];
           return arr
             .filter((c): c is TransferCampaign => c != null)
             .map((c) => ({
@@ -424,6 +440,7 @@ export class HaoService {
               campaignName: c.campaignName ?? (c['campaign_name'] as string | undefined) ?? '',
             }));
         }),
+        catchError((err: unknown) => throwError(() => toRequestError(err))),
       );
   }
 

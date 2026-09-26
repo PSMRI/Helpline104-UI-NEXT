@@ -973,6 +973,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.selectTransferService': 'चुनें',
   'hao.closure.servicesLoading': 'स्थानांतरण सेवाएँ लोड हो रही हैं…',
   'hao.closure.noServices': 'कोई स्थानांतरण सेवा कॉन्फ़िगर नहीं है।',
+  'hao.closure.campaignsLoading': 'स्थानांतरण अभियान लोड हो रहे हैं…',
+  'hao.closure.noCampaigns': 'कोई स्थानांतरण अभियान उपलब्ध नहीं है।',
   'hao.closure.referralNeedsBeneficiary': 'रेफरल कॉल के लिए एक लाभार्थी चुना जाना आवश्यक है।',
   'hao.closure.configureHaoCampaign': 'कृपया हेल्थ एडवाइजरी अभियान कॉन्फ़िगर करें।',
   'hao.closure.configureCoCampaign': 'कृपया काउंसलिंग अभियान कॉन्फ़िगर करें।',
@@ -1002,6 +1004,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.callTypesLoadError': 'कॉल प्रकार लोड करने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.servicesLoadError': 'स्थानांतरण सेवाएँ लोड नहीं हो सकीं। कृपया पुनः प्रयास करें।',
   'hao.closure.retryServices': 'पुनः प्रयास करें',
+  'hao.closure.campaignsLoadError': 'स्थानांतरण अभियान लोड नहीं हो सके। कृपया पुनः प्रयास करें।',
+  'hao.closure.retryCampaigns': 'पुनः प्रयास करें',
   'hao.closure.noServiceError':
     'आपकी भूमिका को कोई सेवा नहीं सौंपी गई है, इसलिए कॉल प्रकार लोड नहीं किए जा सकते। कृपया अपने व्यवस्थापक से संपर्क करें।',
 
