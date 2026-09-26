@@ -221,6 +221,8 @@ export const hi: Record<TranslationKey, string> = {
   'registration.field.no': 'नहीं',
   'registration.field.hcwType': 'स्वास्थ्यकर्मी प्रकार',
   'registration.hcwTypes.loadError': 'स्वास्थ्यकर्मी प्रकार लोड नहीं हो सके।',
+  'registration.hcwTypes.loading': 'स्वास्थ्यकर्मी प्रकार लोड हो रहे हैं…',
+  'registration.hcwTypes.none': 'कोई स्वास्थ्यकर्मी प्रकार कॉन्फ़िगर नहीं है।',
   'registration.field.emergency': 'आपातकालीन पंजीकरण',
   'registration.field.dob': 'जन्म तिथि',
   'registration.field.ageUnit': 'आयु इकाई',

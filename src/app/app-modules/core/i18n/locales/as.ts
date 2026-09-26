@@ -222,6 +222,8 @@ export const as: Record<TranslationKey, string> = {
   'registration.field.no': 'নহয়',
   'registration.field.hcwType': 'স্বাস্থ্যকৰ্মীৰ প্ৰকাৰ',
   'registration.hcwTypes.loadError': 'স্বাস্থ্যকৰ্মীৰ প্ৰকাৰ ল’ড কৰিব পৰা নগ’ল।',
+  'registration.hcwTypes.loading': 'স্বাস্থ্যকৰ্মীৰ প্ৰকাৰ ল’ড হৈ আছে…',
+  'registration.hcwTypes.none': 'কোনো স্বাস্থ্যকৰ্মীৰ প্ৰকাৰ কনফিগাৰ কৰা হোৱা নাই।',
   'registration.field.emergency': 'জৰুৰীকালীন পঞ্জীয়ন',
   'registration.field.dob': 'জন্ম তাৰিখ',
   'registration.field.ageUnit': 'বয়সৰ একক',

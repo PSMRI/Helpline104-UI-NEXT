@@ -660,7 +660,13 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                     'registration.field.hcwType' | translate: lang()
                   }}</label>
                   <z-form-control>
-                    <select id="healthCareWorkerID" formControlName="healthCareWorkerID" [class]="selectClass">
+                    <select
+                      id="healthCareWorkerID"
+                      formControlName="healthCareWorkerID"
+                      [class]="selectClass"
+                      [attr.disabled]="hcwTypesLoading() ? '' : null"
+                      [attr.aria-busy]="hcwTypesLoading() ? 'true' : null"
+                    >
                       <option [ngValue]="null">
                         {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                       </option>
@@ -671,6 +677,11 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                       }
                     </select>
                   </z-form-control>
+                  @if (hcwTypesLoading()) {
+                    <z-form-message role="status">{{ 'registration.hcwTypes.loading' | translate: lang() }}</z-form-message>
+                  } @else if (noHcwTypes()) {
+                    <z-form-message>{{ 'registration.hcwTypes.none' | translate: lang() }}</z-form-message>
+                  }
                   @if (hcwTypesError(); as hcwError) {
                     <div class="flex flex-wrap items-center gap-2" role="alert">
                       <z-form-message zType="error">{{ hcwError }}</z-form-message>
@@ -1318,6 +1329,10 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly govtIdTypes = signal<GovtIdentityType[]>([]);
   readonly relationships = signal<Relationship[]>([]);
   readonly hcwTypes = signal<HealthCareWorkerType[]>([]);
+  /** True while the healthcare-worker-type lookup is in flight; the select is disabled meanwhile. */
+  readonly hcwTypesLoading = signal(false);
+  /** True when the lookup succeeded but the backend has no types configured. */
+  readonly noHcwTypes = signal(false);
   /** Message from the last failed healthcare-worker-type lookup; shows an inline Retry. */
   readonly hcwTypesError = signal<string | null>(null);
 
@@ -1764,10 +1779,18 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
 
   loadHcwTypes(): void {
     this.hcwTypesError.set(null);
+    this.noHcwTypes.set(false);
+    this.hcwTypesLoading.set(true);
     this.beneficiary.getHealthCareWorkerTypes().subscribe({
-      next: (types) => this.hcwTypes.set(types),
-      error: (err: BeneficiaryError) =>
-        this.hcwTypesError.set(err?.errorMessage || this.i18n.instant('registration.hcwTypes.loadError')),
+      next: (types) => {
+        this.hcwTypes.set(types);
+        this.noHcwTypes.set(types.length === 0);
+        this.hcwTypesLoading.set(false);
+      },
+      error: (err: BeneficiaryError) => {
+        this.hcwTypesLoading.set(false);
+        this.hcwTypesError.set(err?.errorMessage || this.i18n.instant('registration.hcwTypes.loadError'));
+      },
     });
   }
 

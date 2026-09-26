@@ -220,6 +220,8 @@ export const en = {
   'registration.field.no': 'No',
   'registration.field.hcwType': 'Healthcare worker type',
   'registration.hcwTypes.loadError': 'Could not load healthcare worker types.',
+  'registration.hcwTypes.loading': 'Loading healthcare worker types…',
+  'registration.hcwTypes.none': 'No healthcare worker types configured.',
   'registration.field.emergency': 'Emergency registration',
   'registration.field.dob': 'Date of birth',
   'registration.field.ageUnit': 'Age unit',

@@ -23,7 +23,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
 import { of } from 'rxjs';
@@ -200,23 +200,109 @@ describe('BeneficiaryRegistrationComponent', () => {
     expect(component.displayedHistoryResults()).toEqual([{ beneficiaryRegID: 7 }]);
   });
 
-  it('onHealthcareWorkerChange() surfaces a failed type lookup and loadHcwTypes() clears it on a successful retry', () => {
-    const fixture = render();
-    const component = fixture.componentInstance;
-    component.registerForm.controls.isHealthcareWorker.setValue(true);
+  describe('healthcare worker type lookup', () => {
+    function openHcwField() {
+      const fixture = render();
+      const component = fixture.componentInstance;
+      // The screen is gated on the "Have you called earlier?" answer; clear it and open the register view.
+      component.calledEarlier.set('no');
+      component.activeView.set('register');
+      component.registerForm.controls.isHealthcareWorker.setValue(true);
+      component.onHealthcareWorkerChange();
+      fixture.detectChanges();
+      return { fixture, component };
+    }
 
-    component.onHealthcareWorkerChange();
-    http.expectOne(HCW_TYPES).flush(null, { status: 500, statusText: 'Server Error' });
+    function hcwField(fixture: ComponentFixture<BeneficiaryRegistrationComponent>) {
+      const root: HTMLElement = fixture.nativeElement;
+      const select = root.querySelector<HTMLSelectElement>('#healthCareWorkerID');
+      const fieldText = select?.closest('z-form-field')?.textContent ?? '';
+      return {
+        select,
+        fieldText,
+        retry: Array.from(root.querySelectorAll('button')).find((b) => /retry/i.test(b.textContent ?? '')),
+      };
+    }
 
-    expect(component.hcwTypesError()).toBeTruthy();
-    expect(component.hcwTypes()).toEqual([]);
+    it('disables the select and shows a loading message while the lookup is in flight', () => {
+      const { fixture, component } = openHcwField();
 
-    component.loadHcwTypes();
-    expect(component.hcwTypesError()).toBeNull();
-    http.expectOne(HCW_TYPES).flush({ statusCode: 200, data: [{ healthCareWorkerID: 1, healthCareWorkerType: 'ASHA' }] });
+      expect(component.hcwTypesLoading()).toBeTrue();
+      const pending = hcwField(fixture);
+      expect(pending.select?.hasAttribute('disabled')).toBeTrue();
+      expect(pending.fieldText).toContain('Loading healthcare worker types');
+      expect(pending.retry).toBeUndefined();
 
-    expect(component.hcwTypesError()).toBeNull();
-    expect(component.hcwTypes()).toEqual([{ healthCareWorkerID: 1, healthCareWorkerType: 'ASHA' }]);
+      http.expectOne(HCW_TYPES).flush({ statusCode: 200, data: [{ healthCareWorkerID: 1, healthCareWorkerType: 'ASHA' }] });
+      fixture.detectChanges();
+
+      expect(component.hcwTypesLoading()).toBeFalse();
+      const done = hcwField(fixture);
+      expect(done.select?.hasAttribute('disabled')).toBeFalse();
+      expect(done.fieldText).not.toContain('Loading healthcare worker types');
+    });
+
+    it('surfaces a failed lookup with an inline error and Retry, and clears it on a successful retry', () => {
+      const { fixture, component } = openHcwField();
+
+      http.expectOne(HCW_TYPES).flush(null, { status: 500, statusText: 'Server Error' });
+      fixture.detectChanges();
+
+      expect(component.hcwTypesError()).toBeTruthy();
+      expect(component.hcwTypesLoading()).toBeFalse();
+      expect(component.noHcwTypes()).toBeFalse();
+      expect(component.hcwTypes()).toEqual([]);
+      const failed = hcwField(fixture);
+      expect(failed.retry).toBeDefined();
+      expect(failed.select?.hasAttribute('disabled')).toBeFalse();
+
+      component.loadHcwTypes();
+      expect(component.hcwTypesError()).toBeNull();
+      expect(component.hcwTypesLoading()).toBeTrue();
+      http.expectOne(HCW_TYPES).flush({ statusCode: 200, data: [{ healthCareWorkerID: 1, healthCareWorkerType: 'ASHA' }] });
+      fixture.detectChanges();
+
+      expect(component.hcwTypesError()).toBeNull();
+      expect(component.hcwTypes()).toEqual([{ healthCareWorkerID: 1, healthCareWorkerType: 'ASHA' }]);
+      expect(hcwField(fixture).retry).toBeUndefined();
+    });
+
+    it('reports a successful lookup that returns no types as an explicit empty state, not an error', () => {
+      const { fixture, component } = openHcwField();
+
+      http.expectOne(HCW_TYPES).flush({ statusCode: 200, data: [] });
+      fixture.detectChanges();
+
+      expect(component.noHcwTypes()).toBeTrue();
+      expect(component.hcwTypesError()).toBeNull();
+      expect(component.hcwTypesLoading()).toBeFalse();
+      const empty = hcwField(fixture);
+      expect(empty.fieldText).toContain('No healthcare worker types configured');
+      expect(empty.retry).toBeUndefined();
+      expect(empty.select?.options.length).toBe(1);
+    });
+
+    it('renders the returned types with no loading, empty, or error message on success', () => {
+      const { fixture, component } = openHcwField();
+
+      http.expectOne(HCW_TYPES).flush({
+        statusCode: 200,
+        data: [
+          { healthCareWorkerID: 1, healthCareWorkerType: 'ASHA' },
+          { healthCareWorkerID: 2, healthCareWorkerType: 'ANM' },
+        ],
+      });
+      fixture.detectChanges();
+
+      expect(component.hcwTypes().length).toBe(2);
+      expect(component.noHcwTypes()).toBeFalse();
+      expect(component.hcwTypesError()).toBeNull();
+      const ok = hcwField(fixture);
+      expect(ok.select?.options.length).toBe(3);
+      expect(ok.fieldText).not.toContain('Loading healthcare worker types');
+      expect(ok.fieldText).not.toContain('No healthcare worker types configured');
+      expect(ok.retry).toBeUndefined();
+    });
   });
 
   it('onSubDistrictChange() flags an empty village list and clears the flag when the block changes', () => {
