@@ -39,25 +39,15 @@ only through `saveDisease` and `updateDisease`, and both apps send the same `$`-
 toggle it twice with our payload, read it back, and diff. Expect byte-identical content with only
 `deleted` flipping.
 
-## Registration and closure: on-demand lookups without loading or empty states
+## Closure (CO): institute lookups without loading or empty states
 
-Audit of 2026-09-26. Reference pattern: villages (`noVillages` signal, "No villages found for this
-block." under the select) and, since d42b01c, healthcare worker types (loading message with the
-select disabled, "No healthcare worker types configured." on an empty 200, inline error with Retry).
-The lookups below still lack one or both states. Branch is where the owning file is being changed.
+The CO External Referral fields on the closure step fetch institute types on reveal and institute
+names on type change (`call/hao/steps/closure-step.component.ts`). Neither has a loading or empty
+state and both swallow errors; the names field renders as an empty multi-select with no placeholder.
+Left as is on 2026-09-26: the file is owned by fix/hao-closure-robustness (#131), but no open PR is
+CO-specific, so the change waits for whoever picks up CO closure work. Apply the same pattern used for
+transfer services and campaign skills in that file.
 
-| Lookup | Screen | Owning file | Loading | Empty | Error | Branch / PR |
-|---|---|---|---|---|---|---|
-| Districts (register form) | Registration, address | `call/beneficiary/beneficiary-registration.component.ts` | no | no | swallowed | fix/registration-flow-bugs, #130 |
-| Districts (search form) | Registration, search filter | same | no | no | swallowed | fix/registration-flow-bugs, #130 |
-| Blocks / taluks | Registration, address | same | no | no | swallowed | fix/registration-flow-bugs, #130 |
-| Villages | Registration, address | same | no | yes | toast | fix/registration-flow-bugs, #130 |
-| Transfer services (H10) | Closure, Transfer Call | `call/hao/steps/closure-step.component.ts` | Retry button only, select never disabled | no, placeholder reads "Select none" | inline + Retry | fix/hao-closure-robustness, #131 |
-| Campaign skills | Closure, after picking a transfer service | same | no | no, whole field hidden while empty | swallowed | fix/hao-closure-robustness, #131 |
-| Institute types (CO) | Closure, External Referral = Yes | same | no | no | swallowed | fix/hao-closure-robustness, #131 |
-| Institute names (CO) | Closure, after picking an institute type | same | no | no, empty multi-select box with no placeholder | swallowed | fix/hao-closure-robustness, #131 |
-| Appointment facilities | Closure, Schedule Appointment dialog, after picking a block | `call/schedule-appointment/schedule-appointment.component.ts` | no | no | inline banner, no Retry | fix/hao-closure-robustness, #131 |
-
-Districts and blocks also swallow their errors entirely, which is worse than either missing state.
-Not being closed now; fix in the order districts, blocks, villages (same file, villages pattern),
-then transfer services, then the CO and appointment lookups.
+Closed on 2026-09-26 and no longer gaps: districts (both forms), blocks and villages on registration
+(#130); healthcare worker types (#130); transfer services, campaign skills and appointment facilities
+(#131); registration state list filtered and pre-selected to the role's state as legacy does (#130).
