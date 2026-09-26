@@ -54,6 +54,7 @@ import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { stateIDForRole } from '../../supervisor/reports/reports.util';
 import { CallerDemographics, CallStore } from '../call.store';
 import { toCallerDemographics } from './caller-demographics.util';
 import { resolveDispatchPath } from '../role-workspace/role-screens.util';
@@ -1336,6 +1337,11 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly hcwTypesError = signal<string | null>(null);
 
   // --- Location cascade ---------------------------------------------------
+  /** Every state the provider serves, as returned by `m/role/state`. */
+  private readonly allStates = signal<StateOption[]>([]);
+  /** The role's own state (legacy `current_stateID_based_on_role`), when it is one of {@link allStates}. */
+  private readonly roleStateID = signal<number | null>(null);
+  /** State options offered on both forms: the role's state alone when known, else every provider state. */
   readonly states = signal<StateOption[]>([]);
   readonly districts = signal<DistrictOption[]>([]);
   /** Districts for the search form's own State filter — kept separate from
@@ -1523,6 +1529,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         this.searchAttempted.set(false);
         this.searchResults.set([]);
         this.searchDistricts.set([]);
+        this.preselectSearchState();
       });
   }
 
@@ -1606,6 +1613,8 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.villages.set([]);
     this.noVillages.set(false);
     this.page.set(1);
+    this.refreshStateOptions();
+    this.preselectRegisterState();
   }
 
   ngOnInit(): void {
@@ -1657,9 +1666,57 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   private loadStates(): void {
     const serviceProviderID = this.authStore.currentRole()?.serviceProviderID ?? null;
     this.beneficiary.getProviderStates(serviceProviderID).subscribe({
-      next: (states) => this.states.set(states),
+      next: (states) => {
+        const roleStateID = stateIDForRole(this.authStore.privileges(), this.authStore.currentRole());
+        this.allStates.set(states);
+        this.roleStateID.set(states.some((s) => s.stateID === roleStateID) ? roleStateID : null);
+        this.refreshStateOptions();
+        this.preselectRegisterState();
+        this.preselectSearchState();
+      },
       error: () => undefined,
     });
+  }
+
+  /**
+   * Narrow the state options to the role's state. A beneficiary under review
+   * keeps their own state selectable so the pre-filled address still resolves.
+   */
+  private refreshStateOptions(): void {
+    const roleStateID = this.roleStateID();
+    if (roleStateID === null) {
+      this.states.set(this.allStates());
+      return;
+    }
+    const options = this.allStates().filter((s) => s.stateID === roleStateID);
+    const reviewedStateID = this.updateMode() ? this.registerForm.controls.stateID.value : null;
+    if (reviewedStateID != null && reviewedStateID !== roleStateID) {
+      const reviewedState = this.allStates().find((s) => s.stateID === reviewedStateID);
+      if (reviewedState) {
+        options.push(reviewedState);
+      }
+    }
+    this.states.set(options);
+  }
+
+  /** Pre-select the role's state on a blank new-registration form so districts load at once. */
+  private preselectRegisterState(): void {
+    const roleStateID = this.roleStateID();
+    if (roleStateID === null || this.updateMode() || this.registerForm.controls.stateID.value !== null) {
+      return;
+    }
+    this.registerForm.controls.stateID.setValue(roleStateID);
+    this.onStateChange();
+  }
+
+  /** Pre-select the role's state on the search form's State filter. */
+  private preselectSearchState(): void {
+    const roleStateID = this.roleStateID();
+    if (roleStateID === null || this.searchForm.controls.stateID.value !== null) {
+      return;
+    }
+    this.searchForm.controls.stateID.setValue(roleStateID);
+    this.onSearchStateChange();
   }
 
   private loadHistory(cli: string): void {
@@ -1836,6 +1893,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.subDistricts.set([]);
     this.villages.set([]);
     this.noVillages.set(false);
+    this.preselectRegisterState();
   }
 
   /** Title → gender auto-fill, mirroring the legacy `titleSelected`. */
@@ -2289,6 +2347,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.parentBenRegID = detail.benPhoneMaps?.[0]?.parentBenRegID ?? null;
     this.updateBenPhoneMaps = detail.benPhoneMaps ?? [];
     this.updateIncomeStatusID = demo?.incomeStatusID ?? null;
+    this.refreshStateOptions();
     this.cascadeLoadAddress(readDistrictID(demo?.stateID), readDistrictID(demo?.districtID), readDistrictID(demo?.blockID));
 
     this.activeView.set('register');

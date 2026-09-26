@@ -373,6 +373,127 @@ describe('BeneficiaryRegistrationComponent', () => {
     expect(component.searchDistricts()).toEqual([{ districtID: 9, districtName: 'Some District' }]);
   });
 
+  describe('role state filter', () => {
+    const STATES = [
+      { stateID: 3, stateName: 'Assam' },
+      { stateID: 4, stateName: 'Bihar' },
+    ];
+    const DISTRICTS_3 = [{ districtID: 9, districtName: 'Kamrup' }];
+
+    function withRoleState(stateID: number | undefined) {
+      authStore.setSession({
+        token: 'token',
+        user: { userID: 1, agentID: 1, userName: 'agent104', status: 'Active' },
+        privileges: [
+          {
+            providerServiceMapID: 1,
+            roles: [
+              {
+                RoleName: 'HAO',
+                serviceRoleScreenMappings: [{ providerServiceMapping: stateID === undefined ? {} : { stateID } }],
+              },
+            ],
+          },
+        ],
+      });
+      authStore.setCurrentRole(currentRole());
+    }
+
+    function renderWithStates() {
+      const fixture = TestBed.createComponent(BeneficiaryRegistrationComponent);
+      fixture.detectChanges();
+      http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ data: null });
+      http.expectOne((req) => req.url.includes('m/role/state')).flush({ data: STATES });
+      return fixture;
+    }
+
+    function stateSelect(fixture: ComponentFixture<BeneficiaryRegistrationComponent>, id: string) {
+      const component = fixture.componentInstance;
+      component.calledEarlier.set('no');
+      component.activeView.set(id === 'stateID' ? 'register' : 'search');
+      fixture.detectChanges();
+      return (fixture.nativeElement as HTMLElement).querySelector<HTMLSelectElement>(`#${id}`);
+    }
+
+    it('narrows the options to the role state and pre-selects it on both forms so their districts load at once', () => {
+      withRoleState(3);
+      const fixture = renderWithStates();
+      const component = fixture.componentInstance;
+
+      expect(component.states()).toEqual([STATES[0]]);
+      expect(component.registerForm.controls.stateID.value).toBe(3);
+      expect(component.searchForm.controls.stateID.value).toBe(3);
+      http.expectOne((r) => r.url.includes('location/districts/3')).flush({ data: DISTRICTS_3 });
+      expect(component.districts()).toEqual(DISTRICTS_3);
+      expect(component.searchDistricts()).toEqual(DISTRICTS_3);
+
+      const register = stateSelect(fixture, 'stateID');
+      expect(register?.options.length).toBe(2);
+      expect(register?.selectedIndex).toBe(1);
+      const search = stateSelect(fixture, 'search-stateID');
+      expect(search?.options.length).toBe(2);
+      expect(search?.selectedIndex).toBe(1);
+    });
+
+    it('offers every state with nothing selected when the role mapping carries no stateID', () => {
+      withRoleState(undefined);
+      const fixture = renderWithStates();
+      const component = fixture.componentInstance;
+
+      expect(component.states()).toEqual(STATES);
+      expect(component.registerForm.controls.stateID.value).toBeNull();
+      expect(component.searchForm.controls.stateID.value).toBeNull();
+      http.expectNone((r) => r.url.includes('location/districts/'));
+    });
+
+    it('offers every state with nothing selected when the role stateID is not among the provider states', () => {
+      withRoleState(99);
+      const fixture = renderWithStates();
+      const component = fixture.componentInstance;
+
+      expect(component.states()).toEqual(STATES);
+      expect(component.registerForm.controls.stateID.value).toBeNull();
+      expect(component.searchForm.controls.stateID.value).toBeNull();
+      http.expectNone((r) => r.url.includes('location/districts/'));
+    });
+
+    it('keeps a reviewed beneficiary in their own state, lists it alongside the role state, and restores the filter on exit', () => {
+      withRoleState(3);
+      const fixture = renderWithStates();
+      const component = fixture.componentInstance;
+      http.expectOne((r) => r.url.includes('location/districts/3')).flush({ data: DISTRICTS_3 });
+
+      component.selectBeneficiary({ beneficiaryRegID: 4321 });
+      http.expectOne((r) => r.url.includes('beneficiary/searchUserByID')).flush({
+        data: [
+          {
+            beneficiaryRegID: 4321,
+            firstName: 'Jane',
+            m_gender: { genderID: 2, genderName: 'Female' },
+            i_bendemographics: { stateID: 4, districtID: 12, blockID: 6, districtBranchID: 14 },
+          },
+        ],
+      });
+      http.expectOne((r) => r.url.includes('location/districts/4')).flush({ data: [{ districtID: 12, districtName: 'Patna' }] });
+      http.expectOne((r) => r.url.includes('location/taluks/12')).flush({ data: [{ blockID: 6, blockName: 'Block' }] });
+      http.expectOne((r) => r.url.includes('location/village/6')).flush({ data: [{ districtBranchID: 14, villageName: 'Village' }] });
+
+      expect(component.updateMode()).toBeTrue();
+      expect(component.registerForm.controls.stateID.value).toBe(4);
+      expect(component.states()).toEqual(STATES);
+      const select = stateSelect(fixture, 'stateID');
+      expect(select?.options.length).toBe(3);
+      expect(select?.selectedIndex).toBe(2);
+
+      component.backToList();
+
+      expect(component.updateMode()).toBeFalse();
+      expect(component.states()).toEqual([STATES[0]]);
+      expect(component.registerForm.controls.stateID.value).toBe(3);
+      expect(component.districts()).toEqual(DISTRICTS_3);
+    });
+  });
+
   it('cancelToStart() restarts the landing gate after confirmation, without ending the call', () => {
     const fixture = render();
     const component = fixture.componentInstance;
