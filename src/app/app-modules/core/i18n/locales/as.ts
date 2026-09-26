@@ -1703,6 +1703,7 @@ export const as: Record<TranslationKey, string> = {
   'supDisease.statusUpdated': 'অৱস্থা সফলতাৰে আপডেট কৰা হ’ল',
   'supDisease.statusFailed': 'অৱস্থা আপডেট কৰিবলৈ ব্যৰ্থ',
   'supDisease.loadError': 'ৰোগৰ সাৰাংশ ল’ড কৰিবলৈ ব্যৰ্থ',
+  'supDisease.retry': 'পুনৰ চেষ্টা কৰক',
 
   // Detailed HIHL case sheet (Counsellor, tab 2 — legacy 104-counsellor)
   'hihl.chiefComplaints': 'মুখ্য অভিযোগসমূহ',

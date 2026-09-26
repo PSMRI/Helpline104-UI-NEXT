@@ -1700,6 +1700,7 @@ export const hi: Record<TranslationKey, string> = {
   'supDisease.statusUpdated': 'स्थिति सफलतापूर्वक अपडेट की गई',
   'supDisease.statusFailed': 'स्थिति अपडेट करने में विफल',
   'supDisease.loadError': 'रोग सारांश लोड करने में विफल',
+  'supDisease.retry': 'पुनः प्रयास करें',
 
   // Detailed HIHL case sheet (Counsellor, tab 2 — legacy 104-counsellor)
   'hihl.chiefComplaints': 'मुख्य शिकायतें',

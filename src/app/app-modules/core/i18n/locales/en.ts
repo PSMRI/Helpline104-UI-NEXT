@@ -1698,6 +1698,7 @@ export const en = {
   'supDisease.statusUpdated': 'Status updated successfully',
   'supDisease.statusFailed': 'Failed to update status',
   'supDisease.loadError': 'Failed to load disease summaries',
+  'supDisease.retry': 'Retry',
 
   // Detailed HIHL case sheet (Counsellor, tab 2 — legacy 104-counsellor)
   'hihl.chiefComplaints': 'Chief Complaints',
