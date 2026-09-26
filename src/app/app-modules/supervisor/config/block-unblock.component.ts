@@ -137,18 +137,20 @@ function recordingKey(entry: RecordingEntry): string {
           {{ 'blockUnblock.loading' | translate: lang() }}
         </p>
       } @else {
-        <div class="overflow-x-auto">
-          <app-data-table
-            [columns]="columns()"
-            [data]="rows()"
-            [pageSize]="pageSize"
-            [pageSizeOptions]="pageSizeOptions"
-            [pageSizeLabel]="'blockUnblock.rowsPerPage' | translate: lang()"
-            [filterable]="false"
-            [rowKey]="rowKey"
-            [emptyMessage]="'blockUnblock.noRecords' | translate: lang()"
-          />
-        </div>
+        @if (!(errorMessage() && rows().length === 0)) {
+          <div class="overflow-x-auto">
+            <app-data-table
+              [columns]="columns()"
+              [data]="rows()"
+              [pageSize]="pageSize"
+              [pageSizeOptions]="pageSizeOptions"
+              [pageSizeLabel]="'blockUnblock.rowsPerPage' | translate: lang()"
+              [filterable]="false"
+              [rowKey]="rowKey"
+              [emptyMessage]="'blockUnblock.noRecords' | translate: lang()"
+            />
+          </div>
+        }
 
         <!-- Recordings for the selected number -->
         @if (recordingsPhone(); as rp) {

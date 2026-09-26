@@ -132,4 +132,15 @@ describe('BlockUnblockComponent blacklist table', () => {
     expect(bodyRows().length).toBe(1);
     expect(bodyRows()[0].textContent).toContain('No records found.');
   });
+
+  it('shows the load error alone, without the empty-state row, when the blacklist fails to load', () => {
+    http.expectOne((req) => req.url.includes('call/getBlacklistNumbers')).flush(null, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    expect(fixture.componentInstance.errorMessage()).toBeTruthy();
+    expect(root.querySelector('[role="alert"]')).not.toBeNull();
+    expect(root.querySelector('app-data-table')).toBeNull();
+    expect(root.textContent).not.toContain('No records found.');
+  });
 });
