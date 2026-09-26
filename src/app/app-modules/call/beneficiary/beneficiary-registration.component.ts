@@ -2552,31 +2552,62 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   }
 
   /**
-   * The phone mappings echoed back on update: the ones that came with the
-   * fetched record, with legacy's re-stamp of the primary entry's
-   * relationship and `createdBy`. A record fetched without any falls back to
-   * the call's own CLI so the number is not dropped; with no CLI either, the
-   * key is still sent, as an empty array.
+   * The phone mappings sent on update, the way legacy `updateBeneficiary`
+   * builds them: the primary entry as fetched with its relationship and
+   * `createdBy` re-stamped, then one entry per alternate slot — an existing
+   * map rewritten from the form (so an edit or a cleared number persists),
+   * or a new map for a number typed into an empty slot. A record fetched
+   * without any maps falls back to the call's own CLI so the number is not
+   * dropped; with no CLI either, the key is still sent, as an empty array.
    */
-  private buildUpdatePhoneMaps(benRelationshipID: number, createdBy: string): BeneficiaryPhoneMap[] {
-    if (this.updateBenPhoneMaps.length > 0) {
-      return this.updateBenPhoneMaps.map((entry, index) =>
-        index === 0 ? { ...entry, benRelationshipID, createdBy } : { ...entry },
-      );
-    }
+  private buildUpdatePhoneMaps(
+    value: ReturnType<BeneficiaryRegistrationComponent['registerForm']['getRawValue']>,
+    beneficiaryRegID: number,
+    benRelationshipID: number,
+    createdBy: string,
+  ): BeneficiaryPhoneMap[] {
+    const fetched = this.updateBenPhoneMaps[0];
     const cli = this.callStore.cli();
-    if (!cli) {
+    if (!fetched && !cli) {
       return [];
     }
-    return [
-      {
-        parentBenRegID: this.parentBenRegID,
-        phoneNo: cli,
-        phoneTypeID: PRIMARY_PHONE_TYPE_ID,
-        benRelationshipID,
-        createdBy,
-      },
+    const maps: BeneficiaryPhoneMap[] = [
+      fetched
+        ? { ...fetched, benRelationshipID, createdBy }
+        : {
+            parentBenRegID: this.parentBenRegID,
+            phoneNo: cli ?? '',
+            phoneTypeID: PRIMARY_PHONE_TYPE_ID,
+            benRelationshipID,
+            createdBy,
+          },
     ];
+    this.altPhoneControls.forEach((c, i) => {
+      const phoneNo = (value[c.name] ?? '').trim();
+      const existing = this.updateBenPhoneMaps[i + 1];
+      if (existing) {
+        maps.push({
+          ...existing,
+          phoneNo,
+          parentBenRegID: this.parentBenRegID,
+          benificiaryRegID: beneficiaryRegID,
+          benRelationshipID,
+          modifiedBy: createdBy,
+          deleted: false,
+        });
+      } else if (phoneNo.length > 0) {
+        maps.push({
+          parentBenRegID: this.parentBenRegID,
+          benificiaryRegID: beneficiaryRegID,
+          benRelationshipID,
+          phoneNo,
+          modifiedBy: createdBy,
+          createdBy,
+          deleted: false,
+        });
+      }
+    });
+    return maps;
   }
 
   /** "Modify" — persist the agent's edits (legacy `updateBeneficiary`), then proceed. */
@@ -2629,7 +2660,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         ...(this.updateIncomeStatusID != null ? { incomeStatusID: this.updateIncomeStatusID } : {}),
         createdBy,
       },
-      benPhoneMaps: this.buildUpdatePhoneMaps(v.relationshipTypeID ?? RELATIONSHIP_SELF, createdBy),
+      benPhoneMaps: this.buildUpdatePhoneMaps(v, beneficiaryRegID, v.relationshipTypeID ?? RELATIONSHIP_SELF, createdBy),
       changeInSelfDetails: true,
       changeInIdentities: true,
       changeInOtherDetails: true,

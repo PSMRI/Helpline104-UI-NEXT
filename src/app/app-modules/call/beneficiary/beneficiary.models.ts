@@ -74,17 +74,21 @@ export const GENDER_OPTIONS: readonly GenderOption[] = [
 
 /**
  * One phone mapping on a fetched beneficiary record (legacy `benPhoneMaps`),
- * echoed back unchanged on beneficiary/update apart from the fields legacy
- * re-stamps. The backend returns more columns than the UI reads, and they are
- * preserved through the index signature.
+ * echoed back on beneficiary/update with the fields legacy re-stamps and the
+ * alternate numbers rewritten from the form. `benificiaryRegID` is the
+ * backend's own spelling. The backend returns more columns than the UI
+ * reads, and they are preserved through the index signature.
  */
 export interface BeneficiaryPhoneMap {
   phoneNo?: string;
   parentBenRegID?: number | null;
+  benificiaryRegID?: number;
   benRelationshipID?: number | null;
   benRelationshipType?: { benRelationshipType?: string };
   phoneTypeID?: number;
   createdBy?: string;
+  modifiedBy?: string;
+  deleted?: boolean;
   [key: string]: unknown;
 }
 

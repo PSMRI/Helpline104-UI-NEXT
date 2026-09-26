@@ -871,6 +871,81 @@ describe('BeneficiaryRegistrationComponent modify', () => {
     req.flush({ statusCode: 200, data: 'Success' });
   });
 
+  function phoneMapsWithAlternates(...alternates: string[]): BeneficiaryRecord['benPhoneMaps'] {
+    return [
+      ...(existingPhoneMaps() ?? []),
+      ...alternates.map((phoneNo, i) => ({
+        benPhoneMapID: 901 + i,
+        benificiaryRegID: 4321,
+        parentBenRegID: 4321,
+        phoneNo,
+        benRelationshipID: 1,
+        createdBy: 'someoneelse',
+      })),
+    ];
+  }
+
+  it('an edited and a newly added alternate number are sent on Modify and come back on the next read', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, record(ADDRESS_BEFORE, phoneMapsWithAlternates('9111111111')));
+    expect(component.registerForm.controls.alternateNumber1.value).toBe('9111111111');
+    expect(component.registerForm.controls.alternateNumber2.value).toBe('');
+
+    component.registerForm.patchValue({ alternateNumber1: '9222222222', alternateNumber2: '9333333333' });
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    const maps = req.request.body.benPhoneMaps;
+    expect(maps.length).toBe(3);
+    expect(maps[0]).toEqual(jasmine.objectContaining({ benPhoneMapID: 900, phoneNo: '9876543210' }));
+    expect(maps[1]).toEqual(
+      jasmine.objectContaining({
+        benPhoneMapID: 901,
+        benificiaryRegID: 4321,
+        phoneNo: '9222222222',
+        createdBy: 'someoneelse',
+        modifiedBy: 'agent104',
+        deleted: false,
+      }),
+    );
+    expect(maps[2]).toEqual({
+      parentBenRegID: 4321,
+      benificiaryRegID: 4321,
+      benRelationshipID: 1,
+      phoneNo: '9333333333',
+      modifiedBy: 'agent104',
+      createdBy: 'agent104',
+      deleted: false,
+    });
+    expect(req.request.body.changeInContacts).toBeTrue();
+    req.flush({ statusCode: 200, data: 'Success' });
+
+    selectForUpdate(component, record(ADDRESS_AFTER, phoneMapsWithAlternates('9222222222', '9333333333')));
+
+    const reloaded = component.registerForm.getRawValue();
+    expect(reloaded.alternateNumber1).toBe('9222222222');
+    expect(reloaded.alternateNumber2).toBe('9333333333');
+  });
+
+  it('a cleared alternate number is sent back as its emptied map, not dropped', () => {
+    const fixture = render();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, record(ADDRESS_BEFORE, phoneMapsWithAlternates('9111111111')));
+
+    component.registerForm.patchValue({ alternateNumber1: '' });
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.benPhoneMaps.length).toBe(2);
+    expect(req.request.body.benPhoneMaps[1]).toEqual(
+      jasmine.objectContaining({ benPhoneMapID: 901, phoneNo: '', modifiedBy: 'agent104', deleted: false }),
+    );
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
   it('doModify() sends all six changeIn flags as true', () => {
     const fixture = render();
     const component = fixture.componentInstance;
