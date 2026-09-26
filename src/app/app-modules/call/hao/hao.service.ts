@@ -435,19 +435,21 @@ export class HaoService {
    * Transfer the active call to the chosen campaign (and optional skill). The
    * snake_case body mirrors the legacy `transferToCampaign` contract; `skill`
    * is omitted unless a skill was chosen, but `callType`/`callTypeID` are
-   * always sent.
+   * always sent. `skill_transfer_flag` is the string `"1"`/`"0"` legacy sent:
+   * the backend DTO field is a String that is pasted into CZentrix's URL.
    *
    * A rejected transfer is reported inside a 200 envelope, so the response is
    * checked before the caller hands the call off — see
    * {@link assertCallActionSucceeded}.
    */
   transferCall(request: TransferCallRequest): Observable<void> {
+    const skillTransfer = request.skillTransferFlag && !!request.skill;
     return this.http
       .post<ApiResponse<unknown>>(this.baseCommon + PATHS.transferCall, {
         transfer_from: request.transferFrom,
         transfer_campaign_info: request.transferCampaignInfo,
-        skill_transfer_flag: request.skillTransferFlag,
-        ...(request.skillTransferFlag && request.skill ? { skill: request.skill } : {}),
+        skill_transfer_flag: skillTransfer ? '1' : '0',
+        ...(skillTransfer ? { skill: request.skill } : {}),
         agentIPAddress: request.agentIPAddress ?? null,
         benCallID: request.benCallID,
         callType: request.callType,

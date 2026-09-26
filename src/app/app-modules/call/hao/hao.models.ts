@@ -367,7 +367,10 @@ export interface TransferCallRequest {
   transferFrom: number;
   /** Selected campaign name (`transfer_campaign_info`). */
   transferCampaignInfo: string;
-  /** Whether the transfer is skill-based (`skill_transfer_flag`). */
+  /**
+   * Whether the transfer is skill-based. Sent as `skill_transfer_flag`
+   * `"1"`/`"0"` (a String on the backend DTO), mapped in {@link HaoService}.
+   */
   skillTransferFlag: boolean;
   /** Chosen skill, when {@link skillTransferFlag} is true. */
   skill?: string | null;

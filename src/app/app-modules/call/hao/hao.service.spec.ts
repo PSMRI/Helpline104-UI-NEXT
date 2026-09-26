@@ -134,7 +134,9 @@ describe('HaoService call-lifecycle envelope handling', () => {
   });
 
   describe('transferCall', () => {
-    it('completes on a success envelope and sends the legacy snake_case body', () => {
+    // skill_transfer_flag is a String on the backend DTO, pasted into the
+    // CZentrix URL as-is; legacy sends "0"/"1", never a JSON boolean.
+    it('completes on a success envelope and sends the legacy snake_case body, with skill_transfer_flag "0" and no skill', () => {
       const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
       service.transferCall(transferRequest()).subscribe(outcome);
 
@@ -142,19 +144,20 @@ describe('HaoService call-lifecycle envelope handling', () => {
       expect(req.request.body).toEqual({
         transfer_from: 2145,
         transfer_campaign_info: 'H_104_Hybrid_MO',
-        skill_transfer_flag: false,
+        skill_transfer_flag: '0',
         agentIPAddress: null,
         benCallID: '1786464598330',
         callType: 'Valid',
         callTypeID: 28,
       });
+      expect('skill' in req.request.body).toBeFalse();
       req.flush({ statusCode: 200, status: 'Success' });
 
       expect(outcome.error).not.toHaveBeenCalled();
       expect(outcome.next).toHaveBeenCalled();
     });
 
-    it('sends callType/callTypeID on a skill-based transfer too, not only on the default transfer', () => {
+    it('sends skill_transfer_flag "1" with the skill, plus callType/callTypeID, on a skill-based transfer', () => {
       service
         .transferCall({ ...transferRequest(), skillTransferFlag: true, skill: 'Hindi' })
         .subscribe({ next: () => undefined, error: () => undefined });
@@ -163,13 +166,24 @@ describe('HaoService call-lifecycle envelope handling', () => {
       expect(req.request.body).toEqual({
         transfer_from: 2145,
         transfer_campaign_info: 'H_104_Hybrid_MO',
-        skill_transfer_flag: true,
+        skill_transfer_flag: '1',
         skill: 'Hindi',
         agentIPAddress: null,
         benCallID: '1786464598330',
         callType: 'Valid',
         callTypeID: 28,
       });
+      req.flush({ statusCode: 200, status: 'Success' });
+    });
+
+    it('sends skill_transfer_flag "0" and no skill when the flag is set but no skill was chosen', () => {
+      service
+        .transferCall({ ...transferRequest(), skillTransferFlag: true, skill: null })
+        .subscribe({ next: () => undefined, error: () => undefined });
+
+      const req = expectOne('cti/transferCall');
+      expect(req.request.body.skill_transfer_flag).toBe('0');
+      expect('skill' in req.request.body).toBeFalse();
       req.flush({ statusCode: 200, status: 'Success' });
     });
 
