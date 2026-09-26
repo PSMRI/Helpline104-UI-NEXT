@@ -105,6 +105,24 @@ function isFailureEnvelope(res: ApiResponse<unknown> | null | undefined): boolea
 }
 
 /**
+ * The failure envelope `cti/getCampaignSkills` answers, HTTP 200 with
+ * statusCode 5000 and no `data`, for a campaign that simply has no skills —
+ * verified live, for every campaign without skills.
+ */
+const NO_ACTIVE_SKILL = 'no active skill found';
+
+/**
+ * Whether a failure envelope is the backend's "empty result" rather than a
+ * fault. Keyed on the one exact message (case-insensitive, trailing period
+ * tolerated) and nothing else, like the supervisor reports' `isNoDataFound`:
+ * any other failure text stays an error the caller can show and retry.
+ */
+function isEmptyResultEnvelope(res: ApiResponse<unknown>, message: string): boolean {
+  const text = res.errorMessage?.trim().toLowerCase().replace(/\.+$/, '') ?? '';
+  return text === message;
+}
+
+/**
  * Normalise any failure into a {@link HaoRequestError}. `errorMessage` carries
  * the backend's own text (or the timeout message) and is empty when neither is
  * available, so callers can fall back to their own translated copy.
@@ -413,6 +431,8 @@ export class HaoService {
    * Skills available within a chosen transfer campaign (keyed by name).
    * Failures reach the caller as a {@link HaoRequestError}, like
    * {@link getAvailableServices}, so the closure step can show them and retry.
+   * The backend's "No active skill found." envelope is a campaign with no
+   * skills, not a fault, and resolves to an empty list.
    */
   getCampaignSkills(campaignName: string): Observable<CampaignSkill[]> {
     return this.http
@@ -423,6 +443,9 @@ export class HaoService {
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => {
           if (isFailureEnvelope(res)) {
+            if (isEmptyResultEnvelope(res, NO_ACTIVE_SKILL)) {
+              return [];
+            }
             throw res;
           }
           return Array.isArray(res?.data) ? res.data : [];

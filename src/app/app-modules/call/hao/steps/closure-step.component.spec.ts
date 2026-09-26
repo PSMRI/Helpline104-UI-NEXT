@@ -572,6 +572,22 @@ describe('ClosureStepComponent', () => {
       expect(empty.retry).toBeUndefined();
     });
 
+    it('shows the empty-state line, not an error, on the backend\'s "No active skill found." envelope', () => {
+      const { fixture, component } = selectMedicalService();
+
+      http.expectOne(SKILLS).flush({ statusCode: 5000, errorMessage: 'No active skill found.', status: 'FAILURE' });
+      fixture.detectChanges();
+
+      expect(component.noSkills()).toBeTrue();
+      expect(component.skillsError()).toBeNull();
+      expect(component.skills()).toEqual([]);
+      expect(component.form.controls.skill.enabled).toBeTrue();
+      const empty = skillField(fixture);
+      expect(empty.fieldText).toContain('No skills configured for this service.');
+      expect(empty.retry).toBeUndefined();
+      expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    });
+
     it('surfaces a failed skills lookup inline with Retry, and clears it once the retry succeeds', () => {
       const { fixture, component } = selectMedicalService();
 

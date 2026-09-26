@@ -399,6 +399,58 @@ describe('HaoService case-sheet and services error normalisation', () => {
     });
   });
 
+  describe('getCampaignSkills', () => {
+    it('resolves the skill list on a success envelope', () => {
+      let result: unknown;
+      service.getCampaignSkills('MO_CAMPAIGN').subscribe((skills) => (result = skills));
+
+      expectOne('cti/getCampaignSkills').flush({ statusCode: 200, data: [{ skillName: 'General' }] });
+
+      expect(result).toEqual([{ skillName: 'General' }]);
+    });
+
+    it('resolves an empty list, not an error, on the "No active skill found." failure envelope', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.getCampaignSkills('MO_CAMPAIGN').subscribe({
+        next: (skills) => (result = skills),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('cti/getCampaignSkills').flush({
+        statusCode: 5000,
+        errorMessage: 'No active skill found.',
+        status: 'FAILURE',
+      });
+
+      expect(failure).toBeUndefined();
+      expect(result).toEqual([]);
+    });
+
+    it('matches the empty-result text case-insensitively and without its trailing period', () => {
+      let result: unknown;
+      service.getCampaignSkills('MO_CAMPAIGN').subscribe((skills) => (result = skills));
+
+      expectOne('cti/getCampaignSkills').flush({ statusCode: 5000, errorMessage: '  NO ACTIVE SKILL FOUND ' });
+
+      expect(result).toEqual([]);
+    });
+
+    it('still errors on any other failure envelope', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.getCampaignSkills('MO_CAMPAIGN').subscribe({
+        next: (skills) => (result = skills),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('cti/getCampaignSkills').flush({ statusCode: 5000, errorMessage: 'CTI unavailable', status: 'FAILURE' });
+
+      expect(result).toBeUndefined();
+      expect(failure).toEqual({ status: 5000, errorMessage: 'CTI unavailable' });
+    });
+  });
+
   describe('request timeout', () => {
     beforeEach(() => jasmine.clock().install());
     afterEach(() => jasmine.clock().uninstall());
