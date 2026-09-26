@@ -52,6 +52,7 @@ const FEEDBACK_ROUTE = '/feedback';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgIcon, TranslatePipe, AppFooterComponent, ZardButtonComponent],
   viewProviders: [provideIcons({ lucideMail })],
+  host: { class: 'block shrink-0' },
   template: `
     <app-shell-footer>
       <button
