@@ -24,8 +24,10 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { toast } from 'ngx-sonner';
 import { of } from 'rxjs';
 
 import { ZardDialogService } from '@common-ui/ui/dialog';
@@ -491,6 +493,185 @@ describe('BeneficiaryRegistrationComponent', () => {
       expect(component.states()).toEqual([STATES[0]]);
       expect(component.registerForm.controls.stateID.value).toBe(3);
       expect(component.districts()).toEqual(DISTRICTS_3);
+    });
+  });
+
+  describe('address lookup states', () => {
+    interface Lookup {
+      name: string;
+      view: 'register' | 'search';
+      id: string;
+      url: string;
+      rows: object[];
+      loadingText: string;
+      emptyText: string;
+      control: (component: BeneficiaryRegistrationComponent) => FormControl<number | null>;
+      loading: (component: BeneficiaryRegistrationComponent) => boolean;
+      empty: (component: BeneficiaryRegistrationComponent) => boolean;
+      select: (component: BeneficiaryRegistrationComponent, id: number) => void;
+    }
+
+    const LOOKUPS: Lookup[] = [
+      {
+        name: 'register-form districts',
+        view: 'register',
+        id: 'districtID',
+        url: 'location/districts/',
+        rows: [{ districtID: 9, districtName: 'Kamrup' }],
+        loadingText: 'Loading districts',
+        emptyText: 'No districts found for this state.',
+        control: (c) => c.registerForm.controls.districtID,
+        loading: (c) => c.districtsLoading(),
+        empty: (c) => c.noDistricts(),
+        select: (c, id) => {
+          c.registerForm.controls.stateID.setValue(id);
+          c.onStateChange();
+        },
+      },
+      {
+        name: 'search-form districts',
+        view: 'search',
+        id: 'search-districtID',
+        url: 'location/districts/',
+        rows: [{ districtID: 9, districtName: 'Kamrup' }],
+        loadingText: 'Loading districts',
+        emptyText: 'No districts found for this state.',
+        control: (c) => c.searchForm.controls.districtID,
+        loading: (c) => c.searchDistrictsLoading(),
+        empty: (c) => c.noSearchDistricts(),
+        select: (c, id) => {
+          c.searchForm.controls.stateID.setValue(id);
+          c.onSearchStateChange();
+        },
+      },
+      {
+        name: 'blocks',
+        view: 'register',
+        id: 'subDistrictID',
+        url: 'location/taluks/',
+        rows: [{ blockID: 6, blockName: 'Block' }],
+        loadingText: 'Loading blocks',
+        emptyText: 'No blocks found for this district.',
+        control: (c) => c.registerForm.controls.subDistrictID,
+        loading: (c) => c.blocksLoading(),
+        empty: (c) => c.noBlocks(),
+        select: (c, id) => {
+          c.registerForm.controls.districtID.setValue(id);
+          c.onDistrictChange();
+        },
+      },
+      {
+        name: 'villages',
+        view: 'register',
+        id: 'villageID',
+        url: 'location/village/',
+        rows: [{ districtBranchID: 14, villageName: 'Village' }],
+        loadingText: 'Loading villages',
+        emptyText: 'No villages found for this block.',
+        control: (c) => c.registerForm.controls.villageID,
+        loading: (c) => c.villagesLoading(),
+        empty: (c) => c.noVillages(),
+        select: (c, id) => {
+          c.registerForm.controls.subDistrictID.setValue(id);
+          c.onSubDistrictChange();
+        },
+      },
+    ];
+
+    for (const lookup of LOOKUPS) {
+      describe(lookup.name, () => {
+        function open() {
+          const fixture = renderWithCli();
+          http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+          const component = fixture.componentInstance;
+          component.calledEarlier.set('no');
+          component.activeView.set(lookup.view);
+          lookup.select(component, 3);
+          fixture.detectChanges();
+          return { fixture, component };
+        }
+
+        function field(fixture: ComponentFixture<BeneficiaryRegistrationComponent>) {
+          const select = (fixture.nativeElement as HTMLElement).querySelector<HTMLSelectElement>(`#${lookup.id}`);
+          return { select, text: select?.closest('z-form-field')?.textContent ?? '' };
+        }
+
+        it('disables the select through its control and shows a loading message until the lookup settles', () => {
+          const { fixture, component } = open();
+
+          expect(lookup.loading(component)).toBeTrue();
+          expect(lookup.control(component).disabled).toBeTrue();
+          const pending = field(fixture);
+          expect(pending.select?.disabled).toBeTrue();
+          expect(pending.text).toContain(lookup.loadingText);
+
+          http.expectOne((r) => r.url.includes(`${lookup.url}3`)).flush({ statusCode: 200, data: lookup.rows });
+          fixture.detectChanges();
+
+          expect(lookup.loading(component)).toBeFalse();
+          expect(lookup.control(component).enabled).toBeTrue();
+          const done = field(fixture);
+          expect(done.select?.disabled).toBeFalse();
+          expect(done.select?.options.length).toBe(2);
+          expect(done.text).not.toContain(lookup.loadingText);
+        });
+
+        it('flags an empty result with a message and clears it once the selection moves on', () => {
+          const { fixture, component } = open();
+
+          http.expectOne((r) => r.url.includes(`${lookup.url}3`)).flush({ statusCode: 200, data: [] });
+          fixture.detectChanges();
+
+          expect(lookup.empty(component)).toBeTrue();
+          expect(lookup.loading(component)).toBeFalse();
+          expect(field(fixture).text).toContain(lookup.emptyText);
+
+          lookup.select(component, 4);
+          fixture.detectChanges();
+
+          expect(lookup.empty(component)).toBeFalse();
+          expect(field(fixture).text).not.toContain(lookup.emptyText);
+          http.expectOne((r) => r.url.includes(`${lookup.url}4`)).flush({ statusCode: 200, data: lookup.rows });
+        });
+
+        it('surfaces a failed lookup as a toast and re-enables the select', () => {
+          const toastSpy = spyOn(toast, 'error');
+          const { fixture, component } = open();
+
+          http.expectOne((r) => r.url.includes(`${lookup.url}3`)).flush(null, { status: 500, statusText: 'Server Error' });
+          fixture.detectChanges();
+
+          expect(toastSpy).toHaveBeenCalledTimes(1);
+          expect(lookup.loading(component)).toBeFalse();
+          expect(lookup.empty(component)).toBeFalse();
+          expect(lookup.control(component).enabled).toBeTrue();
+          const failed = field(fixture);
+          expect(failed.select?.disabled).toBeFalse();
+          expect(failed.text).not.toContain(lookup.loadingText);
+        });
+      });
+    }
+
+    it('drops a stale district response without touching the newer selection', () => {
+      const fixture = renderWithCli();
+      http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+      const component = fixture.componentInstance;
+      component.registerForm.controls.stateID.setValue(3);
+      component.onStateChange();
+      component.registerForm.controls.stateID.setValue(4);
+      component.onStateChange();
+
+      http.expectOne((r) => r.url.includes('location/districts/3')).flush({ statusCode: 200, data: [] });
+
+      expect(component.districtsLoading()).toBeTrue();
+      expect(component.registerForm.controls.districtID.disabled).toBeTrue();
+      expect(component.noDistricts()).toBeFalse();
+
+      http.expectOne((r) => r.url.includes('location/districts/4')).flush({ statusCode: 200, data: [{ districtID: 12, districtName: 'Patna' }] });
+
+      expect(component.districtsLoading()).toBeFalse();
+      expect(component.registerForm.controls.districtID.enabled).toBeTrue();
+      expect(component.districts()).toEqual([{ districtID: 12, districtName: 'Patna' }]);
     });
   });
 

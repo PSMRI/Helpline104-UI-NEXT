@@ -21,7 +21,7 @@
  */
 
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, WritableSignal, computed, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -502,13 +502,23 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
             <z-form-field>
               <label z-form-label for="search-districtID" class="text-base">{{ 'registration.field.district' | translate: lang() }}</label>
               <z-form-control>
-                <select id="search-districtID" formControlName="districtID" [class]="selectClass">
+                <select
+                  id="search-districtID"
+                  formControlName="districtID"
+                  [class]="selectClass"
+                  [attr.aria-busy]="searchDistrictsLoading() ? 'true' : null"
+                >
                   <option [ngValue]="null">{{ 'registration.field.selectPlaceholder' | translate: lang() }}</option>
                   @for (d of searchDistricts(); track d.districtID) {
                     <option [ngValue]="d.districtID">{{ d.districtName }}</option>
                   }
                 </select>
               </z-form-control>
+              @if (searchDistrictsLoading()) {
+                <z-form-message role="status">{{ 'registration.district.loading' | translate: lang() }}</z-form-message>
+              } @else if (noSearchDistricts()) {
+                <z-form-message>{{ 'registration.district.none' | translate: lang() }}</z-form-message>
+              }
             </z-form-field>
           </div>
 
@@ -1018,6 +1028,7 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                     id="districtID"
                     formControlName="districtID"
                     [class]="selectClass"
+                    [attr.aria-busy]="districtsLoading() ? 'true' : null"
                     (change)="onDistrictChange()"
                   >
                     <option [ngValue]="null" disabled>
@@ -1028,6 +1039,11 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                     }
                   </select>
                 </z-form-control>
+                @if (districtsLoading()) {
+                  <z-form-message role="status">{{ 'registration.district.loading' | translate: lang() }}</z-form-message>
+                } @else if (noDistricts()) {
+                  <z-form-message>{{ 'registration.district.none' | translate: lang() }}</z-form-message>
+                }
                 @if (showError('districtID', 'required')) {
                   <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
@@ -1042,6 +1058,7 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                     id="subDistrictID"
                     formControlName="subDistrictID"
                     [class]="selectClass"
+                    [attr.aria-busy]="blocksLoading() ? 'true' : null"
                     (change)="onSubDistrictChange()"
                   >
                     <option [ngValue]="null" disabled>
@@ -1052,6 +1069,11 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                     }
                   </select>
                 </z-form-control>
+                @if (blocksLoading()) {
+                  <z-form-message role="status">{{ 'registration.block.loading' | translate: lang() }}</z-form-message>
+                } @else if (noBlocks()) {
+                  <z-form-message>{{ 'registration.block.none' | translate: lang() }}</z-form-message>
+                }
                 @if (showError('subDistrictID', 'required')) {
                   <z-form-message>{{ 'registration.validation.required' | translate: lang() }}</z-form-message>
                 }
@@ -1062,7 +1084,12 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                   'registration.field.village' | translate: lang()
                 }}</label>
                 <z-form-control>
-                  <select id="villageID" formControlName="villageID" [class]="selectClass">
+                  <select
+                    id="villageID"
+                    formControlName="villageID"
+                    [class]="selectClass"
+                    [attr.aria-busy]="villagesLoading() ? 'true' : null"
+                  >
                     <option [ngValue]="null" disabled>
                       {{ 'registration.field.selectPlaceholder' | translate: lang() }}
                     </option>
@@ -1071,7 +1098,9 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                     }
                   </select>
                 </z-form-control>
-                @if (noVillages()) {
+                @if (villagesLoading()) {
+                  <z-form-message role="status">{{ 'registration.village.loading' | translate: lang() }}</z-form-message>
+                } @else if (noVillages()) {
                   <z-form-message>{{ 'registration.village.none' | translate: lang() }}</z-form-message>
                 }
                 @if (showError('villageID', 'required')) {
@@ -1344,13 +1373,23 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   /** State options offered on both forms: the role's state alone when known, else every provider state. */
   readonly states = signal<StateOption[]>([]);
   readonly districts = signal<DistrictOption[]>([]);
+  /** True while the register form's district lookup is in flight; the select is disabled meanwhile. */
+  readonly districtsLoading = signal(false);
+  /** True when the selected state's district lookup succeeded but returned no rows. */
+  readonly noDistricts = signal(false);
   /** Districts for the search form's own State filter — kept separate from
    * {@link districts} (the register-form address cascade) so switching views
    * cannot leave one form's district list showing options for the other's
    * selected state. */
   readonly searchDistricts = signal<DistrictOption[]>([]);
+  readonly searchDistrictsLoading = signal(false);
+  readonly noSearchDistricts = signal(false);
   readonly subDistricts = signal<BlockOption[]>([]);
+  readonly blocksLoading = signal(false);
+  /** True when the selected district's block lookup succeeded but returned no rows. */
+  readonly noBlocks = signal(false);
   readonly villages = signal<VillageOption[]>([]);
+  readonly villagesLoading = signal(false);
   /** True when the selected block's village lookup succeeded but returned no rows. */
   readonly noVillages = signal(false);
 
@@ -1528,7 +1567,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         this.searchForm.reset({ firstName: '', lastName: '', beneficiaryID: '', genderID: null, stateID: null, districtID: null });
         this.searchAttempted.set(false);
         this.searchResults.set([]);
-        this.searchDistricts.set([]);
+        this.onSearchStateChange();
         this.preselectSearchState();
       });
   }
@@ -1558,19 +1597,71 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   /** Load districts for the search form's own State filter (independent of the register-form cascade). */
   onSearchStateChange(): void {
     const stateID = this.searchForm.controls.stateID.value;
+    const control = this.searchForm.controls.districtID;
+    this.finishLookup(control, this.searchDistrictsLoading);
     this.searchDistricts.set([]);
-    this.searchForm.controls.districtID.setValue(null);
+    this.noSearchDistricts.set(false);
+    control.setValue(null);
     if (stateID == null) {
       return;
     }
+    this.startLookup(control, this.searchDistrictsLoading);
     this.beneficiary.getDistricts(stateID).subscribe({
       next: (rows) => {
-        if (this.searchForm.controls.stateID.value === stateID) {
-          this.searchDistricts.set(rows);
+        if (this.searchForm.controls.stateID.value !== stateID) {
+          return;
         }
+        this.searchDistricts.set(rows);
+        this.noSearchDistricts.set(rows.length === 0);
+        this.finishLookup(control, this.searchDistrictsLoading);
       },
-      error: () => undefined,
+      error: (err: BeneficiaryError) => {
+        if (this.searchForm.controls.stateID.value !== stateID) {
+          return;
+        }
+        this.finishLookup(control, this.searchDistrictsLoading);
+        toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
+      },
     });
+  }
+
+  /**
+   * Disable a cascade select through its FormControl while its options load:
+   * the reactive-forms accessor owns the element's disabled state and would
+   * undo a bare attribute binding.
+   */
+  private startLookup(control: FormControl<number | null>, loading: WritableSignal<boolean>): void {
+    loading.set(true);
+    control.disable({ emitEvent: false });
+  }
+
+  /** Re-enable a cascade select once its lookup settled, unless its whole form is hard-blocked. */
+  private finishLookup(control: FormControl<number | null>, loading: WritableSignal<boolean>): void {
+    loading.set(false);
+    if (!control.parent?.disabled) {
+      control.enable({ emitEvent: false });
+    }
+  }
+
+  /** Drop the register form's district/block/village options and settle any lookup still in flight for them. */
+  private resetDistrictLookup(): void {
+    this.finishLookup(this.registerForm.controls.districtID, this.districtsLoading);
+    this.districts.set([]);
+    this.noDistricts.set(false);
+    this.resetBlockLookup();
+  }
+
+  private resetBlockLookup(): void {
+    this.finishLookup(this.registerForm.controls.subDistrictID, this.blocksLoading);
+    this.subDistricts.set([]);
+    this.noBlocks.set(false);
+    this.resetVillageLookup();
+  }
+
+  private resetVillageLookup(): void {
+    this.finishLookup(this.registerForm.controls.villageID, this.villagesLoading);
+    this.villages.set([]);
+    this.noVillages.set(false);
   }
 
   /** Clear review/edit-mode state and blank the form back to its new-registration defaults. */
@@ -1608,10 +1699,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.isHealthcareWorker.set(false);
     this.isEmergency.set(false);
     this.idMaxLength.set(ID_VALIDATION_DEFAULT.maxLength);
-    this.districts.set([]);
-    this.subDistricts.set([]);
-    this.villages.set([]);
-    this.noVillages.set(false);
+    this.resetDistrictLookup();
     this.page.set(1);
     this.refreshStateOptions();
     this.preselectRegisterState();
@@ -1889,10 +1977,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     for (const { name } of this.altPhoneControls) {
       this.registerForm.controls[name].setValue('');
     }
-    this.districts.set([]);
-    this.subDistricts.set([]);
-    this.villages.set([]);
-    this.noVillages.set(false);
+    this.resetDistrictLookup();
     this.preselectRegisterState();
   }
 
@@ -1964,68 +2049,90 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
 
   onStateChange(): void {
     const stateID = this.registerForm.controls.stateID.value;
-    this.districts.set([]);
-    this.subDistricts.set([]);
-    this.villages.set([]);
-    this.noVillages.set(false);
-    this.registerForm.controls.districtID.setValue(null);
+    const control = this.registerForm.controls.districtID;
+    this.resetDistrictLookup();
+    control.setValue(null);
     this.registerForm.controls.subDistrictID.setValue(null);
     this.registerForm.controls.villageID.setValue(null);
     if (stateID == null) {
       return;
     }
+    this.startLookup(control, this.districtsLoading);
     this.beneficiary.getDistricts(stateID).subscribe({
       // Guard against out-of-order responses: ignore if the selection moved on.
       next: (rows) => {
-        if (this.registerForm.controls.stateID.value === stateID) {
-          this.districts.set(rows);
+        if (this.registerForm.controls.stateID.value !== stateID) {
+          return;
         }
+        this.districts.set(rows);
+        this.noDistricts.set(rows.length === 0);
+        this.finishLookup(control, this.districtsLoading);
       },
-      error: () => undefined,
+      error: (err: BeneficiaryError) => {
+        if (this.registerForm.controls.stateID.value !== stateID) {
+          return;
+        }
+        this.finishLookup(control, this.districtsLoading);
+        toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
+      },
     });
   }
 
   onDistrictChange(): void {
     const districtID = this.registerForm.controls.districtID.value;
-    this.subDistricts.set([]);
-    this.villages.set([]);
-    this.noVillages.set(false);
-    this.registerForm.controls.subDistrictID.setValue(null);
+    const control = this.registerForm.controls.subDistrictID;
+    this.resetBlockLookup();
+    control.setValue(null);
     this.registerForm.controls.villageID.setValue(null);
     if (districtID == null) {
       return;
     }
+    this.startLookup(control, this.blocksLoading);
     this.beneficiary.getSubDistricts(districtID).subscribe({
       // Guard against out-of-order responses: ignore if the selection moved on.
       next: (rows) => {
-        if (this.registerForm.controls.districtID.value === districtID) {
-          this.subDistricts.set(rows);
+        if (this.registerForm.controls.districtID.value !== districtID) {
+          return;
         }
+        this.subDistricts.set(rows);
+        this.noBlocks.set(rows.length === 0);
+        this.finishLookup(control, this.blocksLoading);
       },
-      error: () => undefined,
+      error: (err: BeneficiaryError) => {
+        if (this.registerForm.controls.districtID.value !== districtID) {
+          return;
+        }
+        this.finishLookup(control, this.blocksLoading);
+        toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
+      },
     });
   }
 
   onSubDistrictChange(): void {
     const subDistrictID = this.registerForm.controls.subDistrictID.value;
-    this.villages.set([]);
-    this.noVillages.set(false);
-    this.registerForm.controls.villageID.setValue(null);
+    const control = this.registerForm.controls.villageID;
+    this.resetVillageLookup();
+    control.setValue(null);
     if (subDistrictID == null) {
       return;
     }
+    this.startLookup(control, this.villagesLoading);
     this.beneficiary.getVillages(subDistrictID).subscribe({
       // Guard against out-of-order responses: ignore if the selection moved on.
       next: (rows) => {
-        if (this.registerForm.controls.subDistrictID.value === subDistrictID) {
-          this.villages.set(rows);
-          this.noVillages.set(rows.length === 0);
+        if (this.registerForm.controls.subDistrictID.value !== subDistrictID) {
+          return;
         }
+        this.villages.set(rows);
+        this.noVillages.set(rows.length === 0);
+        this.finishLookup(control, this.villagesLoading);
       },
       error: (err: BeneficiaryError) => {
-        if (this.registerForm.controls.subDistrictID.value === subDistrictID) {
-          toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
+        if (this.registerForm.controls.subDistrictID.value !== subDistrictID) {
+          return;
         }
+        this.finishLookup(control, this.villagesLoading);
+        toast.error(err?.errorMessage || this.i18n.instant('registration.toast.error'));
       },
     });
   }
@@ -2366,12 +2473,14 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.beneficiary.getDistricts(stateID).subscribe({
       next: (rows) => {
         this.districts.set(rows);
+        this.noDistricts.set(rows.length === 0);
         if (districtID == null) {
           return;
         }
         this.beneficiary.getSubDistricts(districtID).subscribe({
           next: (subRows) => {
             this.subDistricts.set(subRows);
+            this.noBlocks.set(subRows.length === 0);
             if (subDistrictID == null) {
               return;
             }
