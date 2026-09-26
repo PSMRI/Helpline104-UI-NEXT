@@ -73,6 +73,22 @@ export const GENDER_OPTIONS: readonly GenderOption[] = [
 ];
 
 /**
+ * One phone mapping on a fetched beneficiary record (legacy `benPhoneMaps`),
+ * echoed back unchanged on beneficiary/update apart from the fields legacy
+ * re-stamps. The backend returns more columns than the UI reads, and they are
+ * preserved through the index signature.
+ */
+export interface BeneficiaryPhoneMap {
+  phoneNo?: string;
+  parentBenRegID?: number | null;
+  benRelationshipID?: number | null;
+  benRelationshipType?: { benRelationshipType?: string };
+  phoneTypeID?: number;
+  createdBy?: string;
+  [key: string]: unknown;
+}
+
+/**
  * One registration record returned by searchUserByPhone / searchBeneficiary.
  * `beneficiaryRegID` is the internal id used to link the call; `beneficiaryID`
  * is the human-facing registration number shown to the agent.
@@ -96,13 +112,7 @@ export interface BeneficiaryRecord {
   maritalStatus?: { maritalStatusID?: number; status?: string };
   /** ABHA (Ayushman Bharat Health Account) linkages, if any (legacy `loadAbhaDetails`). */
   abhaDetails?: AbhaDetail[];
-  benPhoneMaps?: Array<{
-    phoneNo?: string;
-    parentBenRegID?: number | null;
-    benRelationshipID?: number | null;
-    benRelationshipType?: { benRelationshipType?: string };
-    [key: string]: unknown;
-  }>;
+  benPhoneMaps?: BeneficiaryPhoneMap[];
   i_bendemographics?: {
     healthCareWorkerID?: number | null;
     healthCareWorkerType?: { healthCareWorkerType?: string };
@@ -116,6 +126,7 @@ export interface BeneficiaryRecord {
     districtBranchID?: number | null;
     addressLine1?: string | null;
     pinCode?: string | null;
+    incomeStatusID?: number | null;
     m_district?: { districtID?: number; districtName?: string };
     m_state?: { stateID?: number; stateName?: string };
     m_districtbranchmapping?: { villageName?: string; blockName?: string };
@@ -182,6 +193,7 @@ export interface BenDemographics {
   blockID?: number | null;
   districtBranchID?: number | null;
   addressLine1?: string | null;
+  incomeStatusID?: number | null;
   createdBy: string;
 }
 
@@ -237,6 +249,21 @@ export interface UpdateBeneficiaryRequest {
   genderID: number;
   vanID?: number | null;
   i_bendemographics: BenDemographics & { beneficiaryRegID: number };
+  /**
+   * The phone mappings already on the record. Omitting the key makes the
+   * backend dereference a null `benPhoneMapModelList` and answer 5005.
+   */
+  benPhoneMaps: BeneficiaryPhoneMap[];
+  /**
+   * Section flags legacy hardcodes to `true`. Without them the backend
+   * answers `200 / Success` and persists nothing.
+   */
+  changeInSelfDetails: boolean;
+  changeInIdentities: boolean;
+  changeInOtherDetails: boolean;
+  changeInAddress: boolean;
+  changeInContacts: boolean;
+  changeInFamilyDetails: boolean;
 }
 
 /** Newly-created beneficiary returned by beneficiary/create. */
