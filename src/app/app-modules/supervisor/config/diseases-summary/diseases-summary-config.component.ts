@@ -208,11 +208,13 @@ interface ContentField {
                     </td>
                   </tr>
                 } @empty {
-                  <tr>
-                    <td colspan="5" class="px-3 py-8 text-center text-muted-foreground">
-                      {{ 'supDisease.noRecords' | translate: lang() }}
-                    </td>
-                  </tr>
+                  @if (!listError()) {
+                    <tr>
+                      <td colspan="5" class="px-3 py-8 text-center text-muted-foreground">
+                        {{ 'supDisease.noRecords' | translate: lang() }}
+                      </td>
+                    </tr>
+                  }
                 }
               </tbody>
             </table>
