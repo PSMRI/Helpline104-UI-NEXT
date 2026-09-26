@@ -664,7 +664,6 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                       id="healthCareWorkerID"
                       formControlName="healthCareWorkerID"
                       [class]="selectClass"
-                      [attr.disabled]="hcwTypesLoading() ? '' : null"
                       [attr.aria-busy]="hcwTypesLoading() ? 'true' : null"
                     >
                       <option [ngValue]="null">
@@ -1778,17 +1777,23 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   }
 
   loadHcwTypes(): void {
+    const control = this.registerForm.controls.healthCareWorkerID;
     this.hcwTypesError.set(null);
     this.noHcwTypes.set(false);
     this.hcwTypesLoading.set(true);
+    // Disable through the FormControl: the reactive-forms value accessor owns
+    // the element's disabled state and would undo a bare attribute binding.
+    control.disable({ emitEvent: false });
     this.beneficiary.getHealthCareWorkerTypes().subscribe({
       next: (types) => {
         this.hcwTypes.set(types);
         this.noHcwTypes.set(types.length === 0);
         this.hcwTypesLoading.set(false);
+        control.enable({ emitEvent: false });
       },
       error: (err: BeneficiaryError) => {
         this.hcwTypesLoading.set(false);
+        control.enable({ emitEvent: false });
         this.hcwTypesError.set(err?.errorMessage || this.i18n.instant('registration.hcwTypes.loadError'));
       },
     });

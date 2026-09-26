@@ -228,8 +228,9 @@ describe('BeneficiaryRegistrationComponent', () => {
       const { fixture, component } = openHcwField();
 
       expect(component.hcwTypesLoading()).toBeTrue();
+      expect(component.registerForm.controls.healthCareWorkerID.disabled).toBeTrue();
       const pending = hcwField(fixture);
-      expect(pending.select?.hasAttribute('disabled')).toBeTrue();
+      expect(pending.select?.disabled).toBeTrue();
       expect(pending.fieldText).toContain('Loading healthcare worker types');
       expect(pending.retry).toBeUndefined();
 
