@@ -985,7 +985,7 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                   type="submit"
                   zType="default"
                   [zLoading]="registerLoading()"
-                  [zDisabled]="registerLoading() || cliMissing()"
+                  [zDisabled]="registerLoading() || cliMissing() || addressLookupBusy()"
                 >
                   {{ 'registration.action.register' | translate: lang() }}
                 </button>
@@ -1167,7 +1167,7 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
                   [zType]="updateMode() ? 'outline' : 'default'"
                   [class]="updateMode() ? 'border-success bg-success text-success-foreground hover:bg-success/90' : ''"
                   [zLoading]="updateMode() ? modifyLoading() : registerLoading()"
-                  [zDisabled]="(updateMode() ? modifyLoading() : registerLoading()) || cliMissing()"
+                  [zDisabled]="(updateMode() ? modifyLoading() : registerLoading()) || cliMissing() || addressLookupBusy()"
                 >
                   {{ (updateMode() ? 'registration.action.modify' : 'registration.action.register') | translate: lang() }}
                 </button>
@@ -1390,6 +1390,8 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly noBlocks = signal(false);
   readonly villages = signal<VillageOption[]>([]);
   readonly villagesLoading = signal(false);
+  /** True while any address lookup is in flight; submit waits so a disabled required control cannot slip past validation. */
+  readonly addressLookupBusy = computed(() => this.districtsLoading() || this.blocksLoading() || this.villagesLoading());
   /** True when the selected block's village lookup succeeded but returned no rows. */
   readonly noVillages = signal(false);
 

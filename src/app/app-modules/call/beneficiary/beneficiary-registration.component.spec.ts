@@ -729,6 +729,30 @@ describe('BeneficiaryRegistrationComponent', () => {
     expect(createSpy).toHaveBeenCalled();
     expect(alertSpy).not.toHaveBeenCalled();
   });
+
+  it('keeps the submit button disabled while an address lookup is in flight', () => {
+    const fixture = renderWithCli();
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+    const component = fixture.componentInstance;
+    component.calledEarlier.set('no');
+    component.activeView.set('register');
+    component.registerForm.controls.stateID.setValue(3);
+    component.onStateChange();
+    fixture.detectChanges();
+
+    const submitDisabled = () =>
+      Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('form button[type=submit]')).every(
+        (b) => b.hasAttribute('disabled') || b.getAttribute('aria-disabled') === 'true',
+      );
+    expect(component.addressLookupBusy()).toBeTrue();
+    expect(submitDisabled()).toBeTrue();
+
+    http.expectOne((r) => r.url.includes('location/districts/3')).flush({ statusCode: 200, data: [{ districtID: 9, districtName: 'Kamrup' }] });
+    fixture.detectChanges();
+
+    expect(component.addressLookupBusy()).toBeFalse();
+    expect(submitDisabled()).toBeFalse();
+  });
 });
 
 /**
