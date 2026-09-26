@@ -409,7 +409,11 @@ export class HaoService {
       );
   }
 
-  /** Skills available within a chosen transfer campaign (keyed by name). */
+  /**
+   * Skills available within a chosen transfer campaign (keyed by name).
+   * Failures reach the caller as a {@link HaoRequestError}, like
+   * {@link getAvailableServices}, so the closure step can show them and retry.
+   */
   getCampaignSkills(campaignName: string): Observable<CampaignSkill[]> {
     return this.http
       .post<ApiResponse<CampaignSkill[]>>(this.baseCommon + PATHS.campaignSkills, {
@@ -417,7 +421,13 @@ export class HaoService {
       })
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
-        map((res) => (Array.isArray(res.data) ? res.data : [])),
+        map((res) => {
+          if (isFailureEnvelope(res)) {
+            throw res;
+          }
+          return Array.isArray(res?.data) ? res.data : [];
+        }),
+        catchError((err: unknown) => throwError(() => toRequestError(err))),
       );
   }
 
