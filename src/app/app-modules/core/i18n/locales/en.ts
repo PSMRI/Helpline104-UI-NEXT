@@ -1109,6 +1109,7 @@ export const en = {
   'blockUnblock.unblockConfirm': 'Unblock this phone number?',
   'blockUnblock.nuisanceCall': 'Nuisance Call',
   'blockUnblock.noRecords': 'No records found.',
+  'blockUnblock.rowsPerPage': 'Rows per page',
   'blockUnblock.recordingsFor': 'Call recordings for',
   'blockUnblock.callId': 'Call ID',
   'blockUnblock.agentId': 'Agent ID',

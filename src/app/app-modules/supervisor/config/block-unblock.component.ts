@@ -55,6 +55,7 @@ import { BlockUnblockService } from './block-unblock.service';
 
 const PHONE_PATTERN = /^[0-9]{5,12}$/;
 const BLACKLIST_PAGE_SIZE = 10;
+const BLACKLIST_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 const BLOCKED_TILL_FORMAT = 'dd/MM/yyyy HH:mm';
 
 /** A blacklist entry widened to the record shape {@link DataTableComponent} requires. */
@@ -141,6 +142,8 @@ function recordingKey(entry: RecordingEntry): string {
             [columns]="columns()"
             [data]="rows()"
             [pageSize]="pageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            [pageSizeLabel]="'blockUnblock.rowsPerPage' | translate: lang()"
             [filterable]="false"
             [rowKey]="rowKey"
             [emptyMessage]="'blockUnblock.noRecords' | translate: lang()"
@@ -256,6 +259,7 @@ export class BlockUnblockComponent implements OnInit {
 
   readonly lang = this.i18n.language;
   readonly pageSize = BLACKLIST_PAGE_SIZE;
+  readonly pageSizeOptions = BLACKLIST_PAGE_SIZE_OPTIONS;
 
   readonly phone = this.fb.control('', {
     nonNullable: true,

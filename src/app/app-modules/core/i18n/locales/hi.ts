@@ -1112,6 +1112,7 @@ export const hi: Record<TranslationKey, string> = {
   'blockUnblock.unblockConfirm': 'इस फ़ोन नंबर को अनवरुद्ध करें?',
   'blockUnblock.nuisanceCall': 'उत्पात कॉल',
   'blockUnblock.noRecords': 'कोई रिकॉर्ड नहीं मिला।',
+  'blockUnblock.rowsPerPage': 'प्रति पृष्ठ पंक्तियाँ',
   'blockUnblock.recordingsFor': 'इसके लिए कॉल रिकॉर्डिंग',
   'blockUnblock.callId': 'कॉल आईडी',
   'blockUnblock.agentId': 'एजेंट आईडी',

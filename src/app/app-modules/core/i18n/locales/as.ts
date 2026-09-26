@@ -1113,6 +1113,7 @@ export const as: Record<TranslationKey, string> = {
   'blockUnblock.unblockConfirm': 'এই ফ’ন নম্বৰটো অনৱৰুদ্ধ কৰিবনে?',
   'blockUnblock.nuisanceCall': 'উপদ্ৰৱ কল',
   'blockUnblock.noRecords': 'কোনো ৰেকৰ্ড পোৱা নগ’ল।',
+  'blockUnblock.rowsPerPage': 'প্ৰতি পৃষ্ঠাত শাৰী',
   'blockUnblock.recordingsFor': 'ইয়াৰ বাবে কল ৰেকৰ্ডিং',
   'blockUnblock.callId': 'কল আইডি',
   'blockUnblock.agentId': 'এজেণ্ট আইডি',
