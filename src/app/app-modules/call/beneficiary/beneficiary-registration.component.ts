@@ -1337,6 +1337,17 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   private updateIncomeStatusID: number | null = null;
 
   /**
+   * Per-lookup request ids. Each cascade handler (and each reset) bumps its
+   * counter, and a response only lands if it still carries the latest id —
+   * so a stale response can neither overwrite newer options nor re-enable a
+   * control a newer lookup disabled, while the newest one always settles.
+   */
+  private searchDistrictLookupId = 0;
+  private districtLookupId = 0;
+  private blockLookupId = 0;
+  private villageLookupId = 0;
+
+  /**
    * True once an already-registered beneficiary has been selected for review:
    * `registerForm` is pre-filled from their full record (legacy
    * `populateRegistrationFormForUpdate`) and the page-2 footer offers
@@ -1600,6 +1611,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   onSearchStateChange(): void {
     const stateID = this.searchForm.controls.stateID.value;
     const control = this.searchForm.controls.districtID;
+    const requestId = ++this.searchDistrictLookupId;
     this.finishLookup(control, this.searchDistrictsLoading);
     this.searchDistricts.set([]);
     this.noSearchDistricts.set(false);
@@ -1610,7 +1622,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.startLookup(control, this.searchDistrictsLoading);
     this.beneficiary.getDistricts(stateID).subscribe({
       next: (rows) => {
-        if (this.searchForm.controls.stateID.value !== stateID) {
+        if (requestId !== this.searchDistrictLookupId) {
           return;
         }
         this.searchDistricts.set(rows);
@@ -1618,7 +1630,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         this.finishLookup(control, this.searchDistrictsLoading);
       },
       error: (err: BeneficiaryError) => {
-        if (this.searchForm.controls.stateID.value !== stateID) {
+        if (requestId !== this.searchDistrictLookupId) {
           return;
         }
         this.finishLookup(control, this.searchDistrictsLoading);
@@ -1647,6 +1659,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
 
   /** Drop the register form's district/block/village options and settle any lookup still in flight for them. */
   private resetDistrictLookup(): void {
+    this.districtLookupId++;
     this.finishLookup(this.registerForm.controls.districtID, this.districtsLoading);
     this.districts.set([]);
     this.noDistricts.set(false);
@@ -1654,6 +1667,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   }
 
   private resetBlockLookup(): void {
+    this.blockLookupId++;
     this.finishLookup(this.registerForm.controls.subDistrictID, this.blocksLoading);
     this.subDistricts.set([]);
     this.noBlocks.set(false);
@@ -1661,6 +1675,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   }
 
   private resetVillageLookup(): void {
+    this.villageLookupId++;
     this.finishLookup(this.registerForm.controls.villageID, this.villagesLoading);
     this.villages.set([]);
     this.noVillages.set(false);
@@ -2059,11 +2074,12 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     if (stateID == null) {
       return;
     }
+    const requestId = this.districtLookupId;
     this.startLookup(control, this.districtsLoading);
     this.beneficiary.getDistricts(stateID).subscribe({
-      // Guard against out-of-order responses: ignore if the selection moved on.
+      // Guard against out-of-order responses: ignore if a newer lookup or reset superseded this one.
       next: (rows) => {
-        if (this.registerForm.controls.stateID.value !== stateID) {
+        if (requestId !== this.districtLookupId) {
           return;
         }
         this.districts.set(rows);
@@ -2071,7 +2087,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         this.finishLookup(control, this.districtsLoading);
       },
       error: (err: BeneficiaryError) => {
-        if (this.registerForm.controls.stateID.value !== stateID) {
+        if (requestId !== this.districtLookupId) {
           return;
         }
         this.finishLookup(control, this.districtsLoading);
@@ -2089,11 +2105,12 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     if (districtID == null) {
       return;
     }
+    const requestId = this.blockLookupId;
     this.startLookup(control, this.blocksLoading);
     this.beneficiary.getSubDistricts(districtID).subscribe({
-      // Guard against out-of-order responses: ignore if the selection moved on.
+      // Guard against out-of-order responses: ignore if a newer lookup or reset superseded this one.
       next: (rows) => {
-        if (this.registerForm.controls.districtID.value !== districtID) {
+        if (requestId !== this.blockLookupId) {
           return;
         }
         this.subDistricts.set(rows);
@@ -2101,7 +2118,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         this.finishLookup(control, this.blocksLoading);
       },
       error: (err: BeneficiaryError) => {
-        if (this.registerForm.controls.districtID.value !== districtID) {
+        if (requestId !== this.blockLookupId) {
           return;
         }
         this.finishLookup(control, this.blocksLoading);
@@ -2118,11 +2135,12 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     if (subDistrictID == null) {
       return;
     }
+    const requestId = this.villageLookupId;
     this.startLookup(control, this.villagesLoading);
     this.beneficiary.getVillages(subDistrictID).subscribe({
-      // Guard against out-of-order responses: ignore if the selection moved on.
+      // Guard against out-of-order responses: ignore if a newer lookup or reset superseded this one.
       next: (rows) => {
-        if (this.registerForm.controls.subDistrictID.value !== subDistrictID) {
+        if (requestId !== this.villageLookupId) {
           return;
         }
         this.villages.set(rows);
@@ -2130,7 +2148,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         this.finishLookup(control, this.villagesLoading);
       },
       error: (err: BeneficiaryError) => {
-        if (this.registerForm.controls.subDistrictID.value !== subDistrictID) {
+        if (requestId !== this.villageLookupId) {
           return;
         }
         this.finishLookup(control, this.villagesLoading);
@@ -2422,6 +2440,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       this.idMaxLength.set(rule.maxLength);
     }
 
+    this.resetDistrictLookup();
     this.registerForm.patchValue({
       isHealthcareWorker: isHcw,
       isEmergency: false,
@@ -2472,8 +2491,14 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     if (stateID == null) {
       return;
     }
+    const districtRequestId = this.districtLookupId;
+    const blockRequestId = this.blockLookupId;
+    const villageRequestId = this.villageLookupId;
     this.beneficiary.getDistricts(stateID).subscribe({
       next: (rows) => {
+        if (districtRequestId !== this.districtLookupId) {
+          return;
+        }
         this.districts.set(rows);
         this.noDistricts.set(rows.length === 0);
         if (districtID == null) {
@@ -2481,6 +2506,9 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         }
         this.beneficiary.getSubDistricts(districtID).subscribe({
           next: (subRows) => {
+            if (blockRequestId !== this.blockLookupId) {
+              return;
+            }
             this.subDistricts.set(subRows);
             this.noBlocks.set(subRows.length === 0);
             if (subDistrictID == null) {
@@ -2488,6 +2516,9 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
             }
             this.beneficiary.getVillages(subDistrictID).subscribe({
               next: (villageRows) => {
+                if (villageRequestId !== this.villageLookupId) {
+                  return;
+                }
                 this.villages.set(villageRows);
                 this.noVillages.set(villageRows.length === 0);
               },

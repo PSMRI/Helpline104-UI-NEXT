@@ -508,6 +508,7 @@ describe('BeneficiaryRegistrationComponent', () => {
       control: (component: BeneficiaryRegistrationComponent) => FormControl<number | null>;
       loading: (component: BeneficiaryRegistrationComponent) => boolean;
       empty: (component: BeneficiaryRegistrationComponent) => boolean;
+      options: (component: BeneficiaryRegistrationComponent) => object[];
       select: (component: BeneficiaryRegistrationComponent, id: number) => void;
     }
 
@@ -523,6 +524,7 @@ describe('BeneficiaryRegistrationComponent', () => {
         control: (c) => c.registerForm.controls.districtID,
         loading: (c) => c.districtsLoading(),
         empty: (c) => c.noDistricts(),
+        options: (c) => c.districts(),
         select: (c, id) => {
           c.registerForm.controls.stateID.setValue(id);
           c.onStateChange();
@@ -539,6 +541,7 @@ describe('BeneficiaryRegistrationComponent', () => {
         control: (c) => c.searchForm.controls.districtID,
         loading: (c) => c.searchDistrictsLoading(),
         empty: (c) => c.noSearchDistricts(),
+        options: (c) => c.searchDistricts(),
         select: (c, id) => {
           c.searchForm.controls.stateID.setValue(id);
           c.onSearchStateChange();
@@ -555,6 +558,7 @@ describe('BeneficiaryRegistrationComponent', () => {
         control: (c) => c.registerForm.controls.subDistrictID,
         loading: (c) => c.blocksLoading(),
         empty: (c) => c.noBlocks(),
+        options: (c) => c.subDistricts(),
         select: (c, id) => {
           c.registerForm.controls.districtID.setValue(id);
           c.onDistrictChange();
@@ -571,6 +575,7 @@ describe('BeneficiaryRegistrationComponent', () => {
         control: (c) => c.registerForm.controls.villageID,
         loading: (c) => c.villagesLoading(),
         empty: (c) => c.noVillages(),
+        options: (c) => c.villages(),
         select: (c, id) => {
           c.registerForm.controls.subDistrictID.setValue(id);
           c.onSubDistrictChange();
@@ -649,30 +654,25 @@ describe('BeneficiaryRegistrationComponent', () => {
           expect(failed.select?.disabled).toBeFalse();
           expect(failed.text).not.toContain(lookup.loadingText);
         });
+
+        it('keeps the select disabled when a stale response lands while a newer lookup is pending', () => {
+          const { component } = open();
+          lookup.select(component, 4);
+
+          http.expectOne((r) => r.url.includes(`${lookup.url}3`)).flush({ statusCode: 200, data: [] });
+
+          expect(lookup.loading(component)).toBeTrue();
+          expect(lookup.control(component).disabled).toBeTrue();
+          expect(lookup.empty(component)).toBeFalse();
+
+          http.expectOne((r) => r.url.includes(`${lookup.url}4`)).flush({ statusCode: 200, data: lookup.rows });
+
+          expect(lookup.loading(component)).toBeFalse();
+          expect(lookup.control(component).enabled).toBeTrue();
+          expect(lookup.options(component)).toEqual(lookup.rows);
+        });
       });
     }
-
-    it('drops a stale district response without touching the newer selection', () => {
-      const fixture = renderWithCli();
-      http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
-      const component = fixture.componentInstance;
-      component.registerForm.controls.stateID.setValue(3);
-      component.onStateChange();
-      component.registerForm.controls.stateID.setValue(4);
-      component.onStateChange();
-
-      http.expectOne((r) => r.url.includes('location/districts/3')).flush({ statusCode: 200, data: [] });
-
-      expect(component.districtsLoading()).toBeTrue();
-      expect(component.registerForm.controls.districtID.disabled).toBeTrue();
-      expect(component.noDistricts()).toBeFalse();
-
-      http.expectOne((r) => r.url.includes('location/districts/4')).flush({ statusCode: 200, data: [{ districtID: 12, districtName: 'Patna' }] });
-
-      expect(component.districtsLoading()).toBeFalse();
-      expect(component.registerForm.controls.districtID.enabled).toBeTrue();
-      expect(component.districts()).toEqual([{ districtID: 12, districtName: 'Patna' }]);
-    });
   });
 
   it('cancelToStart() restarts the landing gate after confirmation, without ending the call', () => {
@@ -1028,6 +1028,36 @@ describe('BeneficiaryRegistrationComponent modify', () => {
     expect(reloaded.districtID).toBe(ADDRESS_AFTER.districtID);
     expect(reloaded.subDistrictID).toBe(ADDRESS_AFTER.blockID);
     expect(reloaded.villageID).toBe(ADDRESS_AFTER.districtBranchID);
+  });
+
+  it('loading a beneficiary for review settles a district lookup left pending, even once its stale response lands', () => {
+    TestBed.inject(CallStore).startCall({ cli: '9876543210', sessionId: 'session-1' });
+    const fixture = render();
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+    const component = fixture.componentInstance;
+    component.registerForm.controls.stateID.setValue(3);
+    component.onStateChange();
+    expect(component.districtsLoading()).toBeTrue();
+    expect(component.registerForm.controls.districtID.disabled).toBeTrue();
+
+    component.selectBeneficiary({ beneficiaryRegID: 4321 });
+    http.expectOne(SEARCH_BY_ID).flush({ data: [record(ADDRESS_AFTER, existingPhoneMaps())] });
+
+    expect(component.districtsLoading()).toBeFalse();
+    expect(component.registerForm.controls.districtID.enabled).toBeTrue();
+
+    http.expectOne((r) => r.url.includes('location/districts/3')).flush({ statusCode: 200, data: [{ districtID: 9, districtName: 'Stale' }] });
+
+    expect(component.districtsLoading()).toBeFalse();
+    expect(component.registerForm.controls.districtID.enabled).toBeTrue();
+    expect(component.addressLookupBusy()).toBeFalse();
+    expect(component.districts()).toEqual([]);
+
+    flushAddressCascade(ADDRESS_AFTER);
+
+    expect(component.districts()).toEqual([{ districtID: ADDRESS_AFTER.districtID, districtName: 'District' }]);
+    expect(component.registerForm.controls.districtID.value).toBe(ADDRESS_AFTER.districtID);
+    expect(component.registerForm.controls.villageID.value).toBe(ADDRESS_AFTER.districtBranchID);
   });
 
   function recordWithIncome(address: typeof ADDRESS_BEFORE, incomeStatusID: number): BeneficiaryRecord {
