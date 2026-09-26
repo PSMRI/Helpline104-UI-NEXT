@@ -485,6 +485,9 @@ export const hi: Record<TranslationKey, string> = {
   'appointment.scheduled': 'अपॉइंटमेंट सफलतापूर्वक शेड्यूल हुआ।',
   'appointment.saveError': 'अपॉइंटमेंट शेड्यूल नहीं हो सका। कृपया पुनः प्रयास करें।',
   'appointment.loadError': 'सुविधाएं लोड नहीं हो सकीं। कृपया पुनः प्रयास करें।',
+  'appointment.facilitiesLoading': 'सुविधाएँ लोड हो रही हैं…',
+  'appointment.noFacilities': 'इस ब्लॉक के लिए कोई सुविधा नहीं मिली।',
+  'appointment.retry': 'पुनः प्रयास करें',
 
   // Insert complaint (CDSS upload)
   'insertComplaint.title': 'शिकायत दर्ज करें',

@@ -484,6 +484,9 @@ export const en = {
   'appointment.scheduled': 'Appointment scheduled successfully.',
   'appointment.saveError': 'Could not schedule the appointment. Please try again.',
   'appointment.loadError': 'Could not load facilities. Please try again.',
+  'appointment.facilitiesLoading': 'Loading facilities…',
+  'appointment.noFacilities': 'No facilities found for this block.',
+  'appointment.retry': 'Retry',
 
   // Insert complaint (CDSS upload)
   'insertComplaint.title': 'Insert complaint',

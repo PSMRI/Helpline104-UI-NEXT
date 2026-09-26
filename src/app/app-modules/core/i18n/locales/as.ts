@@ -486,6 +486,9 @@ export const as: Record<TranslationKey, string> = {
   'appointment.scheduled': 'এপইণ্টমেণ্ট সফলতাৰে সূচী কৰা হ’ল।',
   'appointment.saveError': 'এপইণ্টমেণ্ট সূচী কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'appointment.loadError': 'সুবিধাসমূহ ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
+  'appointment.facilitiesLoading': 'সুবিধাসমূহ ল’ড হৈ আছে…',
+  'appointment.noFacilities': 'এই ব্লকৰ বাবে কোনো সুবিধা পোৱা নগ’ল।',
+  'appointment.retry': 'পুনৰ চেষ্টা কৰক',
 
   // Insert complaint (CDSS upload)
   'insertComplaint.title': 'অভিযোগ সন্নিবিষ্ট কৰক',
