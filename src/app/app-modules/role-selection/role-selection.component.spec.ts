@@ -137,6 +137,15 @@ describe('RoleSelectionComponent', () => {
       expect(authStore.user()?.loginAgentID).toBe(2145);
     });
 
+    it('falls back to the login-time id when the role agent id is only whitespace', () => {
+      const authStore = signIn({});
+      const fixture = render();
+
+      fixture.componentInstance.selectRole(role('CO', 'Counselling', '   '), SERVICE);
+
+      expect(authStore.user()?.agentID).toBe(2145);
+    });
+
     it('keeps the stored agent id for a session persisted before loginAgentID existed', () => {
       const authStore = signIn({ agentID: 2508, loginAgentID: undefined });
       const fixture = render();
@@ -144,6 +153,27 @@ describe('RoleSelectionComponent', () => {
       fixture.componentInstance.selectRole(role('CO', 'Counselling'), SERVICE);
 
       expect(authStore.user()?.agentID).toBe(2508);
+      expect(authStore.user()?.loginAgentID).toBe(2508);
+    });
+
+    it("never lets a pre-deploy session keep a previous role's id across repeated switches", () => {
+      const authStore = signIn({ agentID: 2508, loginAgentID: undefined });
+      const fixture = render();
+      const select = (r: Role) => fixture.componentInstance.selectRole(r, SERVICE);
+
+      select(role('MO', 'Medical_Advice', 2545));
+      expect(authStore.user()?.agentID).toBe(2545);
+      expect(authStore.user()?.loginAgentID).toBe(2508);
+
+      select(role('CO', 'Counselling'));
+      expect(authStore.user()?.agentID).toBe(2508);
+
+      select(role('PD', 'Psychiatrist', '2601'));
+      expect(authStore.user()?.agentID).toBe(2601);
+
+      select(role('CO', 'Counselling'));
+      expect(authStore.user()?.agentID).toBe(2508);
+      expect(authStore.user()?.loginAgentID).toBe(2508);
     });
   });
 });

@@ -91,13 +91,13 @@ export class AuthStore {
     this.setApimanKey(role.apimanClientKey ?? null);
   }
 
-  /** Replace the user's CZentrix agent id (role selection). */
-  setAgentID(agentID: number | null): void {
+  /** Replace the user's CZentrix agent id (role selection), and optionally the login-time fallback. */
+  setAgentID(agentID: number | null, loginAgentID?: number | null): void {
     const user = this._user();
     if (!user) {
       return;
     }
-    const updated = { ...user, agentID };
+    const updated = { ...user, agentID, ...(loginAgentID !== undefined && { loginAgentID }) };
     this._user.set(updated);
     this.storage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(updated));
   }

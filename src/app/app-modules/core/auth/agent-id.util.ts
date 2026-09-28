@@ -22,9 +22,10 @@
 
 /** A CZentrix agent id as the backend sends it (number or numeric string), or null. */
 export function parseAgentID(value: unknown): number | null {
-  if (value === null || value === undefined || value === '') {
+  const text = typeof value === 'number' ? String(value) : typeof value === 'string' ? value.trim() : '';
+  if (text === '') {
     return null;
   }
-  const parsed = Number(value);
+  const parsed = Number(text);
   return Number.isFinite(parsed) ? parsed : null;
 }

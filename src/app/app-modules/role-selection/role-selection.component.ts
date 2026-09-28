@@ -124,12 +124,16 @@ export class RoleSelectionComponent {
       apimanClientKey: service.apimanClientKey ?? null,
       featureCode: this.deriveFeatureCode(role),
     });
-    this.authStore.setAgentID(parseAgentID(role.agentID) ?? this.loginAgentID());
+    const loginAgentID = this.loginAgentID();
+    this.authStore.setAgentID(parseAgentID(role.agentID) ?? loginAgentID, loginAgentID);
 
     void this.router.navigate([DASHBOARD_ROUTE]);
   }
 
-  /** Sessions persisted before `loginAgentID` existed fall back to the stored id. */
+  /**
+   * Sessions persisted before `loginAgentID` existed use the stored id, which
+   * is saved as `loginAgentID` on their first selection.
+   */
   private loginAgentID(): number | null {
     const user = this.authStore.user();
     return user?.loginAgentID !== undefined ? user.loginAgentID : (user?.agentID ?? null);
