@@ -21,7 +21,11 @@
  */
 
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { NavigationEnd, Router } from '@angular/router';
+
+import { filter, map } from 'rxjs';
 
 import { AuthStore } from '@/app-modules/core/auth/auth.store';
 import { ConfigService } from '@/app-modules/core/services/config.service';
@@ -32,6 +36,19 @@ const CTI_HANDLER_PATH = 'bar/cti_handler.php';
 
 /** Feature code of the supervising role, which has no personal agent line. */
 const SUPERVISOR_FEATURE_CODE = 'Supervisor';
+
+/**
+ * Routes on which the soft-phone toggle is never shown, even when a session is
+ * still rehydrated in `sessionStorage` (browser Back to the login form, a
+ * reload of `/login`, the role picker before a role is committed, …).
+ */
+const HIDDEN_ROUTE_PREFIXES = [
+  '/login',
+  '/reset-password',
+  '/set-password',
+  '/set-security-questions',
+  '/role-selection',
+] as const;
 
 /**
  * Shared open/visibility state for the CZentrix CTI panel, split out of
@@ -46,6 +63,7 @@ export class CtiPanelStore {
   private readonly config = inject(ConfigService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly authStore = inject(AuthStore);
+  private readonly router = inject(Router);
 
   readonly czentrixLabel = CZENTRIX_LABEL;
 
@@ -55,14 +73,31 @@ export class CtiPanelStore {
   /** Bumped on manual retry so the iframe `src` actually changes and reloads. */
   private readonly retryNonce = signal(0);
 
+  /** Current URL after redirects, tracked for route-based visibility. */
+  readonly url = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+      takeUntilDestroyed(),
+    ),
+    { initialValue: this.router.url },
+  );
+
+  /** True on the login / account-recovery / role-picker screens. */
+  readonly onHiddenRoute = computed(() => {
+    const url = this.url();
+    return HIDDEN_ROUTE_PREFIXES.some((prefix) => url === prefix || url.startsWith(`${prefix}/`) || url.startsWith(`${prefix}?`));
+  });
+
   /**
    * Whether the CZentrix toggle is visible: an authenticated session with a
    * telephony agent id and a selected role that is not the supervisor (who has
-   * no personal agent line). Without an agent id the iframe has no CTI handler
-   * to load, so the toggle would only ever open an empty panel.
+   * no personal agent line), and not on an auth screen. Without an agent id the
+   * iframe has no CTI handler to load, so the toggle would only ever open an
+   * empty panel.
    */
   readonly showCzentrix = computed(() => {
-    if (!this.authStore.isAuthenticated() || this.agentId() === null) {
+    if (this.onHiddenRoute() || !this.authStore.isAuthenticated() || this.agentId() === null) {
       return false;
     }
     const featureCode = this.authStore.currentRole()?.featureCode ?? null;

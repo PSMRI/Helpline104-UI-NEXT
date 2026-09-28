@@ -240,6 +240,44 @@ describe('ClosureStepComponent', () => {
     callStore.setBeneficiaryId(null, null);
   });
 
+  it('pre-selects Valid for an emergency call but leaves the Call Type select editable', () => {
+    callStore.setEmergencyCall(true);
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    component.callTypes.set([
+      { callGroupType: 'Valid', callTypes: [] },
+      { callGroupType: 'Transfer', callTypes: [] },
+    ]);
+    fixture.detectChanges();
+
+    expect(component.form.controls.callGroupType.value).toBe('Valid');
+    expect(component.form.controls.callGroupType.enabled).toBeTrue();
+    const select = fixture.nativeElement.querySelector('select[formcontrolname="callGroupType"]') as HTMLSelectElement;
+    expect(select.disabled).toBeFalse();
+
+    component.form.controls.callGroupType.setValue('Transfer');
+    fixture.detectChanges();
+    expect(component.form.controls.callGroupType.value).toBe('Transfer');
+    expect(component.form.controls.callGroupType.enabled).toBeTrue();
+
+    callStore.setEmergencyCall(false);
+  });
+
+  it('clears the pre-selected Call Type once the call is no longer flagged emergency', () => {
+    callStore.setEmergencyCall(true);
+    const fixture = render('HAO');
+    const component = fixture.componentInstance;
+    expect(component.form.controls.callGroupType.value).toBe('Valid');
+
+    callStore.setEmergencyCall(false);
+    fixture.detectChanges();
+
+    expect(component.form.controls.callGroupType.value).toBeNull();
+    expect(component.form.controls.callGroupType.enabled).toBeTrue();
+    expect(component.form.controls.callGroupType.touched).toBeFalse();
+    expect(component.isInvalid('callGroupType')).toBeFalse();
+  });
+
   it('filters "Referral" out of the call-type list for roles other than HAO/MO', () => {
     const fixture = render('CO');
     const component = fixture.componentInstance;
@@ -387,5 +425,349 @@ describe('ClosureStepComponent', () => {
       .forEach((r) => r.flush({ data: 1 }));
 
     callStore.setBeneficiaryId(null, null);
+  });
+
+  it('shows an inline error with Retry when the transfer services fail to load, and clears it once a retry succeeds', () => {
+    authStore.setCurrentRole(currentRole('HAO'));
+    const fixture = TestBed.createComponent(ClosureStepComponent);
+    fixture.detectChanges();
+    http.match((req) => req.url.includes('getCallTypesV1')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('getRegistrationDataV1')).forEach((req) => req.flush({ data: {} }));
+    http.match((req) => req.url.includes('getInstituteTypes')).forEach((req) => req.flush({ data: [] }));
+    http
+      .expectOne((req) => req.url.includes('beneficiary/get/services'))
+      .flush({ statusCode: 5000, errorMessage: 'Service map missing' });
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.servicesError()).toBe('Service map missing');
+    expect(component.services()).toEqual([]);
+    const alert = fixture.nativeElement.querySelector('[role="alert"]') as HTMLElement | null;
+    expect(alert?.textContent).toContain('Service map missing');
+    const retry = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).find(
+      (b) => b.textContent?.includes('Retry'),
+    );
+    expect(retry).toBeDefined();
+
+    retry?.click();
+    fixture.detectChanges();
+    expect(component.servicesLoading()).toBeTrue();
+    expect(component.form.controls.transferService.disabled).toBeTrue();
+    http
+      .expectOne((req) => req.url.includes('beneficiary/get/services'))
+      .flush({ data: [{ subServiceName: 'Health Advisory Service' }] });
+    fixture.detectChanges();
+
+    expect(component.servicesError()).toBeNull();
+    expect(component.servicesLoading()).toBeFalse();
+    expect(component.form.controls.transferService.enabled).toBeTrue();
+    expect(component.services()).toEqual([{ subServiceName: 'Health Advisory Service' }]);
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('disables the transfer-service select and shows a loading line until the services arrive', () => {
+    authStore.setCurrentRole(currentRole('HAO'));
+    const fixture = TestBed.createComponent(ClosureStepComponent);
+    fixture.detectChanges();
+    http.match((req) => req.url.includes('getCallTypesV1')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('getRegistrationDataV1')).forEach((req) => req.flush({ data: {} }));
+    http.match((req) => req.url.includes('getInstituteTypes')).forEach((req) => req.flush({ data: [] }));
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    const select = fixture.nativeElement.querySelector('#hao-cl-transfer-service') as HTMLSelectElement;
+    expect(component.servicesLoading()).toBeTrue();
+    expect(component.form.controls.transferService.disabled).toBeTrue();
+    expect(select.disabled).toBeTrue();
+    expect(select.getAttribute('aria-busy')).toBe('true');
+    expect(fixture.nativeElement.querySelector('[role="status"]')?.textContent).toContain('Loading transfer services');
+
+    http
+      .expectOne((req) => req.url.includes('beneficiary/get/services'))
+      .flush({ data: [{ subServiceName: 'Health Advisory Service' }] });
+    fixture.detectChanges();
+
+    expect(component.servicesLoading()).toBeFalse();
+    expect(component.noServices()).toBeFalse();
+    expect(component.form.controls.transferService.enabled).toBeTrue();
+    expect(select.disabled).toBeFalse();
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
+    expect(select.options.length).toBe(2);
+  });
+
+  it('shows an explicit empty state, not an error, when no transfer services are configured', () => {
+    const fixture = render('HAO', { services: [] });
+    const component = fixture.componentInstance;
+
+    expect(component.noServices()).toBeTrue();
+    expect(component.servicesError()).toBeNull();
+    expect(component.servicesLoading()).toBeFalse();
+    expect(component.form.controls.transferService.enabled).toBeTrue();
+    const field = fixture.nativeElement.querySelector('#hao-cl-transfer-service')?.parentElement as HTMLElement;
+    expect(field.textContent).toContain('No transfer services configured.');
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  describe('transfer campaigns', () => {
+    const CAMPAIGNS = (req: { url: string }) => req.url.includes('getTransferCampaigns');
+
+    /** Like render(), but leaves the campaign lookup pending for the test to answer. */
+    function renderWithCampaignsPending() {
+      authStore.setSession({ token: 't', user: { userID: 1, agentID: 7, userName: 'agent', status: 'Active' } });
+      authStore.setCurrentRole(currentRole('HAO'));
+      const fixture = TestBed.createComponent(ClosureStepComponent);
+      fixture.detectChanges();
+      http.match((req) => req.url.includes('getCallTypesV1')).forEach((req) => req.flush({ data: [] }));
+      http.match((req) => req.url.includes('getRegistrationDataV1')).forEach((req) => req.flush({ data: {} }));
+      http.match((req) => req.url.includes('getInstituteTypes')).forEach((req) => req.flush({ data: [] }));
+      http.match((req) => req.url.includes('getAgentIPAddress')).forEach((req) => req.flush({ data: null }));
+      http
+        .expectOne((req) => req.url.includes('beneficiary/get/services'))
+        .flush({ data: [{ subServiceName: 'Medical Advisory Service' }] });
+      fixture.detectChanges();
+      return { fixture, component: fixture.componentInstance };
+    }
+
+    function campaignField(fixture: { nativeElement: HTMLElement }) {
+      const select = fixture.nativeElement.querySelector<HTMLSelectElement>('#hao-cl-transfer-service');
+      return {
+        select,
+        fieldText: select?.parentElement?.textContent ?? '',
+        retry: Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
+          b.textContent?.includes('Retry'),
+        ),
+      };
+    }
+
+    it('keeps the Transfer Call select disabled with a loading line until the campaigns arrive, even once the services have', () => {
+      const { fixture, component } = renderWithCampaignsPending();
+
+      expect(component.servicesLoading()).toBeFalse();
+      expect(component.campaignsLoading()).toBeTrue();
+      expect(component.form.controls.transferService.disabled).toBeTrue();
+      const pending = campaignField(fixture);
+      expect(pending.select?.disabled).toBeTrue();
+      expect(pending.select?.getAttribute('aria-busy')).toBe('true');
+      expect(pending.fieldText).toContain('Loading transfer campaigns');
+
+      http.expectOne(CAMPAIGNS).flush({ data: { campaign: [{ campaign_name: 'MO_CAMPAIGN' }] } });
+      fixture.detectChanges();
+
+      expect(component.campaignsLoading()).toBeFalse();
+      expect(component.noCampaigns()).toBeFalse();
+      expect(component.campaignsError()).toBeNull();
+      expect(component.form.controls.transferService.enabled).toBeTrue();
+      const done = campaignField(fixture);
+      expect(done.select?.disabled).toBeFalse();
+      expect(done.select?.getAttribute('aria-busy')).toBeNull();
+      expect(done.fieldText).not.toContain('Loading transfer campaigns');
+      expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
+
+      component.form.controls.transferService.setValue('Medical Advisory Service');
+      fixture.detectChanges();
+      expect(component.selectedCampaign()).toBe('MO_CAMPAIGN');
+      http.expectOne((req) => req.url.includes('getCampaignSkills')).flush({ data: [] });
+    });
+
+    it('shows an explicit empty state, not an error, on the backend\'s "No Campaigns Available" envelope', () => {
+      const { fixture, component } = renderWithCampaignsPending();
+
+      http.expectOne(CAMPAIGNS).flush({ statusCode: 5000, errorMessage: 'No Campaigns Available', status: 'Failure' });
+      fixture.detectChanges();
+
+      expect(component.noCampaigns()).toBeTrue();
+      expect(component.campaignsError()).toBeNull();
+      expect(component.campaignsLoading()).toBeFalse();
+      expect(component.campaigns()).toEqual([]);
+      expect(component.form.controls.transferService.enabled).toBeTrue();
+      const empty = campaignField(fixture);
+      expect(empty.fieldText).toContain('No transfer campaigns available.');
+      expect(empty.retry).toBeUndefined();
+      expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    });
+
+    it('surfaces a failed campaign lookup inline with Retry, and clears it once the retry succeeds', () => {
+      const { fixture, component } = renderWithCampaignsPending();
+
+      http.expectOne(CAMPAIGNS).flush({ statusCode: 5000, errorMessage: 'CTI unavailable', status: 'Failure' });
+      fixture.detectChanges();
+
+      expect(component.campaignsError()).toBe('CTI unavailable');
+      expect(component.campaignsLoading()).toBeFalse();
+      expect(component.campaigns()).toEqual([]);
+      expect(component.form.controls.transferService.enabled).toBeTrue();
+      const failed = campaignField(fixture);
+      expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain('CTI unavailable');
+      expect(failed.retry).toBeDefined();
+
+      failed.retry?.click();
+      fixture.detectChanges();
+      expect(component.campaignsLoading()).toBeTrue();
+      expect(component.form.controls.transferService.disabled).toBeTrue();
+      http.expectOne(CAMPAIGNS).flush({ data: { campaign: [{ campaign_name: 'MO_CAMPAIGN' }] } });
+      fixture.detectChanges();
+
+      expect(component.campaignsError()).toBeNull();
+      expect(component.campaigns()).toEqual([{ campaign_name: 'MO_CAMPAIGN', campaignName: 'MO_CAMPAIGN' }]);
+      expect(component.form.controls.transferService.enabled).toBeTrue();
+      expect(campaignField(fixture).retry).toBeUndefined();
+      expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    });
+
+    it('falls back to the translated message when the campaigns request fails without a backend message', () => {
+      const { fixture, component } = renderWithCampaignsPending();
+
+      http.expectOne(CAMPAIGNS).flush(null, { status: 500, statusText: 'Internal Server Error' });
+      fixture.detectChanges();
+
+      expect(component.campaignsError()).toBe('Could not load the transfer campaigns. Please retry.');
+    });
+  });
+
+  describe('campaign skills', () => {
+    const SKILLS = (req: { url: string }) => req.url.includes('getCampaignSkills');
+
+    function selectMedicalService() {
+      authStore.setSession({ token: 't', user: { userID: 1, agentID: 7, userName: 'agent', status: 'Active' } });
+      const fixture = render('HAO', {
+        campaigns: [{ campaign_name: 'MO_CAMPAIGN' }],
+        services: [{ subServiceName: 'Medical Advisory Service' }],
+      });
+      const component = fixture.componentInstance;
+      component.form.controls.transferService.setValue('Medical Advisory Service');
+      fixture.detectChanges();
+      return { fixture, component };
+    }
+
+    function skillField(fixture: { nativeElement: HTMLElement }) {
+      const select = fixture.nativeElement.querySelector<HTMLSelectElement>('#hao-cl-skill');
+      return {
+        select,
+        fieldText: select?.parentElement?.textContent ?? '',
+        retry: Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
+          b.textContent?.includes('Retry'),
+        ),
+      };
+    }
+
+    it('shows the Skill field disabled with a loading line while the skills load', () => {
+      const { fixture, component } = selectMedicalService();
+
+      expect(component.selectedCampaign()).toBe('MO_CAMPAIGN');
+      expect(component.skillsLoading()).toBeTrue();
+      expect(component.form.controls.skill.disabled).toBeTrue();
+      const pending = skillField(fixture);
+      expect(pending.select).not.toBeNull();
+      expect(pending.select?.disabled).toBeTrue();
+      expect(pending.fieldText).toContain('Loading skills');
+
+      http.expectOne(SKILLS).flush({ data: [{ skillName: 'General' }] });
+      fixture.detectChanges();
+
+      expect(component.skillsLoading()).toBeFalse();
+      expect(component.form.controls.skill.enabled).toBeTrue();
+      const done = skillField(fixture);
+      expect(done.select?.disabled).toBeFalse();
+      expect(done.select?.options.length).toBe(2);
+      expect(done.fieldText).not.toContain('Loading skills');
+    });
+
+    it('keeps the Skill field visible with an empty-state line when the campaign has no skills', () => {
+      const { fixture, component } = selectMedicalService();
+
+      http.expectOne(SKILLS).flush({ data: [] });
+      fixture.detectChanges();
+
+      expect(component.noSkills()).toBeTrue();
+      expect(component.skillsError()).toBeNull();
+      expect(component.form.controls.skill.enabled).toBeTrue();
+      const empty = skillField(fixture);
+      expect(empty.select).not.toBeNull();
+      expect(empty.select?.options.length).toBe(1);
+      expect(empty.fieldText).toContain('No skills configured for this service.');
+      expect(empty.retry).toBeUndefined();
+    });
+
+    it('shows the empty-state line, not an error, on the backend\'s "No active skill found." envelope', () => {
+      const { fixture, component } = selectMedicalService();
+
+      http.expectOne(SKILLS).flush({ statusCode: 5000, errorMessage: 'No active skill found.', status: 'FAILURE' });
+      fixture.detectChanges();
+
+      expect(component.noSkills()).toBeTrue();
+      expect(component.skillsError()).toBeNull();
+      expect(component.skills()).toEqual([]);
+      expect(component.form.controls.skill.enabled).toBeTrue();
+      const empty = skillField(fixture);
+      expect(empty.fieldText).toContain('No skills configured for this service.');
+      expect(empty.retry).toBeUndefined();
+      expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    });
+
+    it('surfaces a failed skills lookup inline with Retry, and clears it once the retry succeeds', () => {
+      const { fixture, component } = selectMedicalService();
+
+      http.expectOne(SKILLS).flush({ statusCode: 5000, errorMessage: 'CTI unavailable' });
+      fixture.detectChanges();
+
+      expect(component.skillsError()).toBe('CTI unavailable');
+      expect(component.skillsLoading()).toBeFalse();
+      expect(component.skills()).toEqual([]);
+      expect(component.form.controls.skill.enabled).toBeTrue();
+      const failed = skillField(fixture);
+      expect(failed.select).not.toBeNull();
+      expect(failed.fieldText).toContain('CTI unavailable');
+      expect(failed.retry).toBeDefined();
+
+      failed.retry?.click();
+      fixture.detectChanges();
+      expect(component.skillsLoading()).toBeTrue();
+      expect(component.form.controls.skill.disabled).toBeTrue();
+      http.expectOne(SKILLS).flush({ data: [{ skillName: 'General' }] });
+      fixture.detectChanges();
+
+      expect(component.skillsError()).toBeNull();
+      expect(component.skills()).toEqual([{ skillName: 'General' }]);
+      expect(component.form.controls.skill.enabled).toBeTrue();
+      expect(skillField(fixture).retry).toBeUndefined();
+    });
+
+    it('falls back to the translated message when the skills request fails without a backend message', () => {
+      const { fixture, component } = selectMedicalService();
+
+      http.expectOne(SKILLS).flush(null, { status: 500, statusText: 'Internal Server Error' });
+      fixture.detectChanges();
+
+      expect(component.skillsError()).toBe('Could not load the skills for this service. Please retry.');
+    });
+
+    it('clears the skill state and hides the field when the transfer service is cleared mid-load', () => {
+      const { fixture, component } = selectMedicalService();
+
+      component.form.controls.transferService.setValue(null);
+      fixture.detectChanges();
+      http.expectOne(SKILLS).flush({ data: [{ skillName: 'General' }] });
+      fixture.detectChanges();
+
+      expect(component.skillsLoading()).toBeFalse();
+      expect(component.skills()).toEqual([]);
+      expect(component.form.controls.skill.enabled).toBeTrue();
+      expect(skillField(fixture).select).toBeNull();
+    });
+  });
+
+  it('falls back to the translated message when the services request fails without a backend message', () => {
+    authStore.setCurrentRole(currentRole('HAO'));
+    const fixture = TestBed.createComponent(ClosureStepComponent);
+    fixture.detectChanges();
+    http.match((req) => req.url.includes('getCallTypesV1')).forEach((req) => req.flush({ data: [] }));
+    http.match((req) => req.url.includes('getRegistrationDataV1')).forEach((req) => req.flush({ data: {} }));
+    http.match((req) => req.url.includes('getInstituteTypes')).forEach((req) => req.flush({ data: [] }));
+    http
+      .expectOne((req) => req.url.includes('beneficiary/get/services'))
+      .flush(null, { status: 500, statusText: 'Internal Server Error' });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.servicesError()).toBe('Could not load the transfer services. Please retry.');
   });
 });

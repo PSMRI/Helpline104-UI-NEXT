@@ -20,11 +20,22 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
@@ -47,11 +58,13 @@ import {
   CallType,
   CampaignSkill,
   CloseCallRequest,
+  HaoRequestError,
   InstituteName,
   InstituteType,
   TransferCampaign,
 } from '../hao.models';
 import { HaoService } from '../hao.service';
+import { TransferRole, getCampaignName } from './closure-step.util';
 
 const ROLE_HAO = 'HAO';
 const ROLE_MO = 'MO';
@@ -78,8 +91,6 @@ const ROLE_FEATURE_NAME: Readonly<Partial<Record<string, string>>> = {
 /** Extra follow-up feature legacy always appends when the role also holds this screen. */
 const BLOOD_REQUEST_SCREEN = 'Blood Request';
 
-type TransferRole = 'hao' | 'co' | 'mo';
-
 function roleForService(serviceName: string): TransferRole | null {
   const name = serviceName.toLowerCase();
   if (name.includes('health advisory')) {
@@ -92,10 +103,6 @@ function roleForService(serviceName: string): TransferRole | null {
     return 'mo';
   }
   return null;
-}
-
-function getCampaignName(campaigns: TransferCampaign[], role: TransferRole): string | undefined {
-  return campaigns.find((c) => c.campaignName.toLowerCase().includes(role))?.campaignName;
 }
 
 const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
@@ -124,7 +131,14 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
   selector: 'app-hao-closure-step',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, TranslatePipe, ZardButtonComponent, ZardInputDirective, ScheduleAppointmentComponent],
+  imports: [
+    ReactiveFormsModule,
+    TranslatePipe,
+    ZardButtonComponent,
+    ZardFormMessageComponent,
+    ZardInputDirective,
+    ScheduleAppointmentComponent,
+  ],
   template: `
     <form class="flex flex-col gap-5" [formGroup]="form" novalidate>
       @if (disconnectedByCaller()) {
@@ -209,6 +223,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
               id="hao-cl-transfer-service"
               formControlName="transferService"
               class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              [attr.aria-busy]="servicesLoading() || campaignsLoading() ? 'true' : null"
             >
               <option [ngValue]="null">
                 {{ 'hao.closure.selectTransferService' | translate: lang() }}
@@ -217,10 +232,52 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
                 <option [ngValue]="service.subServiceName">{{ service.subServiceName }}</option>
               }
             </select>
+            @if (servicesLoading() && !servicesError()) {
+              <z-form-message role="status">{{ 'hao.closure.servicesLoading' | translate: lang() }}</z-form-message>
+            } @else if (noServices()) {
+              <z-form-message>{{ 'hao.closure.noServices' | translate: lang() }}</z-form-message>
+            }
+            @if (servicesError(); as error) {
+              <div class="flex flex-wrap items-center gap-2" role="alert">
+                <z-form-message zType="error">{{ error }}</z-form-message>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  zSize="sm"
+                  [zLoading]="servicesLoading()"
+                  [zDisabled]="servicesLoading()"
+                  (click)="loadServices()"
+                >
+                  {{ 'hao.closure.retryServices' | translate: lang() }}
+                </button>
+              </div>
+            }
+            @if (campaignsLoading() && !campaignsError() && !servicesLoading()) {
+              <z-form-message role="status">{{ 'hao.closure.campaignsLoading' | translate: lang() }}</z-form-message>
+            } @else if (noCampaigns()) {
+              <z-form-message>{{ 'hao.closure.noCampaigns' | translate: lang() }}</z-form-message>
+            }
+            @if (campaignsError(); as error) {
+              <div class="flex flex-wrap items-center gap-2" role="alert">
+                <z-form-message zType="error">{{ error }}</z-form-message>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  zSize="sm"
+                  [zLoading]="campaignsLoading()"
+                  [zDisabled]="campaignsLoading()"
+                  (click)="loadCampaigns()"
+                >
+                  {{ 'hao.closure.retryCampaigns' | translate: lang() }}
+                </button>
+              </div>
+            }
           </div>
         }
 
-        @if (canTransfer() && skills().length > 0 && skillRoleAllowed()) {
+        @if (canTransfer() && skillRoleAllowed() && selectedCampaign() !== null) {
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium" for="hao-cl-skill">
               {{ 'hao.closure.transferSkill' | translate: lang() }}
@@ -229,6 +286,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
               id="hao-cl-skill"
               formControlName="skill"
               class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              [attr.aria-busy]="skillsLoading() ? 'true' : null"
             >
               <option [ngValue]="null">
                 {{ 'hao.closure.selectSkill' | translate: lang() }}
@@ -237,6 +295,27 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
                 <option [ngValue]="skill.skillName">{{ skill.skillName }}</option>
               }
             </select>
+            @if (skillsLoading() && !skillsError()) {
+              <z-form-message role="status">{{ 'hao.closure.skillsLoading' | translate: lang() }}</z-form-message>
+            } @else if (noSkills()) {
+              <z-form-message>{{ 'hao.closure.noSkills' | translate: lang() }}</z-form-message>
+            }
+            @if (skillsError(); as error) {
+              <div class="flex flex-wrap items-center gap-2" role="alert">
+                <z-form-message zType="error">{{ error }}</z-form-message>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  zSize="sm"
+                  [zLoading]="skillsLoading()"
+                  [zDisabled]="skillsLoading()"
+                  (click)="loadSkills()"
+                >
+                  {{ 'hao.closure.retrySkills' | translate: lang() }}
+                </button>
+              </div>
+            }
           </div>
         }
       </div>
@@ -511,8 +590,17 @@ export class ClosureStepComponent {
 
   readonly callTypes = signal<CallType[]>([]);
   readonly campaigns = signal<TransferCampaign[]>([]);
+  readonly campaignsError = signal<string | null>(null);
+  readonly campaignsLoading = signal(false);
+  readonly noCampaigns = signal(false);
   readonly services = signal<AvailableService[]>([]);
+  readonly servicesError = signal<string | null>(null);
+  readonly servicesLoading = signal(false);
+  readonly noServices = signal(false);
   readonly skills = signal<CampaignSkill[]>([]);
+  readonly skillsError = signal<string | null>(null);
+  readonly skillsLoading = signal(false);
+  readonly noSkills = signal(false);
   readonly communities = signal<Community[]>([]);
   readonly educations = signal<Education[]>([]);
   readonly instituteTypes = signal<InstituteType[]>([]);
@@ -714,11 +802,14 @@ export class ClosureStepComponent {
     });
 
     // An emergency call (flagged during registration, broadcast via CallStore)
-    // is always disposed as "Valid" — mirrors legacy closure's handleEmergency,
-    // which forces callType = "Valid" on the same signal. Locked rather than
-    // just pre-filled so the mandatory disposition can't be changed away from
-    // Valid for a call already marked emergency.
-    effect(() => this.applyEmergencyCallType(this.callStore.isEmergencyCall()));
+    // is pre-selected as "Valid" — mirrors legacy closure's handleEmergency,
+    // which sets callType = "Valid" on the same signal and leaves the select
+    // editable. untracked() keeps this keyed to the emergency flag alone: the
+    // control write reaches valueChanges, which reads the call-type signals.
+    effect(() => {
+      const isEmergency = this.callStore.isEmergencyCall();
+      untracked(() => this.applyEmergencyCallType(isEmergency));
+    });
 
     c.isFollowupRequired.valueChanges.pipe(takeUntilDestroyed()).subscribe((required) => {
       this.followUpRequired.set(required);
@@ -758,7 +849,7 @@ export class ClosureStepComponent {
     c.transferService.valueChanges.pipe(takeUntilDestroyed()).subscribe((serviceName) => {
       this.selectedTransferService.set(serviceName);
       c.skill.reset(null);
-      this.skills.set([]);
+      this.resetSkills();
       this.selectedCampaign.set(null);
       if (!serviceName) {
         return;
@@ -771,7 +862,7 @@ export class ClosureStepComponent {
         return;
       }
       this.selectedCampaign.set(campaignName);
-      this.loadSkills(campaignName);
+      this.loadSkills();
     });
   }
 
@@ -909,9 +1000,8 @@ export class ClosureStepComponent {
         this.submitting.set(false);
         if (andContinue) {
           this.form.reset({ isEmergency: false, isSuicidal: false });
-          // form.reset() clears callGroupType (and re-enables it) regardless of
-          // the disabled-lock applied below — reapply for the same still-live,
-          // still-emergency call.
+          // form.reset() clears callGroupType — reapply the emergency
+          // pre-selection for the same still-live, still-emergency call.
           this.applyEmergencyCallType(this.callStore.isEmergencyCall());
           this.continued.emit();
         } else {
@@ -1034,11 +1124,13 @@ export class ClosureStepComponent {
   }
 
   /**
-   * Force-select and lock `callGroupType` to "Valid" while the call is
-   * flagged emergency; release the lock otherwise. Re-callable (not just
-   * effect-driven) because `form.reset()` on Submit & Continue clears and
-   * re-enables the control outside the signal change that would otherwise
-   * trigger this.
+   * Pre-select `callGroupType` as "Valid" while the call is flagged emergency,
+   * and clear it otherwise — legacy `handleEmergency`
+   * (`closure.component.ts:316-326`) sets the call type and leaves the select
+   * editable; only a booked Referral appointment locks it
+   * (`closure.component.html:93`, {@link disableCallType}). Re-callable (not
+   * just effect-driven) because `form.reset()` on Submit & Continue clears the
+   * control outside the signal change that would otherwise trigger this.
    */
   private applyEmergencyCallType(isEmergency: boolean): void {
     const control = this.form.controls.callGroupType;
@@ -1046,9 +1138,8 @@ export class ClosureStepComponent {
       if (control.value !== 'Valid') {
         control.setValue('Valid');
       }
-      control.disable();
-    } else {
-      control.enable();
+    } else if (control.value !== null) {
+      control.setValue(null);
     }
   }
 
@@ -1131,16 +1222,36 @@ export class ClosureStepComponent {
     });
   }
 
-  private loadCampaigns(): void {
+  /**
+   * The campaign list is what a chosen transfer service resolves against
+   * ({@link getCampaignName}), so the Transfer Call select stays disabled
+   * until it has arrived — otherwise an early selection would hit the
+   * "configure campaign" error for a campaign that was still on its way.
+   */
+  loadCampaigns(): void {
     const agentID = this.authStore.user()?.agentID ?? null;
     if (agentID === null) {
       return;
     }
+    const control = this.form.controls.transferService;
+    this.noCampaigns.set(false);
+    this.campaignsLoading.set(true);
+    control.disable({ emitEvent: false });
     this.haoService.getTransferCampaigns(agentID).subscribe({
-      // Belt-and-braces: the template's @for iterates this signal, so a
-      // non-array value (misbehaving backend, stale mock) must never land.
-      next: (campaigns) => this.campaigns.set(Array.isArray(campaigns) ? campaigns : []),
-      error: () => this.campaigns.set([]),
+      next: (campaigns) => {
+        const list = Array.isArray(campaigns) ? campaigns : [];
+        this.campaigns.set(list);
+        this.noCampaigns.set(list.length === 0);
+        this.campaignsError.set(null);
+        this.campaignsLoading.set(false);
+        this.enableTransferService();
+      },
+      error: (err: HaoRequestError) => {
+        this.campaigns.set([]);
+        this.campaignsLoading.set(false);
+        this.enableTransferService();
+        this.campaignsError.set(err?.errorMessage || this.i18n.instant('hao.closure.campaignsLoadError'));
+      },
     });
   }
 
@@ -1150,32 +1261,78 @@ export class ClosureStepComponent {
     return match?.subServiceID ?? null;
   }
 
-  private loadServices(): void {
+  loadServices(): void {
     // Same providerServiceMapID-not-serviceID fix as loadCallTypes() above —
     // verified live: serviceID returns an empty transfer-target list.
     const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
+    const control = this.form.controls.transferService;
+    this.noServices.set(false);
+    this.servicesLoading.set(true);
+    control.disable({ emitEvent: false });
     this.haoService.getAvailableServices(providerServiceMapID, true).subscribe({
-      next: (services) => this.services.set(services),
-      error: () => this.services.set([]),
+      next: (services) => {
+        this.services.set(services);
+        this.noServices.set(services.length === 0);
+        this.servicesError.set(null);
+        this.servicesLoading.set(false);
+        this.enableTransferService();
+      },
+      error: (err: HaoRequestError) => {
+        this.services.set([]);
+        this.servicesLoading.set(false);
+        this.enableTransferService();
+        this.servicesError.set(err?.errorMessage || this.i18n.instant('hao.closure.servicesLoadError'));
+      },
     });
   }
 
-  private loadSkills(campaignName: string): void {
+  private enableTransferService(): void {
+    if (!this.disconnectedByCaller() && !this.servicesLoading() && !this.campaignsLoading()) {
+      this.form.controls.transferService.enable({ emitEvent: false });
+    }
+  }
+
+  loadSkills(): void {
+    const campaignName = this.selectedCampaign();
+    if (!campaignName) {
+      return;
+    }
+    const control = this.form.controls.skill;
+    this.noSkills.set(false);
+    this.skillsLoading.set(true);
+    control.disable({ emitEvent: false });
     this.haoService.getCampaignSkills(campaignName).subscribe({
       // Apply only if this is still the selected campaign — a slower response
       // for a previously-selected campaign must not overwrite the current one's
       // skills (and let a stale skill be submitted).
       next: (skills) => {
-        if (this.selectedCampaign() === campaignName) {
-          this.skills.set(skills);
+        if (this.selectedCampaign() !== campaignName) {
+          return;
         }
+        this.skills.set(skills);
+        this.noSkills.set(skills.length === 0);
+        this.skillsError.set(null);
+        this.skillsLoading.set(false);
+        control.enable({ emitEvent: false });
       },
-      error: () => {
-        if (this.selectedCampaign() === campaignName) {
-          this.skills.set([]);
+      error: (err: HaoRequestError) => {
+        if (this.selectedCampaign() !== campaignName) {
+          return;
         }
+        this.skills.set([]);
+        this.skillsLoading.set(false);
+        control.enable({ emitEvent: false });
+        this.skillsError.set(err?.errorMessage || this.i18n.instant('hao.closure.skillsLoadError'));
       },
     });
+  }
+
+  private resetSkills(): void {
+    this.skills.set([]);
+    this.noSkills.set(false);
+    this.skillsError.set(null);
+    this.skillsLoading.set(false);
+    this.form.controls.skill.enable({ emitEvent: false });
   }
 
   private showError(messageKey: Parameters<I18nService['instant']>[0]): void {

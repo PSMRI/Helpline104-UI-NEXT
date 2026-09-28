@@ -71,3 +71,28 @@ export interface StartCallResponse {
   i_beneficiary?: BeneficiaryRecord | null;
   [key: string]: unknown;
 }
+
+/**
+ * Body of `call/beneficiaryByCallID` — legacy `caller.service.ts`
+ * `getBeneficiaryByCallID`, called by `104.component.ts` right after landing
+ * on the call screen to pick up the beneficiary an earlier leg of the call
+ * (e.g. the HAO before a transfer) already identified.
+ */
+export interface BeneficiaryByCallIdRequest {
+  /** CTI session/call id (the same `callID` sent to `call/startCall`). */
+  callID: string;
+  is1097: boolean;
+}
+
+/**
+ * Response of `call/beneficiaryByCallID`. When the call has a beneficiary the
+ * data carries `benCallID`, `beneficiaryRegID` and the full `i_beneficiary`;
+ * when it has none the data is `{ response: "null" }` instead.
+ */
+export interface BeneficiaryByCallIdResponse {
+  benCallID?: string;
+  beneficiaryRegID?: number | null;
+  i_beneficiary?: BeneficiaryRecord | null;
+  response?: string;
+  [key: string]: unknown;
+}
