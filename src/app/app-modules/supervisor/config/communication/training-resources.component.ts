@@ -262,8 +262,6 @@ const MAX_FILE_SIZE_MB = 5;
           <div class="sm:col-span-2">
             <label for="tr-file" class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ 'supTraining.uploadFile' | translate: lang() }}
-              ({{ 'supTraining.sizeLimit' | translate: lang() }}: {{ maxFileSize }}
-              {{ 'supTraining.mb' | translate: lang() }}, {{ 'supTraining.supportedFormats' | translate: lang() }})
             </label>
             <input
               id="tr-file"
@@ -271,6 +269,10 @@ const MAX_FILE_SIZE_MB = 5;
               class="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-input file:bg-transparent file:px-3 file:py-1 file:text-sm file:font-medium"
               (change)="onFileUpload($event)"
             />
+            <p class="mt-1 break-words text-xs text-muted-foreground">
+              {{ 'supTraining.sizeLimit' | translate: lang() }}: {{ maxFileSize }} {{ 'supTraining.mb' | translate: lang() }}.
+              {{ 'supTraining.supportedFormats' | translate: lang() }}
+            </p>
             @if (invalidFileType()) {
               <p class="mt-1 text-xs font-medium text-destructive">
                 {{ 'supTraining.supportedFormats' | translate: lang() }}

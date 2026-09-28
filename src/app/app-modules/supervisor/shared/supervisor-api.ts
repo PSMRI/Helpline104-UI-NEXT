@@ -21,7 +21,9 @@
  */
 
 import { HttpErrorResponse } from '@angular/common/http';
-import { TimeoutError } from 'rxjs';
+import { Observable, TimeoutError, from, map, of } from 'rxjs';
+
+import { isServerExceptionMessage } from '../../core/http/error-sanitizer.interceptor';
 
 /**
  * Shared HTTP contract for the supervisor configuration screens (grievance,
@@ -81,6 +83,48 @@ const NO_DATA_BODY = 'no data found';
  */
 export function isNoDataFound(err: SupervisorError): boolean {
   return err.errorMessage.trim().toLowerCase() === NO_DATA_BODY;
+}
+
+/**
+ * Whether a failure is the server's fault (a 5xx / 5000-series envelope, or a
+ * message that is really a Java exception), i.e. its `errorMessage` is not
+ * copy a user should ever see and the screen should show translated text.
+ */
+export function isServerFault(err: SupervisorError): boolean {
+  return err.status >= 500 || isServerExceptionMessage(err.errorMessage);
+}
+
+/**
+ * {@link toSupervisorError} for requests made with `responseType: 'blob'`. An
+ * HTTP error there arrives with a `Blob` body, so the envelope has to be read
+ * back to text first; a JSON envelope's `errorMessage` is used, plain text is
+ * used as-is, and anything else falls through to the generic message.
+ */
+export function toSupervisorError$(err: unknown): Observable<SupervisorError> {
+  if (!(err instanceof HttpErrorResponse) || !(err.error instanceof Blob)) {
+    return of(toSupervisorError(err));
+  }
+  return from(err.error.text()).pipe(
+    map((text) =>
+      toSupervisorError(
+        new HttpErrorResponse({
+          error: parseBlobBody(text),
+          headers: err.headers,
+          status: err.status,
+          statusText: err.statusText,
+          url: err.url ?? undefined,
+        }),
+      ),
+    ),
+  );
+}
+
+function parseBlobBody(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 /** Normalise any thrown value (timeout, envelope, HTTP error) to a {@link SupervisorError}. */

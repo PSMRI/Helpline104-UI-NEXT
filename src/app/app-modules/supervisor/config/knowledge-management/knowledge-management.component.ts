@@ -141,8 +141,6 @@ const MAX_FILE_SIZE_MB = 5;
         <div>
           <label for="km-file" class="mb-1 block text-xs font-medium text-muted-foreground">
             {{ 'supKm.uploadFile' | translate: lang() }}
-            ({{ 'supKm.sizeLimit' | translate: lang() }}: {{ maxFileSize }} {{ 'supKm.mb' | translate: lang() }},
-            {{ 'supKm.supportedFormats' | translate: lang() }})
             <span class="text-destructive">*</span>
           </label>
           <input
@@ -152,6 +150,10 @@ const MAX_FILE_SIZE_MB = 5;
             class="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-input file:bg-transparent file:px-3 file:py-1 file:text-sm file:font-medium"
             (change)="onFileUpload($event)"
           />
+          <p class="mt-1 break-words text-xs text-muted-foreground">
+            {{ 'supKm.sizeLimit' | translate: lang() }}: {{ maxFileSize }} {{ 'supKm.mb' | translate: lang() }}.
+            {{ 'supKm.supportedFormats' | translate: lang() }}
+          </p>
           @if (invalidFileType()) {
             <p class="mt-1 text-xs font-medium text-destructive">
               {{ 'supKm.supportedFormats' | translate: lang() }}

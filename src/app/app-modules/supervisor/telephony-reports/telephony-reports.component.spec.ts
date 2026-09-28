@@ -77,7 +77,7 @@ describe('TelephonyReportsComponent', () => {
     expect(url).toContain('key=abc%2Bdef%2F%3D%3D');
   });
 
-  it('renders the unavailable message instead of an iframe when no login key is present', () => {
+  it('renders the missing-key notice with a Retry button instead of an iframe when no login key is present', () => {
     authStore.setSession({
       token: 't',
       user: { userID: 1, agentID: null, userName: 'dimpi', status: 'Active' },
@@ -86,6 +86,49 @@ describe('TelephonyReportsComponent', () => {
     const fixture = render();
     expect(fixture.componentInstance.screenUrl()).toBeNull();
     expect(fixture.nativeElement.querySelector('iframe')).toBeNull();
-    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+    const notice = fixture.nativeElement.querySelector('app-cti-key-notice');
+    expect(notice).not.toBeNull();
+    expect(notice.textContent).toContain('The telephony session key was not received from CZentrix.');
+    expect(notice.textContent).not.toContain('log in again');
+    expect(notice.querySelector('button')).not.toBeNull();
+  });
+
+  it('swaps the notice for the iframe once Retry obtains a login key', () => {
+    authStore.setSession({
+      token: 't',
+      user: { userID: 1, agentID: null, userName: 'dimpi', status: 'Active' },
+    });
+    czentrix.startCtiSession('dimpi', 'encrypted-pw', null).subscribe();
+    http.expectOne((req) => req.url.includes('cti/getLoginKey')).flush({ statusCode: 5002, errorMessage: 'no key' });
+
+    const fixture = render();
+    expect(fixture.nativeElement.querySelector('iframe')).toBeNull();
+
+    fixture.nativeElement.querySelector('app-cti-key-notice button').click();
+    const retry = http.expectOne((req) => req.url.includes('cti/getLoginKey'));
+    expect(retry.request.body).toEqual({ username: 'dimpi', password: 'encrypted-pw' });
+    retry.flush({ data: { login_key: 'fresh-key' } });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-cti-key-notice')).toBeNull();
+    expect(fixture.nativeElement.querySelector('iframe')).not.toBeNull();
+    expect(unwrap(fixture.componentInstance.screenUrl())).toContain('key=fresh-key');
+  });
+
+  it('shows the log-out-and-back-in fallback only after a retry has failed', () => {
+    authStore.setSession({
+      token: 't',
+      user: { userID: 1, agentID: null, userName: 'dimpi', status: 'Active' },
+    });
+    czentrix.startCtiSession('dimpi', 'encrypted-pw', null).subscribe();
+    http.expectOne((req) => req.url.includes('cti/getLoginKey')).flush({ data: {} });
+
+    const fixture = render();
+    fixture.nativeElement.querySelector('app-cti-key-notice button').click();
+    http.expectOne((req) => req.url.includes('cti/getLoginKey')).flush('fail', { status: 500, statusText: 'Error' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('iframe')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Still unavailable. Please log out and log in again.');
   });
 });

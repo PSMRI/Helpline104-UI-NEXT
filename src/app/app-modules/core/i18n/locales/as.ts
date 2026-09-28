@@ -1137,6 +1137,7 @@ export const as: Record<TranslationKey, string> = {
   'blockUnblock.unblockConfirm': 'এই ফ’ন নম্বৰটো অনৱৰুদ্ধ কৰিবনে?',
   'blockUnblock.nuisanceCall': 'উপদ্ৰৱ কল',
   'blockUnblock.noRecords': 'কোনো ৰেকৰ্ড পোৱা নগ’ল।',
+  'blockUnblock.rowsPerPage': 'প্ৰতি পৃষ্ঠাত শাৰী',
   'blockUnblock.recordingsFor': 'ইয়াৰ বাবে কল ৰেকৰ্ডিং',
   'blockUnblock.callId': 'কল আইডি',
   'blockUnblock.agentId': 'এজেণ্ট আইডি',
@@ -1313,7 +1314,7 @@ export const as: Record<TranslationKey, string> = {
   'supGrievance.uploadFile': 'ফাইল/ইমেইল আপল’ড কৰক',
   'supGrievance.sizeLimit': 'আকাৰৰ সীমা',
   'supGrievance.mb': 'এমবি',
-  'supGrievance.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.doc,.docx,.txt)',
+  'supGrievance.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট: .msg, .pdf, .doc, .docx, .txt',
   'supGrievance.chooseFile': 'অনুগ্ৰহ কৰি আপল’ডৰ বাবে এটা ফাইল বাছনি কৰক',
   'supGrievance.fileTooLarge': 'ফাইলৰ আকাৰ অতিক্ৰম কৰিব নালাগে',
   'supGrievance.invalidFileName': 'অবৈধ ফাইলৰ নাম',
@@ -1386,6 +1387,8 @@ export const as: Record<TranslationKey, string> = {
   'supComm.subjectMin': 'বিষয়ৰ প্ৰয়োজন (নূন্যতম 5 টা বৰ্ণ)',
   'supComm.messageMin': 'বাৰ্তাৰ প্ৰয়োজন (নূন্যতম 5 টা বৰ্ণ)',
   'supComm.noNotificationTypes': 'কোনো অধিসূচনাৰ প্ৰকাৰ পোৱা নগ’ল। অনুগ্ৰহ কৰি কাৰিকৰী সহায়ৰ সৈতে যোগাযোগ কৰক',
+  'supComm.emergencyContactsUnavailable':
+    'জৰুৰীকালীন যোগাযোগ চাৰ্ভাৰৰ পৰা ল’ড কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পিছত পুনৰ চেষ্টা কৰক।',
   'supComm.noOffices': 'কোনো কামৰ স্থান পোৱা নগ’ল',
   'supComm.noOfficesForRole': 'নিৰ্বাচিত ভূমিকা কাৰ্যকৰী হোৱাৰ সৈতে কোনো কাৰ্যালয় পোৱা নগ’ল',
   'supComm.noRoles': 'কোনো ভূমিকা পোৱা নগ’ল',
@@ -1451,7 +1454,7 @@ export const as: Record<TranslationKey, string> = {
   'supTraining.uploadFile': 'ফাইল আপল’ড কৰক',
   'supTraining.sizeLimit': 'আকাৰৰ সীমা',
   'supTraining.mb': 'এমবি',
-  'supTraining.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supTraining.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট: .msg, .pdf, .png, .jpeg, .jpg, .doc, .docx, .xlsx, .xls, .csv, .txt',
   'supTraining.chooseFile': 'অনুগ্ৰহ কৰি আপল’ডৰ বাবে এটা ফাইল বাছনি কৰক',
   'supTraining.fileTooLarge': 'ফাইলৰ আকাৰ অতিক্ৰম কৰিব নালাগে',
   'supTraining.invalidFileName': 'অবৈধ ফাইলৰ নাম',
@@ -1491,7 +1494,7 @@ export const as: Record<TranslationKey, string> = {
   'supScheme.uploadFile': 'ফাইল আপল’ড কৰক',
   'supScheme.sizeLimit': 'আকাৰৰ সীমা',
   'supScheme.mb': 'এমবি',
-  'supScheme.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supScheme.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট: .msg, .pdf, .png, .jpeg, .jpg, .doc, .docx, .xlsx, .xls, .csv, .txt',
   'supScheme.chooseFile': 'অনুগ্ৰহ কৰি আপল’ডৰ বাবে এটা ফাইল বাছনি কৰক',
   'supScheme.fileTooLarge': 'ফাইলৰ আকাৰ অতিক্ৰম কৰিব নালাগে',
   'supScheme.invalidFileName': 'অবৈধ ফাইলৰ নাম',
@@ -1544,7 +1547,7 @@ export const as: Record<TranslationKey, string> = {
   'supKm.uploadFile': 'ফাইল আপল’ড কৰক',
   'supKm.sizeLimit': 'আকাৰৰ সীমা',
   'supKm.mb': 'এমবি',
-  'supKm.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supKm.supportedFormats': 'সমৰ্থিত ফাইল ফৰ্মেট: .msg, .pdf, .png, .jpeg, .jpg, .doc, .docx, .xlsx, .xls, .csv, .txt',
   'supKm.chooseFile': 'অনুগ্ৰহ কৰি আপল’ডৰ বাবে এটা ফাইল বাছনি কৰক',
   'supKm.fileTooLarge': 'ফাইলৰ আকাৰ অতিক্ৰম কৰিব নালাগে',
   'supKm.invalidFileName': 'অবৈধ ফাইলৰ নাম',
@@ -1558,11 +1561,10 @@ export const as: Record<TranslationKey, string> = {
 
   // Supervisor agent status
   'supervisor.telephonyReports.title': 'টেলিফোনী প্ৰতিবেদন',
-  'supervisor.telephonyReports.unavailable':
-    'টেলিফোনী প্ৰতিবেদন এই মুহূৰ্তত উপলব্ধ নহয়। অনুগ্ৰহ কৰি পুনৰ লগইন কৰি চাওক।',
   'supervisor.agentStatus.title': 'এজেণ্টৰ স্থিতি',
-  'supervisor.agentStatus.unavailable':
-    'এজেণ্টৰ স্থিতি এতিয়া উপলব্ধ নহয়। অনুগ্ৰহ কৰি পুনৰ লগইন কৰাৰ চেষ্টা কৰক।',
+  'supervisor.ctiKey.missing': 'CZentrix-ৰ পৰা টেলিফোনী ছেছন কী পোৱা নগ’ল।',
+  'supervisor.ctiKey.retry': 'পুনৰ চেষ্টা কৰক',
+  'supervisor.ctiKey.retryFailed': 'এতিয়াও উপলব্ধ নহয়। অনুগ্ৰহ কৰি লগ আউট কৰি পুনৰ লগইন কৰক।',
   // Login
   'login.title': 'AMRIT 104 হেল্পলাইন',
   'login.subtitle': 'অব্যাহত ৰাখিবলৈ আপোনাৰ একাউণ্টত ছাইন ইন কৰক',
@@ -1725,6 +1727,7 @@ export const as: Record<TranslationKey, string> = {
   'supDisease.statusUpdated': 'অৱস্থা সফলতাৰে আপডেট কৰা হ’ল',
   'supDisease.statusFailed': 'অৱস্থা আপডেট কৰিবলৈ ব্যৰ্থ',
   'supDisease.loadError': 'ৰোগৰ সাৰাংশ ল’ড কৰিবলৈ ব্যৰ্থ',
+  'supDisease.retry': 'পুনৰ চেষ্টা কৰক',
 
   // Detailed HIHL case sheet (Counsellor, tab 2 — legacy 104-counsellor)
   'hihl.chiefComplaints': 'মুখ্য অভিযোগসমূহ',

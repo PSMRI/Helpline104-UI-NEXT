@@ -1136,6 +1136,7 @@ export const hi: Record<TranslationKey, string> = {
   'blockUnblock.unblockConfirm': 'इस फ़ोन नंबर को अनवरुद्ध करें?',
   'blockUnblock.nuisanceCall': 'उत्पात कॉल',
   'blockUnblock.noRecords': 'कोई रिकॉर्ड नहीं मिला।',
+  'blockUnblock.rowsPerPage': 'प्रति पृष्ठ पंक्तियाँ',
   'blockUnblock.recordingsFor': 'इसके लिए कॉल रिकॉर्डिंग',
   'blockUnblock.callId': 'कॉल आईडी',
   'blockUnblock.agentId': 'एजेंट आईडी',
@@ -1312,7 +1313,7 @@ export const hi: Record<TranslationKey, string> = {
   'supGrievance.uploadFile': 'फ़ाइल/ईमेल अपलोड करें',
   'supGrievance.sizeLimit': 'आकार सीमा',
   'supGrievance.mb': 'एमबी',
-  'supGrievance.supportedFormats': 'समर्थित फ़ाइल स्वरूप(.msg,.pdf,.doc,.docx,.txt)',
+  'supGrievance.supportedFormats': 'समर्थित फ़ाइल स्वरूप: .msg, .pdf, .doc, .docx, .txt',
   'supGrievance.chooseFile': 'कृपया अपलोड करने के लिए एक फ़ाइल चुनें',
   'supGrievance.fileTooLarge': 'फ़ाइल का आकार अधिक नहीं होना चाहिए',
   'supGrievance.invalidFileName': 'अमान्य फ़ाइल नाम',
@@ -1385,6 +1386,7 @@ export const hi: Record<TranslationKey, string> = {
   'supComm.subjectMin': 'विषय आवश्यक है (न्यूनतम 5 वर्ण)',
   'supComm.messageMin': 'संदेश आवश्यक है (न्यूनतम 5 वर्ण)',
   'supComm.noNotificationTypes': 'कोई अधिसूचना प्रकार नहीं मिला। कृपया तकनीकी सहायता से संपर्क करें',
+  'supComm.emergencyContactsUnavailable': 'आपातकालीन संपर्क सर्वर से लोड नहीं हो सके। कृपया बाद में पुनः प्रयास करें।',
   'supComm.noOffices': 'काम का कोई स्थान नहीं मिला',
   'supComm.noOfficesForRole': 'उनमें चयनित भूमिका के साथ कोई कार्यालय कार्यात्मक नहीं मिला',
   'supComm.noRoles': 'कोई भूमिका नहीं मिली',
@@ -1449,7 +1451,7 @@ export const hi: Record<TranslationKey, string> = {
   'supTraining.uploadFile': 'फ़ाइल अपलोड करें',
   'supTraining.sizeLimit': 'आकार सीमा',
   'supTraining.mb': 'एमबी',
-  'supTraining.supportedFormats': 'समर्थित फ़ाइल प्रारूप(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supTraining.supportedFormats': 'समर्थित फ़ाइल प्रारूप: .msg, .pdf, .png, .jpeg, .jpg, .doc, .docx, .xlsx, .xls, .csv, .txt',
   'supTraining.chooseFile': 'कृपया अपलोड करने के लिए एक फ़ाइल चुनें',
   'supTraining.fileTooLarge': 'फ़ाइल का आकार अधिक नहीं होना चाहिए',
   'supTraining.invalidFileName': 'अमान्य फ़ाइल नाम',
@@ -1489,7 +1491,7 @@ export const hi: Record<TranslationKey, string> = {
   'supScheme.uploadFile': 'फ़ाइल अपलोड करें',
   'supScheme.sizeLimit': 'आकार सीमा',
   'supScheme.mb': 'एमबी',
-  'supScheme.supportedFormats': 'समर्थित फ़ाइल प्रारूप(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supScheme.supportedFormats': 'समर्थित फ़ाइल प्रारूप: .msg, .pdf, .png, .jpeg, .jpg, .doc, .docx, .xlsx, .xls, .csv, .txt',
   'supScheme.chooseFile': 'कृपया अपलोड करने के लिए एक फ़ाइल चुनें',
   'supScheme.fileTooLarge': 'फ़ाइल का आकार अधिक नहीं होना चाहिए',
   'supScheme.invalidFileName': 'अमान्य फ़ाइल नाम',
@@ -1542,7 +1544,7 @@ export const hi: Record<TranslationKey, string> = {
   'supKm.uploadFile': 'फ़ाइल अपलोड करें',
   'supKm.sizeLimit': 'आकार सीमा',
   'supKm.mb': 'एमबी',
-  'supKm.supportedFormats': 'समर्थित फ़ाइल प्रारूप(.msg,.pdf,.png,.jpeg,.jpg,.doc,.docx,.xlsx,.xls,.csv,.txt)',
+  'supKm.supportedFormats': 'समर्थित फ़ाइल प्रारूप: .msg, .pdf, .png, .jpeg, .jpg, .doc, .docx, .xlsx, .xls, .csv, .txt',
   'supKm.chooseFile': 'कृपया अपलोड करने के लिए एक फ़ाइल चुनें',
   'supKm.fileTooLarge': 'फ़ाइल का आकार अधिक नहीं होना चाहिए',
   'supKm.invalidFileName': 'अमान्य फ़ाइल नाम',
@@ -1556,10 +1558,10 @@ export const hi: Record<TranslationKey, string> = {
 
   // Supervisor agent status
   'supervisor.telephonyReports.title': 'टेलीफोनी रिपोर्ट',
-  'supervisor.telephonyReports.unavailable':
-    'टेलीफोनी रिपोर्ट अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
   'supervisor.agentStatus.title': 'एजेंट स्थिति',
-  'supervisor.agentStatus.unavailable': 'एजेंट स्थिति अभी उपलब्ध नहीं है। कृपया पुनः लॉगिन करने का प्रयास करें।',
+  'supervisor.ctiKey.missing': 'CZentrix से टेलीफोनी सत्र कुंजी प्राप्त नहीं हुई।',
+  'supervisor.ctiKey.retry': 'पुनः प्रयास करें',
+  'supervisor.ctiKey.retryFailed': 'अभी भी उपलब्ध नहीं है। कृपया लॉग आउट करके पुनः लॉगिन करें।',
   // Login
   'login.title': 'AMRIT 104 हेल्पलाइन',
   'login.subtitle': 'जारी रखने के लिए अपने खाते में साइन इन करें',
@@ -1722,6 +1724,7 @@ export const hi: Record<TranslationKey, string> = {
   'supDisease.statusUpdated': 'स्थिति सफलतापूर्वक अपडेट की गई',
   'supDisease.statusFailed': 'स्थिति अपडेट करने में विफल',
   'supDisease.loadError': 'रोग सारांश लोड करने में विफल',
+  'supDisease.retry': 'पुनः प्रयास करें',
 
   // Detailed HIHL case sheet (Counsellor, tab 2 — legacy 104-counsellor)
   'hihl.chiefComplaints': 'मुख्य शिकायतें',

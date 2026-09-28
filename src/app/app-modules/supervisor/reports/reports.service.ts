@@ -22,10 +22,10 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, throwError, timeout } from 'rxjs';
+import { Observable, catchError, map, switchMap, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
-import { ApiResponse, readSupervisorData, toSupervisorError } from '../shared/supervisor-api';
+import { ApiResponse, readSupervisorData, toSupervisorError, toSupervisorError$ } from '../shared/supervisor-api';
 import {
   AgentOption,
   CallTypeGroup,
@@ -47,7 +47,7 @@ import {
  * Report generation is slow on the server (it builds the whole workbook), so
  * these downloads get a longer timeout than the 20s lookup calls.
  */
-const REPORT_TIMEOUT_MS = 120_000;
+const REPORT_TIMEOUT_MS = 60_000;
 const LOOKUP_TIMEOUT_MS = 20_000;
 
 // --- Common-API paths (legacy `ReportService`, `_commonBaseUrl`) ------------
@@ -280,7 +280,7 @@ export class SupervisorReportsService {
   private blob(url: string, body: unknown): Observable<Blob> {
     return this.http.post(url, body, { responseType: 'blob' }).pipe(
       timeout(REPORT_TIMEOUT_MS),
-      catchError((err: unknown) => throwError(() => toSupervisorError(err))),
+      catchError((err: unknown) => toSupervisorError$(err).pipe(switchMap((normalised) => throwError(() => normalised)))),
     );
   }
 }

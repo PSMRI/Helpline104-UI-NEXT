@@ -20,7 +20,7 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -34,7 +34,7 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 import { AuthStore } from '../../../core/auth/auth.store';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
-import { SupervisorError } from '../../shared/supervisor-api';
+import { SupervisorError, isServerFault } from '../../shared/supervisor-api';
 import { SUP_SELECT_CLASS } from '../../shared/supervisor-ui';
 import { DesignationRow, EmergencyContactCreateRequest, EmergencyContactRow } from './notification.models';
 import { SupervisorNotificationService } from './notification.service';
@@ -74,6 +74,9 @@ const NUMBER_PATTERN = /^[1-9][0-9]*$/;
         }
       </h1>
 
+      @for (message of loadErrors(); track message) {
+        <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ message }}</p>
+      }
       @if (errorMessage()) {
         <p class="mb-3 text-sm font-medium text-destructive" role="alert">{{ errorMessage() }}</p>
       }
@@ -407,6 +410,13 @@ export class EmergencyContactsAdminComponent implements OnInit {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly errorMessage = signal('');
+  readonly designationsError = signal('');
+  readonly notificationTypesError = signal('');
+  readonly contactsError = signal('');
+  /** Distinct load failures, one per source, so a shared message is shown once. */
+  readonly loadErrors = computed(() => [
+    ...new Set([this.designationsError(), this.notificationTypesError(), this.contactsError()].filter(Boolean)),
+  ]);
 
   readonly contacts = signal<EmergencyContactRow[]>([]);
   readonly designations = signal<DesignationRow[]>([]);
@@ -444,8 +454,11 @@ export class EmergencyContactsAdminComponent implements OnInit {
       .getDesignations()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (designations) => this.designations.set(designations),
-        error: (err: SupervisorError) => this.errorMessage.set(err.errorMessage),
+        next: (designations) => {
+          this.designations.set(designations);
+          this.designationsError.set('');
+        },
+        error: (err: SupervisorError) => this.designationsError.set(this.loadFailureMessage(err)),
       });
     this.loading.set(true);
     this.service
@@ -456,15 +469,16 @@ export class EmergencyContactsAdminComponent implements OnInit {
           const match = types.find((t) => t.notificationType === 'Emergency Contact');
           if (!match) {
             this.loading.set(false);
-            this.errorMessage.set(this.i18n.instant('supComm.noNotificationTypes'));
+            this.notificationTypesError.set(this.i18n.instant('supComm.noNotificationTypes'));
             return;
           }
+          this.notificationTypesError.set('');
           this.notificationTypeID = match.notificationTypeID;
           this.loadContacts();
         },
         error: (err: SupervisorError) => {
           this.loading.set(false);
-          this.errorMessage.set(err.errorMessage);
+          this.notificationTypesError.set(this.loadFailureMessage(err));
         },
       });
   }
@@ -482,13 +496,18 @@ export class EmergencyContactsAdminComponent implements OnInit {
         next: (rows) => {
           this.loading.set(false);
           this.contacts.set(rows);
+          this.contactsError.set('');
         },
         error: (err: SupervisorError) => {
           this.loading.set(false);
           this.contacts.set([]);
-          this.errorMessage.set(err.errorMessage);
+          this.contactsError.set(this.loadFailureMessage(err));
         },
       });
+  }
+
+  private loadFailureMessage(err: SupervisorError): string {
+    return isServerFault(err) ? this.i18n.instant('supComm.emergencyContactsUnavailable') : err.errorMessage;
   }
 
   openCreate(): void {

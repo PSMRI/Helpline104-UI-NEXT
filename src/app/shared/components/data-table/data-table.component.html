@@ -72,8 +72,47 @@
 
   <div class="dt-footer">
     <span class="dt-count">{{ sorted().length }} record(s)</span>
+    @if (pageSizeOptions().length > 0) {
+      <label class="dt-page-size">
+        <span>{{ pageSizeLabel() }}</span>
+        <z-select class="dt-page-size-select" [zValue]="String(effectivePageSize())" (zSelectionChange)="onPageSizeChange($event)">
+          @for (size of pageSizeOptions(); track size) {
+            <z-select-item [zValue]="String(size)">{{ size }}</z-select-item>
+          }
+        </z-select>
+      </label>
+    }
     @if (totalPages() > 1) {
-      <z-pagination [zPageIndex]="displayIndex()" [zTotal]="totalPages()" (zPageIndexChange)="onPageChange($event)" />
+      <z-pagination [zContent]="pager" />
+      <ng-template #pager>
+        <ul z-pagination-content>
+          <li z-pagination-item>
+            <z-pagination-previous [zDisabled]="displayIndex() === 1" (click)="onPageChange(displayIndex() - 1)" />
+          </li>
+          @for (item of pagerItems(); track $index) {
+            <li z-pagination-item>
+              @if (item === 'ellipsis') {
+                <z-pagination-ellipsis />
+              } @else {
+                <button
+                  z-pagination-button
+                  type="button"
+                  class="focus-visible:rounded-md"
+                  [attr.aria-current]="item === displayIndex() ? 'page' : null"
+                  [zActive]="item === displayIndex()"
+                  (click)="onPageChange(item)"
+                >
+                  <span class="sr-only">{{ item === totalPages() ? 'To last page, page' : 'To page' }}</span>
+                  {{ item }}
+                </button>
+              }
+            </li>
+          }
+          <li z-pagination-item>
+            <z-pagination-next [zDisabled]="displayIndex() === totalPages()" (click)="onPageChange(displayIndex() + 1)" />
+          </li>
+        </ul>
+      </ng-template>
     }
   </div>
 </div>

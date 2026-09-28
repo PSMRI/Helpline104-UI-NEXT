@@ -225,36 +225,40 @@ const NAV_GROUPS: readonly SupervisorNavGroup[] = [
 
       <div class="flex flex-1">
         <aside
-          class="hidden shrink-0 flex-col gap-4 bg-card py-4 transition-[width] duration-200 md:flex"
-          [class]="sidebarOpen() ? 'w-60 overflow-y-auto border-r border-border px-3' : 'w-0 overflow-hidden'"
+          class="hidden shrink-0 flex-col bg-card py-5 transition-[width] duration-200 md:flex"
+          [class]="sidebarOpen() ? 'w-64 overflow-y-auto border-r border-border px-3' : 'w-0 overflow-hidden'"
         >
-          @for (group of navGroups; track group.labelKey) {
-            <div>
-              <p class="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          @for (group of navGroups; track group.labelKey; let first = $first) {
+            <div [class.mt-6]="!first" [class.border-t]="!first" [class.border-border]="!first" [class.pt-5]="!first">
+              <p class="mb-2 px-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
                 {{ group.labelKey | translate: lang() }}
               </p>
-              <nav class="flex flex-col gap-0.5">
+              <nav class="flex flex-col gap-1">
                 @for (item of group.items; track item.labelKey) {
                   @if (item.children; as children) {
-                    <p class="mt-1 flex items-center gap-2 px-2 py-1 text-xs font-medium text-muted-foreground">
-                      <ng-icon [name]="item.icon" size="14" aria-hidden="true" />
-                      {{ item.labelKey | translate: lang() }}
-                    </p>
-                    @for (child of children; track child.link) {
-                      <a
-                        [routerLink]="child.link"
-                        routerLinkActive="bg-accent text-foreground"
-                        class="ml-3 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-                      >
-                        <ng-icon [name]="child.icon" size="16" aria-hidden="true" />
-                        {{ child.labelKey | translate: lang() }}
-                      </a>
-                    }
+                    <div class="mt-2">
+                      <p class="mb-1 flex items-center gap-2.5 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                        <ng-icon [name]="item.icon" size="16" aria-hidden="true" />
+                        {{ item.labelKey | translate: lang() }}
+                      </p>
+                      <div class="ml-4 flex flex-col gap-1 border-l border-border pl-2">
+                        @for (child of children; track child.link) {
+                          <a
+                            [routerLink]="child.link"
+                            routerLinkActive="bg-accent font-medium text-foreground"
+                            class="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm leading-5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                          >
+                            <ng-icon [name]="child.icon" size="16" aria-hidden="true" />
+                            {{ child.labelKey | translate: lang() }}
+                          </a>
+                        }
+                      </div>
+                    </div>
                   } @else {
                     <a
                       [routerLink]="item.link"
-                      routerLinkActive="bg-accent text-foreground"
-                      class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                      routerLinkActive="bg-accent font-medium text-foreground"
+                      class="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm leading-5 text-muted-foreground hover:bg-accent hover:text-foreground"
                     >
                       <ng-icon [name]="item.icon" size="16" aria-hidden="true" />
                       {{ item.labelKey | translate: lang() }}

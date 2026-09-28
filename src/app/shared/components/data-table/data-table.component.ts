@@ -24,11 +24,48 @@ import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
-import { ZardPaginationComponent } from '@common-ui/ui/pagination';
+import { ZardPaginationImports } from '@common-ui/ui/pagination';
+import { ZardSelectImports } from '@common-ui/ui/select';
 import { ZardTableImports } from '@common-ui/ui/table';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { DataTableColumn, DataTableSortDirection } from './data-table.types';
+
+/** One slot in the windowed pager: a page number or a gap marker. */
+export type DataTablePagerItem = number | 'ellipsis';
+
+/**
+ * Pages to show in a bounded pager: the first and last page, the current
+ * page with one neighbour either side, and a gap marker where pages are
+ * skipped. Never renders more than 7 slots, so a 224-page list gets
+ * `1 … 99 100 101 … 224` instead of 224 buttons.
+ */
+export function pagerWindow(current: number, total: number): DataTablePagerItem[] {
+  if (total <= 7) {
+    return Array.from({ length: Math.max(0, total) }, (_, i) => i + 1);
+  }
+  let start = Math.max(2, current - 1);
+  let end = Math.min(total - 1, current + 1);
+  if (current <= 3) {
+    start = 2;
+    end = 4;
+  } else if (current >= total - 2) {
+    start = total - 3;
+    end = total - 1;
+  }
+  const items: DataTablePagerItem[] = [1];
+  if (start > 2) {
+    items.push('ellipsis');
+  }
+  for (let page = start; page <= end; page++) {
+    items.push(page);
+  }
+  if (end < total - 1) {
+    items.push('ellipsis');
+  }
+  items.push(total);
+  return items;
+}
 
 /**
  * Reusable, presentation-only data table built on the ZardUI Table and
@@ -47,19 +84,29 @@ import { DataTableColumn, DataTableSortDirection } from './data-table.types';
 @Component({
   selector: 'app-data-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [...ZardTableImports, ZardPaginationComponent, ZardInputDirective, ZardButtonComponent, NgTemplateOutlet],
+  imports: [
+    ...ZardTableImports,
+    ...ZardPaginationImports,
+    ...ZardSelectImports,
+    ZardInputDirective,
+    ZardButtonComponent,
+    NgTemplateOutlet,
+  ],
   templateUrl: './data-table.component.html',
   styleUrl: './data-table.component.css',
 })
 export class DataTableComponent<T extends Record<string, unknown> = Record<string, unknown>> {
   readonly columns = input.required<DataTableColumn<T>[]>();
   readonly data = input<readonly T[]>([]);
-  /**
-   * Rows per page. Defaults to 10. An in-UI page-size picker is intentionally
-   * not provided yet (no ZardUI select component exists); consumers set the
-   * size here.
-   */
+  /** Rows per page until the user picks another size. Defaults to 10. */
   readonly pageSize = input<number>(10);
+  /**
+   * Rows-per-page choices offered in the footer. Empty (the default) hides the
+   * picker and the table stays at `pageSize`.
+   */
+  readonly pageSizeOptions = input<readonly number[]>([]);
+  /** Label shown before the rows-per-page picker. */
+  readonly pageSizeLabel = input<string>('Rows per page');
   /** Show the global search box. Defaults to true. */
   readonly filterable = input<boolean>(true);
   /** Show the "Export CSV" button. Defaults to false. */
@@ -124,9 +171,27 @@ export class DataTableComponent<T extends Record<string, unknown> = Record<strin
    * Infinity/NaN and break the page slice). Falls back to the documented 10.
    */
   protected readonly effectivePageSize = computed(() => {
-    const size = Math.floor(this.pageSize());
+    const size = Math.floor(this.selectedPageSize() ?? this.pageSize());
     return Number.isFinite(size) && size > 0 ? size : 10;
   });
+
+  /** Size picked in the footer; null until the user changes it. */
+  private readonly selectedPageSize = signal<number | null>(null);
+
+  /** The select primitive works in string values. */
+  protected readonly String = String;
+
+  /** Bounded set of pager slots for the current page. */
+  protected readonly pagerItems = computed(() => pagerWindow(this.displayIndex(), this.totalPages()));
+
+  onPageSizeChange(value: string | string[]): void {
+    const raw = Array.isArray(value) ? value[0] : value;
+    const size = Number(raw);
+    if (Number.isFinite(size) && size > 0) {
+      this.selectedPageSize.set(size);
+      this.pageIndex.set(1);
+    }
+  }
 
   protected readonly totalPages = computed(() =>
     Math.max(1, Math.ceil(this.sorted().length / this.effectivePageSize())),

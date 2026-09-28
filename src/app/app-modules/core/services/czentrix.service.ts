@@ -58,9 +58,19 @@ const PATHS = {
  */
 const CTI_STORAGE_KEYS = {
   loginKey: 'ctiLoginKey',
+  loginUser: 'ctiLoginUser',
+  loginPassword: 'ctiLoginPassword',
   agentIP: 'ctiAgentIP',
   agentID: 'ctiAgentID',
 } as const;
+
+/**
+ * Outcome of {@link CzentrixService.refreshLoginKey}: `ok` when a key was
+ * stored; `no-credentials` when no portal login has been captured this
+ * session; `no-key` when Common-API answered but the envelope carried no key
+ * (e.g. a 5002 CTI envelope); `http-error` when the request itself failed.
+ */
+export type LoginKeyRefreshStatus = 'ok' | 'no-credentials' | 'no-key' | 'http-error';
 
 /** Envelope every Common-API CTI response arrives in (`data` is the payload). */
 interface ApiResponse<T> {
@@ -124,6 +134,8 @@ export class CzentrixService {
   private readonly _loginKey = signal<string | null>(this.storage.getItem(CTI_STORAGE_KEYS.loginKey));
   private readonly _agentIP = signal<string | null>(this.storage.getItem(CTI_STORAGE_KEYS.agentIP));
   private readonly _agentID = signal<number | null>(toNumberOrNull(this.storage.getItem(CTI_STORAGE_KEYS.agentID)));
+  private loginUser: string | null = this.storage.getItem(CTI_STORAGE_KEYS.loginUser);
+  private loginPassword: string | null = this.storage.getItem(CTI_STORAGE_KEYS.loginPassword);
 
   /** CZentrix bar login key from `cti/getLoginKey` (legacy `loginKey`). */
   readonly loginKey = this._loginKey.asReadonly();
@@ -203,6 +215,7 @@ export class CzentrixService {
    * unreachable (the softphone simply stays dark).
    */
   startCtiSession(username: string, encryptedPassword: string, agentID: number | null): Observable<boolean> {
+    this.setLoginCredentials(username, encryptedPassword);
     return this.getLoginKey(username, encryptedPassword).pipe(
       tap((key) => this.setLoginKey(key.login_key ?? null)),
       switchMap(() => {
@@ -217,6 +230,32 @@ export class CzentrixService {
         );
       }),
       catchError(() => of(false)),
+      takeUntil(this.sessionEnded$),
+    );
+  }
+
+  /**
+   * Re-request the CZentrix login key with the credentials captured by
+   * {@link startCtiSession}, for screens that need the key after the login
+   * handshake failed to obtain one. Stores the key on success and never
+   * errors; see {@link LoginKeyRefreshStatus} for the outcomes.
+   */
+  refreshLoginKey(): Observable<LoginKeyRefreshStatus> {
+    const username = this.loginUser;
+    const password = this.loginPassword;
+    if (!username || !password) {
+      return of<LoginKeyRefreshStatus>('no-credentials');
+    }
+    return this.getLoginKey(username, password).pipe(
+      map((key): LoginKeyRefreshStatus => {
+        const loginKey = key.login_key ?? null;
+        if (!loginKey) {
+          return 'no-key';
+        }
+        this.setLoginKey(loginKey);
+        return 'ok';
+      }),
+      catchError(() => of<LoginKeyRefreshStatus>('http-error')),
       takeUntil(this.sessionEnded$),
     );
   }
@@ -361,8 +400,16 @@ export class CzentrixService {
     this.persist(CTI_STORAGE_KEYS.agentID, agentID === null ? null : String(agentID));
   }
 
+  private setLoginCredentials(username: string | null, encryptedPassword: string | null): void {
+    this.loginUser = username;
+    this.loginPassword = encryptedPassword;
+    this.persist(CTI_STORAGE_KEYS.loginUser, username);
+    this.persist(CTI_STORAGE_KEYS.loginPassword, encryptedPassword);
+  }
+
   private clearCtiSession(): void {
     this.setLoginKey(null);
+    this.setLoginCredentials(null, null);
     this.setAgentIP(null);
     this.setAgentID(null);
   }

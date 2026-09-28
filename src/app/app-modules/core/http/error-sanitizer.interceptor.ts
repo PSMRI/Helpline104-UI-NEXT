@@ -40,11 +40,25 @@ const SERVER_EXCEPTION_PATTERNS: readonly RegExp[] = [
   /\bselect\b.{0,50}\bfrom\b/i,
   /exception/i,
   /communications link failure/i,
+  /\bjava\./i,
+  /typeadapter/i,
 ];
 
-/** Replace a message that looks like a raw server exception with generic copy. */
+/** Whether a message reads like a raw server exception rather than user-facing copy. */
+export function isServerExceptionMessage(message: string): boolean {
+  return SERVER_EXCEPTION_PATTERNS.some((p) => p.test(message));
+}
+
+/**
+ * Replace a message that looks like a raw server exception with generic copy,
+ * logging the original first so the detail survives for diagnosis.
+ */
 export function sanitizeErrorMessage(message: string): string {
-  return SERVER_EXCEPTION_PATTERNS.some((p) => p.test(message)) ? GENERIC_ERROR_MESSAGE : message;
+  if (!isServerExceptionMessage(message)) {
+    return message;
+  }
+  console.error('[http] server error message hidden from the user:', message);
+  return GENERIC_ERROR_MESSAGE;
 }
 
 /** Return a copy of an envelope body with its `errorMessage` sanitized, or null if untouched. */
@@ -75,12 +89,13 @@ export const errorSanitizerInterceptor: HttpInterceptorFn = (req, next) =>
     catchError((err: unknown) => {
       if (err instanceof HttpErrorResponse) {
         // Error bodies are either the same envelope or a raw string.
-        const sanitizedBody =
-          typeof err.error === 'string'
-            ? sanitizeErrorMessage(err.error) !== err.error
-              ? sanitizeErrorMessage(err.error)
-              : null
-            : sanitizeBody(err.error);
+        let sanitizedBody: string | Record<string, unknown> | null;
+        if (typeof err.error === 'string') {
+          const sanitized = sanitizeErrorMessage(err.error);
+          sanitizedBody = sanitized === err.error ? null : sanitized;
+        } else {
+          sanitizedBody = sanitizeBody(err.error);
+        }
         if (sanitizedBody !== null) {
           return throwError(
             () =>
