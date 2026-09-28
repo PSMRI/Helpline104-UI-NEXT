@@ -29,7 +29,7 @@ import { Router, provideRouter } from '@angular/router';
 import { AuthStore } from '../core/auth/auth.store';
 
 import { CallStore } from './call.store';
-import { InboundCtiService } from './inbound-cti.service';
+import { CTI_DEBUG_STORAGE_KEY, InboundCtiService } from './inbound-cti.service';
 
 /**
  * Inbound CTI accept routing, pinned against the class doc comment on
@@ -269,5 +269,73 @@ describe('InboundCtiService', () => {
 
     expect(callStore.beneficiaryId()).toBeNull();
     expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  describe('debug log', () => {
+    let info: jasmine.Spy;
+
+    beforeEach(() => {
+      info = spyOn(console, 'info');
+    });
+
+    afterEach(() => localStorage.removeItem(CTI_DEBUG_STORAGE_KEY));
+
+    function post(data: unknown, origin = window.location.origin): void {
+      window.dispatchEvent(new MessageEvent('message', { data, origin }));
+    }
+
+    function logged(): string[] {
+      return info.calls.allArgs().map((args) => String(args[0]));
+    }
+
+    it('logs nothing while the flag is off', () => {
+      setRole('MO');
+      post('garbage', 'https://evil.example');
+
+      expect(info).not.toHaveBeenCalled();
+    });
+
+    it('logs the origin and raw data before the origin check drops a foreign message', () => {
+      localStorage.setItem(CTI_DEBUG_STORAGE_KEY, '1');
+      setRole('MO');
+      post('Accept|9034862882|1.2|INBOUND', 'https://evil.example');
+
+      expect(logged()).toEqual(['[cti-debug] received', '[cti-debug] dropped: origin']);
+      expect(info.calls.argsFor(0)[1]).toEqual({ origin: 'https://evil.example', data: 'Accept|9034862882|1.2|INBOUND' });
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('names the eligibility check when a supervisor session drops the message', () => {
+      localStorage.setItem(CTI_DEBUG_STORAGE_KEY, '1');
+      setRole('Supervisor');
+      post('Accept|9034862882|1.3|INBOUND');
+
+      expect(logged()).toEqual(['[cti-debug] received', '[cti-debug] dropped: ineligible']);
+      expect(info.calls.argsFor(1)[1]).toEqual(jasmine.objectContaining({ agentID: AGENT_ID, featureCode: 'Supervisor' }));
+    });
+
+    it('names the parser when a trusted, eligible message is not a CTI event', () => {
+      localStorage.setItem(CTI_DEBUG_STORAGE_KEY, '1');
+      setRole('MO');
+      post('accept|9034862882|1.4|TRANSFER');
+
+      expect(logged()).toEqual(['[cti-debug] received', '[cti-debug] dropped: parse']);
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('reports an accepted inbound call and a re-posted duplicate', () => {
+      localStorage.setItem(CTI_DEBUG_STORAGE_KEY, '1');
+      setRole('HAO');
+      acceptInboundCall('1.5');
+      acceptInboundCall('1.5');
+
+      expect(logged()).toEqual([
+        '[cti-debug] received',
+        '[cti-debug] accepted: inbound',
+        '[cti-debug] received',
+        '[cti-debug] dropped: duplicate',
+      ]);
+      flushStartCall();
+    });
   });
 });

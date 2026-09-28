@@ -39,7 +39,10 @@ export const AUTH_STORAGE_KEYS = {
 /** The authenticated user, distilled from the login response. */
 export interface AuthUser {
   userID: number | null;
+  /** CZentrix agent id of the selected role; the login-time id until a role is selected. */
   agentID: number | null;
+  /** Agent id resolved at login, used when the selected role carries none. */
+  loginAgentID?: number | null;
   userName: string | null;
   /** Login response `Status`, e.g. "Active" | "New". */
   status: string | null;

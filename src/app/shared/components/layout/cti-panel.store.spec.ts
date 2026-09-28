@@ -20,8 +20,9 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { Component, provideZonelessChangeDetection } from '@angular/core';
+import { Component, SecurityContext, provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { DomSanitizer } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 
 import { AuthStore } from '@/app-modules/core/auth/auth.store';
@@ -87,5 +88,16 @@ describe('CtiPanelStore', () => {
   it('keeps showing the toggle on routes without a footer, such as reports', async () => {
     await router.navigateByUrl('/reports/call-type');
     expect(store.showCzentrix()).toBe(true);
+  });
+
+  it('points the softphone iframe at the agent id set on role selection', () => {
+    const sanitizer = TestBed.inject(DomSanitizer);
+    const src = () => sanitizer.sanitize(SecurityContext.RESOURCE_URL, store.ctiUrl());
+
+    expect(src()).toContain('bar/cti_handler.php?e=2145');
+
+    TestBed.inject(AuthStore).setAgentID(2545);
+
+    expect(src()).toContain('bar/cti_handler.php?e=2545');
   });
 });

@@ -31,6 +31,7 @@ import { ZardButtonComponent } from '@common-ui/ui/button';
 import { AppFooterComponent } from '@/shared/components/layout/app-footer.component';
 import { AppHeaderComponent } from '@/shared/components/layout/app-header.component';
 
+import { parseAgentID } from '../core/auth/agent-id.util';
 import { AuthStore } from '../core/auth/auth.store';
 import { Privilege, Role } from '../core/auth/auth.models';
 import { I18nService } from '../core/i18n/i18n.service';
@@ -123,8 +124,15 @@ export class RoleSelectionComponent {
       apimanClientKey: service.apimanClientKey ?? null,
       featureCode: this.deriveFeatureCode(role),
     });
+    this.authStore.setAgentID(parseAgentID(role.agentID) ?? this.loginAgentID());
 
     void this.router.navigate([DASHBOARD_ROUTE]);
+  }
+
+  /** Sessions persisted before `loginAgentID` existed fall back to the stored id. */
+  private loginAgentID(): number | null {
+    const user = this.authStore.user();
+    return user?.loginAgentID !== undefined ? user.loginAgentID : (user?.agentID ?? null);
   }
 
   /** Clear the session and route to the post-logout feedback page. */

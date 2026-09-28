@@ -38,6 +38,23 @@ import { inboundAcceptPath } from './role-workspace/role-screens.util';
 const SUPERVISOR_FEATURE_CODE = 'Supervisor';
 const REGISTRATION_PATH = 'registration';
 
+/** `localStorage.setItem('ctiDebug', '1')` logs every message the listener receives. */
+export const CTI_DEBUG_STORAGE_KEY = 'ctiDebug';
+
+type CtiMessageOutcome = 'accepted: inbound' | 'accepted: disconnect' | 'dropped: duplicate' | 'dropped: parse';
+
+function ctiDebugEnabled(): boolean {
+  try {
+    return localStorage.getItem(CTI_DEBUG_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function ctiDebug(message: string, detail?: unknown): void {
+  console.info(`[cti-debug] ${message}`, detail ?? '');
+}
+
 /**
  * Extract the origin from a configured base URL. Returns a token that can never
  * equal a real `MessageEvent.origin` when the URL is empty/malformed, so an
@@ -89,10 +106,30 @@ export class InboundCtiService {
 
   constructor() {
     const onMessage = (event: MessageEvent): void => {
-      if (!this.isTrustedCtiOrigin(event.origin) || !this.isCtiEligible()) {
+      const debug = ctiDebugEnabled();
+      if (debug) {
+        ctiDebug('received', { origin: event.origin, data: event.data });
+      }
+      if (!this.isTrustedCtiOrigin(event.origin)) {
+        if (debug) {
+          ctiDebug('dropped: origin', { origin: event.origin, expected: this.telephonyOrigin });
+        }
         return;
       }
-      this.handleCtiMessage(event.data);
+      if (!this.isCtiEligible()) {
+        if (debug) {
+          ctiDebug('dropped: ineligible', {
+            authenticated: this.authStore.isAuthenticated(),
+            agentID: this.authStore.user()?.agentID ?? null,
+            featureCode: this.authStore.currentRole()?.featureCode ?? null,
+          });
+        }
+        return;
+      }
+      const outcome = this.handleCtiMessage(event.data);
+      if (debug) {
+        ctiDebug(outcome, { data: event.data });
+      }
     };
     window.addEventListener('message', onMessage);
     inject(DestroyRef).onDestroy(() => window.removeEventListener('message', onMessage));
@@ -136,12 +173,12 @@ export class InboundCtiService {
    * beneficiary looked up by call id (see {@link resolveTransferredBeneficiary});
    * on the caller hanging up mid-call, start the wrap-up grace period.
    */
-  private handleCtiMessage(data: unknown): void {
+  private handleCtiMessage(data: unknown): CtiMessageOutcome {
     const inbound = parseInboundCtiMessage(data);
     if (inbound) {
       // De-dupe: the iframe may re-post the same event for one connected call.
       if (this.callStore.onCall() && this.callStore.sessionId() === inbound.sessionId) {
-        return;
+        return 'dropped: duplicate';
       }
       this.callStore.startCall({
         cli: inbound.cli,
@@ -158,13 +195,15 @@ export class InboundCtiService {
         inbound.sessionId,
         toWorkspace ? () => this.resolveTransferredBeneficiary(inbound.sessionId) : undefined,
       );
-      return;
+      return 'accepted: inbound';
     }
 
     const disconnect = parseDisconnectCtiMessage(data);
     if (disconnect) {
       this.callWrapup.handleCallerDisconnect(disconnect.callId);
+      return 'accepted: disconnect';
     }
+    return 'dropped: parse';
   }
 
   /**

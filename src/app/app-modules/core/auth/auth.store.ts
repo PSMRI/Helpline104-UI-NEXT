@@ -91,6 +91,17 @@ export class AuthStore {
     this.setApimanKey(role.apimanClientKey ?? null);
   }
 
+  /** Replace the user's CZentrix agent id (role selection). */
+  setAgentID(agentID: number | null): void {
+    const user = this._user();
+    if (!user) {
+      return;
+    }
+    const updated = { ...user, agentID };
+    this._user.set(updated);
+    this.storage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(updated));
+  }
+
   /** Clear the session (in-memory signals + this store's persisted keys). */
   clear(): void {
     this._token.set(null);
