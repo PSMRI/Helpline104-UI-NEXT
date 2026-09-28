@@ -86,13 +86,13 @@ const ON_CALL_STATES: readonly string[] = ['INCALL', 'CLOSURE'];
     ActivityPanelComponent,
   ],
   template: `
-    <div class="flex min-h-screen flex-col bg-background text-foreground">
-      <app-dashboard-header />
+    <div class="flex h-dvh flex-col bg-background text-foreground">
+      <app-dashboard-header class="shrink-0" />
 
-      <div class="relative flex-1 bg-muted/40">
+      <div class="relative flex min-h-0 flex-1 bg-muted/40">
         <app-dashboard-sidebar class="absolute inset-y-0 left-0 z-20" [showActivityArea]="isSupervisor()" />
 
-        <main class="py-6 pl-16 pr-4 sm:pl-20 sm:pr-6">
+        <main class="min-w-0 flex-1 overflow-y-auto py-6 pl-16 pr-4 sm:pl-20 sm:pr-6">
           <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
             @if (showAgentId() || showCampaignToggle()) {
               <div class="flex flex-wrap items-center justify-between gap-4">

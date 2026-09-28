@@ -63,8 +63,8 @@ const ROLE_CO = 'CO';
   ],
   viewProviders: [provideIcons({ lucidePhoneIncoming, lucideCircleDot })],
   template: `
-    <div class="flex min-h-screen flex-col bg-background text-foreground">
-      <header class="border-b border-border bg-card">
+    <div class="flex h-dvh flex-col bg-background text-foreground">
+      <header class="shrink-0 border-b border-border bg-card">
         <div class="mx-auto flex w-full max-w-full flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div class="flex items-center gap-3">
             <span class="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -102,7 +102,7 @@ const ROLE_CO = 'CO';
       </header>
 
       @if (demographicsView(); as d) {
-        <div class="border-b border-border bg-muted/30 px-4 py-2 text-sm text-foreground sm:px-6" role="status">
+        <div class="shrink-0 border-b border-border bg-muted/30 px-4 py-2 text-sm text-foreground sm:px-6" role="status">
           <span class="flex flex-wrap items-center gap-x-1">
             @if (d.fullName) {
               <span class="font-semibold">{{ d.fullName }},</span>
@@ -144,7 +144,7 @@ const ROLE_CO = 'CO';
         </div>
       }
 
-      <main class="flex-1 bg-muted/40 py-6">
+      <main class="min-h-0 flex-1 overflow-y-auto bg-muted/40 py-6">
         <div class="mx-auto w-full max-w-full px-4 sm:px-6">
           <router-outlet />
         </div>
