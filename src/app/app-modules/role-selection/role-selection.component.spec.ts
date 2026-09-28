@@ -26,9 +26,11 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
+import { AuthUser, Privilege, Role } from '../core/auth/auth.models';
 import { AuthStore } from '../core/auth/auth.store';
 import { I18nService } from '../core/i18n/i18n.service';
 import { CzentrixService } from '../core/services/czentrix.service';
+import { SessionStorageService } from '../core/services/session-storage.service';
 import { RoleSelectionComponent } from './role-selection.component';
 
 /**
@@ -82,5 +84,96 @@ describe('RoleSelectionComponent', () => {
 
     expect(authStore.clear).toHaveBeenCalled();
     expect(sessionStorage.getItem('someUnrelatedCallStorageKey')).toBeNull();
+  });
+
+  describe('agent id on role selection (legacy service-role-selection)', () => {
+    const SERVICE: Privilege = { serviceName: '104', providerServiceMapID: 42 };
+
+    function role(name: string, screenName: string, agentID?: unknown): Role {
+      return {
+        RoleID: 1,
+        RoleName: name,
+        agentID: agentID as number | undefined,
+        serviceRoleScreenMappings: [{ screen: { screenName } }],
+      };
+    }
+
+    function signIn(user: Partial<AuthUser>): AuthStore {
+      const authStore = TestBed.inject(AuthStore);
+      authStore.setSession({
+        token: 't',
+        user: { userID: 1, agentID: 2145, loginAgentID: 2145, userName: 'multi', status: 'Active', ...user },
+      });
+      return authStore;
+    }
+
+    it("switches to the selected role's own agent id, accepting the string form UAT sends", () => {
+      const authStore = signIn({});
+      const fixture = render();
+
+      fixture.componentInstance.selectRole(role('MO', 'Medical_Advice', '2545'), SERVICE);
+
+      expect(authStore.user()?.agentID).toBe(2545);
+      expect(JSON.parse(TestBed.inject(SessionStorageService).getItem('authUser') ?? '{}').agentID).toBe(2545);
+    });
+
+    it('falls back to the login-time agent id when the role carries none', () => {
+      const authStore = signIn({});
+      const fixture = render();
+
+      fixture.componentInstance.selectRole(role('CO', 'Counselling'), SERVICE);
+
+      expect(authStore.user()?.agentID).toBe(2145);
+    });
+
+    it("restores the login-time id on a switch from a role with its own id, not the previous role's", () => {
+      const authStore = signIn({});
+      const fixture = render();
+
+      fixture.componentInstance.selectRole(role('MO', 'Medical_Advice', 2545), SERVICE);
+      fixture.componentInstance.selectRole(role('CO', 'Counselling'), SERVICE);
+
+      expect(authStore.user()?.agentID).toBe(2145);
+      expect(authStore.user()?.loginAgentID).toBe(2145);
+    });
+
+    it('falls back to the login-time id when the role agent id is only whitespace', () => {
+      const authStore = signIn({});
+      const fixture = render();
+
+      fixture.componentInstance.selectRole(role('CO', 'Counselling', '   '), SERVICE);
+
+      expect(authStore.user()?.agentID).toBe(2145);
+    });
+
+    it('keeps the stored agent id for a session persisted before loginAgentID existed', () => {
+      const authStore = signIn({ agentID: 2508, loginAgentID: undefined });
+      const fixture = render();
+
+      fixture.componentInstance.selectRole(role('CO', 'Counselling'), SERVICE);
+
+      expect(authStore.user()?.agentID).toBe(2508);
+      expect(authStore.user()?.loginAgentID).toBe(2508);
+    });
+
+    it("never lets a pre-deploy session keep a previous role's id across repeated switches", () => {
+      const authStore = signIn({ agentID: 2508, loginAgentID: undefined });
+      const fixture = render();
+      const select = (r: Role) => fixture.componentInstance.selectRole(r, SERVICE);
+
+      select(role('MO', 'Medical_Advice', 2545));
+      expect(authStore.user()?.agentID).toBe(2545);
+      expect(authStore.user()?.loginAgentID).toBe(2508);
+
+      select(role('CO', 'Counselling'));
+      expect(authStore.user()?.agentID).toBe(2508);
+
+      select(role('PD', 'Psychiatrist', '2601'));
+      expect(authStore.user()?.agentID).toBe(2601);
+
+      select(role('CO', 'Counselling'));
+      expect(authStore.user()?.agentID).toBe(2508);
+      expect(authStore.user()?.loginAgentID).toBe(2508);
+    });
   });
 });

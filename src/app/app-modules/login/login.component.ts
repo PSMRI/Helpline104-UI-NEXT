@@ -38,6 +38,7 @@ import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
+import { parseAgentID } from '../core/auth/agent-id.util';
 import { AuthStore } from '../core/auth/auth.store';
 import { LoginResponse, Privilege } from '../core/auth/auth.models';
 import { I18nService } from '../core/i18n/i18n.service';
@@ -236,6 +237,7 @@ export class LoginComponent {
         user: {
           userID: response.userID ?? null,
           agentID,
+          loginAgentID: agentID,
           userName: userID,
           status: response.Status,
         },
@@ -331,11 +333,8 @@ function resolveAgentID(response: LoginResponse, privileges: Privilege[]): numbe
     ]),
   ];
   for (const candidate of candidates) {
-    if (candidate === null || candidate === undefined || candidate === '') {
-      continue;
-    }
-    const parsed = Number(candidate);
-    if (Number.isFinite(parsed)) {
+    const parsed = parseAgentID(candidate);
+    if (parsed !== null) {
       return parsed;
     }
   }
