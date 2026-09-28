@@ -25,6 +25,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { HaoRequestError } from './hao.models';
 import { HaoService } from './hao.service';
 
 /**
@@ -133,7 +134,9 @@ describe('HaoService call-lifecycle envelope handling', () => {
   });
 
   describe('transferCall', () => {
-    it('completes on a success envelope and sends the legacy snake_case body', () => {
+    // skill_transfer_flag is a String on the backend DTO, pasted into the
+    // CZentrix URL as-is; legacy sends "0"/"1", never a JSON boolean.
+    it('completes on a success envelope and sends the legacy snake_case body, with skill_transfer_flag "0" and no skill', () => {
       const outcome = jasmine.createSpyObj<{ next: () => void; error: () => void }>('observer', ['next', 'error']);
       service.transferCall(transferRequest()).subscribe(outcome);
 
@@ -141,19 +144,20 @@ describe('HaoService call-lifecycle envelope handling', () => {
       expect(req.request.body).toEqual({
         transfer_from: 2145,
         transfer_campaign_info: 'H_104_Hybrid_MO',
-        skill_transfer_flag: false,
+        skill_transfer_flag: '0',
         agentIPAddress: null,
         benCallID: '1786464598330',
         callType: 'Valid',
         callTypeID: 28,
       });
+      expect('skill' in req.request.body).toBeFalse();
       req.flush({ statusCode: 200, status: 'Success' });
 
       expect(outcome.error).not.toHaveBeenCalled();
       expect(outcome.next).toHaveBeenCalled();
     });
 
-    it('sends callType/callTypeID on a skill-based transfer too, not only on the default transfer', () => {
+    it('sends skill_transfer_flag "1" with the skill, plus callType/callTypeID, on a skill-based transfer', () => {
       service
         .transferCall({ ...transferRequest(), skillTransferFlag: true, skill: 'Hindi' })
         .subscribe({ next: () => undefined, error: () => undefined });
@@ -162,13 +166,24 @@ describe('HaoService call-lifecycle envelope handling', () => {
       expect(req.request.body).toEqual({
         transfer_from: 2145,
         transfer_campaign_info: 'H_104_Hybrid_MO',
-        skill_transfer_flag: true,
+        skill_transfer_flag: '1',
         skill: 'Hindi',
         agentIPAddress: null,
         benCallID: '1786464598330',
         callType: 'Valid',
         callTypeID: 28,
       });
+      req.flush({ statusCode: 200, status: 'Success' });
+    });
+
+    it('sends skill_transfer_flag "0" and no skill when the flag is set but no skill was chosen', () => {
+      service
+        .transferCall({ ...transferRequest(), skillTransferFlag: true, skill: null })
+        .subscribe({ next: () => undefined, error: () => undefined });
+
+      const req = expectOne('cti/transferCall');
+      expect(req.request.body.skill_transfer_flag).toBe('0');
+      expect('skill' in req.request.body).toBeFalse();
       req.flush({ statusCode: 200, status: 'Success' });
     });
 
@@ -261,6 +276,272 @@ describe('HaoService call-lifecycle envelope handling', () => {
 
       jasmine.clock().tick(2);
       expect(failure).toBeDefined();
+    });
+  });
+});
+
+describe('HaoService case-sheet and services error normalisation', () => {
+  let service: HaoService;
+  let http: HttpTestingController;
+
+  const TIMEOUT_MESSAGE = 'The request timed out. Please check your connection and try again.';
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(HaoService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  const caseSheetRequest = () =>
+    ({ beneficiaryRegID: 5006622, chiefComplaints: 'Fever' }) as unknown as Parameters<HaoService['saveCaseSheet']>[0];
+
+  function expectOne(urlFragment: string) {
+    return http.expectOne((req) => req.url.includes(urlFragment));
+  }
+
+  describe('saveCaseSheet', () => {
+    it('resolves the saved payload on a success envelope', () => {
+      let result: unknown;
+      service.saveCaseSheet(caseSheetRequest()).subscribe((res) => (result = res));
+
+      expectOne('beneficiary/save/benCaseSheet').flush({ statusCode: 200, status: 'Success', data: { benCaseSheetID: 9 } });
+
+      expect(result).toEqual({ benCaseSheetID: 9 });
+    });
+
+    it('errors with the backend message on a 200 carrying statusCode 5000 instead of reporting success', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({
+        next: (res) => (result = res),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('beneficiary/save/benCaseSheet').flush({
+        statusCode: 5000,
+        status: 'FAILURE',
+        errorMessage: 'Beneficiary not found',
+        data: null,
+      });
+
+      expect(result).toBeUndefined();
+      expect(failure).toEqual({ status: 5000, errorMessage: 'Beneficiary not found' });
+    });
+
+    it('errors on a 200 whose status reads "Failed with …" even with an OK statusCode', () => {
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/save/benCaseSheet').flush({ statusCode: 200, status: 'Failed with NPE at 12:00' });
+
+      expect(failure?.status).toBe(200);
+    });
+
+    it('carries the HTTP status and body message on a 5xx', () => {
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/save/benCaseSheet').flush(
+        { errorMessage: 'Database unavailable' },
+        { status: 503, statusText: 'Service Unavailable' },
+      );
+
+      expect(failure).toEqual({ status: 503, errorMessage: 'Database unavailable' });
+    });
+
+    it('leaves the message empty on a 5xx with no body message so the caller can use its own copy', () => {
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/save/benCaseSheet').flush(null, { status: 500, statusText: 'Internal Server Error' });
+
+      expect(failure).toEqual({ status: 500, errorMessage: '' });
+    });
+
+    it('passes a 5002 envelope through as success — session expiry is the interceptor\'s to own', () => {
+      let completed = false;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ next: () => (completed = true) });
+
+      expectOne('beneficiary/save/benCaseSheet').flush({ statusCode: 5002, errorMessage: 'Session expired' });
+
+      expect(completed).toBeTrue();
+    });
+  });
+
+  describe('getAvailableServices', () => {
+    it('errors with the backend message on a failure envelope', () => {
+      let failure: HaoRequestError | undefined;
+      service.getAvailableServices(1, true).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/get/services').flush({ statusCode: 5000, errorMessage: 'No services mapped' });
+
+      expect(failure).toEqual({ status: 5000, errorMessage: 'No services mapped' });
+    });
+
+    it('normalises an HTTP failure', () => {
+      let failure: HaoRequestError | undefined;
+      service.getAvailableServices(1, true).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/get/services').flush(null, { status: 504, statusText: 'Gateway Timeout' });
+
+      expect(failure).toEqual({ status: 504, errorMessage: '' });
+    });
+
+    it('rejects a null serviceID without a request', () => {
+      let failure: HaoRequestError | undefined;
+      service.getAvailableServices(null, true).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expect(failure).toEqual({ status: 0, errorMessage: '' });
+    });
+  });
+
+  describe('getTransferCampaigns', () => {
+    it('resolves the nested data.campaign list with campaign_name mapped to campaignName', () => {
+      let result: unknown;
+      service.getTransferCampaigns(7).subscribe((campaigns) => (result = campaigns));
+
+      const req = expectOne('cti/getTransferCampaigns');
+      expect(req.request.body).toEqual({ agent_id: 7 });
+      req.flush({
+        statusCode: 200,
+        data: { campaign: [{ campaign_id: 3, campaign_name: 'MO_CAMPAIGN' }] },
+      });
+
+      expect(result).toEqual([{ campaign_id: 3, campaign_name: 'MO_CAMPAIGN', campaignName: 'MO_CAMPAIGN' }]);
+    });
+
+    it('still accepts the older shape with the array directly on data', () => {
+      let result: unknown;
+      service.getTransferCampaigns(7).subscribe((campaigns) => (result = campaigns));
+
+      expectOne('cti/getTransferCampaigns').flush({ data: [{ campaignName: 'CO_CAMPAIGN' }] });
+
+      expect(result).toEqual([{ campaignName: 'CO_CAMPAIGN' }]);
+    });
+
+    it('resolves an empty list, not an error, on the "No Campaigns Available" failure envelope', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.getTransferCampaigns(7).subscribe({
+        next: (campaigns) => (result = campaigns),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('cti/getTransferCampaigns').flush({
+        statusCode: 5000,
+        errorMessage: 'No Campaigns Available',
+        status: 'Failure',
+      });
+
+      expect(failure).toBeUndefined();
+      expect(result).toEqual([]);
+    });
+
+    it('errors with the backend message on any other failure envelope', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.getTransferCampaigns(7).subscribe({
+        next: (campaigns) => (result = campaigns),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('cti/getTransferCampaigns').flush({ statusCode: 5000, errorMessage: 'CTI unavailable', status: 'Failure' });
+
+      expect(result).toBeUndefined();
+      expect(failure).toEqual({ status: 5000, errorMessage: 'CTI unavailable' });
+    });
+
+    it('normalises an HTTP failure', () => {
+      let failure: HaoRequestError | undefined;
+      service.getTransferCampaigns(7).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('cti/getTransferCampaigns').flush(null, { status: 504, statusText: 'Gateway Timeout' });
+
+      expect(failure).toEqual({ status: 504, errorMessage: '' });
+    });
+  });
+
+  describe('getCampaignSkills', () => {
+    it('resolves the skill list on a success envelope', () => {
+      let result: unknown;
+      service.getCampaignSkills('MO_CAMPAIGN').subscribe((skills) => (result = skills));
+
+      expectOne('cti/getCampaignSkills').flush({ statusCode: 200, data: [{ skillName: 'General' }] });
+
+      expect(result).toEqual([{ skillName: 'General' }]);
+    });
+
+    it('resolves an empty list, not an error, on the "No active skill found." failure envelope', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.getCampaignSkills('MO_CAMPAIGN').subscribe({
+        next: (skills) => (result = skills),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('cti/getCampaignSkills').flush({
+        statusCode: 5000,
+        errorMessage: 'No active skill found.',
+        status: 'FAILURE',
+      });
+
+      expect(failure).toBeUndefined();
+      expect(result).toEqual([]);
+    });
+
+    it('matches the empty-result text case-insensitively and without its trailing period', () => {
+      let result: unknown;
+      service.getCampaignSkills('MO_CAMPAIGN').subscribe((skills) => (result = skills));
+
+      expectOne('cti/getCampaignSkills').flush({ statusCode: 5000, errorMessage: '  NO ACTIVE SKILL FOUND ' });
+
+      expect(result).toEqual([]);
+    });
+
+    it('still errors on any other failure envelope', () => {
+      let result: unknown;
+      let failure: HaoRequestError | undefined;
+      service.getCampaignSkills('MO_CAMPAIGN').subscribe({
+        next: (skills) => (result = skills),
+        error: (err: HaoRequestError) => (failure = err),
+      });
+
+      expectOne('cti/getCampaignSkills').flush({ statusCode: 5000, errorMessage: 'CTI unavailable', status: 'FAILURE' });
+
+      expect(result).toBeUndefined();
+      expect(failure).toEqual({ status: 5000, errorMessage: 'CTI unavailable' });
+    });
+  });
+
+  describe('request timeout', () => {
+    beforeEach(() => jasmine.clock().install());
+    afterEach(() => jasmine.clock().uninstall());
+
+    it('saveCaseSheet errors with the status-0 timeout message past the 20s deadline', () => {
+      let failure: HaoRequestError | undefined;
+      service.saveCaseSheet(caseSheetRequest()).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/save/benCaseSheet');
+
+      jasmine.clock().tick(19999);
+      expect(failure).toBeUndefined();
+
+      jasmine.clock().tick(2);
+      expect(failure).toEqual({ status: 0, errorMessage: TIMEOUT_MESSAGE });
+    });
+
+    it('getAvailableServices errors with the status-0 timeout message past the 20s deadline', () => {
+      let failure: HaoRequestError | undefined;
+      service.getAvailableServices(1, true).subscribe({ error: (err: HaoRequestError) => (failure = err) });
+
+      expectOne('beneficiary/get/services');
+
+      jasmine.clock().tick(20001);
+      expect(failure).toEqual({ status: 0, errorMessage: TIMEOUT_MESSAGE });
     });
   });
 });

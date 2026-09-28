@@ -23,7 +23,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../core/services/config.service';
 import {
@@ -41,6 +41,8 @@ const FILTER_CALL_LIST_PATH = 'call/filterCallListPage';
 const CDI_QA_MAPPING_PATH = 'beneficiary//get/CDIqamapping';
 
 const GENERIC_ERROR = 'Internal issue, please try again later.';
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
+const REQUEST_TIMEOUT_MS = 20_000;
 
 /**
  * Agent Call Type (Customer Delight Index) report API. Ported from the legacy
@@ -72,6 +74,7 @@ export class CallTypeReportService {
 
   private post<T>(url: string, body: unknown): Observable<T> {
     return this.http.post<ApiResponse<T>>(url, body).pipe(
+      timeout(REQUEST_TIMEOUT_MS),
       map((res) => {
         if (res.statusCode && res.statusCode !== 200) {
           throw this.toError(res);
@@ -83,6 +86,9 @@ export class CallTypeReportService {
   }
 
   private toError(err: unknown): ReportError {
+    if (err instanceof TimeoutError) {
+      return { status: 0, errorMessage: TIMEOUT_ERROR };
+    }
     if (
       err &&
       typeof (err as ReportError).status === 'number' &&

@@ -20,9 +20,9 @@
  * along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, throwError, timeout } from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { ConfigService } from '../../core/services/config.service';
 import { DiseaseSummaryDetail } from '../case-sheet/disease-summary.models';
@@ -41,6 +41,7 @@ import {
   GuidelineCategory,
   GuidelineDetail,
   GuidelineSubCategory,
+  HaoRequestError,
   InstituteName,
   InstituteType,
   PresentCaseSheet,
@@ -87,6 +88,75 @@ const SESSION_EXPIRED_STATUS = 5002;
 /** Applied to every request in this file — none of them had one before. */
 const REQUEST_TIMEOUT_MS = 20_000;
 
+const TIMEOUT_ERROR = 'The request timed out. Please check your connection and try again.';
+
+/**
+ * Whether a 200 envelope reports failure: `statusCode` other than 200, or a
+ * `status` of `"FAILURE"` / `"Failed with …"`. Session expiry (5002) is never a
+ * failure here — see {@link SESSION_EXPIRED_STATUS}.
+ */
+function isFailureEnvelope(res: ApiResponse<unknown> | null | undefined): boolean {
+  if (res === null || res === undefined) {
+    return false;
+  }
+  const status = res.status?.trim().toUpperCase() ?? '';
+  const failed = (res.statusCode !== undefined && res.statusCode !== 200) || status.startsWith('FAIL');
+  return failed && res.statusCode !== SESSION_EXPIRED_STATUS;
+}
+
+/**
+ * The failure envelope `cti/getCampaignSkills` answers, HTTP 200 with
+ * statusCode 5000 and no `data`, for a campaign that simply has no skills —
+ * verified live, for every campaign without skills.
+ */
+const NO_ACTIVE_SKILL = 'no active skill found';
+
+/**
+ * The failure envelope `cti/getTransferCampaigns` answers, HTTP 200 with
+ * statusCode 5000, for an agent with no campaigns — verified live.
+ */
+const NO_CAMPAIGNS_AVAILABLE = 'no campaigns available';
+
+/**
+ * Whether a failure envelope is the backend's "empty result" rather than a
+ * fault. Keyed on the one exact message (case-insensitive, trailing period
+ * tolerated) and nothing else, like the supervisor reports' `isNoDataFound`:
+ * any other failure text stays an error the caller can show and retry.
+ */
+function isEmptyResultEnvelope(res: ApiResponse<unknown>, message: string): boolean {
+  const text = res.errorMessage?.trim().toLowerCase().replace(/\.+$/, '') ?? '';
+  return text === message;
+}
+
+/**
+ * Normalise any failure into a {@link HaoRequestError}. `errorMessage` carries
+ * the backend's own text (or the timeout message) and is empty when neither is
+ * available, so callers can fall back to their own translated copy.
+ */
+function toRequestError(err: unknown): HaoRequestError {
+  if (err instanceof TimeoutError) {
+    return { status: 0, errorMessage: TIMEOUT_ERROR };
+  }
+  if (
+    err &&
+    typeof (err as HaoRequestError).status === 'number' &&
+    typeof (err as HaoRequestError).errorMessage === 'string'
+  ) {
+    return err as HaoRequestError;
+  }
+  const envelope = err as ApiResponse<unknown> | undefined;
+  if (envelope && typeof envelope.statusCode === 'number') {
+    return { status: envelope.statusCode, errorMessage: envelope.errorMessage?.trim() ?? '' };
+  }
+  if (err instanceof HttpErrorResponse) {
+    const body = err.error as { errorMessage?: string } | null;
+    const message =
+      body && typeof body === 'object' && typeof body.errorMessage === 'string' ? body.errorMessage.trim() : '';
+    return { status: err.status, errorMessage: message };
+  }
+  return { status: 0, errorMessage: '' };
+}
+
 /**
  * Reject a call-lifecycle response that reports failure inside an HTTP 200.
  *
@@ -101,16 +171,10 @@ function assertCallActionSucceeded(res: ApiResponse<unknown> | null, action: str
   // A body-less answer (HTTP 204, or a JSON `null`) carries no failure to report,
   // and reading through it would throw a TypeError that the caller would surface
   // as a failed transfer/close — the very mis-report this check exists to prevent.
-  if (res === null || res === undefined) {
+  if (!isFailureEnvelope(res)) {
     return;
   }
-  const status = res.status?.trim().toUpperCase() ?? '';
-  // Covers "FAILURE" and the longer "Failed with <cause> at <timestamp>" form.
-  const failed = (res.statusCode !== undefined && res.statusCode !== 200) || status.startsWith('FAIL');
-  if (!failed || res.statusCode === SESSION_EXPIRED_STATUS) {
-    return;
-  }
-  const detail = res.errorMessage?.trim() || `statusCode ${res.statusCode ?? 'unknown'}`;
+  const detail = res?.errorMessage?.trim() || `statusCode ${res?.statusCode ?? 'unknown'}`;
   throw new Error(`${action} failed: ${detail}`);
 }
 
@@ -204,13 +268,26 @@ export class HaoService {
       );
   }
 
-  /** Persist the Health Advisory case sheet for the active beneficiary. */
+  /**
+   * Persist the Health Advisory case sheet for the active beneficiary.
+   *
+   * A rejected save is reported inside a 200 envelope (`statusCode` 5000 with
+   * an `errorMessage`), so the envelope is checked before the caller treats it
+   * as saved. Every failure — envelope, HTTP error or timeout — reaches the
+   * caller as a {@link HaoRequestError}.
+   */
   saveCaseSheet(request: CaseSheetRequest): Observable<CaseSheetResponse> {
     return this.http
       .post<ApiResponse<CaseSheetResponse>>(this.base104 + PATHS.saveCaseSheet, request)
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
-        map((res) => res.data ?? {}),
+        map((res) => {
+          if (isFailureEnvelope(res)) {
+            throw res;
+          }
+          return res?.data ?? {};
+        }),
+        catchError((err: unknown) => throwError(() => toRequestError(err))),
       );
   }
 
@@ -287,9 +364,14 @@ export class HaoService {
       );
   }
 
+  /**
+   * Transfer-target services for the closure step. Failures — envelope, HTTP
+   * error or timeout — reach the caller as a {@link HaoRequestError} so the
+   * closure step can show the backend's reason and offer a retry.
+   */
   getAvailableServices(serviceID: number | null, isInbound: boolean): Observable<AvailableService[]> {
     if (serviceID === null) {
-      return throwError(() => new Error('getAvailableServices: serviceID is required'));
+      return throwError(() => toRequestError(new Error('getAvailableServices: serviceID is required')));
     }
     return this.http
       .post<ApiResponse<AvailableService[]>>(this.base104 + PATHS.availableServices, {
@@ -298,7 +380,13 @@ export class HaoService {
       })
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
-        map((res) => (Array.isArray(res.data) ? res.data : [])),
+        map((res) => {
+          if (isFailureEnvelope(res)) {
+            throw res;
+          }
+          return Array.isArray(res?.data) ? res.data : [];
+        }),
+        catchError((err: unknown) => throwError(() => toRequestError(err))),
       );
   }
 
@@ -324,6 +412,10 @@ export class HaoService {
    * The CTI backend nests the list at `data.campaign` (snake_case
    * `campaign_name` keys); older responses put the array directly on `data`.
    * Both shapes are accepted, anything else is treated as "no campaigns".
+   * The backend's "No Campaigns Available" envelope is an agent with no
+   * campaigns, not a fault, and resolves to an empty list; any other failure
+   * reaches the caller as a {@link HaoRequestError}, like
+   * {@link getCampaignSkills}, so the closure step can show it and retry.
    */
   getTransferCampaigns(agentID: number): Observable<TransferCampaign[]> {
     return this.http
@@ -334,7 +426,13 @@ export class HaoService {
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => {
-          const arr = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.campaign) ? res.data.campaign : [];
+          if (isFailureEnvelope(res)) {
+            if (isEmptyResultEnvelope(res, NO_CAMPAIGNS_AVAILABLE)) {
+              return [];
+            }
+            throw res;
+          }
+          const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.campaign) ? res.data.campaign : [];
           return arr
             .filter((c): c is TransferCampaign => c != null)
             .map((c) => ({
@@ -342,10 +440,17 @@ export class HaoService {
               campaignName: c.campaignName ?? (c['campaign_name'] as string | undefined) ?? '',
             }));
         }),
+        catchError((err: unknown) => throwError(() => toRequestError(err))),
       );
   }
 
-  /** Skills available within a chosen transfer campaign (keyed by name). */
+  /**
+   * Skills available within a chosen transfer campaign (keyed by name).
+   * Failures reach the caller as a {@link HaoRequestError}, like
+   * {@link getAvailableServices}, so the closure step can show them and retry.
+   * The backend's "No active skill found." envelope is a campaign with no
+   * skills, not a fault, and resolves to an empty list.
+   */
   getCampaignSkills(campaignName: string): Observable<CampaignSkill[]> {
     return this.http
       .post<ApiResponse<CampaignSkill[]>>(this.baseCommon + PATHS.campaignSkills, {
@@ -353,7 +458,16 @@ export class HaoService {
       })
       .pipe(
         timeout(REQUEST_TIMEOUT_MS),
-        map((res) => (Array.isArray(res.data) ? res.data : [])),
+        map((res) => {
+          if (isFailureEnvelope(res)) {
+            if (isEmptyResultEnvelope(res, NO_ACTIVE_SKILL)) {
+              return [];
+            }
+            throw res;
+          }
+          return Array.isArray(res?.data) ? res.data : [];
+        }),
+        catchError((err: unknown) => throwError(() => toRequestError(err))),
       );
   }
 
@@ -361,19 +475,21 @@ export class HaoService {
    * Transfer the active call to the chosen campaign (and optional skill). The
    * snake_case body mirrors the legacy `transferToCampaign` contract; `skill`
    * is omitted unless a skill was chosen, but `callType`/`callTypeID` are
-   * always sent.
+   * always sent. `skill_transfer_flag` is the string `"1"`/`"0"` legacy sent:
+   * the backend DTO field is a String that is pasted into CZentrix's URL.
    *
    * A rejected transfer is reported inside a 200 envelope, so the response is
    * checked before the caller hands the call off — see
    * {@link assertCallActionSucceeded}.
    */
   transferCall(request: TransferCallRequest): Observable<void> {
+    const skillTransfer = request.skillTransferFlag && !!request.skill;
     return this.http
       .post<ApiResponse<unknown>>(this.baseCommon + PATHS.transferCall, {
         transfer_from: request.transferFrom,
         transfer_campaign_info: request.transferCampaignInfo,
-        skill_transfer_flag: request.skillTransferFlag,
-        ...(request.skillTransferFlag && request.skill ? { skill: request.skill } : {}),
+        skill_transfer_flag: skillTransfer ? '1' : '0',
+        ...(skillTransfer ? { skill: request.skill } : {}),
         agentIPAddress: request.agentIPAddress ?? null,
         benCallID: request.benCallID,
         callType: request.callType,

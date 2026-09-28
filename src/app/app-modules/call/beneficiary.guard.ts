@@ -40,12 +40,17 @@ import { CallStore } from './call.store';
  *
  * Sends the agent to the registration screen to (re-)identify the caller rather
  * than to the dashboard, which would abandon a live call.
+ *
+ * A transferred call is the one legitimate way to reach a workspace with no
+ * beneficiary yet: `InboundCtiService` lands MO/CO on their workspace at once
+ * (as legacy did) and looks the beneficiary up by call id afterwards, so the
+ * workspace is admitted while that lookup is pending ({@link CallStore.beneficiaryPending}).
  */
 export const beneficiaryGuard: CanActivateFn = () => {
   const callStore = inject(CallStore);
   const router = inject(Router);
 
-  if (callStore.beneficiaryId() !== null) {
+  if (callStore.beneficiaryId() !== null || callStore.beneficiaryPending()) {
     return true;
   }
 

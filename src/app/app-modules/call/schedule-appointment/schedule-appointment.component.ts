@@ -29,6 +29,7 @@ import { lucideCalendarClock, lucideX } from '@ng-icons/lucide';
 import { toast } from 'ngx-sonner';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
+import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
 
 import { AuthStore } from '../../core/auth/auth.store';
@@ -62,7 +63,7 @@ const SLOT_MAX_MINUTES = 13 * 60;
   selector: 'app-schedule-appointment',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardInputDirective],
+  imports: [ReactiveFormsModule, NgIcon, TranslatePipe, ZardButtonComponent, ZardFormMessageComponent, ZardInputDirective],
   viewProviders: [provideIcons({ lucideCalendarClock, lucideX })],
   template: `
     <section class="rounded-lg border border-border bg-card">
@@ -114,6 +115,7 @@ const SLOT_MAX_MINUTES = 13 * 60;
               id="appt-facility"
               [class]="selectClass"
               formControlName="facilityName"
+              [attr.aria-busy]="facilitiesLoading() ? 'true' : null"
               (change)="onFacilityChange()"
             >
               <option [ngValue]="null" disabled>{{ 'appointment.selectFacility' | translate: lang() }}</option>
@@ -121,6 +123,31 @@ const SLOT_MAX_MINUTES = 13 * 60;
                 <option [ngValue]="f.facilityName">{{ f.facilityName }}</option>
               }
             </select>
+            @if (facilitiesLoading() && !facilitiesError()) {
+              <z-form-message role="status" class="mt-0.5 block text-xs">
+                {{ 'appointment.facilitiesLoading' | translate: lang() }}
+              </z-form-message>
+            } @else if (noFacilities()) {
+              <z-form-message class="mt-0.5 block text-xs">
+                {{ 'appointment.noFacilities' | translate: lang() }}
+              </z-form-message>
+            }
+            @if (facilitiesError(); as error) {
+              <div class="mt-1 flex flex-wrap items-center gap-2" role="alert">
+                <z-form-message zType="error" class="text-xs">{{ error }}</z-form-message>
+                <button
+                  z-button
+                  type="button"
+                  zType="outline"
+                  zSize="sm"
+                  [zLoading]="facilitiesLoading()"
+                  [zDisabled]="facilitiesLoading()"
+                  (click)="loadFacilities()"
+                >
+                  {{ 'appointment.retry' | translate: lang() }}
+                </button>
+              </div>
+            }
             @if (form.controls.facilityName.invalid && form.controls.facilityName.touched) {
               <p class="mt-0.5 text-xs text-destructive">
                 {{ 'registration.validation.required' | translate: lang() }}
@@ -229,6 +256,9 @@ export class ScheduleAppointmentComponent implements OnInit {
 
   readonly blocks = signal<BlockOption[]>([]);
   readonly facilities = signal<FacilityOption[]>([]);
+  readonly facilitiesLoading = signal(false);
+  readonly noFacilities = signal(false);
+  readonly facilitiesError = signal<string | null>(null);
   readonly saving = signal(false);
   readonly errorMessage = signal('');
   readonly timeInvalid = signal(false);
@@ -275,24 +305,59 @@ export class ScheduleAppointmentComponent implements OnInit {
   }
 
   canSubmit(): boolean {
-    return this.form.valid && !this.timeInvalid() && !this.saving() && this.isAltMobileValid();
+    return (
+      this.form.valid &&
+      !this.timeInvalid() &&
+      !this.saving() &&
+      !this.facilitiesLoading() &&
+      this.isAltMobileValid()
+    );
   }
 
   onBlockChange(): void {
-    const block = this.form.controls.subDistrict.value;
     this.resetFacilityFields();
     this.facilities.set([]);
+    this.noFacilities.set(false);
+    this.facilitiesError.set(null);
+    this.facilitiesLoading.set(false);
+    this.form.controls.facilityName.enable({ emitEvent: false });
+    this.loadFacilities();
+  }
+
+  loadFacilities(): void {
+    const block = this.form.controls.subDistrict.value;
     if (!block) {
       return;
     }
+    const control = this.form.controls.facilityName;
+    this.noFacilities.set(false);
+    this.facilitiesLoading.set(true);
+    control.disable({ emitEvent: false });
     const providerServiceMapID = this.authStore.currentRole()?.providerServiceMapID ?? null;
     this.appointments
       .getFacilityMaster(providerServiceMapID, block)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (list) => this.facilities.set(list),
-        error: (err: AppointmentError) =>
-          this.errorMessage.set(err.errorMessage || this.i18n.instant('appointment.loadError')),
+        // A slower response for a previously chosen block must not land on
+        // the block the agent has since moved to.
+        next: (list) => {
+          if (this.form.controls.subDistrict.value !== block) {
+            return;
+          }
+          this.facilities.set(list);
+          this.noFacilities.set(list.length === 0);
+          this.facilitiesError.set(null);
+          this.facilitiesLoading.set(false);
+          control.enable({ emitEvent: false });
+        },
+        error: (err: AppointmentError) => {
+          if (this.form.controls.subDistrict.value !== block) {
+            return;
+          }
+          this.facilitiesLoading.set(false);
+          control.enable({ emitEvent: false });
+          this.facilitiesError.set(err.errorMessage || this.i18n.instant('appointment.loadError'));
+        },
       });
   }
 
