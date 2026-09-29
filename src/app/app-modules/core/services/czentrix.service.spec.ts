@@ -28,11 +28,10 @@ import { TestBed } from '@angular/core/testing';
 import { CzentrixService } from './czentrix.service';
 
 /**
- * `startCtiSession` with a null `agentID` (a user with no personal CZentrix
- * dialer line, e.g. a supervisor) must still capture the login key — the
- * supervisor Agent Status screen embeds CZentrix's own admin console with
- * it — while skipping the agent-IP/doAgentLogin dialer-registration calls,
- * which need a real id.
+ * `startCtiSession` is the legacy `getCTILoginToken` step only: it captures
+ * the login key (for a supervisor too — the Agent Status screen embeds
+ * CZentrix's admin console with it) and never calls `cti/doAgentLogin`,
+ * which Common-API no longer routes.
  */
 describe('CzentrixService.startCtiSession', () => {
   let service: CzentrixService;
@@ -61,22 +60,46 @@ describe('CzentrixService.startCtiSession', () => {
     expect(result).toBe(true);
     expect(service.loginKey()).toBe('the-key');
     expect(service.agentID()).toBeNull();
-    http.expectNone((req) => req.url.includes('cti/getAgentIPAddress'));
-    http.expectNone((req) => req.url.includes('cti/doAgentLogin'));
   });
 
-  it('with a real agentID, still runs the full getAgentIPAddress -> doAgentLogin chain', () => {
+  it('with a real agentID, fetches only the login key and records the agent id', () => {
     let result: boolean | undefined;
     service.startCtiSession('104hao', 'encrypted-pw', 2145).subscribe((r) => (result = r));
 
-    http.expectOne((req) => req.url.includes('cti/getLoginKey')).flush({ data: { login_key: 'the-key' } });
-    http.expectOne((req) => req.url.includes('cti/getAgentIPAddress')).flush({ data: { agent_ip: '10.1.1.1' } });
-    http.expectOne((req) => req.url.includes('cti/doAgentLogin')).flush({ data: {} });
+    const req = http.expectOne((r) => r.url.includes('cti/getLoginKey'));
+    expect(req.request.body).toEqual({ username: '104hao', password: 'encrypted-pw' });
+    req.flush({ data: { login_key: 'the-key' } });
 
     expect(result).toBe(true);
     expect(service.loginKey()).toBe('the-key');
-    expect(service.agentIP()).toBe('10.1.1.1');
     expect(service.agentID()).toBe(2145);
+    http.expectNone((r) => r.url.includes('cti/doAgentLogin'));
+    http.expectNone((r) => r.url.includes('cti/getAgentIPAddress'));
+  });
+
+  it('releases the recorded agent via doAgentLogout on endCtiSession', () => {
+    service.startCtiSession('104hao', 'encrypted-pw', 2145).subscribe();
+    http.expectOne((req) => req.url.includes('cti/getLoginKey')).flush({ data: { login_key: 'the-key' } });
+
+    service.endCtiSession();
+
+    const logout = http.expectOne((req) => req.url.includes('cti/doAgentLogout'));
+    expect(logout.request.body).toEqual({ agent_id: 2145 });
+    logout.flush({ data: {} });
+    expect(service.agentID()).toBeNull();
+    expect(service.loginKey()).toBeNull();
+  });
+
+  it('records no agent id, and so skips doAgentLogout, when the login-key call fails', () => {
+    let result: boolean | undefined;
+    service.startCtiSession('104hao', 'encrypted-pw', 2145).subscribe((r) => (result = r));
+    http.expectOne((req) => req.url.includes('cti/getLoginKey')).flush('fail', { status: 500, statusText: 'Error' });
+
+    expect(result).toBe(false);
+    expect(service.agentID()).toBeNull();
+
+    service.endCtiSession();
+    http.expectNone((req) => req.url.includes('cti/doAgentLogout'));
   });
 
   it('resolves to false, without throwing, when the login-key call fails', () => {

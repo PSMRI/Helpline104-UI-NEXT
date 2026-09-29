@@ -42,7 +42,6 @@ const SPINNER_SKIP_URLS: readonly string[] = [
   'cti/getAgentState',
   'cti/getAgentIPAddress',
   'cti/getLoginKey',
-  'cti/doAgentLogin',
 ];
 
 /**

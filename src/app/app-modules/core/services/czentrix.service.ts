@@ -22,7 +22,7 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, Subject, catchError, map, of, switchMap, takeUntil, tap } from 'rxjs';
+import { Observable, Subject, catchError, map, of, takeUntil, tap } from 'rxjs';
 
 import { SessionStorageService } from './session-storage.service';
 import { ConfigService } from './config.service';
@@ -38,7 +38,6 @@ import { ConfigService } from './config.service';
  */
 const PATHS = {
   getLoginKey: 'cti/getLoginKey',
-  doAgentLogin: 'cti/doAgentLogin',
   doAgentLogout: 'cti/doAgentLogout',
   getAgentIPAddress: 'cti/getAgentIPAddress',
   getAgentState: 'cti/getAgentState',
@@ -60,7 +59,6 @@ const CTI_STORAGE_KEYS = {
   loginKey: 'ctiLoginKey',
   loginUser: 'ctiLoginUser',
   loginPassword: 'ctiLoginPassword',
-  agentIP: 'ctiAgentIP',
   agentID: 'ctiAgentID',
 } as const;
 
@@ -117,7 +115,7 @@ export interface CtiTransferCallRequest {
  * as `extractData` did. The auth interceptor attaches the Authorization token.
  *
  * Besides the raw endpoint wrappers, this service owns the CTI *session*: the
- * login key, agent IP and agent id captured by {@link startCtiSession} are
+ * login key and agent id captured by {@link startCtiSession} are
  * kept in signals and persisted to session storage so the softphone state
  * survives a reload, and {@link endCtiSession} releases the agent on logout.
  */
@@ -132,22 +130,19 @@ export class CzentrixService {
   }
 
   private readonly _loginKey = signal<string | null>(this.storage.getItem(CTI_STORAGE_KEYS.loginKey));
-  private readonly _agentIP = signal<string | null>(this.storage.getItem(CTI_STORAGE_KEYS.agentIP));
   private readonly _agentID = signal<number | null>(toNumberOrNull(this.storage.getItem(CTI_STORAGE_KEYS.agentID)));
   private loginUser: string | null = this.storage.getItem(CTI_STORAGE_KEYS.loginUser);
   private loginPassword: string | null = this.storage.getItem(CTI_STORAGE_KEYS.loginPassword);
 
   /** CZentrix bar login key from `cti/getLoginKey` (legacy `loginKey`). */
   readonly loginKey = this._loginKey.asReadonly();
-  /** The agent's CTI IP address from `cti/getAgentIPAddress`. */
-  readonly agentIP = this._agentIP.asReadonly();
   /** Agent id the CTI handshake was completed for; null when logged out. */
   readonly agentID = this._agentID.asReadonly();
 
   /**
    * Emits when {@link endCtiSession} runs, cutting off any {@link startCtiSession}
-   * handshake still in flight so a late `getLoginKey`/`getAgentIPAddress`/
-   * `doAgentLogin` response can't resurrect session state after logout.
+   * handshake still in flight so a late `getLoginKey` response can't
+   * resurrect session state after logout.
    */
   private readonly sessionEnded$ = new Subject<void>();
 
@@ -162,20 +157,6 @@ export class CzentrixService {
       .post<ApiResponse<CtiLoginKey>>(this.baseCommon + PATHS.getLoginKey, {
         username,
         password,
-      })
-      .pipe(map((res) => res.data ?? {}));
-  }
-
-  /**
-   * Register the agent on the CZentrix dialer. The legacy body carries only
-   * `agent_id` — the IP captured via {@link getAgentIPAddress} is accepted for
-   * call-site parity but resolved server-side, so it is not sent.
-   */
-  doAgentLogin(agentID: number, agentIP?: string | null): Observable<CtiPayload> {
-    void agentIP;
-    return this.http
-      .post<ApiResponse<CtiPayload>>(this.baseCommon + PATHS.doAgentLogin, {
-        agent_id: agentID,
       })
       .pipe(map((res) => res.data ?? {}));
   }
@@ -199,36 +180,26 @@ export class CzentrixService {
   }
 
   /**
-   * Complete the CTI login handshake after a successful portal login:
-   * `getLoginKey` → `getAgentIPAddress` → `doAgentLogin`, storing each result.
+   * Complete the CTI login handshake after a successful portal login: fetch
+   * the CZentrix login key (legacy `getCTILoginToken`) and record the agent id
+   * that {@link endCtiSession} releases on logout.
    *
    * A user with no dialer id (`agentID` null — e.g. a supervisor) still needs
    * the login key: it is what the supervisor Agent Status screen embeds
-   * CZentrix's own admin console with. That user has no personal agent line
-   * to register, so the handshake stops after the login key with the dialer
-   * steps skipped, rather than calling {@link getAgentIPAddress}/
-   * {@link doAgentLogin} with a null id.
+   * CZentrix's own admin console with.
    *
-   * Emits `true` when the handshake completed (dialer registration included,
-   * for an id-bearing agent), `false` on any failure — it never errors,
-   * because the legacy app also let the portal login proceed when CTI was
-   * unreachable (the softphone simply stays dark).
+   * Emits `true` when the login key call succeeded, `false` on any failure —
+   * it never errors, because the legacy app also let the portal login proceed
+   * when CTI was unreachable (the softphone simply stays dark).
    */
   startCtiSession(username: string, encryptedPassword: string, agentID: number | null): Observable<boolean> {
     this.setLoginCredentials(username, encryptedPassword);
     return this.getLoginKey(username, encryptedPassword).pipe(
-      tap((key) => this.setLoginKey(key.login_key ?? null)),
-      switchMap(() => {
-        if (agentID === null) {
-          return of(true);
-        }
-        return this.getAgentIPAddress(agentID).pipe(
-          tap((ip) => this.setAgentIP(ip)),
-          switchMap((ip) => this.doAgentLogin(agentID, ip)),
-          tap(() => this.setAgentID(agentID)),
-          map(() => true),
-        );
+      tap((key) => {
+        this.setLoginKey(key.login_key ?? null);
+        this.setAgentID(agentID);
       }),
+      map(() => true),
       catchError(() => of(false)),
       takeUntil(this.sessionEnded$),
     );
@@ -390,11 +361,6 @@ export class CzentrixService {
     this.persist(CTI_STORAGE_KEYS.loginKey, key);
   }
 
-  private setAgentIP(ip: string | null): void {
-    this._agentIP.set(ip);
-    this.persist(CTI_STORAGE_KEYS.agentIP, ip);
-  }
-
   private setAgentID(agentID: number | null): void {
     this._agentID.set(agentID);
     this.persist(CTI_STORAGE_KEYS.agentID, agentID === null ? null : String(agentID));
@@ -410,7 +376,6 @@ export class CzentrixService {
   private clearCtiSession(): void {
     this.setLoginKey(null);
     this.setLoginCredentials(null, null);
-    this.setAgentIP(null);
     this.setAgentID(null);
   }
 
