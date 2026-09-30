@@ -371,3 +371,186 @@ describe('CaseSheetComponent — save failure reporting', () => {
     expect(availed).toBeFalse();
   });
 });
+
+describe('CaseSheetComponent — after a successful save', () => {
+  let authStore: AuthStore;
+  let callStore: CallStore;
+  let http: HttpTestingController;
+
+  const HISTORY = (req: { url: string }) => req.url.includes('beneficiary/get104BenMedHistory');
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [CaseSheetComponent],
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    authStore = TestBed.inject(AuthStore);
+    callStore = TestBed.inject(CallStore);
+    http = TestBed.inject(HttpTestingController);
+    callStore.setBeneficiaryId(1, null);
+    callStore.setDemographics({
+      firstName: 'Pratiksha',
+      lastName: 'Tripathi',
+      age: 33,
+      genderId: 2,
+      genderName: 'Female',
+      displayId: '993797704952',
+      stateName: null,
+      districtName: null,
+      subDistrictName: null,
+      villageName: null,
+      maritalStatus: null,
+      category: null,
+      communityName: null,
+      educationName: null,
+    });
+    setRole(authStore, 'HAO');
+  });
+
+  afterEach(() => {
+    http.verify();
+    sessionStorage.clear();
+  });
+
+  function renderReadyToSave() {
+    const fixture = TestBed.createComponent(CaseSheetComponent);
+    fixture.componentRef.setInput('beneficiaryId', 1);
+    fixture.detectChanges();
+    http.match(() => true).forEach((req) => req.flush({ data: null }));
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    Object.values(component.form.controls).forEach((control) => {
+      control.clearValidators();
+      control.updateValueAndValidity();
+    });
+    component.form.controls.chiefComplaints.setValue('Back Pain');
+    component.form.controls.recommendedAction.setValue('Rest and fluids');
+    component.form.controls.actionByRole.setValue('XYZ Description');
+    return fixture;
+  }
+
+  function saveSucceeds(fixture: ReturnType<typeof renderReadyToSave>) {
+    const saveSpy = spyOn(TestBed.inject(HaoService), 'saveCaseSheet').and.returnValue(of({}));
+    spyOn(TestBed.inject(ConfirmDialogService), 'alert').and.returnValue(of(undefined));
+    fixture.componentInstance.save();
+    fixture.detectChanges();
+    return saveSpy;
+  }
+
+  function patientRadios(fixture: ReturnType<typeof renderReadyToSave>): HTMLInputElement[] {
+    return Array.from(fixture.nativeElement.querySelectorAll('input[formcontrolname="isPatientOther"]'));
+  }
+
+  it('resets the case sheet fields and keeps the Self patient', () => {
+    const fixture = renderReadyToSave();
+    const component = fixture.componentInstance;
+
+    saveSucceeds(fixture);
+
+    const raw = component.form.getRawValue();
+    expect(raw.chiefComplaints).toBe('');
+    expect(raw.recommendedAction).toBe('');
+    expect(raw.actionByRole).toBe('');
+    expect(raw.isPatientOther).toBeFalse();
+    expect(raw.patientFirstName).toBe('Pratiksha');
+    expect(raw.patientLastName).toBe('Tripathi');
+    expect(raw.patientGenderID).toBe('F');
+    expect(raw.patientAgeValue).toBe(33);
+    expect(component.form.pristine).toBeTrue();
+  });
+
+  it('keeps an Others patient and their details instead of falling back to Self', () => {
+    const fixture = renderReadyToSave();
+    const component = fixture.componentInstance;
+    component.form.controls.isPatientOther.setValue(true);
+    component.form.controls.patientFirstName.setValue('Ramesh');
+    component.form.controls.patientLastName.setValue('Das');
+    component.form.controls.patientGenderID.setValue('M');
+    component.form.controls.patientAgeValue.setValue(61);
+    component.form.controls.patientAgeUnit.setValue('years');
+
+    saveSucceeds(fixture);
+
+    const raw = component.form.getRawValue();
+    expect(raw.isPatientOther).toBeTrue();
+    expect(raw.patientFirstName).toBe('Ramesh');
+    expect(raw.patientLastName).toBe('Das');
+    expect(raw.patientGenderID).toBe('M');
+    expect(raw.patientAgeValue).toBe(61);
+    expect(raw.chiefComplaints).toBe('');
+    expect(patientRadios(fixture).map((r) => r.checked)).toEqual([false, true]);
+  });
+
+  it('locks the Self/Others choice', () => {
+    const fixture = renderReadyToSave();
+    const component = fixture.componentInstance;
+    expect(patientRadios(fixture).every((r) => !r.disabled)).toBeTrue();
+
+    saveSucceeds(fixture);
+
+    expect(component.form.controls.isPatientOther.disabled).toBeTrue();
+    expect(patientRadios(fixture).length).toBe(2);
+    expect(patientRadios(fixture).every((r) => r.disabled)).toBeTrue();
+  });
+
+  it('keeps the locked Others choice when the agent presses Clear afterwards', () => {
+    const fixture = renderReadyToSave();
+    const component = fixture.componentInstance;
+    component.form.controls.isPatientOther.setValue(true);
+    component.form.controls.patientFirstName.setValue('Ramesh');
+    saveSucceeds(fixture);
+
+    component.resetForm();
+
+    expect(component.form.controls.isPatientOther.value).toBeTrue();
+    expect(component.form.controls.isPatientOther.disabled).toBeTrue();
+  });
+
+  it('sends the locked choice on the next save', () => {
+    const fixture = renderReadyToSave();
+    const component = fixture.componentInstance;
+    component.form.controls.isPatientOther.setValue(true);
+    component.form.controls.patientFirstName.setValue('Ramesh');
+    const saveSpy = saveSucceeds(fixture);
+    component.form.controls.chiefComplaints.setValue('Headache');
+    component.form.controls.recommendedAction.setValue('Rest');
+    component.form.controls.actionByRole.setValue('Advised rest');
+    expect(component.form.valid).toBeTrue();
+
+    component.save();
+
+    expect(saveSpy).toHaveBeenCalledTimes(2);
+    expect(saveSpy.calls.mostRecent().args[0].isSelf).toBeFalse();
+  });
+
+  it('reloads the case-sheet history', () => {
+    const fixture = renderReadyToSave();
+    const component = fixture.componentInstance;
+    component.historyOpen.set(true);
+    fixture.detectChanges();
+    http.expectOne(HISTORY).flush({ data: [] });
+    http.match(() => true).forEach((req) => req.flush({ data: [] }));
+
+    saveSucceeds(fixture);
+
+    const reload = http.expectOne(HISTORY);
+    expect(reload.request.body).toEqual({ beneficiaryRegID: 1 });
+    reload.flush({ data: [{ benHistoryID: 9, createdDate: '2026-09-30T10:00:00.000Z' }] });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-case-sheet-history tbody tr')).not.toBeNull();
+  });
+
+  it('leaves the form as entered and unlocked when the save fails', () => {
+    const fixture = renderReadyToSave();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(HaoService), 'saveCaseSheet').and.returnValue(
+      throwError(() => ({ status: 5000, errorMessage: 'Beneficiary not found' })),
+    );
+    spyOn(TestBed.inject(ConfirmDialogService), 'alert').and.returnValue(of(undefined));
+
+    component.save();
+
+    expect(component.form.controls.chiefComplaints.value).toBe('Back Pain');
+    expect(component.form.controls.isPatientOther.enabled).toBeTrue();
+  });
+});

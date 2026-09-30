@@ -996,7 +996,7 @@ const MIN_VACCINE_AGE = 12;
           <div class="mt-3">
             @switch (activeTab()) {
               @case ('own') {
-                <app-case-sheet-history [benRegID]="beneficiaryId()" />
+                <app-case-sheet-history [benRegID]="beneficiaryId()" [reloadKey]="historyReloadKey()" />
               }
               @case ('mcts') {
                 <app-casesheet-history-mcts [benRegID]="beneficiaryId()" />
@@ -1104,6 +1104,7 @@ export class CaseSheetComponent {
 
   readonly historyOpen = signal(false);
   readonly activeTab = signal<HistoryTab>('own');
+  readonly historyReloadKey = signal(0);
   readonly selectedVisit = signal<MmuVisitRow | null>(null);
 
   /**
@@ -1742,8 +1743,8 @@ export class CaseSheetComponent {
       .map(({ record }) => record);
   }
 
-  resetForm(): void {
-    this.clear();
+  resetForm(keepPatient = false): void {
+    this.clear(keepPatient);
     this.diseaseDetail.set(null);
     this.diseaseError.set('');
   }
@@ -1857,18 +1858,20 @@ export class CaseSheetComponent {
     this.selectedVisit.set(visit);
   }
 
-  clear(): void {
+  clear(keepPatient = false): void {
+    const current = this.form.getRawValue();
+    const keepChoice = keepPatient || this.form.controls.isPatientOther.disabled;
     this.complaintConceptId.set(null);
     this.diagnosisConceptIds.set('');
     this.selectedSymptoms.set('');
     this.form.reset({
-      isPatientOther: false,
-      patientFirstName: '',
-      patientLastName: '',
-      patientGenderID: null,
-      patientAgeValue: null,
-      patientAgeUnit: 'years',
-      patientDOB: null,
+      isPatientOther: keepChoice ? current.isPatientOther : false,
+      patientFirstName: keepPatient ? current.patientFirstName : '',
+      patientLastName: keepPatient ? current.patientLastName : '',
+      patientGenderID: keepPatient ? current.patientGenderID : null,
+      patientAgeValue: keepPatient ? current.patientAgeValue : null,
+      patientAgeUnit: keepPatient ? current.patientAgeUnit : 'years',
+      patientDOB: keepPatient ? current.patientDOB : null,
       chiefComplaintMode: 'complaint',
       chiefComplaints: '',
       provisionalDiagnosis: null,
@@ -2051,6 +2054,9 @@ export class CaseSheetComponent {
       next: () => {
         this.saving.set(false);
         this.serviceAvailed.emit();
+        this.resetForm(true);
+        this.form.controls.isPatientOther.disable({ emitEvent: false });
+        this.historyReloadKey.update((key) => key + 1);
         this.confirmDialog
           .alert({
             title: this.i18n.instant('dashboard.dialog.success'),
