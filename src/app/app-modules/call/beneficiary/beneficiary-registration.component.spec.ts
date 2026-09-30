@@ -202,6 +202,74 @@ describe('BeneficiaryRegistrationComponent', () => {
     expect(component.displayedHistoryResults()).toEqual([{ beneficiaryRegID: 7 }]);
   });
 
+  describe('called-earlier history pager', () => {
+    function historyRows(count: number): BeneficiaryRecord[] {
+      return Array.from({ length: count }, (_, i) => ({ beneficiaryRegID: i + 1 }) as BeneficiaryRecord);
+    }
+
+    function renderHistory(count: number) {
+      const fixture = renderWithCli();
+      http.expectOne(SEARCH_BY_PHONE).flush({ data: historyRows(count) });
+      fixture.componentInstance.onCalledEarlier('yes');
+      fixture.detectChanges();
+      return fixture;
+    }
+
+    function pageButtons(fixture: ComponentFixture<BeneficiaryRegistrationComponent>): string[] {
+      const buttons = fixture.nativeElement.querySelectorAll(
+        'li > button[z-pagination-button]',
+      ) as NodeListOf<HTMLElement>;
+      return Array.from(buttons).map((b) => b.textContent?.replace(/To (last )?page(, page)?/, '').trim() ?? '');
+    }
+
+    it('shows four rows per page, as legacy does', () => {
+      const component = renderHistory(10).componentInstance;
+
+      expect(component.historyTotalPages()).toBe(3);
+      expect(component.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([1, 2, 3, 4]);
+
+      component.historyPageIndex.set(3);
+
+      expect(component.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([9, 10]);
+    });
+
+    it('draws a bounded window of page buttons for a long history instead of one per page', () => {
+      const fixture = renderHistory(470);
+
+      expect(fixture.componentInstance.historyTotalPages()).toBe(118);
+      expect(pageButtons(fixture)).toEqual(['1', '2', '3', '4', '118']);
+      expect(fixture.nativeElement.querySelectorAll('z-pagination-ellipsis').length).toBe(1);
+    });
+
+    it('moves the window with the current page', () => {
+      const fixture = renderHistory(470);
+      const component = fixture.componentInstance;
+
+      component.historyPageIndex.set(60);
+      fixture.detectChanges();
+
+      expect(pageButtons(fixture)).toEqual(['1', '59', '60', '61', '118']);
+      expect(component.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([237, 238, 239, 240]);
+    });
+
+    it('pages forward from the next control', () => {
+      const fixture = renderHistory(10);
+      const next = fixture.nativeElement.querySelector('z-pagination-next button') as HTMLButtonElement;
+
+      next.click();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.historyPageIndex()).toBe(2);
+      expect(fixture.componentInstance.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([5, 6, 7, 8]);
+    });
+
+    it('hides the pager when the history fits on one page', () => {
+      const fixture = renderHistory(4);
+
+      expect(fixture.nativeElement.querySelector('z-pagination')).toBeNull();
+    });
+  });
+
   describe('healthcare worker type lookup', () => {
     function openHcwField() {
       const fixture = render();
