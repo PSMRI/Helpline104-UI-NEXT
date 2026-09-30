@@ -50,6 +50,7 @@ import { ZardPaginationImports } from '@common-ui/ui/pagination';
 import { ZardTableImports } from '@common-ui/ui/table';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+import { pagerWindow } from '@/shared/components/data-table';
 
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -91,8 +92,11 @@ import {
 /** Which identification view is showing (the registrations list by default). */
 type RegistrationView = 'list' | 'search' | 'register';
 
-/** Rows per page for the registration-history and search results tables. */
+/** Rows per page for the search results table. */
 const RESULTS_PAGE_SIZE = 10;
+
+/** Rows per page for the "Have you called earlier?" history table. */
+const HISTORY_ROWS_PER_PAGE = 4;
 
 /** Indian mobile number: exactly 10 digits. */
 const PHONE_PATTERN = /^[0-9]{10}$/;
@@ -444,10 +448,44 @@ function buildQuickSearchCriteria(term: string): BeneficiarySearchRequest | null
             @if (historyTotalPages() > 1) {
               <z-pagination
                 class="mt-4"
-                [zTotal]="historyTotalPages()"
-                [(zPageIndex)]="historyPageIndex"
+                [zContent]="historyPager"
                 [zAriaLabel]="'registration.history.heading' | translate: lang()"
               />
+              <ng-template #historyPager>
+                <ul z-pagination-content>
+                  <li z-pagination-item>
+                    <z-pagination-previous
+                      [zDisabled]="historyPageIndex() === 1"
+                      (click)="historyPageIndex.set(historyPageIndex() - 1)"
+                    />
+                  </li>
+                  @for (item of historyPagerItems(); track $index) {
+                    <li z-pagination-item>
+                      @if (item === 'ellipsis') {
+                        <z-pagination-ellipsis />
+                      } @else {
+                        <button
+                          z-pagination-button
+                          type="button"
+                          class="focus-visible:rounded-md"
+                          [attr.aria-current]="item === historyPageIndex() ? 'page' : null"
+                          [zActive]="item === historyPageIndex()"
+                          (click)="historyPageIndex.set(item)"
+                        >
+                          <span class="sr-only">{{ item === historyTotalPages() ? 'To last page, page' : 'To page' }}</span>
+                          {{ item }}
+                        </button>
+                      }
+                    </li>
+                  }
+                  <li z-pagination-item>
+                    <z-pagination-next
+                      [zDisabled]="historyPageIndex() === historyTotalPages()"
+                      (click)="historyPageIndex.set(historyPageIndex() + 1)"
+                    />
+                  </li>
+                </ul>
+              </ng-template>
             }
           }
         </div>
@@ -1286,9 +1324,13 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   /** The table shown under "Yes": the quick search's results, else the full CLI history. */
   readonly displayedHistoryResults = computed(() => this.quickSearchResults() ?? this.historyResults());
   readonly historyTotalPages = computed(() =>
-    Math.max(1, Math.ceil(this.displayedHistoryResults().length / RESULTS_PAGE_SIZE)),
+    Math.max(1, Math.ceil(this.displayedHistoryResults().length / HISTORY_ROWS_PER_PAGE)),
   );
-  readonly pagedHistoryResults = computed(() => paginate(this.displayedHistoryResults(), this.historyPageIndex()));
+  readonly pagedHistoryResults = computed(() =>
+    paginate(this.displayedHistoryResults(), this.historyPageIndex(), HISTORY_ROWS_PER_PAGE),
+  );
+  /** Bounded pager slots for the history table (see {@link pagerWindow}). */
+  readonly historyPagerItems = computed(() => pagerWindow(this.historyPageIndex(), this.historyTotalPages()));
 
   readonly searchResults = signal<BeneficiaryRecord[]>([]);
   readonly searchLoading = signal(false);
@@ -2916,8 +2958,8 @@ function readDistrictID(value: unknown): number | null {
   return typeof id === 'number' && Number.isFinite(id) ? id : null;
 }
 
-/** Slice `rows` to the given 1-indexed page of {@link RESULTS_PAGE_SIZE} rows. */
-function paginate<T>(rows: readonly T[], pageIndex: number): T[] {
-  const start = (pageIndex - 1) * RESULTS_PAGE_SIZE;
-  return rows.slice(start, start + RESULTS_PAGE_SIZE);
+/** Slice `rows` to the given 1-indexed page of `pageSize` rows. */
+function paginate<T>(rows: readonly T[], pageIndex: number, pageSize = RESULTS_PAGE_SIZE): T[] {
+  const start = (pageIndex - 1) * pageSize;
+  return rows.slice(start, start + pageSize);
 }
