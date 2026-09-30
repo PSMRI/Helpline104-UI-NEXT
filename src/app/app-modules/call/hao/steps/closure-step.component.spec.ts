@@ -179,6 +179,121 @@ describe('ClosureStepComponent', () => {
     expect(submitContinue?.disabled).toBeFalse();
   });
 
+  describe('changing Call Type after picking a transfer service', () => {
+    function subType(callTypeID: number, callTypeDesc: string, callGroupType: string) {
+      return {
+        callTypeID,
+        callTypeDesc,
+        callGroupType,
+        isInbound: true,
+        isOutbound: false,
+        fitToBlock: false,
+        fitForFollowUp: false,
+      };
+    }
+
+    function renderWithTransferPicked(initialGroup: string | null) {
+      authStore.setSession({ token: 't', user: { userID: 1, agentID: 7, userName: 'agent', status: 'Active' } });
+      const fixture = render('HAO', {
+        campaigns: [{ campaign_name: 'MO_CAMPAIGN' }],
+        services: [{ subServiceName: 'Medical Advisory Service' }],
+      });
+      const component = fixture.componentInstance;
+      component.callTypes.set([
+        { callGroupType: 'Valid', callTypes: [subType(1, 'Health Advice Call', 'Valid')] },
+        { callGroupType: 'Transfer', callTypes: [subType(14, 'Medical Officer', 'Transfer')] },
+        { callGroupType: 'Incomplete', callTypes: [subType(13, 'Noise Disturbance Call', 'Incomplete')] },
+        { callGroupType: 'Wrapup Exceeds', callTypes: [subType(18, 'For Call Disconnect', 'Wrapup Exceeds')] },
+      ]);
+      if (initialGroup !== null) {
+        component.form.controls.callGroupType.setValue(initialGroup);
+      }
+      component.form.controls.transferService.setValue('Medical Advisory Service');
+      fixture.detectChanges();
+      http.match((req) => req.url.includes('getCampaignSkills')).forEach((req) => req.flush({ data: [] }));
+      fixture.detectChanges();
+      expect(component.selectedCampaign()).toBe('MO_CAMPAIGN');
+      return fixture;
+    }
+
+    function submitButtons(fixture: { nativeElement: HTMLElement }) {
+      const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
+      return {
+        close: buttons.find((b) => b.textContent?.includes('Submit & Close')),
+        continue: buttons.find((b) => b.textContent?.includes('Submit & Continue')),
+      };
+    }
+
+    for (const [group, subTypeID] of [
+      ['Incomplete', 13],
+      ['Wrapup Exceeds', 18],
+    ] as const) {
+      it(`clears the hidden transfer selection when Transfer changes to ${group}, re-enabling Submit & Close`, () => {
+        const fixture = renderWithTransferPicked('Transfer');
+        const component = fixture.componentInstance;
+
+        component.form.controls.callGroupType.setValue(group);
+        component.form.controls.callSubTypeID.setValue(subTypeID);
+        fixture.detectChanges();
+
+        expect(component.form.controls.transferService.value).toBeNull();
+        expect(component.selectedCampaign()).toBeNull();
+        expect(component.doTransfer()).toBeFalse();
+        expect(fixture.nativeElement.querySelector('select[formcontrolname="transferService"]')).toBeNull();
+        const buttons = submitButtons(fixture);
+        expect(buttons.close?.disabled).toBeFalse();
+        expect(buttons.continue?.disabled).toBeTrue();
+      });
+    }
+
+    it('clears the selection when Transfer changes to Valid', () => {
+      callStore.setBeneficiaryId(123, null);
+      const fixture = renderWithTransferPicked('Transfer');
+      const component = fixture.componentInstance;
+
+      component.form.controls.callGroupType.setValue('Valid');
+      fixture.detectChanges();
+
+      expect(component.form.controls.transferService.value).toBeNull();
+      expect(component.doTransfer()).toBeFalse();
+    });
+
+    it('clears the selection when a change away from Valid hides the Transfer Call select', () => {
+      callStore.setBeneficiaryId(123, null);
+      const fixture = renderWithTransferPicked('Valid');
+      const component = fixture.componentInstance;
+
+      component.form.controls.callGroupType.setValue('Incomplete');
+      fixture.detectChanges();
+
+      expect(component.form.controls.transferService.value).toBeNull();
+      expect(component.doTransfer()).toBeFalse();
+    });
+
+    it('keeps the selection when Valid changes to Transfer', () => {
+      callStore.setBeneficiaryId(123, null);
+      const fixture = renderWithTransferPicked('Valid');
+      const component = fixture.componentInstance;
+
+      component.form.controls.callGroupType.setValue('Transfer');
+      fixture.detectChanges();
+
+      expect(component.form.controls.transferService.value).toBe('Medical Advisory Service');
+      expect(component.selectedCampaign()).toBe('MO_CAMPAIGN');
+    });
+
+    it('keeps a selection made before any Call Type when Transfer is then chosen', () => {
+      const fixture = renderWithTransferPicked(null);
+      const component = fixture.componentInstance;
+
+      component.form.controls.callGroupType.setValue('Transfer');
+      fixture.detectChanges();
+
+      expect(component.form.controls.transferService.value).toBe('Medical Advisory Service');
+      expect(component.selectedCampaign()).toBe('MO_CAMPAIGN');
+    });
+  });
+
   it('filters the transfer-service list to Health Advisory only for RO with no beneficiary selected', () => {
     const fixture = render('RO', {
       services: [{ subServiceName: 'Health Advisory Service' }, { subServiceName: 'Counselling Service' }],

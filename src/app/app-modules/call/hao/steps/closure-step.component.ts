@@ -778,7 +778,12 @@ export class ClosureStepComponent {
     const c = this.form.controls;
 
     c.callGroupType.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
+      const leftTransfer =
+        this.selectedCallGroup()?.toLowerCase() === 'transfer' && value?.toLowerCase() !== 'transfer';
       this.selectedCallGroup.set(value);
+      if ((leftTransfer || !this.canTransfer()) && c.transferService.value !== null) {
+        c.transferService.setValue(null);
+      }
       // A new call-type group invalidates any previously chosen sub-type, and
       // the sub-type is mandatory only when the new group actually has any.
       c.callSubTypeID.reset(null);
