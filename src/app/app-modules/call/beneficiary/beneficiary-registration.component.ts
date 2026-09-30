@@ -95,7 +95,7 @@ type RegistrationView = 'list' | 'search' | 'register';
 /** Rows per page for the search results table. */
 const RESULTS_PAGE_SIZE = 10;
 
-/** Rows per page for the "Have you called earlier?" history table, as legacy's md2 table. */
+/** Rows per page for the "Have you called earlier?" history table. */
 const HISTORY_ROWS_PER_PAGE = 4;
 
 /** Indian mobile number: exactly 10 digits. */
