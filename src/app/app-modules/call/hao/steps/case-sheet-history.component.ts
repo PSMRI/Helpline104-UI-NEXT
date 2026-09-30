@@ -148,6 +148,7 @@ export class CaseSheetHistoryComponent {
 
   /** Beneficiary whose 104 case-sheet history to show; reloads when it changes. */
   readonly benRegID = input<number | null>(null);
+  readonly reloadKey = input(0);
 
   readonly lang = this.i18n.language;
 
@@ -155,12 +156,16 @@ export class CaseSheetHistoryComponent {
   readonly loading = signal(false);
   readonly errorMessage = signal('');
 
+  private loadSeq = 0;
+
   constructor() {
     effect(() => {
       const id = this.benRegID();
+      this.reloadKey();
       if (id != null) {
         this.load(id);
       } else {
+        this.loadSeq++;
         this.rows.set([]);
         this.errorMessage.set('');
       }
@@ -168,6 +173,7 @@ export class CaseSheetHistoryComponent {
   }
 
   private load(beneficiaryRegID: number): void {
+    const seq = ++this.loadSeq;
     this.loading.set(true);
     this.errorMessage.set('');
     this.haoService
@@ -176,14 +182,14 @@ export class CaseSheetHistoryComponent {
       .subscribe({
         next: (rows) => {
           // Drop a stale response if the beneficiary changed mid-flight.
-          if (this.benRegID() !== beneficiaryRegID) {
+          if (seq !== this.loadSeq) {
             return;
           }
           this.loading.set(false);
           this.rows.set(rows);
         },
         error: () => {
-          if (this.benRegID() !== beneficiaryRegID) {
+          if (seq !== this.loadSeq) {
             return;
           }
           this.loading.set(false);
