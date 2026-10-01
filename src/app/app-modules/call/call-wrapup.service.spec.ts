@@ -47,7 +47,8 @@ describe('CallWrapupService', () => {
   let http: HttpTestingController;
 
   const ROLE_ID = 7;
-  const SERVICE_ID = 42;
+  const SERVICE_ID = 3;
+  const PROVIDER_SERVICE_MAP_ID = 1;
   const AGENT_ID = 2145;
 
   beforeEach(() => {
@@ -76,7 +77,7 @@ describe('CallWrapupService', () => {
       serviceID: SERVICE_ID,
       serviceName: '104',
       serviceProviderID: 1,
-      providerServiceMapID: SERVICE_ID,
+      providerServiceMapID: PROVIDER_SERVICE_MAP_ID,
       workingLocationID: 1,
       apimanClientKey: null,
       featureCode: 'HAO',
@@ -195,7 +196,11 @@ describe('CallWrapupService', () => {
 
     jasmine.clock().tick(5000);
 
-    http.expectOne((req) => req.url.includes('getCallTypesV1')).flush({
+    const callTypesReq = http.expectOne((req) => req.url.includes('getCallTypesV1'));
+    expect(callTypesReq.request.body).toEqual(
+      jasmine.objectContaining({ providerServiceMapID: PROVIDER_SERVICE_MAP_ID }),
+    );
+    callTypesReq.flush({
       data: [
         {
           callGroupType: 'Wrapup Exceeds',
@@ -216,7 +221,7 @@ describe('CallWrapupService', () => {
         endCall: true,
         IsOutbound: false,
         agentID: AGENT_ID,
-        providerServiceMapID: SERVICE_ID,
+        providerServiceMapID: PROVIDER_SERVICE_MAP_ID,
         createdBy: '104hao',
       }),
     );

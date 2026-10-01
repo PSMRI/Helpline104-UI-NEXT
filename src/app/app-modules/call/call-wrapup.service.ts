@@ -193,7 +193,7 @@ export class CallWrapupService {
       isSuicidal: false,
       // Not the "Valid" group, so IVR feedback is not applicable.
       isFeedback: false,
-      providerServiceMapID: this.authStore.currentRole()?.serviceID ?? null,
+      providerServiceMapID: this.authStore.currentRole()?.providerServiceMapID ?? null,
       agentID: this.authStore.user()?.agentID ?? null,
       endCall: true,
       IsOutbound: false,
