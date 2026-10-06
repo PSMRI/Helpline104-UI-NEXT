@@ -21,7 +21,7 @@
  */
 
 import { CdkStep } from '@angular/cdk/stepper';
-import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
@@ -243,7 +243,7 @@ const CO_SERVICE_TABS: ReadonlyArray<WorkspaceTab & { readonly requiresScreen: s
     </section>
   `,
 })
-export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
+export class RoleWorkspaceComponent implements HasUnsavedChanges {
   private readonly callStore = inject(CallStore);
 
   /** Legacy's blue primary action (see legacy-theme.ts). */
@@ -313,6 +313,7 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
 
   /** True once the caller agreed to the consent terms (legacy `consentGranted`). */
   private readonly consentGranted = signal(false);
+  private consentAsked = false;
 
   readonly beneficiaryId = this.callStore.beneficiaryId;
   readonly callId = this.callStore.callId;
@@ -324,12 +325,13 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
         this.stepper().next();
       }
     });
-  }
-
-  ngOnInit(): void {
-    if (this.requireConsent()) {
-      this.openConsent();
-    }
+    effect(() => {
+      if (!this.requireConsent() || this.consentAsked || this.callStore.beneficiaryPending() || this.beneficiaryId() === null) {
+        return;
+      }
+      this.consentAsked = true;
+      untracked(() => this.openConsent());
+    });
   }
 
   /**
