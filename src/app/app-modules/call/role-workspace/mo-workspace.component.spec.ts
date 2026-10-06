@@ -27,7 +27,12 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 
+import { NEVER } from 'rxjs';
+
+import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
+
 import { AuthStore } from '../../core/auth/auth.store';
+import { CallStore } from '../call.store';
 import { CaseSheetComponent } from '../hao/steps/case-sheet.component';
 import { MoWorkspaceComponent } from './mo-workspace.component';
 
@@ -106,6 +111,17 @@ describe('MoWorkspaceComponent', () => {
     fixture.componentInstance.goToCo();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/innerpage/co']);
+  });
+
+  it('never asks for beneficiary consent, like legacy 104-mo', () => {
+    const confirm = spyOn(TestBed.inject(ConfirmDialogService), 'confirm').and.returnValue(NEVER);
+    const callStore = TestBed.inject(CallStore);
+    callStore.startCall({ cli: '9876543210', sessionId: 'session-1' });
+    callStore.setBeneficiaryId(5006622, 41);
+
+    render();
+
+    expect(confirm).not.toHaveBeenCalled();
   });
 
   it('reports no unsaved changes on an untouched case sheet, so a redirect to registration is not blocked', () => {
