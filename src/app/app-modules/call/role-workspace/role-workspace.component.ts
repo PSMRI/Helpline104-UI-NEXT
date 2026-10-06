@@ -274,6 +274,7 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
   readonly switchRole = output<void>();
 
   private readonly stepper = viewChild.required(HaoStepperComponent);
+  private readonly caseSheet = viewChild(CaseSheetComponent);
 
   /** Active wizard step (0 = case sheet, 1 = closure). */
   readonly stepIndex = signal(0);
@@ -359,7 +360,13 @@ export class RoleWorkspaceComponent implements OnInit, HasUnsavedChanges {
   }
 
   hasUnsavedChanges(): boolean {
-    return this.stepIndex() === 0 && !this.serviceAvailed();
+    if (this.stepIndex() !== 0 || this.serviceAvailed()) {
+      return false;
+    }
+    if (this.activeTab() === 'caseSheet') {
+      return this.caseSheet()?.form.dirty ?? false;
+    }
+    return true;
   }
 
   proceedToClosure(): void {

@@ -198,4 +198,75 @@ describe('HihlCaseSheetComponent', () => {
     fixture.detectChanges();
     expect(component.saving()).toBeFalse();
   });
+
+  const PICKER_CASES = [
+    {
+      name: 'chief complaint',
+      control: 'chiefComplaint',
+      rows: (c: HihlCaseSheetComponent) => c.complaints,
+      add: (c: HihlCaseSheetComponent) => c.addComplaint(),
+      options: (c: HihlCaseSheetComponent, i: number) => c.chiefComplaintOptions(i),
+      pick: MASTER_DATA.psychiatricChiefComplaints![0],
+      label: 'Insomnia',
+    },
+    {
+      name: 'past psychiatric condition',
+      control: 'pastPsychiatricCondition',
+      rows: (c: HihlCaseSheetComponent) => c.pastPsychiatricConditions,
+      add: (c: HihlCaseSheetComponent) => c.addPastPsychiatricCondition(),
+      options: (c: HihlCaseSheetComponent, i: number) => c.pastPsychiatricConditionOptions(i),
+      pick: MASTER_DATA.m_104pastpsychiatriccondition![0],
+      label: 'None',
+    },
+    {
+      name: 'past medical condition',
+      control: 'pastMedicalCondition',
+      rows: (c: HihlCaseSheetComponent) => c.pastMedicalConditions,
+      add: (c: HihlCaseSheetComponent) => c.addPastMedicalCondition(),
+      options: (c: HihlCaseSheetComponent, i: number) => c.pastMedicalConditionOptions(i),
+      pick: MASTER_DATA.m_104pastmedicalcondition![0],
+      label: 'None',
+    },
+    {
+      name: 'family condition',
+      control: 'familyCondition',
+      rows: (c: HihlCaseSheetComponent) => c.familyDiseaseList,
+      add: (c: HihlCaseSheetComponent) => c.addFamilyDisease(),
+      options: (c: HihlCaseSheetComponent, i: number) => c.familyConditionOptions(i),
+      pick: MASTER_DATA.m_104familycondition![1],
+      label: 'Depression',
+    },
+  ];
+
+  for (const picker of PICKER_CASES) {
+    it(`keeps the picked ${picker.name} visible in its own select`, () => {
+      const fixture = render();
+      const component = fixture.componentInstance;
+
+      picker
+        .rows(component)
+        .at(0)
+        .patchValue({ [picker.control]: picker.pick });
+      fixture.detectChanges();
+
+      const select = (fixture.nativeElement as HTMLElement).querySelector<HTMLSelectElement>(
+        `select[formcontrolname="${picker.control}"]`,
+      )!;
+      expect(select.selectedOptions[0]?.textContent?.trim()).toBe(picker.label);
+      expect(picker.options(component, 0)).toContain(picker.pick);
+    });
+
+    it(`still hides a ${picker.name} picked in another row`, () => {
+      const fixture = render();
+      const component = fixture.componentInstance;
+
+      picker
+        .rows(component)
+        .at(0)
+        .patchValue({ [picker.control]: picker.pick });
+      picker.add(component);
+
+      expect(picker.options(component, 1)).not.toContain(picker.pick);
+    });
+  }
 });

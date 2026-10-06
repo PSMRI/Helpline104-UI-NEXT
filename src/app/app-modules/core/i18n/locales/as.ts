@@ -195,6 +195,7 @@ export const as: Record<TranslationKey, string> = {
   'registration.toast.selected': 'এই কলৰ বাবে হিতাধিকাৰী বাছনি কৰা হ’ল।',
   'registration.toast.registered': 'হিতাধিকাৰী পঞ্জীয়ন আৰু বাছনি কৰা হ’ল।',
   'registration.toast.modified': 'হিতাধিকাৰীৰ বিৱৰণ আপডেট কৰা হ’ল।',
+  'registration.toast.invalidFields': 'সংৰক্ষণ কৰাৰ আগতে এই ক্ষেত্ৰসমূহ শুধৰাওক:',
   'registration.toast.error': 'কিবা ভুল হ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।',
   'registration.success.title': 'সফল',
   'registration.success.message': "হিতাধিকাৰী সফলভাৱে পঞ্জীয়ন কৰা হ'ল। পঞ্জীয়ন আইডি:",

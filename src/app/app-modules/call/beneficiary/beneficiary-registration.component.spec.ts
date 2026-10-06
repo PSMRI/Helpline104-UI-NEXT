@@ -28,7 +28,7 @@ import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { toast } from 'ngx-sonner';
-import { of } from 'rxjs';
+import { NEVER, of } from 'rxjs';
 
 import { ZardDialogService } from '@common-ui/ui/dialog';
 
@@ -1190,5 +1190,175 @@ describe('BeneficiaryRegistrationComponent modify', () => {
     const again = http.expectOne(UPDATE);
     expect(again.request.body.i_bendemographics.incomeStatusID).toBe(2);
     again.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  function renderOnCall() {
+    TestBed.inject(CallStore).startCall({ cli: '9876543210', sessionId: 'session-1' });
+    const fixture = render();
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+    return fixture;
+  }
+
+  function recordWithIdentity(govtIdentityTypeID: number | null, govtIdentityNo: string | null): BeneficiaryRecord {
+    return { ...record(ADDRESS_BEFORE, existingPhoneMaps()), govtIdentityTypeID, govtIdentityNo };
+  }
+
+  it('treats ID type 0 with ID number "0" as no ID and still sends the modify', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, recordWithIdentity(0, '0'));
+
+    expect(component.registerForm.controls.identityType.value).toBeNull();
+    expect(component.registerForm.controls.govtIdentityNo.value).toBe('');
+    expect(component.registerForm.controls.govtIdentityNo.disabled).toBeTrue();
+    expect(component.registerForm.valid).toBeTrue();
+
+    component.page.set(2);
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.beneficiaryIdentities).toEqual([{ govtIdentityNo: '0', govtIdentityTypeID: 0 }]);
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('treats ID number "0" under a real ID type as an empty number', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, recordWithIdentity(1, '0'));
+
+    expect(component.registerForm.controls.identityType.value).toBe(1);
+    expect(component.registerForm.controls.govtIdentityNo.value).toBe('');
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.beneficiaryIdentities).toEqual([{ govtIdentityNo: '', govtIdentityTypeID: 1 }]);
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('sends a real ID from the form unchanged', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, recordWithIdentity(1, '123456789012'));
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.beneficiaryIdentities).toEqual([{ govtIdentityNo: '123456789012', govtIdentityTypeID: 1 }]);
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('doModify() on an invalid ID number names the field and returns to page 1 instead of failing silently', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    const toastSpy = spyOn(toast, 'error');
+    selectForUpdate(component, recordWithIdentity(1, '12'));
+    component.page.set(2);
+
+    component.doModify();
+
+    http.expectNone(UPDATE);
+    expect(component.page()).toBe(1);
+    expect(toastSpy).toHaveBeenCalledOnceWith('Please correct these fields before saving: ID number');
+  });
+
+  it('doModify() on an invalid page-2 field names it and stays on page 2', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    const toastSpy = spyOn(toast, 'error');
+    selectForUpdate(component, record(ADDRESS_BEFORE, existingPhoneMaps()));
+    component.page.set(2);
+    component.registerForm.controls.pincode.setValue('12');
+
+    component.doModify();
+
+    http.expectNone(UPDATE);
+    expect(component.page()).toBe(2);
+    expect(toastSpy).toHaveBeenCalledOnceWith('Please correct these fields before saving: Pincode');
+  });
+});
+
+describe('BeneficiaryRegistrationComponent call linking', () => {
+  let http: HttpTestingController;
+  let dialogService: ZardDialogService;
+
+  const UPDATE_BEN_IN_CALL = (req: { url: string }) => req.url.includes('call/updatebeneficiaryincall');
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    TestBed.configureTestingModule({
+      imports: [BeneficiaryRegistrationComponent],
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
+    });
+    const authStore = TestBed.inject(AuthStore);
+    authStore.setSession({
+      token: 'token',
+      user: { userID: 1, agentID: 1, userName: 'agent104', status: 'Active' },
+    });
+    authStore.setCurrentRole(currentRole());
+    http = TestBed.inject(HttpTestingController);
+    dialogService = TestBed.inject(ZardDialogService);
+  });
+
+  afterEach(() => {
+    http.verify();
+    sessionStorage.clear();
+  });
+
+  function renderOnCall(callId: string | null) {
+    const callStore = TestBed.inject(CallStore);
+    callStore.startCall({ cli: '9876543210', sessionId: 'session-1' });
+    if (callId !== null) {
+      callStore.setCallId(callId);
+    }
+    const fixture = TestBed.createComponent(BeneficiaryRegistrationComponent);
+    fixture.detectChanges();
+    http.expectOne((req) => req.url.includes('beneficiary/getRegistrationDataV1')).flush({ data: null });
+    http.expectOne((req) => req.url.includes('m/role/state')).flush({ data: [] });
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+    return fixture;
+  }
+
+  it('selecting a beneficiary posts the whole row with benCallID, isCalledEarlier and is1097, like legacy', () => {
+    const component = renderOnCall('14311862').componentInstance;
+    component.onCalledEarlier('yes');
+    const row: BeneficiaryRecord = { beneficiaryRegID: 5006622, beneficiaryID: '924926530048', firstName: 'Test' };
+
+    component.selectBeneficiary(row);
+
+    const link = http.expectOne(UPDATE_BEN_IN_CALL);
+    expect(link.request.method).toBe('POST');
+    expect(link.request.body).toEqual({ ...row, benCallID: '14311862', isCalledEarlier: true, is1097: false });
+    link.flush({ statusCode: 200, data: { updatedCount: 1 } });
+    http.expectOne((req) => req.url.includes('beneficiary/searchUserByID')).flush({ data: [] });
+  });
+
+  it('registering a beneficiary posts the create response with benCallID and isCalledEarlier false', () => {
+    const component = renderOnCall('14311862').componentInstance;
+    component.onCalledEarlier('no');
+    spyOn(dialogService, 'create').and.returnValue({ afterClosed: () => NEVER } as unknown as ReturnType<ZardDialogService['create']>);
+    component.registerForm.patchValue({ firstName: 'Asha', genderID: 2, age: 30, ageUnit: 'years' });
+    component.registerForm.controls.isEmergency.setValue(true);
+    component.onEmergencyChange();
+
+    component.doRegister();
+
+    const created = { beneficiaryRegID: 77, beneficiaryID: '111122223333' };
+    http.expectOne((req) => req.url.includes('beneficiary/create')).flush({ statusCode: 200, data: created });
+    const link = http.expectOne(UPDATE_BEN_IN_CALL);
+    expect(link.request.body).toEqual({ ...created, benCallID: '14311862', isCalledEarlier: false, is1097: false });
+    link.flush({ statusCode: 200, data: { updatedCount: 1 } });
+  });
+
+  it('does not post before startCall has returned a benCallID', () => {
+    const component = renderOnCall(null).componentInstance;
+
+    component.selectBeneficiary({ beneficiaryRegID: 5006622 });
+
+    http.expectNone(UPDATE_BEN_IN_CALL);
+    http.expectOne((req) => req.url.includes('beneficiary/searchUserByID')).flush({ data: [] });
   });
 });
