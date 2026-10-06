@@ -85,6 +85,20 @@ export interface BeneficiaryByCallIdRequest {
 }
 
 /**
+ * Body of `call/updatebeneficiaryincall` — legacy `search.service.ts`
+ * `updatebeneficiaryincall`: the selected or newly registered beneficiary
+ * record, spread whole, plus the call it belongs to. The backend reads
+ * `benCallID`, `beneficiaryRegID` and `isCalledEarlier`.
+ */
+export interface UpdateBeneficiaryInCallRequest {
+  beneficiaryRegID: number;
+  benCallID: string;
+  isCalledEarlier: boolean;
+  is1097: boolean;
+  [key: string]: unknown;
+}
+
+/**
  * Response of `call/beneficiaryByCallID`. When the call has a beneficiary the
  * data carries `benCallID`, `beneficiaryRegID` and the full `i_beneficiary`;
  * when it has none the data is `{ response: "null" }` instead.

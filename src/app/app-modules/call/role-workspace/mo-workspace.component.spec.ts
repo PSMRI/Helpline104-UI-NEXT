@@ -24,9 +24,11 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 
 import { AuthStore } from '../../core/auth/auth.store';
+import { CaseSheetComponent } from '../hao/steps/case-sheet.component';
 import { MoWorkspaceComponent } from './mo-workspace.component';
 
 /**
@@ -104,5 +106,21 @@ describe('MoWorkspaceComponent', () => {
     fixture.componentInstance.goToCo();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/innerpage/co']);
+  });
+
+  it('reports no unsaved changes on an untouched case sheet, so a redirect to registration is not blocked', () => {
+    const fixture = render();
+
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalse();
+  });
+
+  it('reports unsaved changes once the agent has typed into the case sheet', () => {
+    const fixture = render();
+    const caseSheet = fixture.debugElement.query(By.directive(CaseSheetComponent)).componentInstance as CaseSheetComponent;
+
+    caseSheet.form.controls.actionByRole.setValue('Advised rest');
+    caseSheet.form.controls.actionByRole.markAsDirty();
+
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBeTrue();
   });
 });

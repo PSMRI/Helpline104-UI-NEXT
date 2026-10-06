@@ -57,6 +57,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import type { TranslationKey } from '../../core/i18n/locales';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { stateIDForRole } from '../../supervisor/reports/reports.util';
+import { CallLifecycleService } from '../call-lifecycle.service';
 import { CallerDemographics, CallStore } from '../call.store';
 import { toCallerDemographics } from './caller-demographics.util';
 import { resolveDispatchPath } from '../role-workspace/role-screens.util';
@@ -1307,6 +1308,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   private readonly i18n = inject(I18nService);
   private readonly beneficiary = inject(BeneficiaryService);
   private readonly callStore = inject(CallStore);
+  private readonly callLifecycle = inject(CallLifecycleService);
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly dialog = inject(ZardDialogService);
@@ -2410,6 +2412,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       .subscribe({
         next: (created) => {
           this.registerLoading.set(false);
+          this.linkBeneficiaryToCall(created);
           this.showRegistrationSuccess(
             created.beneficiaryRegID,
             String(created.beneficiaryID ?? created.beneficiaryRegID),
@@ -2467,6 +2470,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
    * straight into the workspace from the results table.
    */
   selectBeneficiary(row: BeneficiaryRecord): void {
+    this.linkBeneficiaryToCall(row);
     this.loadingBeneficiaryDetail.set(true);
     this.beneficiary.retrieveRegHistory(row.beneficiaryRegID).subscribe({
       next: (records) => {
@@ -2482,6 +2486,17 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
         this.loadingBeneficiaryDetail.set(false);
         toast.error(this.i18n.instant('registration.toast.error'));
       },
+    });
+  }
+
+  /** Legacy `updateBenInCall`: tie the beneficiary to this call so a transferred leg can look it up. */
+  private linkBeneficiaryToCall(beneficiary: { beneficiaryRegID: number }): void {
+    const benCallID = this.callStore.callId();
+    if (benCallID === null) {
+      return;
+    }
+    this.callLifecycle.updateBeneficiaryInCall(beneficiary, benCallID, this.calledEarlier() === 'yes').subscribe({
+      error: (err: unknown) => console.warn('updatebeneficiaryincall failed', err),
     });
   }
 

@@ -33,10 +33,12 @@ import {
   BeneficiaryByCallIdResponse,
   StartCallRequest,
   StartCallResponse,
+  UpdateBeneficiaryInCallRequest,
 } from './call-lifecycle.models';
 
 const START_CALL_PATH = 'call/startCall';
 const BENEFICIARY_BY_CALL_ID_PATH = 'call/beneficiaryByCallID';
+const UPDATE_BENEFICIARY_IN_CALL_PATH = 'call/updatebeneficiaryincall';
 const REQUEST_TIMEOUT_MS = 20_000;
 
 /**
@@ -70,5 +72,21 @@ export class CallLifecycleService {
         timeout(REQUEST_TIMEOUT_MS),
         map((res) => res.data?.i_beneficiary ?? null),
       );
+  }
+
+  /**
+   * Record the beneficiary the agent identified against this call (legacy
+   * `updatebeneficiaryincall`), so a later leg's {@link beneficiaryByCallID}
+   * can find it.
+   */
+  updateBeneficiaryInCall(
+    beneficiary: { beneficiaryRegID: number },
+    benCallID: string,
+    isCalledEarlier: boolean,
+  ): Observable<unknown> {
+    const request: UpdateBeneficiaryInCallRequest = { ...beneficiary, benCallID, isCalledEarlier, is1097: false };
+    return this.http
+      .post<ApiResponse<unknown>>(this.config.getCommonBaseURL() + UPDATE_BENEFICIARY_IN_CALL_PATH, request)
+      .pipe(timeout(REQUEST_TIMEOUT_MS));
   }
 }
