@@ -1191,4 +1191,92 @@ describe('BeneficiaryRegistrationComponent modify', () => {
     expect(again.request.body.i_bendemographics.incomeStatusID).toBe(2);
     again.flush({ statusCode: 200, data: 'Success' });
   });
+
+  function renderOnCall() {
+    TestBed.inject(CallStore).startCall({ cli: '9876543210', sessionId: 'session-1' });
+    const fixture = render();
+    http.expectOne(SEARCH_BY_PHONE).flush({ data: [] });
+    return fixture;
+  }
+
+  function recordWithIdentity(govtIdentityTypeID: number | null, govtIdentityNo: string | null): BeneficiaryRecord {
+    return { ...record(ADDRESS_BEFORE, existingPhoneMaps()), govtIdentityTypeID, govtIdentityNo };
+  }
+
+  it('treats ID type 0 with ID number "0" as no ID and still sends the modify', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, recordWithIdentity(0, '0'));
+
+    expect(component.registerForm.controls.identityType.value).toBeNull();
+    expect(component.registerForm.controls.govtIdentityNo.value).toBe('');
+    expect(component.registerForm.controls.govtIdentityNo.disabled).toBeTrue();
+    expect(component.registerForm.valid).toBeTrue();
+
+    component.page.set(2);
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.beneficiaryIdentities).toEqual([{ govtIdentityNo: '0', govtIdentityTypeID: 0 }]);
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('treats ID number "0" under a real ID type as an empty number', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, recordWithIdentity(1, '0'));
+
+    expect(component.registerForm.controls.identityType.value).toBe(1);
+    expect(component.registerForm.controls.govtIdentityNo.value).toBe('');
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.beneficiaryIdentities).toEqual([{ govtIdentityNo: '', govtIdentityTypeID: 1 }]);
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('sends a real ID from the form unchanged', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    selectForUpdate(component, recordWithIdentity(1, '123456789012'));
+
+    component.doModify();
+
+    const req = http.expectOne(UPDATE);
+    expect(req.request.body.beneficiaryIdentities).toEqual([{ govtIdentityNo: '123456789012', govtIdentityTypeID: 1 }]);
+    req.flush({ statusCode: 200, data: 'Success' });
+  });
+
+  it('doModify() on an invalid ID number names the field and returns to page 1 instead of failing silently', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    const toastSpy = spyOn(toast, 'error');
+    selectForUpdate(component, recordWithIdentity(1, '12'));
+    component.page.set(2);
+
+    component.doModify();
+
+    http.expectNone(UPDATE);
+    expect(component.page()).toBe(1);
+    expect(toastSpy).toHaveBeenCalledOnceWith('Please correct these fields before saving: ID number');
+  });
+
+  it('doModify() on an invalid page-2 field names it and stays on page 2', () => {
+    const fixture = renderOnCall();
+    const component = fixture.componentInstance;
+    const toastSpy = spyOn(toast, 'error');
+    selectForUpdate(component, record(ADDRESS_BEFORE, existingPhoneMaps()));
+    component.page.set(2);
+    component.registerForm.controls.pincode.setValue('12');
+
+    component.doModify();
+
+    http.expectNone(UPDATE);
+    expect(component.page()).toBe(2);
+    expect(toastSpy).toHaveBeenCalledOnceWith('Please correct these fields before saving: Pincode');
+  });
 });

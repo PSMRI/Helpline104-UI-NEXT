@@ -194,6 +194,7 @@ export const hi: Record<TranslationKey, string> = {
   'registration.toast.selected': 'इस कॉल के लिए लाभार्थी चुना गया।',
   'registration.toast.registered': 'लाभार्थी पंजीकृत और चयनित किया गया।',
   'registration.toast.modified': 'लाभार्थी विवरण अपडेट किया गया।',
+  'registration.toast.invalidFields': 'सहेजने से पहले इन फ़ील्ड को ठीक करें:',
   'registration.toast.error': 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।',
   'registration.success.title': 'सफलता',
   'registration.success.message': 'लाभार्थी सफलतापूर्वक पंजीकृत हुआ। पंजीकरण आईडी:',

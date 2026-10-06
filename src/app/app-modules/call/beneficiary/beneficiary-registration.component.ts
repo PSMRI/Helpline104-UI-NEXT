@@ -54,6 +54,7 @@ import { pagerWindow } from '@/shared/components/data-table';
 
 import { AuthStore } from '../../core/auth/auth.store';
 import { I18nService } from '../../core/i18n/i18n.service';
+import type { TranslationKey } from '../../core/i18n/locales';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { stateIDForRole } from '../../supervisor/reports/reports.util';
 import { CallerDemographics, CallStore } from '../call.store';
@@ -70,6 +71,7 @@ import {
 } from './registration-success-dialog.component';
 import {
   BeneficiaryError,
+  BeneficiaryIdentity,
   BeneficiaryPhoneMap,
   BeneficiaryRecord,
   BeneficiarySearchRequest,
@@ -145,6 +147,29 @@ const ID_VALIDATION: Record<number, { maxLength: number; pattern: RegExp }> = {
   6: { maxLength: 15, pattern: ALPHANUMERIC_ID },
 };
 const ID_VALIDATION_DEFAULT = { maxLength: 14, pattern: /^\d{4}\s\d{4}\s\d{4}$/ };
+const ID_PLACEHOLDER = '0';
+
+const PAGE1_VALIDATED_CONTROLS = ['firstName', 'lastName', 'genderID', 'dob', 'age', 'ageUnit', 'govtIdentityNo'] as const;
+
+const REGISTER_FIELD_LABELS = {
+  firstName: 'registration.field.firstName',
+  lastName: 'registration.field.lastName',
+  genderID: 'registration.field.gender',
+  dob: 'registration.field.dob',
+  age: 'registration.field.age',
+  ageUnit: 'registration.field.ageUnit',
+  govtIdentityNo: 'registration.field.idNumber',
+  stateID: 'registration.field.state',
+  districtID: 'registration.field.district',
+  subDistrictID: 'registration.field.subDistrict',
+  villageID: 'registration.field.village',
+  pincode: 'registration.field.pincode',
+  alternateNumber1: 'registration.field.alternateNumber',
+  alternateNumber2: 'registration.field.alternateNumber',
+  alternateNumber3: 'registration.field.alternateNumber',
+  alternateNumber4: 'registration.field.alternateNumber',
+  alternateNumber5: 'registration.field.alternateNumber',
+} as const satisfies Record<string, TranslationKey>;
 
 /** Shared Tailwind classes for native `<select>` controls (no custom CSS). */
 const SELECT_CLASS =
@@ -1377,6 +1402,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   private parentBenRegID: number | null = null;
   private updateBenPhoneMaps: BeneficiaryPhoneMap[] = [];
   private updateIncomeStatusID: number | null = null;
+  private updateIdentityPlaceholder: BeneficiaryIdentity | null = null;
 
   /**
    * Per-lookup request ids. Each cascade handler (and each reset) bumps its
@@ -1731,6 +1757,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
     this.parentBenRegID = null;
     this.updateBenPhoneMaps = [];
     this.updateIncomeStatusID = null;
+    this.updateIdentityPlaceholder = null;
     // The summary bar was populated for review only — an abandoned review
     // (Back to list / fresh Register new) must not leave a beneficiary
     // "resolved" that the agent never actually proceeded with.
@@ -2422,9 +2449,14 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   }
 
   private isPage1Invalid(): boolean {
-    return (['firstName', 'genderID', 'age', 'ageUnit', 'dob'] as const).some(
-      (name) => this.registerForm.controls[name].invalid,
-    );
+    return PAGE1_VALIDATED_CONTROLS.some((name) => this.registerForm.controls[name].invalid);
+  }
+
+  private invalidFieldLabels(): string[] {
+    const labels = (Object.keys(REGISTER_FIELD_LABELS) as (keyof typeof REGISTER_FIELD_LABELS)[])
+      .filter((name) => this.registerForm.controls[name].invalid)
+      .map((name) => this.i18n.instant(REGISTER_FIELD_LABELS[name]));
+    return [...new Set(labels)];
   }
 
   /**
@@ -2470,7 +2502,12 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       this.loadHcwTypes();
     }
 
-    const identityType = detail.govtIdentityTypeID ?? null;
+    const identityType = detail.govtIdentityTypeID || null;
+    const govtIdentityNo = detail.govtIdentityNo === ID_PLACEHOLDER ? '' : (detail.govtIdentityNo ?? '');
+    this.updateIdentityPlaceholder =
+      identityType === null && detail.govtIdentityTypeID != null
+        ? { govtIdentityNo: detail.govtIdentityNo ?? null, govtIdentityTypeID: detail.govtIdentityTypeID }
+        : null;
     const govtIdentityNoControl = this.registerForm.controls.govtIdentityNo;
     if (identityType == null) {
       govtIdentityNoControl.disable();
@@ -2501,7 +2538,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       spouseName: detail.spouseName ?? '',
       educationID: demo?.educationID ?? null,
       identityType,
-      govtIdentityNo: detail.govtIdentityNo ?? '',
+      govtIdentityNo,
       stateID: readDistrictID(demo?.stateID),
       districtID: readDistrictID(demo?.districtID),
       subDistrictID: readDistrictID(demo?.blockID),
@@ -2686,11 +2723,15 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   /** "Modify" — persist the agent's edits (legacy `updateBeneficiary`), then proceed. */
   doModify(): void {
     const beneficiaryRegID = this.updateBeneficiaryRegID();
-    if (beneficiaryRegID === null || this.registerForm.invalid) {
+    if (beneficiaryRegID === null) {
+      return;
+    }
+    if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       if (this.isPage1Invalid()) {
         this.page.set(1);
       }
+      toast.error(`${this.i18n.instant('registration.toast.invalidFields')} ${this.invalidFieldLabels().join(', ')}`);
       return;
     }
     const v = this.registerForm.getRawValue();
@@ -2709,10 +2750,12 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       fatherName: v.fatherName.trim() || null,
       spouseName: v.spouseName.trim() || null,
       beneficiaryIdentities: [
-        {
-          govtIdentityNo: v.govtIdentityNo.trim(),
-          govtIdentityTypeID: v.identityType ?? '',
-        },
+        v.identityType == null && this.updateIdentityPlaceholder
+          ? this.updateIdentityPlaceholder
+          : {
+              govtIdentityNo: v.govtIdentityNo.trim(),
+              govtIdentityTypeID: v.identityType ?? '',
+            },
       ],
       createdBy,
       titleId: v.titleId,

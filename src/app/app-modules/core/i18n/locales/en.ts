@@ -193,6 +193,7 @@ export const en = {
   'registration.toast.selected': 'Beneficiary selected for this call.',
   'registration.toast.registered': 'Beneficiary registered and selected.',
   'registration.toast.modified': 'Beneficiary details updated.',
+  'registration.toast.invalidFields': 'Please correct these fields before saving:',
   'registration.toast.error': 'Something went wrong. Please try again.',
   'registration.success.title': 'Success',
   'registration.success.message': 'Beneficiary registered successfully. Registration ID:',
