@@ -976,6 +976,8 @@ export const as: Record<TranslationKey, string> = {
   'hao.closure.instituteType': 'প্ৰতিষ্ঠানৰ প্ৰকাৰ',
   'hao.closure.selectInstituteType': 'প্ৰতিষ্ঠানৰ প্ৰকাৰ বাছক',
   'hao.closure.instituteName': 'প্ৰতিষ্ঠানৰ নাম',
+  'hao.closure.selectInstituteName': 'প্ৰতিষ্ঠানৰ নাম বাছক',
+  'hao.closure.noInstituteNames': 'কোনো প্ৰতিষ্ঠান উপলব্ধ নাই',
   'hao.closure.updateCasteError': "জাতি/শিক্ষা ছেভ কৰিব পৰা নগ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
   'hao.closure.remarks': 'মন্তব্য',
   'hao.closure.callerDisconnectedNotice':
@@ -1776,6 +1778,8 @@ export const as: Record<TranslationKey, string> = {
   'hihl.familyHistory': 'পাৰিবাৰিক ইতিহাস',
   'hihl.familyCondition': 'পাৰিবাৰিক অৱস্থা',
   'hihl.familyMembers': 'পৰিয়ালৰ সদস্য',
+  'hihl.select': 'বাছনি কৰক',
+  'hihl.noOptions': 'কোনো বিকল্প উপলব্ধ নাই',
   'hihl.personalAndSocialHistory': 'ব্যক্তিগত আৰু সামাজিক ইতিহাস',
   'hihl.mentalStatusExamination': 'মানসিক অৱস্থাৰ পৰীক্ষা',
   'hihl.summary': 'সাৰাংশ',

@@ -25,6 +25,7 @@ import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule
 
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardInputDirective } from '@common-ui/ui/input';
+import { ZardSelectImports } from '@common-ui/ui/select';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
@@ -83,7 +84,7 @@ const DURATION_UNIT_KEYS: Record<DurationUnit, TranslationKey> = {
   selector: 'app-hihl-case-sheet',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, TranslatePipe, ZardButtonComponent, ZardInputDirective, SnomedSearchComponent, HihlCaseSheetHistoryComponent],
+  imports: [ReactiveFormsModule, TranslatePipe, ZardButtonComponent, ZardInputDirective, ZardSelectImports, SnomedSearchComponent, HihlCaseSheetHistoryComponent],
   template: `
     <div class="flex flex-col gap-6" [formGroup]="form">
       <!-- Chief Complaints -->
@@ -177,38 +178,52 @@ const DURATION_UNIT_KEYS: Record<DurationUnit, TranslationKey> = {
         <h3 class="text-sm font-semibold text-foreground">{{ 'hihl.biologicalFunctioning' | translate: lang() }}</h3>
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
-          <select formControlName="appetite" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
-            <option [ngValue]="null">{{ 'hihl.appetite' | translate: lang() }}</option>
-            @for (item of masterData()?.m_104appetite ?? []; track item.appetiteName) {
-              <option [ngValue]="item.appetiteName">{{ item.appetiteName }}</option>
-            }
-          </select>
+          <div class="flex flex-col gap-1.5">
+            <label for="hihl-appetite" class="text-sm font-medium text-foreground">{{ 'hihl.appetite' | translate: lang() }}</label>
+            <select id="hihl-appetite" formControlName="appetite" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
+              <option [ngValue]="null">{{ 'hihl.appetite' | translate: lang() }}</option>
+              @for (item of masterData()?.m_104appetite ?? []; track item.appetiteName) {
+                <option [ngValue]="item.appetiteName">{{ item.appetiteName }}</option>
+              }
+            </select>
+          </div>
 
-          <select
-            multiple
-            formControlName="sleep"
-            (change)="onSleepChange($event)"
-            [attr.aria-label]="'hihl.sleep' | translate: lang()"
-            class="h-24 rounded-md border border-border bg-background px-3 text-sm"
-          >
-            @for (item of masterData()?.m_104sleep ?? []; track item.slipName) {
-              <option [value]="item.slipName" [disabled]="sleepOptionDisabled(item.slipName)">{{ item.slipName }}</option>
-            }
-          </select>
+          <div class="flex flex-col gap-1.5">
+            <span id="hihl-sleep-label" class="text-sm font-medium text-foreground">{{ 'hihl.sleep' | translate: lang() }}</span>
+            <z-select
+              formControlName="sleep"
+              [zMultiple]="true"
+              [zMaxLabelCount]="2"
+              [zPlaceholder]="'hihl.select' | translate: lang()"
+              [zEmptyText]="'hihl.noOptions' | translate: lang()"
+              aria-labelledby="hihl-sleep-label"
+              (zSelectionChange)="onSleepChange($event)"
+            >
+              @for (item of masterData()?.m_104sleep ?? []; track item.slipName) {
+                <z-select-item [zValue]="item.slipName" [zDisabled]="sleepOptionDisabled(item.slipName)">{{ item.slipName }}</z-select-item>
+              }
+            </z-select>
+          </div>
 
-          <select formControlName="bowelValue" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
-            <option [ngValue]="null">{{ 'hihl.bowel' | translate: lang() }}</option>
-            @for (item of masterData()?.m_104bowel ?? []; track item.bowelName) {
-              <option [ngValue]="item.bowelName">{{ item.bowelName }}</option>
-            }
-          </select>
+          <div class="flex flex-col gap-1.5">
+            <label for="hihl-bowel" class="text-sm font-medium text-foreground">{{ 'hihl.bowel' | translate: lang() }}</label>
+            <select id="hihl-bowel" formControlName="bowelValue" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
+              <option [ngValue]="null">{{ 'hihl.bowel' | translate: lang() }}</option>
+              @for (item of masterData()?.m_104bowel ?? []; track item.bowelName) {
+                <option [ngValue]="item.bowelName">{{ item.bowelName }}</option>
+              }
+            </select>
+          </div>
 
-          <select formControlName="libidoValue" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
-            <option [ngValue]="null">{{ 'hihl.libido' | translate: lang() }}</option>
-            @for (item of masterData()?.m_104libido ?? []; track item.libidoName) {
-              <option [ngValue]="item.libidoName">{{ item.libidoName }}</option>
-            }
-          </select>
+          <div class="flex flex-col gap-1.5">
+            <label for="hihl-libido" class="text-sm font-medium text-foreground">{{ 'hihl.libido' | translate: lang() }}</label>
+            <select id="hihl-libido" formControlName="libidoValue" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
+              <option [ngValue]="null">{{ 'hihl.libido' | translate: lang() }}</option>
+              @for (item of masterData()?.m_104libido ?? []; track item.libidoName) {
+                <option [ngValue]="item.libidoName">{{ item.libidoName }}</option>
+              }
+            </select>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -244,50 +259,71 @@ const DURATION_UNIT_KEYS: Record<DurationUnit, TranslationKey> = {
 
         <h3 class="text-sm font-semibold text-foreground">{{ 'hihl.occupationalFunctioning' | translate: lang() }}</h3>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <select formControlName="goingToWork" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
-            <option [ngValue]="null">{{ 'hihl.goingToWork' | translate: lang() }}</option>
-            @for (item of masterData()?.m_104regularworok ?? []; track item.regularWorkName) {
-              <option [ngValue]="item.regularWorkName">{{ item.regularWorkName }}</option>
-            }
-          </select>
+          <div class="flex flex-col gap-1.5">
+            <label for="hihl-going-to-work" class="text-sm font-medium text-foreground">{{ 'hihl.goingToWork' | translate: lang() }}</label>
+            <select id="hihl-going-to-work" formControlName="goingToWork" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
+              <option [ngValue]="null">{{ 'hihl.goingToWork' | translate: lang() }}</option>
+              @for (item of masterData()?.m_104regularworok ?? []; track item.regularWorkName) {
+                <option [ngValue]="item.regularWorkName">{{ item.regularWorkName }}</option>
+              }
+            </select>
+          </div>
 
-          <select formControlName="issueAtWork" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
-            <option [ngValue]="null">{{ 'hihl.issuesAtWorkplace' | translate: lang() }}</option>
-            @for (item of masterData()?.m_104issuesatworkplace ?? []; track item.issueAtWorkPlaceName) {
-              <option [ngValue]="item.issueAtWorkPlaceName">{{ item.issueAtWorkPlaceName }}</option>
-            }
-          </select>
+          <div class="flex flex-col gap-1.5">
+            <label for="hihl-issue-at-work" class="text-sm font-medium text-foreground">{{ 'hihl.issuesAtWorkplace' | translate: lang() }}</label>
+            <select id="hihl-issue-at-work" formControlName="issueAtWork" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
+              <option [ngValue]="null">{{ 'hihl.issuesAtWorkplace' | translate: lang() }}</option>
+              @for (item of masterData()?.m_104issuesatworkplace ?? []; track item.issueAtWorkPlaceName) {
+                <option [ngValue]="item.issueAtWorkPlaceName">{{ item.issueAtWorkPlaceName }}</option>
+              }
+            </select>
+          </div>
         </div>
 
         <h3 class="text-sm font-semibold text-foreground">{{ 'hihl.socialFunctioning' | translate: lang() }}</h3>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <select formControlName="householdWork" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
-            <option [ngValue]="null">{{ 'hihl.doingOfHouseholdWork' | translate: lang() }}</option>
-            @for (item of masterData()?.m_104householdwork ?? []; track item.houseHoldWorkName) {
-              <option [ngValue]="item.houseHoldWorkName">{{ item.houseHoldWorkName }}</option>
-            }
-          </select>
+          <div class="flex flex-col gap-1.5">
+            <label for="hihl-household-work" class="text-sm font-medium text-foreground">{{ 'hihl.doingOfHouseholdWork' | translate: lang() }}</label>
+            <select id="hihl-household-work" formControlName="householdWork" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
+              <option [ngValue]="null">{{ 'hihl.doingOfHouseholdWork' | translate: lang() }}</option>
+              @for (item of masterData()?.m_104householdwork ?? []; track item.houseHoldWorkName) {
+                <option [ngValue]="item.houseHoldWorkName">{{ item.houseHoldWorkName }}</option>
+              }
+            </select>
+          </div>
 
-          <select formControlName="familyUnity" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
-            <option [ngValue]="null">{{ 'hihl.gettingAlongWithFamily' | translate: lang() }}</option>
-            @for (item of masterData()?.m_104gettingwithfamily ?? []; track item.gettingWithFamilyName) {
-              <option [ngValue]="item.gettingWithFamilyName">{{ item.gettingWithFamilyName }}</option>
-            }
-          </select>
+          <div class="flex flex-col gap-1.5">
+            <label for="hihl-family-unity" class="text-sm font-medium text-foreground">{{ 'hihl.gettingAlongWithFamily' | translate: lang() }}</label>
+            <select id="hihl-family-unity" formControlName="familyUnity" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
+              <option [ngValue]="null">{{ 'hihl.gettingAlongWithFamily' | translate: lang() }}</option>
+              @for (item of masterData()?.m_104gettingwithfamily ?? []; track item.gettingWithFamilyName) {
+                <option [ngValue]="item.gettingWithFamilyName">{{ item.gettingWithFamilyName }}</option>
+              }
+            </select>
+          </div>
 
-          <select
-            multiple
-            formControlName="precipitatingFactor"
-            (change)="onPrecipitatingFactorChange($event)"
-            [attr.aria-label]="'hihl.possiblePrecipitatingFactor' | translate: lang()"
-            class="h-24 rounded-md border border-border bg-background px-3 text-sm"
-          >
-            @for (item of masterData()?.m_104precipitatingfactor ?? []; track item.precipitatingFactorName) {
-              <option [value]="item.precipitatingFactorName" [disabled]="precipitatingFactorOptionDisabled(item.precipitatingFactorName)">
-                {{ item.precipitatingFactorName }}
-              </option>
-            }
-          </select>
+          <div class="flex flex-col gap-1.5">
+            <span id="hihl-precipitating-factor-label" class="text-sm font-medium text-foreground">
+              {{ 'hihl.possiblePrecipitatingFactor' | translate: lang() }}
+            </span>
+            <z-select
+              formControlName="precipitatingFactor"
+              [zMultiple]="true"
+              [zMaxLabelCount]="2"
+              [zPlaceholder]="'hihl.select' | translate: lang()"
+              [zEmptyText]="'hihl.noOptions' | translate: lang()"
+              aria-labelledby="hihl-precipitating-factor-label"
+              (zSelectionChange)="onPrecipitatingFactorChange($event)"
+            >
+              @for (item of masterData()?.m_104precipitatingfactor ?? []; track item.precipitatingFactorName) {
+                <z-select-item
+                  [zValue]="item.precipitatingFactorName"
+                  [zDisabled]="precipitatingFactorOptionDisabled(item.precipitatingFactorName)"
+                  >{{ item.precipitatingFactorName }}</z-select-item
+                >
+              }
+            </z-select>
+          </div>
         </div>
 
         @if (enableOtherPrepFactor()) {
@@ -493,26 +529,43 @@ const DURATION_UNIT_KEYS: Record<DurationUnit, TranslationKey> = {
         <div formArrayName="familyDiseaseList" class="flex flex-col gap-3">
           @for (row of familyDiseaseList.controls; track row; let i = $index; let isLast = $last) {
             <div [formGroupName]="i" class="grid grid-cols-1 gap-3 rounded-md border border-border p-3 sm:grid-cols-3">
-              <select formControlName="familyCondition" (change)="onFamilyConditionChange(i)" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
-                <option [ngValue]="null">{{ 'hihl.familyCondition' | translate: lang() }}</option>
-                @for (item of familyConditionOptions(i); track item.familyConditionId) {
-                  <option [ngValue]="item">{{ item.familyConditionName }}</option>
-                }
-              </select>
+              <div class="flex flex-col gap-1.5">
+                <label [for]="'hihl-family-condition-' + i" class="text-sm font-medium text-foreground">
+                  {{ 'hihl.familyCondition' | translate: lang() }}
+                </label>
+                <select
+                  [id]="'hihl-family-condition-' + i"
+                  formControlName="familyCondition"
+                  (change)="onFamilyConditionChange(i)"
+                  class="h-9 rounded-md border border-border bg-background px-3 text-sm"
+                >
+                  <option [ngValue]="null">{{ 'hihl.familyCondition' | translate: lang() }}</option>
+                  @for (item of familyConditionOptions(i); track item.familyConditionId) {
+                    <option [ngValue]="item">{{ item.familyConditionName }}</option>
+                  }
+                </select>
+              </div>
 
-              <select
-                multiple
-                formControlName="familyMembers"
-                [attr.disabled]="familyMembersDisabled(row) ? true : null"
-                [attr.aria-label]="'hihl.familyMembers' | translate: lang()"
-                class="h-24 rounded-md border border-border bg-background px-3 text-sm"
-              >
-                @for (member of masterData()?.m_104relationship ?? []; track member.relationShipName) {
-                  <option [value]="member.relationShipName">{{ member.relationShipName }}</option>
-                }
-              </select>
+              <div class="flex flex-col gap-1.5">
+                <span [id]="'hihl-family-members-label-' + i" class="text-sm font-medium text-foreground">
+                  {{ 'hihl.familyMembers' | translate: lang() }}
+                </span>
+                <z-select
+                  formControlName="familyMembers"
+                  [zMultiple]="true"
+                  [zMaxLabelCount]="2"
+                  [zDisabled]="familyMembersDisabled(row)"
+                  [zPlaceholder]="'hihl.select' | translate: lang()"
+                  [zEmptyText]="'hihl.noOptions' | translate: lang()"
+                  [aria-labelledby]="'hihl-family-members-label-' + i"
+                >
+                  @for (member of masterData()?.m_104relationship ?? []; track member.relationShipName) {
+                    <z-select-item [zValue]="member.relationShipName">{{ member.relationShipName }}</z-select-item>
+                  }
+                </z-select>
+              </div>
 
-              <div class="flex items-center gap-2">
+              <div class="flex items-end gap-2">
                 @if (i !== 0 || row.dirty || row.touched) {
                   <button z-button type="button" zType="destructive" zSize="sm" (click)="removeFamilyDisease(i)">
                     {{ 'hihl.remove' | translate: lang() }}
@@ -732,15 +785,13 @@ export class HihlCaseSheetComponent {
     return (this.form.controls.precipitatingFactor.value ?? []).includes('Other');
   }
 
-  onSleepChange(event: Event): void {
-    const values = Array.from((event.target as HTMLSelectElement).selectedOptions).map((o) => o.value);
-    this.form.controls.sleep.setValue(values);
+  onSleepChange(selection: string | string[]): void {
+    const values = Array.isArray(selection) ? selection : [selection];
     this.disableSleepValue.set(values.length === 0 ? null : values.includes('Normal'));
   }
 
-  onPrecipitatingFactorChange(event: Event): void {
-    const values = Array.from((event.target as HTMLSelectElement).selectedOptions).map((o) => o.value);
-    this.form.controls.precipitatingFactor.setValue(values);
+  onPrecipitatingFactorChange(selection: string | string[]): void {
+    const values = Array.isArray(selection) ? selection : [selection];
     this.disableFactorValue.set(values.length === 0 ? null : values.includes('None'));
   }
 

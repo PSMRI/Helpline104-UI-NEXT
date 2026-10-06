@@ -974,6 +974,8 @@ export const hi: Record<TranslationKey, string> = {
   'hao.closure.instituteType': 'संस्थान प्रकार',
   'hao.closure.selectInstituteType': 'संस्थान प्रकार चुनें',
   'hao.closure.instituteName': 'संस्थान का नाम',
+  'hao.closure.selectInstituteName': 'संस्थान का नाम चुनें',
+  'hao.closure.noInstituteNames': 'कोई संस्थान उपलब्ध नहीं',
   'hao.closure.updateCasteError': 'जाति/शिक्षा सहेजने में असमर्थ। कृपया पुनः प्रयास करें।',
   'hao.closure.remarks': 'टिप्पणियां',
   'hao.closure.callerDisconnectedNotice':
@@ -1773,6 +1775,8 @@ export const hi: Record<TranslationKey, string> = {
   'hihl.familyHistory': 'पारिवारिक इतिहास',
   'hihl.familyCondition': 'पारिवारिक स्थिति',
   'hihl.familyMembers': 'परिवार के सदस्य',
+  'hihl.select': 'चुनें',
+  'hihl.noOptions': 'कोई विकल्प उपलब्ध नहीं',
   'hihl.personalAndSocialHistory': 'व्यक्तिगत और सामाजिक इतिहास',
   'hihl.mentalStatusExamination': 'मानसिक स्थिति परीक्षण',
   'hihl.summary': 'सारांश',

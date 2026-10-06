@@ -885,4 +885,30 @@ describe('ClosureStepComponent', () => {
 
     expect(fixture.componentInstance.servicesError()).toBe('Could not load the transfer services. Please retry.');
   });
+
+  it('CO picks several institute names from a labelled dropdown, one click each', async () => {
+    const fixture = render('CO');
+    const component = fixture.componentInstance;
+    component.form.controls.externalRefferal.setValue('Yes');
+    component.form.controls.institutionID.setValue(3);
+    http
+      .expectOne((req) => req.url.includes('institute/getInstituteName/3'))
+      .flush({ data: [{ institutionName: 'PHC Silchar' }, { institutionName: 'CHC Dholai' }] });
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('select[multiple]')).toBeNull();
+    expect(host.querySelector('#hao-cl-institute-name-label')?.textContent?.trim()).toBe('Institute Name');
+
+    host.querySelector<HTMLButtonElement>('button[aria-labelledby="hao-cl-institute-name-label"]')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const option = (text: string) =>
+      Array.from(document.querySelectorAll<HTMLElement>('z-select-item')).find((el) => el.textContent?.trim() === text)!;
+    option('PHC Silchar').click();
+    option('CHC Dholai').click();
+    fixture.detectChanges();
+
+    expect(component.form.controls.instituteName.value).toEqual(['PHC Silchar', 'CHC Dholai']);
+  });
 });

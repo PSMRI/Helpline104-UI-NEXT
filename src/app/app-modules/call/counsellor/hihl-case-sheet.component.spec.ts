@@ -199,6 +199,123 @@ describe('HihlCaseSheetComponent', () => {
     expect(component.saving()).toBeFalse();
   });
 
+  describe('multi-select fields', () => {
+    type Fixture = ReturnType<typeof render>;
+
+    function trigger(fixture: Fixture, labelId: string): HTMLButtonElement {
+      return (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+        `button[aria-labelledby="${labelId}"]`,
+      )!;
+    }
+
+    async function open(fixture: Fixture, labelId: string): Promise<void> {
+      trigger(fixture, labelId).click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+    }
+
+    function option(text: string): HTMLElement {
+      return Array.from(document.querySelectorAll<HTMLElement>('z-select-item')).find(
+        (el) => el.textContent?.trim() === text,
+      )!;
+    }
+
+    function pick(fixture: Fixture, text: string): void {
+      option(text).click();
+      fixture.detectChanges();
+    }
+
+    function labelText(fixture: Fixture, labelId: string): string {
+      return (fixture.nativeElement as HTMLElement).querySelector(`#${labelId}`)?.textContent?.trim() ?? '';
+    }
+
+    it('renders no plain multi-select boxes', () => {
+      const fixture = render();
+
+      expect((fixture.nativeElement as HTMLElement).querySelector('select[multiple]')).toBeNull();
+    });
+
+    it('labels Sleep and Possible Precipitating Factor visibly', () => {
+      const fixture = render();
+
+      expect(labelText(fixture, 'hihl-sleep-label')).toBe('Sleep');
+      expect(trigger(fixture, 'hihl-sleep-label')).not.toBeNull();
+      expect(labelText(fixture, 'hihl-precipitating-factor-label')).toBe('Possible Precipitating Factor(s)');
+      expect(trigger(fixture, 'hihl-precipitating-factor-label')).not.toBeNull();
+    });
+
+    it('toggles each sleep option on a single click and marks the form dirty', async () => {
+      const fixture = render();
+      const component = fixture.componentInstance;
+      await open(fixture, 'hihl-sleep-label');
+
+      pick(fixture, 'Disturbed');
+      pick(fixture, 'Excessive');
+
+      expect(component.form.controls.sleep.value).toEqual(['Disturbed', 'Excessive']);
+      expect(component.form.dirty).toBeTrue();
+      expect(option('Normal').hasAttribute('data-disabled')).toBeTrue();
+
+      pick(fixture, 'Disturbed');
+
+      expect(component.form.controls.sleep.value).toEqual(['Excessive']);
+    });
+
+    it('picking Normal disables the other sleep options, and clicking it again releases them', async () => {
+      const fixture = render();
+      const component = fixture.componentInstance;
+      await open(fixture, 'hihl-sleep-label');
+
+      pick(fixture, 'Normal');
+
+      expect(component.form.controls.sleep.value).toEqual(['Normal']);
+      expect(option('Disturbed').hasAttribute('data-disabled')).toBeTrue();
+
+      pick(fixture, 'Disturbed');
+      expect(component.form.controls.sleep.value).toEqual(['Normal']);
+
+      pick(fixture, 'Normal');
+
+      expect(component.form.controls.sleep.value).toEqual([]);
+      expect(option('Disturbed').hasAttribute('data-disabled')).toBeFalse();
+      expect(option('Normal').hasAttribute('data-disabled')).toBeFalse();
+    });
+
+    it('picking None disables the other precipitating factors, and clicking it again releases them', async () => {
+      const fixture = render();
+      const component = fixture.componentInstance;
+      await open(fixture, 'hihl-precipitating-factor-label');
+
+      pick(fixture, 'None');
+
+      expect(component.form.controls.precipitatingFactor.value).toEqual(['None']);
+      expect(option('Stress').hasAttribute('data-disabled')).toBeTrue();
+
+      pick(fixture, 'None');
+
+      expect(component.form.controls.precipitatingFactor.value).toEqual([]);
+      expect(option('Stress').hasAttribute('data-disabled')).toBeFalse();
+    });
+
+    it('labels Family Member visibly and keeps it disabled until a family condition is chosen', async () => {
+      const fixture = render();
+      const component = fixture.componentInstance;
+
+      expect(labelText(fixture, 'hihl-family-members-label-0')).toBe('Family Member(s)');
+      expect(trigger(fixture, 'hihl-family-members-label-0').disabled).toBeTrue();
+
+      component.familyDiseaseList.at(0).patchValue({ familyCondition: MASTER_DATA.m_104familycondition![1] });
+      fixture.detectChanges();
+
+      expect(trigger(fixture, 'hihl-family-members-label-0').disabled).toBeFalse();
+
+      await open(fixture, 'hihl-family-members-label-0');
+      pick(fixture, 'Mother');
+
+      expect(component.familyDiseaseList.at(0).value.familyMembers).toEqual(['Mother']);
+    });
+  });
+
   const PICKER_CASES = [
     {
       name: 'chief complaint',

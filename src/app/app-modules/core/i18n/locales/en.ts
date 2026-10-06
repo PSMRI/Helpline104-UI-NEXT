@@ -971,6 +971,8 @@ export const en = {
   'hao.closure.instituteType': 'Institute Type',
   'hao.closure.selectInstituteType': 'Select institute type',
   'hao.closure.instituteName': 'Institute Name',
+  'hao.closure.selectInstituteName': 'Select institute name',
+  'hao.closure.noInstituteNames': 'No institutes available',
   'hao.closure.updateCasteError': 'Unable to save caste/education. Please try again.',
   'hao.closure.remarks': 'Remarks',
   'hao.closure.callerDisconnectedNotice':
@@ -1771,6 +1773,8 @@ export const en = {
   'hihl.familyHistory': 'Family History',
   'hihl.familyCondition': 'Family Condition',
   'hihl.familyMembers': 'Family Member(s)',
+  'hihl.select': 'Select',
+  'hihl.noOptions': 'No options available',
   'hihl.personalAndSocialHistory': 'Personal & Social History',
   'hihl.mentalStatusExamination': 'Mental Status Examination',
   'hihl.summary': 'Summary',
