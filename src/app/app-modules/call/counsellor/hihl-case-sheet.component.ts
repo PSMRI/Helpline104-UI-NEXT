@@ -103,7 +103,7 @@ const DURATION_UNIT_KEYS: Record<DurationUnit, TranslationKey> = {
                 class="h-9 rounded-md border border-border bg-background px-3 text-sm"
               >
                 <option [ngValue]="null">{{ 'hihl.chiefComplaints' | translate: lang() }}</option>
-                @for (item of chiefComplaintOptions(); track item.psychiatricChiefComplaintId) {
+                @for (item of chiefComplaintOptions(i); track item.psychiatricChiefComplaintId) {
                   <option [ngValue]="item">{{ item.psychiatricChiefComplaintName }}</option>
                 }
               </select>
@@ -326,7 +326,7 @@ const DURATION_UNIT_KEYS: Record<DurationUnit, TranslationKey> = {
             <div [formGroupName]="i" class="grid grid-cols-1 gap-3 rounded-md border border-border p-3 sm:grid-cols-4">
               <select formControlName="pastPsychiatricCondition" (change)="onPastPsychiatricConditionChange(i)" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
                 <option [ngValue]="null">{{ 'hihl.pastPsychiatricCondition' | translate: lang() }}</option>
-                @for (item of pastPsychiatricConditionOptions(); track item.pastPsychiatricConditionId) {
+                @for (item of pastPsychiatricConditionOptions(i); track item.pastPsychiatricConditionId) {
                   <option [ngValue]="item">{{ item.pastPsychiatricConditionName }}</option>
                 }
               </select>
@@ -418,7 +418,7 @@ const DURATION_UNIT_KEYS: Record<DurationUnit, TranslationKey> = {
             <div [formGroupName]="i" class="grid grid-cols-1 gap-3 rounded-md border border-border p-3 sm:grid-cols-4">
               <select formControlName="pastMedicalCondition" (change)="onPastMedicalConditionChange(i)" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
                 <option [ngValue]="null">{{ 'hihl.pastMedicalCondition' | translate: lang() }}</option>
-                @for (item of pastMedicalConditionOptions(); track item.pastMedicalConditionId) {
+                @for (item of pastMedicalConditionOptions(i); track item.pastMedicalConditionId) {
                   <option [ngValue]="item">{{ item.pastMedicalConditionName }}</option>
                 }
               </select>
@@ -495,7 +495,7 @@ const DURATION_UNIT_KEYS: Record<DurationUnit, TranslationKey> = {
             <div [formGroupName]="i" class="grid grid-cols-1 gap-3 rounded-md border border-border p-3 sm:grid-cols-3">
               <select formControlName="familyCondition" (change)="onFamilyConditionChange(i)" class="h-9 rounded-md border border-border bg-background px-3 text-sm">
                 <option [ngValue]="null">{{ 'hihl.familyCondition' | translate: lang() }}</option>
-                @for (item of familyConditionOptions(); track item.familyConditionId) {
+                @for (item of familyConditionOptions(i); track item.familyConditionId) {
                   <option [ngValue]="item">{{ item.familyConditionName }}</option>
                 }
               </select>
@@ -624,40 +624,44 @@ export class HihlCaseSheetComponent {
   }
 
   /** Chief-complaint options, excluding rows already picked in other complaint slots. */
-  chiefComplaintOptions(): PsychiatricChiefComplaintOption[] {
+  chiefComplaintOptions(index: number): PsychiatricChiefComplaintOption[] {
     const all = this.masterData()?.psychiatricChiefComplaints ?? [];
     const picked = new Set(
       this.complaints.controls
+        .filter((_, i) => i !== index)
         .map((c) => (c.value.chiefComplaint as PsychiatricChiefComplaintOption | null)?.psychiatricChiefComplaintId)
         .filter((id): id is number => id !== undefined && id !== null),
     );
     return all.filter((item) => !picked.has(item.psychiatricChiefComplaintId));
   }
 
-  pastPsychiatricConditionOptions(): PastPsychiatricConditionOption[] {
+  pastPsychiatricConditionOptions(index: number): PastPsychiatricConditionOption[] {
     const all = this.masterData()?.m_104pastpsychiatriccondition ?? [];
     const picked = new Set(
       this.pastPsychiatricConditions.controls
+        .filter((_, i) => i !== index)
         .map((c) => (c.value.pastPsychiatricCondition as PastPsychiatricConditionOption | null)?.pastPsychiatricConditionId)
         .filter((id): id is number => id !== undefined && id !== null),
     );
     return all.filter((item) => !picked.has(item.pastPsychiatricConditionId));
   }
 
-  pastMedicalConditionOptions(): PastMedicalConditionOption[] {
+  pastMedicalConditionOptions(index: number): PastMedicalConditionOption[] {
     const all = this.masterData()?.m_104pastmedicalcondition ?? [];
     const picked = new Set(
       this.pastMedicalConditions.controls
+        .filter((_, i) => i !== index)
         .map((c) => (c.value.pastMedicalCondition as PastMedicalConditionOption | null)?.pastMedicalConditionId)
         .filter((id): id is number => id !== undefined && id !== null),
     );
     return all.filter((item) => !picked.has(item.pastMedicalConditionId));
   }
 
-  familyConditionOptions(): FamilyConditionOption[] {
+  familyConditionOptions(index: number): FamilyConditionOption[] {
     const all = this.masterData()?.m_104familycondition ?? [];
     const picked = new Set(
       this.familyDiseaseList.controls
+        .filter((_, i) => i !== index)
         .map((c) => (c.value.familyCondition as FamilyConditionOption | null)?.familyConditionId)
         .filter((id): id is number => id !== undefined && id !== null),
     );
