@@ -37,6 +37,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ZardButtonComponent } from '@common-ui/ui/button';
 import { ZardFormMessageComponent } from '@common-ui/ui/form';
 import { ZardInputDirective } from '@common-ui/ui/input';
+import { ZardSelectImports } from '@common-ui/ui/select';
 
 import { ConfirmDialogService } from '@/shared/components/confirm-dialog';
 
@@ -137,6 +138,7 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
     ZardButtonComponent,
     ZardFormMessageComponent,
     ZardInputDirective,
+    ZardSelectImports,
     ScheduleAppointmentComponent,
   ],
   template: `
@@ -464,19 +466,21 @@ const CONFIGURE_CAMPAIGN_ERROR_KEYS = {
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-medium" for="hao-cl-institute-name">
+              <span class="text-sm font-medium" id="hao-cl-institute-name-label">
                 {{ 'hao.closure.instituteName' | translate: lang() }}
-              </label>
-              <select
-                id="hao-cl-institute-name"
+              </span>
+              <z-select
                 formControlName="instituteName"
-                multiple
-                class="h-24 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                [zMultiple]="true"
+                [zMaxLabelCount]="2"
+                [zPlaceholder]="'hao.closure.selectInstituteName' | translate: lang()"
+                [zEmptyText]="'hao.closure.noInstituteNames' | translate: lang()"
+                aria-labelledby="hao-cl-institute-name-label"
               >
                 @for (name of instituteNames(); track name.institutionName) {
-                  <option [ngValue]="name.institutionName">{{ name.institutionName }}</option>
+                  <z-select-item [zValue]="name.institutionName">{{ name.institutionName }}</z-select-item>
                 }
-              </select>
+              </z-select>
             </div>
           }
         </div>
