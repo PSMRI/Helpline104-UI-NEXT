@@ -281,7 +281,7 @@ const DURATION_UNIT_KEYS: Record<DurationUnit, TranslationKey> = {
         </div>
 
         <h3 class="text-sm font-semibold text-foreground">{{ 'hihl.socialFunctioning' | translate: lang() }}</h3>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
           <div class="flex flex-col gap-1.5">
             <label for="hihl-household-work" class="text-sm font-medium text-foreground">{{ 'hihl.doingOfHouseholdWork' | translate: lang() }}</label>
             <select id="hihl-household-work" formControlName="householdWork" class="h-9 rounded-md border border-border bg-background px-3 text-sm">

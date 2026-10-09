@@ -80,7 +80,7 @@ import { MctsCallRow, MctsQaRow, OtherHelplineError } from './other-helpline.mod
                   <td class="px-3 py-2">
                     {{ row.mctsOutboundCall?.displayOBCallType || row.callType?.callType || '—' }}
                   </td>
-                  <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
+                  <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a' : 'UTC') || '—' }}</td>
                   <td class="px-3 py-2">{{ row.callType?.callGroupType || '—' }}</td>
                   <td class="px-3 py-2">{{ row.smsAdvice || '—' }}</td>
                   <td class="px-3 py-2">{{ row.remark || '—' }}</td>

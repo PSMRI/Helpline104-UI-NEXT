@@ -89,7 +89,7 @@ import { FeedbackLogRow } from './feedback-log.models';
                     <td class="px-3 py-2">{{ i + 1 }}</td>
                     <td class="px-3 py-2">{{ row.feedbackLogs || '—' }}</td>
                     <td class="px-3 py-2">{{ row.createdBy || '—' }}</td>
-                    <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
+                    <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a' : 'UTC') || '—' }}</td>
                   </tr>
                 }
               </tbody>
