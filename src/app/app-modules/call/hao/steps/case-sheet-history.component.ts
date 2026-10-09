@@ -112,7 +112,7 @@ import { HaoService } from '../hao.service';
                   <td class="px-3 py-2">{{ row.requestID || row.benHistoryID || '—' }}</td>
                   <td class="px-3 py-2">{{ row.patientName || '—' }}</td>
                   <td class="px-3 py-2">{{ row.patientAge || '—' }}</td>
-                  <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
+                  <td class="px-3 py-2">{{ (row.createdDate | date: 'dd/MM/yyyy hh:mm a' : 'UTC') || '—' }}</td>
                   <!-- Header/field pairings 5, 7 and 10 look wrong because they are
                        wrong in legacy; see the class doc comment. Ported as-is. -->
                   <td class="px-3 py-2" [title]="row.diseaseSummaryID || ''">{{ row.diseaseSummary || '—' }}</td>

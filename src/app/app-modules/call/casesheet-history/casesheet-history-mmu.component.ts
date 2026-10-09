@@ -77,7 +77,7 @@ import { MmuVisitRow, OtherHelplineError } from './other-helpline.models';
             <tbody>
               @for (visit of rows(); track $index) {
                 <tr class="border-t border-border align-top">
-                  <td class="px-3 py-2">{{ (visit.benVisitDate | date: 'dd/MM/yyyy hh:mm a') || '—' }}</td>
+                  <td class="px-3 py-2">{{ (visit.benVisitDate | date: 'dd/MM/yyyy hh:mm a' : 'UTC') || '—' }}</td>
                   <td class="px-3 py-2">{{ visit.VisitReason || '—' }}</td>
                   <td class="px-3 py-2">{{ visit.VisitCategory || '—' }}</td>
                   <td class="px-3 py-2">{{ visit.visitCode || '—' }}</td>
