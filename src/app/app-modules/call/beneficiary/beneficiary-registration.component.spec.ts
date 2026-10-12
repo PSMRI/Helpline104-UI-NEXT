@@ -202,7 +202,47 @@ describe('BeneficiaryRegistrationComponent', () => {
     expect(component.displayedHistoryResults()).toEqual([{ beneficiaryRegID: 7 }]);
   });
 
+  it('orders the called-earlier history newest first with the Self record pinned on top, as legacy does', () => {
+    const fixture = renderWithCli();
+    const self = {
+      beneficiaryRegID: 2,
+      benPhoneMaps: [{ benRelationshipID: 1, benRelationshipType: { benRelationshipType: 'Self' } }],
+    } as BeneficiaryRecord;
+
+    http.expectOne(SEARCH_BY_PHONE).flush({
+      data: [{ beneficiaryRegID: 1 }, self, { beneficiaryRegID: 3 }, { beneficiaryRegID: 4 }],
+    });
+
+    expect(fixture.componentInstance.historyResults().map((r) => r.beneficiaryRegID)).toEqual([2, 4, 3, 1]);
+  });
+
+  it('orders the called-earlier history newest first when no record is marked Self', () => {
+    const fixture = renderWithCli();
+
+    http.expectOne(SEARCH_BY_PHONE).flush({
+      data: [{ beneficiaryRegID: 1 }, { beneficiaryRegID: 2 }, { beneficiaryRegID: 3 }],
+    });
+
+    expect(fixture.componentInstance.historyResults().map((r) => r.beneficiaryRegID)).toEqual([3, 2, 1]);
+  });
+
+  it('relationship() prints blank when the record has no relationship stored, as legacy does', () => {
+    const component = render().componentInstance;
+
+    expect(component.relationship({ beneficiaryRegID: 1 } as BeneficiaryRecord)).toBe('');
+    expect(
+      component.relationship({ beneficiaryRegID: 1, benPhoneMaps: [{ phoneNo: '9876543210' }] } as BeneficiaryRecord),
+    ).toBe('');
+    expect(
+      component.relationship({
+        beneficiaryRegID: 1,
+        benPhoneMaps: [{ benRelationshipID: 11, benRelationshipType: { benRelationshipType: 'Other' } }],
+      } as BeneficiaryRecord),
+    ).toBe('Other');
+  });
+
   describe('called-earlier history pager', () => {
+    /** Rows in backend order (oldest first); the component shows them newest first. */
     function historyRows(count: number): BeneficiaryRecord[] {
       return Array.from({ length: count }, (_, i) => ({ beneficiaryRegID: i + 1 }) as BeneficiaryRecord);
     }
@@ -226,11 +266,11 @@ describe('BeneficiaryRegistrationComponent', () => {
       const component = renderHistory(10).componentInstance;
 
       expect(component.historyTotalPages()).toBe(3);
-      expect(component.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([1, 2, 3, 4]);
+      expect(component.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([10, 9, 8, 7]);
 
       component.historyPageIndex.set(3);
 
-      expect(component.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([9, 10]);
+      expect(component.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([2, 1]);
     });
 
     it('draws a bounded window of page buttons for a long history instead of one per page', () => {
@@ -249,7 +289,7 @@ describe('BeneficiaryRegistrationComponent', () => {
       fixture.detectChanges();
 
       expect(pageButtons(fixture)).toEqual(['1', '59', '60', '61', '118']);
-      expect(component.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([237, 238, 239, 240]);
+      expect(component.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([234, 233, 232, 231]);
     });
 
     it('pages forward from the next control', () => {
@@ -260,7 +300,7 @@ describe('BeneficiaryRegistrationComponent', () => {
       fixture.detectChanges();
 
       expect(fixture.componentInstance.historyPageIndex()).toBe(2);
-      expect(fixture.componentInstance.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([5, 6, 7, 8]);
+      expect(fixture.componentInstance.pagedHistoryResults().map((r) => r.beneficiaryRegID)).toEqual([6, 5, 4, 3]);
     });
 
     it('hides the pager when the history fits on one page', () => {
