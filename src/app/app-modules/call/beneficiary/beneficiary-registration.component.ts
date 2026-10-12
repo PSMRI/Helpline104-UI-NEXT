@@ -1570,9 +1570,9 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
   readonly ageLabel = (row: BeneficiaryRecord): string =>
     row.actualAge != null ? `${row.actualAge} ${row.ageUnits ?? ''}`.trim() : '—';
 
-  /** Caller relationship for this number, defaulting to "Self". */
+  /** Caller relationship for this number; blank when none is stored, as legacy prints it. */
   readonly relationship = (row: BeneficiaryRecord): string =>
-    row.benPhoneMaps?.[0]?.benRelationshipType?.benRelationshipType ?? 'Self';
+    row.benPhoneMaps?.[0]?.benRelationshipType?.benRelationshipType ?? '';
 
   /**
    * Localized gender label for a result row. Maps the API `genderID` (falling
@@ -1903,7 +1903,7 @@ export class BeneficiaryRegistrationComponent implements OnInit, HasUnsavedChang
       .searchByPhone(cli)
       .subscribe({
         next: (rows) => {
-          this.historyResults.set(rows);
+          this.historyResults.set(newestFirstWithSelfPinned(rows));
           this.historyPageIndex.set(1);
           this.historyLoading.set(false);
           this.detectParentBeneficiary(rows);
@@ -3014,6 +3014,20 @@ type RegisterControlName =
 function readDistrictID(value: unknown): number | null {
   const id = typeof value === 'string' ? Number(value) : value;
   return typeof id === 'number' && Number.isFinite(id) ? id : null;
+}
+
+/**
+ * Order the called-earlier history newest registration first, with the
+ * caller's own ("Self") record pinned on top — legacy `handlesuccess()`
+ * (`beneficiary-registration-104.component.ts:670-675`). The backend returns
+ * the rows oldest first with no ordering of its own.
+ */
+function newestFirstWithSelfPinned(rows: readonly BeneficiaryRecord[]): BeneficiaryRecord[] {
+  const self = rows.find(
+    (r) => r.benPhoneMaps?.[0]?.benRelationshipType?.benRelationshipType?.toLowerCase() === 'self',
+  );
+  const others = rows.filter((r) => r !== self).reverse();
+  return self ? [self, ...others] : others;
 }
 
 /** Slice `rows` to the given 1-indexed page of `pageSize` rows. */
